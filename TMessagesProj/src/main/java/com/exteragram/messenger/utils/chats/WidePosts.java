@@ -612,7 +612,7 @@ public abstract class WidePosts {
         }
 
         /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$load$1(final BooleanSupplier booleanSupplier, final TLObject tLObject, final int i) {
+        public  void lambda$load$1(final BooleanSupplier booleanSupplier, final TLObject tLObject, final int i) {
             NotificationCenter.getInstance(this.currentAccount).doOnIdle(new Runnable() {
                 @Override
                 public final void run() {
@@ -622,7 +622,7 @@ public abstract class WidePosts {
         }
 
         /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$load$2(final BooleanSupplier booleanSupplier, final int i, final TLObject tLObject, TLRPC.TL_error tL_error) {
+        public  void lambda$load$2(final BooleanSupplier booleanSupplier, final int i, final TLObject tLObject, TLRPC.TL_error tL_error) {
             AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override
                 public final void run() {
@@ -632,7 +632,7 @@ public abstract class WidePosts {
         }
 
         /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$load$0(BooleanSupplier booleanSupplier, TLObject tLObject, int i) {
+        public  void lambda$load$0(BooleanSupplier booleanSupplier, TLObject tLObject, int i) {
             if (booleanSupplier == null || !booleanSupplier.getAsBoolean()) {
                 if (tLObject instanceof TLRPC.messages_Messages) {
                     TLRPC.messages_Messages messages_messages = (TLRPC.messages_Messages) tLObject;

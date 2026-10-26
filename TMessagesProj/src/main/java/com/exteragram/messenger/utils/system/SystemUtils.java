@@ -15,14 +15,17 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.hardware.biometrics.BiometricManager;
 import android.hardware.fingerprint.FingerprintManager;
-import android.media.MediaCodec;
-import android.media.MediaCodecInfo;
+import android.media.AudioDeviceInfo;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.SystemClock;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import com.exteragram.messenger.utils.network.RemoteUtils;
 import com.exteragram.messenger.utils.ui.UIUtil;
+import com.google.android.gms.cast.MediaError;
+import com.google.android.gms.cast.framework.media.NotificationOptions;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -33,15 +36,15 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
-import org.telegram.messenger.MediaController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.Utilities;
 
 public abstract class SystemUtils {
+    private static volatile boolean lastExternalAudioOutput;
+    public static String lensActivityName;
     private static final List<ExternalApp> externalApps = new ArrayList();
     public static Boolean isLensAvailable = null;
-    public static String lensActivityName;
-    private static volatile int videoEncoderAlignment;
+    private static volatile long lastExternalAudioOutputCheck = -1;
 
     public static boolean isPermissionGranted(String str) {
         return ApplicationLoader.applicationContext.checkSelfPermission(str) == 0;
@@ -132,7 +135,7 @@ public abstract class SystemUtils {
     public static boolean hasBiometrics() {
         int i = Build.VERSION.SDK_INT;
         if (i >= 29) {
-            BiometricManager biometricManagerM = (BiometricManager) ApplicationLoader.applicationContext.getSystemService(BiometricManager.class);
+            BiometricManager biometricManagerM = ((android.hardware.biometrics.BiometricManager) (ApplicationLoader.applicationContext.getSystemService(android.hardware.biometrics.BiometricManager.class)));
             if (biometricManagerM == null) {
                 return false;
             }
@@ -218,32 +221,7 @@ public abstract class SystemUtils {
     }
 
     public static int getRoundVideoResolution() {
-        int iIntValue = RemoteUtils.getIntConfigValue("round_video_resolution", 512).intValue();
-        int videoEncoderAlignment2 = getVideoEncoderAlignment();
-        return (videoEncoderAlignment2 <= 1 || iIntValue % videoEncoderAlignment2 == 0) ? iIntValue : Math.max(videoEncoderAlignment2, (iIntValue / videoEncoderAlignment2) * videoEncoderAlignment2);
-    }
-
-    private static int getVideoEncoderAlignment() {
-        int i = videoEncoderAlignment;
-        if (i != 0) {
-            return i;
-        }
-        MediaCodec mediaCodec = null;
-        int iMax = 1;
-        try {
-            MediaCodec mediaCodecCreateEncoderByType = MediaCodec.createEncoderByType(MediaController.VIDEO_MIME_TYPE);
-            try {
-                MediaCodecInfo.CodecCapabilities capabilitiesForType = mediaCodecCreateEncoderByType.getCodecInfo().getCapabilitiesForType(MediaController.VIDEO_MIME_TYPE);
-                MediaCodecInfo.VideoCapabilities videoCapabilities = capabilitiesForType != null ? capabilitiesForType.getVideoCapabilities() : null;
-                iMax = videoCapabilities != null ? Math.max(1, Math.max(videoCapabilities.getWidthAlignment(), videoCapabilities.getHeightAlignment())) : 1;
-            } finally {
-                mediaCodecCreateEncoderByType.release();
-            }
-        } catch (Throwable th) {
-            FileLog.e(th);
-        }
-        videoEncoderAlignment = iMax;
-        return iMax;
+        return RemoteUtils.getIntConfigValue("round_video_resolution", 512).intValue();
     }
 
     public static int getRoundVideoBitrate() {
@@ -254,8 +232,39 @@ public abstract class SystemUtils {
         return RemoteUtils.getIntConfigValue("round_audio_bitrate", 64).intValue();
     }
 
+    public static int awm() {
+        return R.raw.awm;
+    }
+
     public static long getRoundVideoMaxDurationMs() {
-        return Utilities.clamp(83886080000L / (((long) (Math.max(1, getRoundVideoBitrate()) + Math.max(0, getRoundAudioBitrate()))) * 1024), 60000L, 10000L);
+        return Utilities.clamp(83886080000L / (((long) (Math.max(1, getRoundVideoBitrate()) + Math.max(0, getRoundAudioBitrate()))) * 1024), 60000L, NotificationOptions.SKIP_STEP_TEN_SECONDS_IN_MS);
+    }
+
+    public static boolean hasExternalAudioOutput(AudioManager audioManager) {
+        boolean z = false;
+        if (audioManager == null) {
+            return false;
+        }
+        long jElapsedRealtime = SystemClock.elapsedRealtime();
+        long j = lastExternalAudioOutputCheck;
+        if (j >= 0 && jElapsedRealtime - j < 500) {
+            return lastExternalAudioOutput;
+        }
+        try {
+            for (AudioDeviceInfo audioDeviceInfo : audioManager.getDevices(2)) {
+                int type = audioDeviceInfo.getType();
+                if ((type == 8 || type == 7 || type == 26 || type == 27 || type == 4 || type == 3) && audioDeviceInfo.isSink()) {
+                    z = true;
+                    break;
+                }
+            }
+            lastExternalAudioOutput = z;
+            lastExternalAudioOutputCheck = jElapsedRealtime;
+            return z;
+        } catch (Exception e) {
+            FileLog.e(e);
+            return lastExternalAudioOutput;
+        }
     }
 
     public static List<ExternalApp> getExternalApps() {
@@ -300,7 +309,7 @@ public abstract class SystemUtils {
             return this.appIcon;
         }
 
-        private String fetchName() {
+        private String fetchName() throws PackageManager.NameNotFoundException {
             String string;
             PackageManager packageManager = ApplicationLoader.applicationContext.getPackageManager();
             ApplicationInfo applicationInfo = null;
@@ -326,7 +335,7 @@ public abstract class SystemUtils {
                 Intent intent = new Intent("android.intent.action.VIEW", Uri.parse("tel:" + str));
                 intent.setClassName(this.packageName, this.activityName);
                 intent.addFlags(268435456);
-                activity.startActivityForResult(intent, 500);
+                activity.startActivityForResult(intent, MediaError.DetailedErrorCode.SEGMENT_UNKNOWN);
             } catch (Exception e) {
                 FileLog.e(e);
             }

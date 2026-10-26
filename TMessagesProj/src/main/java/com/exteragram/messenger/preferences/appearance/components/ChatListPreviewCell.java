@@ -8,6 +8,7 @@ import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.widget.FrameLayout;
+import androidx.core.content.ContextCompat;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.preferences.components.CustomPreferenceCell;
 import com.exteragram.messenger.preferences.components.PreviewBackgroundDrawable;
@@ -75,9 +76,9 @@ public class ChatListPreviewCell extends FrameLayout implements CustomPreference
                 drawable = this.statusDrawable;
             } else if (currentUser.premium) {
                 if (this.premiumStar == null) {
-                    Drawable drawableMutate = getContext().getResources().getDrawable(R.drawable.msg_premium_liststar).mutate();
+                    Drawable drawableMutate = ContextCompat.getDrawable(getContext(), R.drawable.msg_premium_liststar).mutate();
                     drawableMutate.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_profile_verifiedBackground), PorterDuff.Mode.MULTIPLY));
-                    this.premiumStar = new AnimatedEmojiDrawable.WrapSizeDrawable(drawableMutate, AndroidUtilities.dp(18.0f), AndroidUtilities.dp(18.0f)) { 
+                    this.premiumStar = new AnimatedEmojiDrawable.WrapSizeDrawable(drawableMutate, AndroidUtilities.dp(18.0f), AndroidUtilities.dp(18.0f)) {
                         @Override // org.telegram.ui.Components.AnimatedEmojiDrawable.WrapSizeDrawable, android.graphics.drawable.Drawable
                         public void draw(Canvas canvas) {
                             canvas.save();
@@ -112,8 +113,8 @@ public class ChatListPreviewCell extends FrameLayout implements CustomPreference
         setMeasuredDimension(View.MeasureSpec.getSize(i), getMeasuredHeight());
     }
 
-    @Override 
-    public boolean equals(Object obj) {
+    @Override // com.exteragram.messenger.preferences.components.CustomPreferenceCell
+    public boolean isSameCell(Object obj) {
         if (this == obj) {
             return true;
         }

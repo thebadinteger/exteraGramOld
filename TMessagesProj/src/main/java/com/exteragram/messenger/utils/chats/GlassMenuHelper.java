@@ -5,9 +5,10 @@ import android.graphics.Canvas;
 import android.graphics.RectF;
 import android.view.View;
 import android.view.ViewGroup;
+import androidx.core.content.ContextCompat;
 import com.exteragram.messenger.ExteraConfig;
-import com.exteragram.messenger.debug.DebugConfig;
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.LiteMode;
 import org.telegram.messenger.R;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.ActionBarPopupWindow;
@@ -24,34 +25,33 @@ import org.telegram.ui.Components.blur3.utils.Blur3Utils;
 
 public abstract class GlassMenuHelper {
     public static void captureBlur(final BlurredBackgroundSourceBitmap blurredBackgroundSourceBitmap, final BlurredBackgroundDrawableViewFactory blurredBackgroundDrawableViewFactory, final View view) {
-        ScrimOptions.makeGlobalBlurBitmaps(new Utilities.Callback2() { 
-            @Override 
+        ScrimOptions.makeGlobalBlurBitmaps(new Utilities.Callback2() {
+            @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
-                GlassMenuHelper.m1495$r8$lambda$VhYqc1_r5IlxZtuR_mFy6_NTTk(blurredBackgroundSourceBitmap, view, blurredBackgroundDrawableViewFactory, (Bitmap) obj, (Bitmap) obj2);
+                GlassMenuHelper.m2151$r8$lambda$VhYqc1_r5IlxZtuR_mFy6_NTTk(blurredBackgroundSourceBitmap, view, blurredBackgroundDrawableViewFactory, (Bitmap) obj, (Bitmap) obj2);
             }
         });
     }
 
-    public static /* synthetic */ void m1495$r8$lambda$VhYqc1_r5IlxZtuR_mFy6_NTTk(BlurredBackgroundSourceBitmap blurredBackgroundSourceBitmap, View view, BlurredBackgroundDrawableViewFactory blurredBackgroundDrawableViewFactory, Bitmap bitmap, Bitmap bitmap2) {
+    public static void m2151$r8$lambda$VhYqc1_r5IlxZtuR_mFy6_NTTk(BlurredBackgroundSourceBitmap blurredBackgroundSourceBitmap, View view, BlurredBackgroundDrawableViewFactory blurredBackgroundDrawableViewFactory, Bitmap bitmap, Bitmap bitmap2) {
         blurredBackgroundSourceBitmap.setBitmap(bitmap2);
         Blur3Utils.checkBitmapSourceMatrixScale(blurredBackgroundSourceBitmap, view);
         blurredBackgroundDrawableViewFactory.invalidateAllLinkedViews();
+    }
+
+    public static boolean isEnabled(Theme.ResourcesProvider resourcesProvider) {
+        return ExteraConfig.getGlassMessageMenu() && BlurredBackgroundProviderImpl.checkBlurEnabled(resourcesProvider);
     }
 
     public static boolean isEnabled(int i, Theme.ResourcesProvider resourcesProvider) {
         return ExteraConfig.getGlassMessageMenu() && BlurredBackgroundProviderImpl.checkBlurEnabled(i, resourcesProvider);
     }
 
-    public static boolean isHeaderMenuEnabled(int i, Theme.ResourcesProvider resourcesProvider) {
-        return DebugConfig.getGlassHeaderMenu() && BlurredBackgroundProviderImpl.checkBlurEnabled(i, resourcesProvider);
-    }
-
     public static int separatorColor(boolean z, Theme.ResourcesProvider resourcesProvider) {
         if (!z) {
             return Theme.getColor(Theme.key_actionBarDefaultSubmenuSeparator, resourcesProvider);
         }
-        boolean isDark = resourcesProvider != null ? resourcesProvider.isDark() : Theme.isCurrentThemeDark();
-        return Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuItem, resourcesProvider), isDark ? 0.03f : 0.06f);
+        return Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuItem, resourcesProvider), resourcesProvider != null ? resourcesProvider.isDark() : Theme.isCurrentThemeDark() ? 0.03f : 0.06f);
     }
 
     public static BlurredBackgroundDrawable createPanelBackground(BlurredBackgroundDrawableViewFactory blurredBackgroundDrawableViewFactory, Theme.ResourcesProvider resourcesProvider, View view) {
@@ -70,23 +70,22 @@ public abstract class GlassMenuHelper {
         }
     }
 
-    public static void applyToReusedMenu(BlurredBackgroundDrawableViewFactory blurredBackgroundDrawableViewFactory, BlurredBackgroundSourceBitmap blurredBackgroundSourceBitmap, Theme.ResourcesProvider resourcesProvider, ActionBarPopupWindow.ActionBarPopupWindowLayout actionBarPopupWindowLayout, View view, boolean z) {
+    public static void applyToReusedMenu(BlurredBackgroundDrawableViewFactory blurredBackgroundDrawableViewFactory, Theme.ResourcesProvider resourcesProvider, ActionBarPopupWindow.ActionBarPopupWindowLayout actionBarPopupWindowLayout, boolean z) {
         if (actionBarPopupWindowLayout == null) {
             return;
         }
         if (z) {
             applyToPopup(blurredBackgroundDrawableViewFactory, resourcesProvider, actionBarPopupWindowLayout);
             applyToGaps(actionBarPopupWindowLayout, separatorColor(true, resourcesProvider));
-            captureBlur(blurredBackgroundSourceBitmap, blurredBackgroundDrawableViewFactory, view);
-        } else {
-            actionBarPopupWindowLayout.setGlassBackgroundFactory(null);
-            actionBarPopupWindowLayout.setBackgroundDrawable(actionBarPopupWindowLayout.getResources().getDrawable(R.drawable.popup_fixed_alert4).mutate());
-            actionBarPopupWindowLayout.setBackgroundColor(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground, resourcesProvider));
-            if (actionBarPopupWindowLayout.getSwipeBack() != null) {
-                actionBarPopupWindowLayout.getSwipeBack().setForegroundDrawable(null);
-            }
-            applyToGaps(actionBarPopupWindowLayout, separatorColor(false, resourcesProvider), true);
+            return;
         }
+        actionBarPopupWindowLayout.setGlassBackgroundFactory(null);
+        actionBarPopupWindowLayout.setBackgroundDrawable(ContextCompat.getDrawable(actionBarPopupWindowLayout.getContext(), R.drawable.popup_fixed_alert4).mutate());
+        actionBarPopupWindowLayout.setBackgroundColor(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground, resourcesProvider));
+        if (actionBarPopupWindowLayout.getSwipeBack() != null) {
+            actionBarPopupWindowLayout.getSwipeBack().setForegroundDrawable(null);
+        }
+        applyToGaps(actionBarPopupWindowLayout, separatorColor(false, resourcesProvider), true);
     }
 
     public static void applyToReactions(BlurredBackgroundDrawableViewFactory blurredBackgroundDrawableViewFactory, Theme.ResourcesProvider resourcesProvider, ReactionsContainerLayout reactionsContainerLayout) {
@@ -130,16 +129,24 @@ public abstract class GlassMenuHelper {
     }
 
     private static BlurredBackgroundProviderBuilder scrimMenuGlass(Theme.ResourcesProvider resourcesProvider) {
-        return new BlurredBackgroundProviderBuilder(resourcesProvider).setBackgroundColor(new BlurredBackgroundProviderBuilder.ColorProvider() { 
+        return new BlurredBackgroundProviderBuilder(resourcesProvider).setBackgroundColor(new BlurredBackgroundProviderBuilder.ColorProvider() {
             @Override // org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundProviderBuilder.ColorProvider
             public final int getColor(Theme.ResourcesProvider resourcesProvider2, boolean z) {
-                return Theme.multAlpha(Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground), z ? 0.85f : 0.76f);
+                return GlassMenuHelper.$r8$lambda$fBMhOBc4cJbUhtuUSJLcBiZ6eZE(resourcesProvider2, z);
             }
         }).setStrokeColorTop(0, 0).setStrokeColorBottom(0, 0).setStrokeColorFull(0, 0).setStrokeWidth(0.0f, 0.0f);
     }
 
+    public static int $r8$lambda$fBMhOBc4cJbUhtuUSJLcBiZ6eZE(Theme.ResourcesProvider resourcesProvider, boolean z) {
+        int color = Theme.getColor(Theme.key_actionBarDefaultSubmenuBackground);
+        if (LiteMode.isEnabled(256)) {
+            return Theme.multAlpha(color, z ? 0.85f : 0.825f);
+        }
+        return color;
+    }
+
     public static BlurredBackgroundProvider scrimMenuBackground(Theme.ResourcesProvider resourcesProvider) {
-        return scrimMenuGlass(resourcesProvider).setShadowColor(637534208, 0).setShadowLayer(AndroidUtilities.dpf2(4.0f), 0.0f, 0.0f).build();
+        return scrimMenuGlass(resourcesProvider).setShadowColor(637534208, 0).setShadowLayer(AndroidUtilities.dpf2(4.0f), 0.0f, 0.0f).setShadowAlwaysVisible().build();
     }
 
     public static BlurredBackgroundProvider scrimMenuBackgroundFill(Theme.ResourcesProvider resourcesProvider) {

@@ -1,8 +1,8 @@
 package com.exteragram.messenger.feed;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
-import kotlin.jvm.internal.LongCompanionObject;
 import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.TLRPC;
 
@@ -10,58 +10,43 @@ final class FeedMessageIdentityMap {
     private final HashMap<MessageCompositeID, Integer> generatedIds = new HashMap<>();
     private final ConcurrentHashMap<Integer, MessageCompositeID> realIdsByGeneratedId = new ConcurrentHashMap<>();
     private final HashMap<MessageCompositeID, MessageObject> messagesByRealId = new HashMap<>();
-    private final HashMap<GroupKey, MessageObject> primaryByGroup = new HashMap<>();
+    private final HashMap<GroupKey, ArrayList<MessageObject>> groupMembers = new HashMap<>();
     private int lastGeneratedId = 2147483637;
 
     public boolean register(MessageObject messageObject) {
         boolean z;
-        messageObject.reactionsLastCheckTime = LongCompanionObject.MAX_VALUE;
-        MessageCompositeID messageCompositeID = new MessageCompositeID(messageObject.messageOwner);
-        int i = messageObject.messageOwner.id;
+        int realId = messageObject.getRealId();
+        MessageCompositeID messageCompositeID = new MessageCompositeID(messageObject.getDialogId(), realId);
         Integer numValueOf = this.generatedIds.get(messageCompositeID);
         if (numValueOf == null) {
-            int i2 = this.lastGeneratedId;
-            this.lastGeneratedId = i2 - 1;
-            numValueOf = Integer.valueOf(i2);
+            int i = this.lastGeneratedId;
+            this.lastGeneratedId = i - 1;
+            numValueOf = Integer.valueOf(i);
             this.generatedIds.put(messageCompositeID, numValueOf);
         }
         this.realIdsByGeneratedId.put(numValueOf, messageCompositeID);
         if (this.messagesByRealId.containsKey(messageCompositeID)) {
             z = false;
         } else {
-            updatePrimaryGroupFlag(messageObject, messageCompositeID.dialog_id, i);
             this.messagesByRealId.put(messageCompositeID, messageObject);
+            addToGroup(messageObject, messageCompositeID.dialog_id);
             z = true;
         }
         TLRPC.Message message = messageObject.messageOwner;
-        message.realId = i;
+        message.realId = realId;
         message.id = numValueOf.intValue();
         return z;
     }
 
     public void replace(MessageObject messageObject) {
-        messageObject.reactionsLastCheckTime = LongCompanionObject.MAX_VALUE;
         MessageCompositeID messageCompositeID = new MessageCompositeID(messageObject.getDialogId(), messageObject.getRealId());
         this.generatedIds.put(messageCompositeID, Integer.valueOf(messageObject.getId()));
         this.realIdsByGeneratedId.put(Integer.valueOf(messageObject.getId()), messageCompositeID);
         MessageObject messageObjectPut = this.messagesByRealId.put(messageCompositeID, messageObject);
-        if (messageObject.hasValidGroupId()) {
-            GroupKey groupKey = new GroupKey(messageCompositeID.dialog_id, messageObject.messageOwner.grouped_id);
-            if (messageObjectPut == null || this.primaryByGroup.get(groupKey) != messageObjectPut) {
-                return;
-            }
-            this.primaryByGroup.put(groupKey, messageObject);
+        if (messageObjectPut != null) {
+            removeFromGroup(messageObjectPut, messageCompositeID.dialog_id);
         }
-    }
-
-    public void releaseRow(MessageObject messageObject) {
-        this.messagesByRealId.remove(new MessageCompositeID(messageObject.getDialogId(), messageObject.getRealId()));
-        if (messageObject.hasValidGroupId()) {
-            GroupKey groupKey = new GroupKey(messageObject.getDialogId(), messageObject.messageOwner.grouped_id);
-            if (this.primaryByGroup.get(groupKey) == messageObject) {
-                this.primaryByGroup.remove(groupKey);
-            }
-        }
+        addToGroup(messageObject, messageCompositeID.dialog_id);
     }
 
     public void purge(MessageObject messageObject) {
@@ -69,12 +54,7 @@ final class FeedMessageIdentityMap {
         this.generatedIds.remove(messageCompositeID);
         this.messagesByRealId.remove(messageCompositeID);
         this.realIdsByGeneratedId.remove(Integer.valueOf(messageObject.getId()));
-        if (messageObject.hasValidGroupId()) {
-            GroupKey groupKey = new GroupKey(messageCompositeID.dialog_id, messageObject.messageOwner.grouped_id);
-            if (this.primaryByGroup.get(groupKey) == messageObject) {
-                this.primaryByGroup.remove(groupKey);
-            }
-        }
+        removeFromGroup(messageObject, messageCompositeID.dialog_id);
     }
 
     public MessageObject getByRealId(long j, int i) {
@@ -114,26 +94,52 @@ final class FeedMessageIdentityMap {
         this.generatedIds.clear();
         this.realIdsByGeneratedId.clear();
         this.messagesByRealId.clear();
-        this.primaryByGroup.clear();
+        this.groupMembers.clear();
         this.lastGeneratedId = 2147483637;
     }
 
-    private void updatePrimaryGroupFlag(MessageObject messageObject, long j, int i) {
+    private void addToGroup(MessageObject messageObject, long j) {
         if (!messageObject.hasValidGroupId()) {
             messageObject.isPrimaryGroupMessage = false;
             return;
         }
         GroupKey groupKey = new GroupKey(j, messageObject.messageOwner.grouped_id);
-        MessageObject messageObject2 = this.primaryByGroup.get(groupKey);
-        if (messageObject2 == null || i > messageObject2.getRealId()) {
-            messageObject.isPrimaryGroupMessage = true;
-            if (messageObject2 != null) {
-                messageObject2.isPrimaryGroupMessage = false;
-            }
-            this.primaryByGroup.put(groupKey, messageObject);
-            return;
+        ArrayList<MessageObject> arrayList = this.groupMembers.get(groupKey);
+        if (arrayList == null) {
+            arrayList = new ArrayList<>();
+            this.groupMembers.put(groupKey, arrayList);
         }
-        messageObject.isPrimaryGroupMessage = false;
+        if (!arrayList.contains(messageObject)) {
+            arrayList.add(messageObject);
+        }
+        electPrimary(arrayList);
+    }
+
+    private void removeFromGroup(MessageObject messageObject, long j) {
+        GroupKey groupKey;
+        ArrayList<MessageObject> arrayList;
+        if (messageObject.hasValidGroupId() && (arrayList = this.groupMembers.get((groupKey = new GroupKey(j, messageObject.messageOwner.grouped_id)))) != null) {
+            arrayList.remove(messageObject);
+            messageObject.isPrimaryGroupMessage = false;
+            if (arrayList.isEmpty()) {
+                this.groupMembers.remove(groupKey);
+            } else {
+                electPrimary(arrayList);
+            }
+        }
+    }
+
+    private static void electPrimary(ArrayList<MessageObject> arrayList) {
+        MessageObject messageObject = null;
+        for (int i = 0; i < arrayList.size(); i++) {
+            MessageObject messageObject2 = arrayList.get(i);
+            if (messageObject == null || messageObject2.getRealId() > messageObject.getRealId()) {
+                messageObject = messageObject2;
+            }
+        }
+        for (int i2 = 0; i2 < arrayList.size(); i2++) {
+            arrayList.get(i2).isPrimaryGroupMessage = arrayList.get(i2) == messageObject;
+        }
     }
 
     public static final class GroupKey {
@@ -166,11 +172,6 @@ final class FeedMessageIdentityMap {
     public static final class MessageCompositeID {
         final long dialog_id;
         final int id;
-
-        public MessageCompositeID(TLRPC.Message message) {
-            this.dialog_id = MessageObject.getDialogId(message);
-            this.id = message.id;
-        }
 
         public MessageCompositeID(long j, int i) {
             this.dialog_id = j;

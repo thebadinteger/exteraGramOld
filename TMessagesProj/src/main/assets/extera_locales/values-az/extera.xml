@@ -13,7 +13,6 @@
     <string name="Preferences">exteraGram tənzimləmələri</string>
     <!-- Main Menu -->
     <string name="Links">Bağlantılar</string>
-    <string name="AboutExteraDescription">Rəsmi mənbələrə əsaslanan eksperimental Telegram müştərisi!</string>
     <string name="Crowdin">Tərcümə</string>
     <string name="Categories">Kateqoriyalar</string>
     <!-- Appearance -->
@@ -81,7 +80,6 @@
     <string name="UnlimitedRecentStickers">Limitsiz Son Stikerlər</string>
     <string name="HideReactions">Reaksiyaları gizlət</string>
     <string name="HideReactionsInfo">Reaksiyalar interfeysdən tamamilə yox olacaq.</string>
-    <string name="DoubleTap">2 dəfə vur</string>
     <string name="DoubleTapIncoming">Gələn mesajlar</string>
     <string name="DoubleTapOutgoing">Gedən mesajlar</string>
     <string name="DoubleTapInfo">Bəzi hərəkətlər söhbət və ya kanalda administrator hüquqları tələb edir.</string>

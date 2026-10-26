@@ -10,10 +10,14 @@ import com.exteragram.messenger.pillstack.core.PillStackConfig;
 import com.exteragram.messenger.pillstack.ui.PillStackPreferencesActivity;
 import com.exteragram.messenger.pillstack.ui.pills.BasePill;
 import com.exteragram.messenger.pillstack.ui.pills.crypto.utils.ColoredBackground;
-import com.exteragram.messenger.pillstack.ui.pills.crypto.utils.ExchangeRates;
 import com.exteragram.messenger.pillstack.ui.pills.crypto.utils.PillStackCurrencies;
+import com.exteragram.messenger.utils.network.ExchangeRates;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
@@ -48,7 +52,7 @@ public abstract class RatePill extends BasePill implements NotificationCenter.No
         private final AtomicReference<String> cachedCurrency = new AtomicReference<>();
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill
     public long getRefreshInterval() {
         return 300000L;
     }
@@ -73,7 +77,7 @@ public abstract class RatePill extends BasePill implements NotificationCenter.No
         addView(linearLayout, LayoutHelper.createFrame(-2, 28, (LocaleController.isRTL ? 3 : 5) | 16));
         ImageView imageView = new ImageView(context);
         this.iconView = imageView;
-        imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        imageView.setScaleType(i2 == R.drawable.mini_gram_14 ? ImageView.ScaleType.FIT_CENTER : ImageView.ScaleType.CENTER_INSIDE);
         linearLayout.addView(imageView, LayoutHelper.createLinear(16, 16, 16, 0, 0, 4, 0));
         AnimatedTextView animatedTextView = new AnimatedTextView(context, true, true, true);
         this.textView = animatedTextView;
@@ -91,7 +95,7 @@ public abstract class RatePill extends BasePill implements NotificationCenter.No
         }
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill
     public void onPillClicked() {
         if (this.iconView.getVisibility() == 0 && this.textView.getText() != null && TextUtils.equals(this.textView.getText(), LocaleController.getString(R.string.Retry))) {
             onUpdateData(true);
@@ -100,22 +104,19 @@ public abstract class RatePill extends BasePill implements NotificationCenter.No
         }
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill, android.view.ViewGroup, android.view.View
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
-        if (PillStackConfig.checkAndClearPendingUpdate(getPillId()) || this.cache.cachedPrice.get() == null || isRefreshDue()) {
-            onUpdateData(true);
-        }
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.pillStackSettingsChanged);
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill, android.view.ViewGroup, android.view.View
     public void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.pillStackSettingsChanged);
     }
 
-    @Override 
+    @Override // org.telegram.messenger.NotificationCenter.NotificationCenterDelegate
     public void didReceivedNotification(int i, int i2, Object... objArr) {
         if (i == NotificationCenter.pillStackSettingsChanged && PillStackConfig.shouldUpdatePill(objArr, getPillId()) && getTargetSelection().equals("AUTO")) {
             PillStackConfig.checkAndClearPendingUpdate(getPillId());
@@ -123,76 +124,110 @@ public abstract class RatePill extends BasePill implements NotificationCenter.No
         }
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill
     public boolean onPillLongClicked() {
         final BaseFragment safeLastFragment = LaunchActivity.getSafeLastFragment();
         if (safeLastFragment == null) {
             return false;
         }
         final ItemOptions itemOptionsMakeOptions = ItemOptions.makeOptions(safeLastFragment, (View) this, true);
-        final ItemOptions[] gapHolder = new ItemOptions[1];
-        final ItemOptions itemOptionsAddGap = itemOptionsMakeOptions.makeSwipeback(true).add(R.drawable.ic_ab_back, LocaleController.getString(R.string.Back), new Runnable() {
-            @Override // java.lang.Runnable
-            public final void run() {
-                itemOptionsMakeOptions.openSwipeback(gapHolder[0]);
-            }
-        }).addGap();
-        gapHolder[0] = itemOptionsAddGap;
+        final ItemOptions itemOptionsAddGap = itemOptionsMakeOptions.makeSwipeback(true).add(R.drawable.ic_ab_back, LocaleController.getString(R.string.Back), itemOptionsMakeOptions::dismiss).addGap();
         final String targetSelection = getTargetSelection();
-        for (final String str : getTargetCurrencies()) {
-            itemOptionsAddGap.addChecked(str.equalsIgnoreCase(targetSelection), PillStackCurrencies.getTargetCurrencyLabel(str), new Runnable() { 
-                @Override // java.lang.Runnable
-                public final void run() {
-                    RatePill.this.lambda$onPillLongClicked$0(itemOptionsMakeOptions, str, targetSelection);
-                }
-            });
+        String[] targetCurrencies = getTargetCurrencies();
+        List listAsList = Arrays.asList(targetCurrencies);
+        LinkedHashSet linkedHashSet = new LinkedHashSet();
+        String[] strArr = {"AUTO", "USD", "EUR"};
+        int i = 0;
+        while (true) {
+            if (i >= 3) {
+                break;
+            }
+            String str = strArr[i];
+            if (listAsList.contains(str)) {
+                linkedHashSet.add(str);
+            }
+            i++;
+        }
+        Utilities.Callback callback = new Utilities.Callback() {
+            @Override // org.telegram.messenger.Utilities.Callback
+            public final void run(Object obj) {
+                this.f$0.lambda$onPillLongClicked$1(itemOptionsMakeOptions, targetSelection, itemOptionsAddGap, (String) obj);
+            }
+        };
+        Iterator it = linkedHashSet.iterator();
+        while (it.hasNext()) {
+            callback.run((String) it.next());
+        }
+        itemOptionsAddGap.addGapIf(!linkedHashSet.isEmpty() && linkedHashSet.size() < targetCurrencies.length);
+        for (String str2 : targetCurrencies) {
+            if (!linkedHashSet.contains(str2)) {
+                callback.run(str2);
+            }
         }
         ActionBarMenuSubItem actionBarMenuSubItem = new ActionBarMenuSubItem(itemOptionsMakeOptions.getContext(), false, false, this.resourcesProvider);
         actionBarMenuSubItem.setTextAndIcon(LocaleController.getString(R.string.CryptoPillTargetCurrency), R.drawable.msg_language);
         actionBarMenuSubItem.setSubtext(PillStackCurrencies.getTargetCurrencySubtext(getTargetSelection()));
         actionBarMenuSubItem.setItemHeight(56);
-        actionBarMenuSubItem.setOnClickListener(new View.OnClickListener() { 
+        actionBarMenuSubItem.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 itemOptionsMakeOptions.openSwipeback(itemOptionsAddGap);
             }
         });
-        itemOptionsMakeOptions.add(actionBarMenuSubItem);
-        itemOptionsMakeOptions.addGap().add(R.drawable.msg_retry, LocaleController.getString(R.string.Refresh), new Runnable() { 
+        itemOptionsMakeOptions.add(actionBarMenuSubItem).addGap().add(R.drawable.msg_retry, LocaleController.getString(R.string.Refresh), new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                RatePill.this.lambda$onPillLongClicked$2();
+                this.f$0.lambda$onPillLongClicked$3();
             }
-        }).add(R.drawable.msg_settings, LocaleController.getString(R.string.Settings), new Runnable() { 
+        }).add(R.drawable.msg_settings, LocaleController.getString(R.string.Settings), new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 safeLastFragment.presentFragment(new PillStackPreferencesActivity());
             }
-        }).setSwipebackGravity(!LocaleController.isRTL, false).forceBelowScrim(true).setDrawScrim(false).setGravity(LocaleController.isRTL ? 3 : 5).setDimAlpha(0).show();
+        }).setSwipebackGravity(!LocaleController.isRTL, false).forceBelowScrim(true).setDrawScrim(false).setGravity(LocaleController.isRTL ? 3 : 5).setDimAlpha(0).setDismissOnMoveOutside(true).show();
         return true;
     }
 
+    public void lambda$onPillLongClicked$1(final ItemOptions itemOptions, String str, ItemOptions itemOptions2, final String str2) {
+        ActionBarMenuSubItem actionBarMenuSubItem = new ActionBarMenuSubItem(itemOptions.getContext(), 2, false, false, this.resourcesProvider);
+        actionBarMenuSubItem.setPadding(AndroidUtilities.dp(18.0f), 0, AndroidUtilities.dp(18.0f), 0);
+        if ("AUTO".equalsIgnoreCase(str2)) {
+            actionBarMenuSubItem.setText(LocaleController.getString(R.string.QualityAuto));
+            actionBarMenuSubItem.setSubtext(PillStackCurrencies.getCurrencyName(PillStackCurrencies.resolveTargetCurrency(UserConfig.selectedAccount, str2)));
+        } else {
+            actionBarMenuSubItem.setText(str2);
+            actionBarMenuSubItem.setSubtext(PillStackCurrencies.getCurrencyName(str2));
+        }
+        final boolean zEqualsIgnoreCase = str2.equalsIgnoreCase(str);
+        actionBarMenuSubItem.subtextView.setPadding(0, 0, AndroidUtilities.dp(zEqualsIgnoreCase ? 42.0f : 0.0f), 0);
+        actionBarMenuSubItem.setChecked(zEqualsIgnoreCase);
+        actionBarMenuSubItem.setOnClickListener(new View.OnClickListener() {
+            @Override // android.view.View.OnClickListener
+            public final void onClick(View view) {
+                this.f$0.lambda$onPillLongClicked$0(itemOptions, zEqualsIgnoreCase, str2, view);
+            }
+        });
+        itemOptions2.addView(actionBarMenuSubItem, LayoutHelper.createLinear(200, -2));
+    }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$onPillLongClicked$0(ItemOptions itemOptions, String str, String str2) {
+    public void lambda$onPillLongClicked$0(ItemOptions itemOptions, boolean z, String str, View view) {
         itemOptions.dismiss();
-        if (str.equalsIgnoreCase(str2)) {
+        if (z) {
             return;
         }
         setTargetSelection(str);
         onUpdateData(false);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$onPillLongClicked$2() {
+    public void lambda$onPillLongClicked$3() {
         onUpdateData(true);
     }
 
-    @Override
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill
     public void onUpdateData(boolean z) {
-        final String strResolveTargetCurrency = ExchangeRates.resolveTargetCurrency(UserConfig.selectedAccount, getTargetSelection());
+        final String strResolveTargetCurrency = PillStackCurrencies.resolveTargetCurrency(UserConfig.selectedAccount, getTargetSelection());
         String str = (String) this.cache.cachedPrice.get();
-        if (!android.text.TextUtils.equals(strResolveTargetCurrency, (CharSequence) this.cache.cachedCurrency.get())) {
+        if (!TextUtils.equals(strResolveTargetCurrency, (CharSequence) this.cache.cachedCurrency.get())) {
             str = null;
         }
         if (!z && str != null && !isRefreshDue()) {
@@ -218,10 +253,15 @@ public abstract class RatePill extends BasePill implements NotificationCenter.No
         if (z) {
             ExchangeRates.clearCache();
         }
-        ExchangeRates.fetch(state -> lambda$onUpdateData$4(strResolveTargetCurrency, (ExchangeRates.State) state));
+        ExchangeRates.fetch(new Utilities.Callback() {
+            @Override // org.telegram.messenger.Utilities.Callback
+            public final void run(Object obj) {
+                this.f$0.lambda$onUpdateData$5(strResolveTargetCurrency, (ExchangeRates.State) obj);
+            }
+        });
     }
 
-    public void lambda$onUpdateData$4(String str, ExchangeRates.State state) {
+    public void lambda$onUpdateData$5(String str, ExchangeRates.State state) {
         this.requestInFlight = false;
         if (state == null) {
             String str2 = (String) this.cache.cachedPrice.get();
@@ -294,7 +334,7 @@ public abstract class RatePill extends BasePill implements NotificationCenter.No
         this.layout.setPressed(z);
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill
     public void updateColors() {
         this.layout.setBackground(this.background);
         this.textView.setTextColor(-1);
@@ -302,11 +342,11 @@ public abstract class RatePill extends BasePill implements NotificationCenter.No
         updateLoadingColors();
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill
     public void updateLoadingColors() {
         LoadingDrawable loadingDrawable = this.loadingDrawable;
         if (loadingDrawable != null) {
-            loadingDrawable.setColors(Theme.multAlpha(-1, 0.1f), Theme.multAlpha(-1, 0.3f));
+            loadingDrawable.setColors(Theme.multAlpha(-1, 0.1f), Theme.multAlpha(-1, 0.3f), Theme.multAlpha(-1, 0.2f), Theme.multAlpha(-1, 0.45f));
         }
     }
 }

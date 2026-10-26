@@ -1,7 +1,6 @@
 package com.exteragram.messenger.icons;
 
 import android.util.SparseIntArray;
-import java.util.Collections;
 import kotlin.Lazy;
 import kotlin.LazyKt;
 import kotlin.Metadata;
@@ -14,24 +13,24 @@ import org.telegram.messenger.R;
 public final class BaseIconPacks {
     public static final BaseIconPacks INSTANCE = new BaseIconPacks();
 
-    private static final Lazy solar = LazyKt.lazy(new Function0() { 
+    private static final Lazy solar = LazyKt.lazy(new Function0() {
         @Override // kotlin.jvm.functions.Function0
         public final Object invoke() {
-            return BaseIconPacks.solar_delegate$lambda$0();
+            return BaseIconPacks.solar_delegate$lambda$1();
         }
     });
 
-    private static final Lazy def = LazyKt.lazy(new Function0() { 
+    private static final Lazy def = LazyKt.lazy(new Function0() {
         @Override // kotlin.jvm.functions.Function0
         public final Object invoke() {
-            return BaseIconPacks.def_delegate$lambda$0();
+            return BaseIconPacks.$r8$lambda$Qnz5Il8iZJ_2mW4kAtn9Qn1UEVo();
         }
     });
 
-    private static final Lazy remix = LazyKt.lazy(new Function0() { 
+    private static final Lazy remix = LazyKt.lazy(new Function0() {
         @Override // kotlin.jvm.functions.Function0
         public final Object invoke() {
-            return BaseIconPacks.remix_delegate$lambda$0();
+            return BaseIconPacks.remix_delegate$lambda$5();
         }
     });
 
@@ -42,8 +41,8 @@ public final class BaseIconPacks {
         return (SparseIntArray) solar.getValue();
     }
 
-    public static final SparseIntArray solar_delegate$lambda$0() {
-        SparseIntArray sparseIntArray = new SparseIntArray(590);
+    public static final SparseIntArray solar_delegate$lambda$1() {
+        SparseIntArray sparseIntArray = new SparseIntArray(630);
         sparseIntArray.put(R.drawable.ai_chat, R.drawable.ai_chat_solar);
         sparseIntArray.put(R.drawable.arrow_more, R.drawable.arrow_more_solar);
         sparseIntArray.put(R.drawable.attach_send, R.drawable.attach_send_solar);
@@ -71,6 +70,7 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.chats_replies, R.drawable.chats_replies_solar);
         sparseIntArray.put(R.drawable.chats_saved, R.drawable.chats_saved_solar);
         sparseIntArray.put(R.drawable.chats_unpin, R.drawable.msg_unpin_solar);
+        sparseIntArray.put(R.drawable.community_requests_outline_24, R.drawable.menu_invite_telegram_solar);
         sparseIntArray.put(R.drawable.emoji_tabs_faves, R.drawable.emoji_tabs_faves_solar);
         sparseIntArray.put(R.drawable.emoji_tabs_new1, R.drawable.emoji_tabs_new1_solar);
         sparseIntArray.put(R.drawable.emoji_tabs_new2, R.drawable.emoji_tabs_new2_solar);
@@ -79,13 +79,16 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.files_folder, R.drawable.files_folder_solar);
         sparseIntArray.put(R.drawable.files_gallery, R.drawable.files_gallery_solar);
         sparseIntArray.put(R.drawable.files_internal, R.drawable.files_internal_solar);
+        sparseIntArray.put(R.drawable.files_music, R.drawable.files_music_solar);
         sparseIntArray.put(R.drawable.files_storage, R.drawable.files_storage_solar);
         sparseIntArray.put(R.drawable.filled_add_photo, R.drawable.filled_add_photo_solar);
         sparseIntArray.put(R.drawable.filled_button_reply, R.drawable.msg_panel_reply_solar);
         sparseIntArray.put(R.drawable.filled_button_share, R.drawable.filled_button_share_solar);
+        sparseIntArray.put(R.drawable.filled_calls_plus, R.drawable.filled_calls_plus_solar);
         sparseIntArray.put(R.drawable.filled_chatlist_mention, R.drawable.filled_chatlist_mention_solar);
         sparseIntArray.put(R.drawable.filled_chatlist_poll, R.drawable.filled_chatlist_poll_solar);
         sparseIntArray.put(R.drawable.filled_chatlist_reaction, R.drawable.msg_reactions_filled_solar);
+        sparseIntArray.put(R.drawable.filled_fab_compose_32, R.drawable.filled_fab_compose_solar);
         sparseIntArray.put(R.drawable.filled_fire, R.drawable.burn_solar);
         sparseIntArray.put(R.drawable.filled_forward, R.drawable.filled_forward_solar);
         sparseIntArray.put(R.drawable.filled_link, R.drawable.filled_link_solar);
@@ -107,12 +110,15 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.filter_home, R.drawable.filter_home_solar);
         sparseIntArray.put(R.drawable.filter_light, R.drawable.filter_light_solar);
         sparseIntArray.put(R.drawable.filter_like, R.drawable.filter_like_solar);
+        sparseIntArray.put(R.drawable.filter_lock, R.drawable.filter_lock_solar);
         sparseIntArray.put(R.drawable.filter_love, R.drawable.filter_love_solar);
         sparseIntArray.put(R.drawable.filter_mask, R.drawable.filter_mask_solar);
+        sparseIntArray.put(R.drawable.filter_media, R.drawable.filter_media_solar);
         sparseIntArray.put(R.drawable.filter_money, R.drawable.filter_money_solar);
         sparseIntArray.put(R.drawable.filter_note, R.drawable.filter_note_solar);
         sparseIntArray.put(R.drawable.filter_palette, R.drawable.filter_palette_solar);
         sparseIntArray.put(R.drawable.filter_party, R.drawable.filter_party_solar);
+        sparseIntArray.put(R.drawable.filter_plugins, R.drawable.filter_plugins_solar);
         sparseIntArray.put(R.drawable.filter_private, R.drawable.filter_private_solar);
         sparseIntArray.put(R.drawable.filter_setup, R.drawable.filter_setup_solar);
         sparseIntArray.put(R.drawable.filter_sport, R.drawable.filter_sport_solar);
@@ -126,6 +132,7 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.flash_auto, R.drawable.flash_auto_solar);
         sparseIntArray.put(R.drawable.flash_off, R.drawable.flash_off_solar);
         sparseIntArray.put(R.drawable.flash_on, R.drawable.flash_on_solar);
+        sparseIntArray.put(R.drawable.formatting_quote, R.drawable.formatting_quote_solar);
         sparseIntArray.put(R.drawable.ghost, R.drawable.ghost_solar);
         sparseIntArray.put(R.drawable.group_edit, R.drawable.group_edit_profile_solar);
         sparseIntArray.put(R.drawable.group_edit_profile, R.drawable.group_edit_profile_solar);
@@ -137,6 +144,7 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.ic_feed_filled, R.drawable.ic_feed_filled_solar);
         sparseIntArray.put(R.drawable.ic_gallery_background, R.drawable.ic_gallery_background_solar);
         sparseIntArray.put(R.drawable.ic_goinline, R.drawable.ic_goinline_solar);
+        sparseIntArray.put(R.drawable.ic_gram, R.drawable.ic_gram_solar);
         sparseIntArray.put(R.drawable.ic_lock_header, R.drawable.list_secret_solar);
         sparseIntArray.put(R.drawable.ic_masks_msk1, R.drawable.ic_masks_msk1_solar);
         sparseIntArray.put(R.drawable.ic_outinline, R.drawable.ic_outinline_solar);
@@ -182,9 +190,12 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.menu_add_tab_24, R.drawable.menu_add_tab_solar);
         sparseIntArray.put(R.drawable.menu_album_add, R.drawable.menu_folder_add_solar);
         sparseIntArray.put(R.drawable.menu_browser_bookmarks, R.drawable.msg_saved_solar);
+        sparseIntArray.put(R.drawable.menu_call_create, R.drawable.menu_call_create_solar);
+        sparseIntArray.put(R.drawable.menu_call_create_2_24, R.drawable.msg_calls_solar);
         sparseIntArray.put(R.drawable.menu_clear_cache, R.drawable.menu_clear_cache_solar);
         sparseIntArray.put(R.drawable.menu_clear_cookies, R.drawable.msg_clear_solar);
         sparseIntArray.put(R.drawable.menu_clear_recent, R.drawable.msg_clear_recent_solar);
+        sparseIntArray.put(R.drawable.menu_comments, R.drawable.msg_msgbubble3_solar);
         sparseIntArray.put(R.drawable.menu_day_mode_24, R.drawable.menu_day_mode_solar);
         sparseIntArray.put(R.drawable.menu_devices, R.drawable.msg_devices_solar);
         sparseIntArray.put(R.drawable.menu_download_round, R.drawable.msg_download_solar);
@@ -199,10 +210,13 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.menu_instant_view, R.drawable.menu_instant_view_solar);
         sparseIntArray.put(R.drawable.menu_intro, R.drawable.menu_intro_solar);
         sparseIntArray.put(R.drawable.menu_invit_telegram, R.drawable.menu_invite_telegram_solar);
+        sparseIntArray.put(R.drawable.menu_link_above, R.drawable.menu_link_above_solar);
+        sparseIntArray.put(R.drawable.menu_link_below, R.drawable.menu_link_below_solar);
         sparseIntArray.put(R.drawable.menu_link_create, R.drawable.msg_link2_solar);
         sparseIntArray.put(R.drawable.menu_night_mode_24, R.drawable.menu_night_mode_24_solar);
         sparseIntArray.put(R.drawable.menu_passkey_add, R.drawable.menu_passkey_add_solar);
         sparseIntArray.put(R.drawable.menu_phone, R.drawable.msg_calls_solar);
+        sparseIntArray.put(R.drawable.menu_poll_notify, R.drawable.menu_poll_notify_solar);
         sparseIntArray.put(R.drawable.menu_premium_clock, R.drawable.menu_premium_clock_solar);
         sparseIntArray.put(R.drawable.menu_premium_clock_add, R.drawable.menu_premium_clock_add_solar);
         sparseIntArray.put(R.drawable.menu_privacy_policy, R.drawable.msg_policy_solar);
@@ -226,13 +240,16 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.menu_unsave_story, R.drawable.menu_unsave_story_solar);
         sparseIntArray.put(R.drawable.menu_username_change, R.drawable.menu_username_solar);
         sparseIntArray.put(R.drawable.menu_username_set, R.drawable.menu_username_set_solar);
+        sparseIntArray.put(R.drawable.menu_video_chromecast, R.drawable.menu_video_chromecast_solar);
         sparseIntArray.put(R.drawable.menu_video_pip, R.drawable.ic_goinline_solar);
+        sparseIntArray.put(R.drawable.menu_videocall, R.drawable.msg_videocall_solar);
         sparseIntArray.put(R.drawable.menu_views_recent, R.drawable.msg_recent_solar);
         sparseIntArray.put(R.drawable.menu_wallet, R.drawable.menu_wallet_solar);
+        sparseIntArray.put(R.drawable.menu_website, R.drawable.menu_website_solar);
+        sparseIntArray.put(R.drawable.menu_welcome_messages, R.drawable.menu_welcome_messages_solar);
         sparseIntArray.put(R.drawable.mini_quote, R.drawable.mini_quote_solar);
         sparseIntArray.put(R.drawable.msg2_animations, R.drawable.msg_played_solar);
         sparseIntArray.put(R.drawable.msg2_archived_stickers, R.drawable.msg_archive_solar);
-        sparseIntArray.put(R.drawable.msg2_ask_question, R.drawable.msg_ask_question_solar);
         sparseIntArray.put(R.drawable.msg2_ask_question, R.drawable.msg_ask_question_solar);
         sparseIntArray.put(R.drawable.msg2_autodelete, R.drawable.msg_autodelete_solar);
         sparseIntArray.put(R.drawable.msg2_battery, R.drawable.msg2_battery_solar);
@@ -270,6 +287,7 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.msg_archive_hide, R.drawable.msg_archive_hide_solar);
         sparseIntArray.put(R.drawable.msg_archive_stories, R.drawable.msg_menu_stories_solar);
         sparseIntArray.put(R.drawable.msg_arrow_back, R.drawable.ic_ab_back_solar);
+        sparseIntArray.put(R.drawable.msg_arrowright, R.drawable.msg_arrowright_solar);
         sparseIntArray.put(R.drawable.msg_autodelete, R.drawable.msg_autodelete_solar);
         sparseIntArray.put(R.drawable.msg_autodelete_1d, R.drawable.msg_autodelete_1d_solar);
         sparseIntArray.put(R.drawable.msg_autodelete_1m, R.drawable.msg_autodelete_1m_solar);
@@ -282,6 +300,7 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.msg_bots, R.drawable.msg_bots_solar);
         sparseIntArray.put(R.drawable.msg_brightness_high, R.drawable.msg_brightness_high_solar);
         sparseIntArray.put(R.drawable.msg_brightness_low, R.drawable.msg_brightness_low_solar);
+        sparseIntArray.put(R.drawable.msg_calculator, R.drawable.msg_calculator_solar);
         sparseIntArray.put(R.drawable.msg_calendar, R.drawable.msg_calendar_solar);
         sparseIntArray.put(R.drawable.msg_calendar2, R.drawable.msg_calendar2_solar);
         sparseIntArray.put(R.drawable.msg_callback, R.drawable.msg_calls_solar);
@@ -332,6 +351,11 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.msg_fave, R.drawable.msg_fave_solar);
         sparseIntArray.put(R.drawable.msg_filehq, R.drawable.msg_filehq_solar);
         sparseIntArray.put(R.drawable.msg_filled_blocked, R.drawable.msg_filled_blocked_solar);
+        sparseIntArray.put(R.drawable.msg_filled_reply_files, R.drawable.msg_filled_reply_files_solar);
+        sparseIntArray.put(R.drawable.msg_filled_reply_image, R.drawable.msg_filled_reply_image_solar);
+        sparseIntArray.put(R.drawable.msg_filled_reply_voice, R.drawable.msg_filled_reply_voice_solar);
+        sparseIntArray.put(R.drawable.msg_filled_reply_gift, R.drawable.msg_filled_reply_gift_solar);
+        sparseIntArray.put(R.drawable.msg_filled_reply_todo, R.drawable.msg_filled_reply_todo_solar);
         sparseIntArray.put(R.drawable.msg_filled_data_calls, R.drawable.msg_filled_data_calls_solar);
         sparseIntArray.put(R.drawable.msg_filled_data_files, R.drawable.msg_filled_data_files_solar);
         sparseIntArray.put(R.drawable.msg_filled_data_messages, R.drawable.msg_filled_data_messages_solar);
@@ -348,6 +372,7 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.msg_filled_sdcard, R.drawable.msg_filled_sdcard_solar);
         sparseIntArray.put(R.drawable.msg_filled_shareout, R.drawable.msg_filled_shareout_solar);
         sparseIntArray.put(R.drawable.msg_filled_storageusage, R.drawable.msg_filled_storageusage_solar);
+        sparseIntArray.put(R.drawable.msg_filter, R.drawable.msg_filter_solar);
         sparseIntArray.put(R.drawable.msg_folders, R.drawable.msg_folder_solar);
         sparseIntArray.put(R.drawable.msg_folders_archive, R.drawable.msg_folders_archive_solar);
         sparseIntArray.put(R.drawable.msg_folders_bots, R.drawable.msg_folders_bots_solar);
@@ -424,6 +449,7 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.msg_payment_card, R.drawable.msg_payment_card_solar);
         sparseIntArray.put(R.drawable.msg_payment_delivery, R.drawable.msg_payment_delivery_solar);
         sparseIntArray.put(R.drawable.msg_payment_provider, R.drawable.msg_payment_provider_solar);
+        sparseIntArray.put(R.drawable.msg_percent, R.drawable.msg_percent_solar);
         sparseIntArray.put(R.drawable.msg_permissions, R.drawable.msg_permissions_solar);
         sparseIntArray.put(R.drawable.msg_photo_blur, R.drawable.msg_photo_blur_solar);
         sparseIntArray.put(R.drawable.msg_photo_crop, R.drawable.msg_photo_crop_solar);
@@ -470,6 +496,7 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.msg_reset, R.drawable.msg_reset_solar);
         sparseIntArray.put(R.drawable.msg_retry, R.drawable.msg_retry_solar);
         sparseIntArray.put(R.drawable.msg_round_file_s, R.drawable.msg_round_file_solar);
+        sparseIntArray.put(R.drawable.msg_ruler, R.drawable.msg_ruler_solar);
         sparseIntArray.put(R.drawable.msg_satellite, R.drawable.msg_satellite_solar);
         sparseIntArray.put(R.drawable.msg_save_story, R.drawable.msg_stories_saved_solar);
         sparseIntArray.put(R.drawable.msg_saved, R.drawable.msg_saved_solar);
@@ -536,8 +563,11 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.notifications_mute2d, R.drawable.notifications_mute2d_solar);
         sparseIntArray.put(R.drawable.notifications_on, R.drawable.notifications_on_solar);
         sparseIntArray.put(R.drawable.outline_add_account, R.drawable.outline_add_account_solar);
+        sparseIntArray.put(R.drawable.outline_attach_camera_24, R.drawable.msg_camera_solar);
         sparseIntArray.put(R.drawable.outline_caption_24, R.drawable.outline_caption_solar);
+        sparseIntArray.put(R.drawable.outline_fab_story_24, R.drawable.msg_camera_solar);
         sparseIntArray.put(R.drawable.outline_groups_24, R.drawable.msg_groups_solar);
+        sparseIntArray.put(R.drawable.outline_header_lock_24, R.drawable.outline_header_lock_solar);
         sparseIntArray.put(R.drawable.outline_header_search, R.drawable.ic_ab_search_solar);
         sparseIntArray.put(R.drawable.outline_saved_24, R.drawable.msg_saved_solar);
         sparseIntArray.put(R.drawable.outline_shield_check, R.drawable.msg_policy_solar);
@@ -550,8 +580,15 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.photo_paint_brush, R.drawable.photo_paint_brush_solar);
         sparseIntArray.put(R.drawable.photo_star, R.drawable.msg_fave_solar);
         sparseIntArray.put(R.drawable.photo_undo, R.drawable.photo_undo_solar);
+        sparseIntArray.put(R.drawable.photo_undo2, R.drawable.photo_undo_solar);
         sparseIntArray.put(R.drawable.picker, R.drawable.ic_colorpicker_solar);
         sparseIntArray.put(R.drawable.pin, R.drawable.bot_location_solar);
+        sparseIntArray.put(R.drawable.player_cover_placeholder, R.drawable.files_music_solar);
+        sparseIntArray.put(R.drawable.player_new_order, R.drawable.player_new_order_solar);
+        sparseIntArray.put(R.drawable.player_new_queue, R.drawable.player_new_queue_solar);
+        sparseIntArray.put(R.drawable.player_new_repeatall, R.drawable.player_new_repeatall_solar);
+        sparseIntArray.put(R.drawable.player_new_repeatone, R.drawable.player_new_repeatone_solar);
+        sparseIntArray.put(R.drawable.player_new_shuffle, R.drawable.player_new_shuffle_solar);
         sparseIntArray.put(R.drawable.plugins_filled, R.drawable.plugins_filled_solar);
         sparseIntArray.put(R.drawable.profile_discuss, R.drawable.profile_discuss_solar);
         sparseIntArray.put(R.drawable.profile_newmsg_filled, R.drawable.profile_newmsg_filled_solar);
@@ -559,9 +596,25 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.profile_video, R.drawable.profile_video_solar);
         sparseIntArray.put(R.drawable.qr_flashlight, R.drawable.qr_flashlight_solar);
         sparseIntArray.put(R.drawable.reactionbutton, R.drawable.msg_reactions_solar);
+        sparseIntArray.put(R.drawable.scan_qr, R.drawable.scan_qr_solar);
         sparseIntArray.put(R.drawable.screencast_big, R.drawable.screencast_big_solar);
         sparseIntArray.put(R.drawable.search_files_filled, R.drawable.msg_round_file_solar);
         sparseIntArray.put(R.drawable.select_between, R.drawable.msg_select_between_solar);
+        sparseIntArray.put(R.drawable.settings_account, R.drawable.settings_account_solar);
+        sparseIntArray.put(R.drawable.settings_ask, R.drawable.settings_ask_solar);
+        sparseIntArray.put(R.drawable.settings_business, R.drawable.settings_business_solar);
+        sparseIntArray.put(R.drawable.settings_chat, R.drawable.settings_chat_solar);
+        sparseIntArray.put(R.drawable.settings_data, R.drawable.settings_data_solar);
+        sparseIntArray.put(R.drawable.settings_devices, R.drawable.settings_devices_solar);
+        sparseIntArray.put(R.drawable.settings_faq, R.drawable.settings_faq_solar);
+        sparseIntArray.put(R.drawable.settings_features, R.drawable.settings_features_solar);
+        sparseIntArray.put(R.drawable.settings_folders, R.drawable.settings_folders_solar);
+        sparseIntArray.put(R.drawable.settings_gift, R.drawable.settings_gift_solar);
+        sparseIntArray.put(R.drawable.settings_language, R.drawable.settings_language_solar);
+        sparseIntArray.put(R.drawable.settings_policy, R.drawable.settings_policy_solar);
+        sparseIntArray.put(R.drawable.settings_power, R.drawable.settings_power_solar);
+        sparseIntArray.put(R.drawable.settings_privacy, R.drawable.settings_privacy_solar);
+        sparseIntArray.put(R.drawable.settings_sounds, R.drawable.settings_sounds_solar);
         sparseIntArray.put(R.drawable.share, R.drawable.msg_filled_shareout_solar);
         sparseIntArray.put(R.drawable.share_arrow, R.drawable.share_arrow_solar);
         sparseIntArray.put(R.drawable.smallanimationpin, R.drawable.smallanimationpin_solar);
@@ -581,6 +634,15 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.verified_area, R.drawable.verified_area_solar);
         sparseIntArray.put(R.drawable.verified_check, R.drawable.verified_check_solar);
         sparseIntArray.put(R.drawable.verified_profile, R.drawable.verified_profile_solar);
+        sparseIntArray.put(R.drawable.wallet_apps, R.drawable.msg_media_solar);
+        sparseIntArray.put(R.drawable.wallet_card_info, R.drawable.msg_info_solar);
+        sparseIntArray.put(R.drawable.wallet_card_qr, R.drawable.msg_qrcode_solar);
+        sparseIntArray.put(R.drawable.wallet_comment_locked, R.drawable.wallet_comment_locked_solar);
+        sparseIntArray.put(R.drawable.wallet_comment_unlocked, R.drawable.outline_header_lock_solar);
+        sparseIntArray.put(R.drawable.wallet_globe, R.drawable.msg_language_solar);
+        sparseIntArray.put(R.drawable.wallet_help, R.drawable.msg_psa_solar);
+        sparseIntArray.put(R.drawable.wallet_key, R.drawable.msg_permissions_solar);
+        sparseIntArray.put(R.drawable.wallet_lock, R.drawable.msg_secret_solar);
         sparseIntArray.put(R.drawable.action_share, R.drawable.share_solar);
         sparseIntArray.put(R.drawable.gift, R.drawable.gift_solar);
         sparseIntArray.put(R.drawable.leave, R.drawable.leave_solar);
@@ -614,7 +676,7 @@ public final class BaseIconPacks {
         return (SparseIntArray) def.getValue();
     }
 
-    public static final SparseIntArray def_delegate$lambda$0() {
+    public static SparseIntArray $r8$lambda$Qnz5Il8iZJ_2mW4kAtn9Qn1UEVo() {
         SparseIntArray sparseIntArray = new SparseIntArray(3);
         sparseIntArray.put(R.drawable.popup_fixed_alert, R.drawable.popup_fixed_alert4);
         sparseIntArray.put(R.drawable.popup_fixed_alert2, R.drawable.popup_fixed_alert4);
@@ -626,8 +688,8 @@ public final class BaseIconPacks {
         return (SparseIntArray) remix.getValue();
     }
 
-    public static final SparseIntArray remix_delegate$lambda$0() {
-        SparseIntArray sparseIntArray = new SparseIntArray(590);
+    public static final SparseIntArray remix_delegate$lambda$5() {
+        SparseIntArray sparseIntArray = new SparseIntArray(630);
         sparseIntArray.put(R.drawable.ai_chat, R.drawable.ai_chat_remix);
         sparseIntArray.put(R.drawable.arrow_more, R.drawable.arrow_more_remix);
         sparseIntArray.put(R.drawable.attach_send, R.drawable.attach_send_remix);
@@ -655,6 +717,7 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.chats_replies, R.drawable.chats_replies_remix);
         sparseIntArray.put(R.drawable.chats_saved, R.drawable.chats_saved_remix);
         sparseIntArray.put(R.drawable.chats_unpin, R.drawable.msg_unpin_remix);
+        sparseIntArray.put(R.drawable.community_requests_outline_24, R.drawable.menu_invite_telegram_remix);
         sparseIntArray.put(R.drawable.emoji_tabs_faves, R.drawable.emoji_tabs_faves_remix);
         sparseIntArray.put(R.drawable.emoji_tabs_new1, R.drawable.emoji_tabs_new1_remix);
         sparseIntArray.put(R.drawable.emoji_tabs_new2, R.drawable.emoji_tabs_new2_remix);
@@ -663,13 +726,16 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.files_folder, R.drawable.files_folder_remix);
         sparseIntArray.put(R.drawable.files_gallery, R.drawable.files_gallery_remix);
         sparseIntArray.put(R.drawable.files_internal, R.drawable.files_internal_remix);
+        sparseIntArray.put(R.drawable.files_music, R.drawable.files_music_remix);
         sparseIntArray.put(R.drawable.files_storage, R.drawable.files_storage_remix);
         sparseIntArray.put(R.drawable.filled_add_photo, R.drawable.filled_add_photo_remix);
         sparseIntArray.put(R.drawable.filled_button_reply, R.drawable.msg_panel_reply_remix);
         sparseIntArray.put(R.drawable.filled_button_share, R.drawable.filled_button_share_remix);
+        sparseIntArray.put(R.drawable.filled_calls_plus, R.drawable.filled_calls_plus_remix);
         sparseIntArray.put(R.drawable.filled_chatlist_mention, R.drawable.menu_username_remix);
         sparseIntArray.put(R.drawable.filled_chatlist_poll, R.drawable.filled_chatlist_poll_remix);
         sparseIntArray.put(R.drawable.filled_chatlist_reaction, R.drawable.msg_reactions_filled_remix);
+        sparseIntArray.put(R.drawable.filled_fab_compose_32, R.drawable.filled_fab_compose_remix);
         sparseIntArray.put(R.drawable.filled_fire, R.drawable.burn_remix);
         sparseIntArray.put(R.drawable.filled_forward, R.drawable.filled_forward_remix);
         sparseIntArray.put(R.drawable.filled_link, R.drawable.filled_link_remix);
@@ -691,12 +757,15 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.filter_home, R.drawable.filter_home_remix);
         sparseIntArray.put(R.drawable.filter_light, R.drawable.filter_light_remix);
         sparseIntArray.put(R.drawable.filter_like, R.drawable.filter_like_remix);
+        sparseIntArray.put(R.drawable.filter_lock, R.drawable.filter_lock_remix);
         sparseIntArray.put(R.drawable.filter_love, R.drawable.filter_love_remix);
         sparseIntArray.put(R.drawable.filter_mask, R.drawable.filter_mask_remix);
+        sparseIntArray.put(R.drawable.filter_media, R.drawable.filter_media_remix);
         sparseIntArray.put(R.drawable.filter_money, R.drawable.filter_money_remix);
         sparseIntArray.put(R.drawable.filter_note, R.drawable.filter_note_remix);
         sparseIntArray.put(R.drawable.filter_palette, R.drawable.filter_palette_remix);
         sparseIntArray.put(R.drawable.filter_party, R.drawable.filter_party_remix);
+        sparseIntArray.put(R.drawable.filter_plugins, R.drawable.filter_plugins_remix);
         sparseIntArray.put(R.drawable.filter_private, R.drawable.filter_private_remix);
         sparseIntArray.put(R.drawable.filter_setup, R.drawable.filter_setup_remix);
         sparseIntArray.put(R.drawable.filter_sport, R.drawable.filter_sport_remix);
@@ -710,6 +779,7 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.flash_auto, R.drawable.flash_auto_remix);
         sparseIntArray.put(R.drawable.flash_off, R.drawable.flash_off_remix);
         sparseIntArray.put(R.drawable.flash_on, R.drawable.flash_on_remix);
+        sparseIntArray.put(R.drawable.formatting_quote, R.drawable.formatting_quote_remix);
         sparseIntArray.put(R.drawable.ghost, R.drawable.ghost_remix);
         sparseIntArray.put(R.drawable.group_edit, R.drawable.group_edit_profile_remix);
         sparseIntArray.put(R.drawable.group_edit_profile, R.drawable.group_edit_profile_remix);
@@ -721,6 +791,7 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.ic_feed_filled, R.drawable.ic_feed_filled_remix);
         sparseIntArray.put(R.drawable.ic_gallery_background, R.drawable.ic_gallery_background_remix);
         sparseIntArray.put(R.drawable.ic_goinline, R.drawable.ic_goinline_remix);
+        sparseIntArray.put(R.drawable.ic_gram, R.drawable.ic_gram_remix);
         sparseIntArray.put(R.drawable.ic_lock_header, R.drawable.list_secret_remix);
         sparseIntArray.put(R.drawable.ic_masks_msk1, R.drawable.ic_masks_msk1_remix);
         sparseIntArray.put(R.drawable.ic_outinline, R.drawable.ic_outinline_remix);
@@ -767,9 +838,12 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.menu_album_add, R.drawable.menu_folder_add_remix);
         sparseIntArray.put(R.drawable.menu_birthday, R.drawable.menu_birthday_remix);
         sparseIntArray.put(R.drawable.menu_browser_bookmarks, R.drawable.msg_saved_remix);
+        sparseIntArray.put(R.drawable.menu_call_create, R.drawable.menu_call_create_remix);
+        sparseIntArray.put(R.drawable.menu_call_create_2_24, R.drawable.msg_calls_remix);
         sparseIntArray.put(R.drawable.menu_clear_cache, R.drawable.menu_clear_cache_remix);
         sparseIntArray.put(R.drawable.menu_clear_cookies, R.drawable.msg_clear_remix);
         sparseIntArray.put(R.drawable.menu_clear_recent, R.drawable.msg_clear_recent_remix);
+        sparseIntArray.put(R.drawable.menu_comments, R.drawable.msg_msgbubble3_remix);
         sparseIntArray.put(R.drawable.menu_day_mode_24, R.drawable.menu_day_mode_remix);
         sparseIntArray.put(R.drawable.menu_devices, R.drawable.msg_devices_remix);
         sparseIntArray.put(R.drawable.menu_download_round, R.drawable.msg_download_remix);
@@ -784,10 +858,13 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.menu_instant_view, R.drawable.menu_instant_view_remix);
         sparseIntArray.put(R.drawable.menu_intro, R.drawable.menu_intro_remix);
         sparseIntArray.put(R.drawable.menu_invit_telegram, R.drawable.menu_invite_telegram_remix);
+        sparseIntArray.put(R.drawable.menu_link_above, R.drawable.menu_link_above_remix);
+        sparseIntArray.put(R.drawable.menu_link_below, R.drawable.menu_link_below_remix);
         sparseIntArray.put(R.drawable.menu_link_create, R.drawable.msg_link2_remix);
         sparseIntArray.put(R.drawable.menu_night_mode_24, R.drawable.menu_night_mode_24_remix);
         sparseIntArray.put(R.drawable.menu_passkey_add, R.drawable.menu_passkey_add_remix);
         sparseIntArray.put(R.drawable.menu_phone, R.drawable.msg_calls_remix);
+        sparseIntArray.put(R.drawable.menu_poll_notify, R.drawable.menu_poll_notify_remix);
         sparseIntArray.put(R.drawable.menu_premium_clock, R.drawable.menu_premium_clock_remix);
         sparseIntArray.put(R.drawable.menu_premium_clock_add, R.drawable.menu_premium_clock_add_remix);
         sparseIntArray.put(R.drawable.menu_privacy_policy, R.drawable.msg_policy_remix);
@@ -811,13 +888,16 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.menu_unsave_story, R.drawable.menu_unsave_story_remix);
         sparseIntArray.put(R.drawable.menu_username_change, R.drawable.menu_username_remix);
         sparseIntArray.put(R.drawable.menu_username_set, R.drawable.menu_username_set_remix);
+        sparseIntArray.put(R.drawable.menu_video_chromecast, R.drawable.menu_video_chromecast_remix);
         sparseIntArray.put(R.drawable.menu_video_pip, R.drawable.ic_goinline_remix);
+        sparseIntArray.put(R.drawable.menu_videocall, R.drawable.msg_videocall_remix);
         sparseIntArray.put(R.drawable.menu_views_recent, R.drawable.msg_recent_remix);
         sparseIntArray.put(R.drawable.menu_wallet, R.drawable.menu_wallet_remix);
+        sparseIntArray.put(R.drawable.menu_website, R.drawable.menu_website_remix);
+        sparseIntArray.put(R.drawable.menu_welcome_messages, R.drawable.menu_welcome_messages_remix);
         sparseIntArray.put(R.drawable.mini_quote, R.drawable.mini_quote_remix);
         sparseIntArray.put(R.drawable.msg2_animations, R.drawable.msg_played_remix);
         sparseIntArray.put(R.drawable.msg2_archived_stickers, R.drawable.msg_archive_remix);
-        sparseIntArray.put(R.drawable.msg2_ask_question, R.drawable.msg_ask_question_remix);
         sparseIntArray.put(R.drawable.msg2_ask_question, R.drawable.msg_ask_question_remix);
         sparseIntArray.put(R.drawable.msg2_autodelete, R.drawable.msg_autodelete_remix);
         sparseIntArray.put(R.drawable.msg2_battery, R.drawable.msg2_battery_remix);
@@ -855,7 +935,7 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.msg_archive_hide, R.drawable.msg_archive_hide_remix);
         sparseIntArray.put(R.drawable.msg_archive_stories, R.drawable.msg_menu_stories_remix);
         sparseIntArray.put(R.drawable.msg_arrow_back, R.drawable.ic_ab_back_remix);
-        sparseIntArray.put(R.drawable.msg_autodelete, R.drawable.msg_autodelete_remix);
+        sparseIntArray.put(R.drawable.msg_arrowright, R.drawable.msg_arrowright_remix);
         sparseIntArray.put(R.drawable.msg_autodelete, R.drawable.msg_autodelete_remix);
         sparseIntArray.put(R.drawable.msg_autodelete_1d, R.drawable.msg_autodelete_1d_remix);
         sparseIntArray.put(R.drawable.msg_autodelete_1m, R.drawable.msg_autodelete_1m_remix);
@@ -868,6 +948,7 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.msg_bots, R.drawable.msg_bots_remix);
         sparseIntArray.put(R.drawable.msg_brightness_high, R.drawable.msg_brightness_high_remix);
         sparseIntArray.put(R.drawable.msg_brightness_low, R.drawable.msg_brightness_low_remix);
+        sparseIntArray.put(R.drawable.msg_calculator, R.drawable.msg_calculator_remix);
         sparseIntArray.put(R.drawable.msg_calendar, R.drawable.msg_calendar_remix);
         sparseIntArray.put(R.drawable.msg_calendar2, R.drawable.msg_calendar2_remix);
         sparseIntArray.put(R.drawable.msg_callback, R.drawable.msg_calls_remix);
@@ -918,6 +999,11 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.msg_fave, R.drawable.msg_fave_remix);
         sparseIntArray.put(R.drawable.msg_filehq, R.drawable.msg_filehq_remix);
         sparseIntArray.put(R.drawable.msg_filled_blocked, R.drawable.msg_filled_blocked_remix);
+        sparseIntArray.put(R.drawable.msg_filled_reply_files, R.drawable.msg_filled_reply_files_remix);
+        sparseIntArray.put(R.drawable.msg_filled_reply_image, R.drawable.msg_filled_reply_image_remix);
+        sparseIntArray.put(R.drawable.msg_filled_reply_voice, R.drawable.msg_filled_reply_voice_remix);
+        sparseIntArray.put(R.drawable.msg_filled_reply_gift, R.drawable.msg_filled_reply_gift_remix);
+        sparseIntArray.put(R.drawable.msg_filled_reply_todo, R.drawable.msg_filled_reply_todo_remix);
         sparseIntArray.put(R.drawable.msg_filled_data_calls, R.drawable.msg_filled_data_calls_remix);
         sparseIntArray.put(R.drawable.msg_filled_data_files, R.drawable.msg_filled_data_files_remix);
         sparseIntArray.put(R.drawable.msg_filled_data_messages, R.drawable.msg_filled_data_messages_remix);
@@ -934,6 +1020,7 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.msg_filled_sdcard, R.drawable.msg_filled_sdcard_remix);
         sparseIntArray.put(R.drawable.msg_filled_shareout, R.drawable.msg_filled_shareout_remix);
         sparseIntArray.put(R.drawable.msg_filled_storageusage, R.drawable.msg_filled_storageusage_remix);
+        sparseIntArray.put(R.drawable.msg_filter, R.drawable.msg_filter_remix);
         sparseIntArray.put(R.drawable.msg_folders, R.drawable.msg_folder_remix);
         sparseIntArray.put(R.drawable.msg_folders_archive, R.drawable.msg_folders_archive_remix);
         sparseIntArray.put(R.drawable.msg_folders_bots, R.drawable.msg_folders_bots_remix);
@@ -1010,6 +1097,7 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.msg_payment_card, R.drawable.msg_payment_card_remix);
         sparseIntArray.put(R.drawable.msg_payment_delivery, R.drawable.msg_payment_delivery_remix);
         sparseIntArray.put(R.drawable.msg_payment_provider, R.drawable.msg_payment_provider_remix);
+        sparseIntArray.put(R.drawable.msg_percent, R.drawable.msg_percent_remix);
         sparseIntArray.put(R.drawable.msg_permissions, R.drawable.msg_permissions_remix);
         sparseIntArray.put(R.drawable.msg_photo_blur, R.drawable.msg_photo_blur_remix);
         sparseIntArray.put(R.drawable.msg_photo_crop, R.drawable.msg_photo_crop_remix);
@@ -1056,6 +1144,7 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.msg_reset, R.drawable.msg_reset_remix);
         sparseIntArray.put(R.drawable.msg_retry, R.drawable.msg_retry_remix);
         sparseIntArray.put(R.drawable.msg_round_file_s, R.drawable.msg_round_file_remix);
+        sparseIntArray.put(R.drawable.msg_ruler, R.drawable.msg_ruler_remix);
         sparseIntArray.put(R.drawable.msg_satellite, R.drawable.msg_satellite_remix);
         sparseIntArray.put(R.drawable.msg_save_story, R.drawable.msg_stories_saved_remix);
         sparseIntArray.put(R.drawable.msg_saved, R.drawable.msg_saved_remix);
@@ -1122,8 +1211,11 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.notifications_mute2d, R.drawable.notifications_mute2d_remix);
         sparseIntArray.put(R.drawable.notifications_on, R.drawable.notifications_on_remix);
         sparseIntArray.put(R.drawable.outline_add_account, R.drawable.outline_add_account_remix);
+        sparseIntArray.put(R.drawable.outline_attach_camera_24, R.drawable.msg_camera_remix);
         sparseIntArray.put(R.drawable.outline_caption_24, R.drawable.outline_caption_remix);
+        sparseIntArray.put(R.drawable.outline_fab_story_24, R.drawable.msg_camera_remix);
         sparseIntArray.put(R.drawable.outline_groups_24, R.drawable.msg_groups_remix);
+        sparseIntArray.put(R.drawable.outline_header_lock_24, R.drawable.outline_header_lock_remix);
         sparseIntArray.put(R.drawable.outline_header_search, R.drawable.ic_ab_search_remix);
         sparseIntArray.put(R.drawable.outline_saved_24, R.drawable.msg_saved_remix);
         sparseIntArray.put(R.drawable.outline_shield_check, R.drawable.msg_policy_remix);
@@ -1136,8 +1228,15 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.photo_paint_brush, R.drawable.photo_paint_brush_remix);
         sparseIntArray.put(R.drawable.photo_star, R.drawable.msg_fave_remix);
         sparseIntArray.put(R.drawable.photo_undo, R.drawable.photo_undo_remix);
+        sparseIntArray.put(R.drawable.photo_undo2, R.drawable.photo_undo_remix);
         sparseIntArray.put(R.drawable.picker, R.drawable.ic_colorpicker_remix);
         sparseIntArray.put(R.drawable.pin, R.drawable.bot_location_remix);
+        sparseIntArray.put(R.drawable.player_cover_placeholder, R.drawable.files_music_remix);
+        sparseIntArray.put(R.drawable.player_new_order, R.drawable.player_new_order_remix);
+        sparseIntArray.put(R.drawable.player_new_queue, R.drawable.player_new_queue_remix);
+        sparseIntArray.put(R.drawable.player_new_repeatall, R.drawable.player_new_repeatall_remix);
+        sparseIntArray.put(R.drawable.player_new_repeatone, R.drawable.player_new_repeatone_remix);
+        sparseIntArray.put(R.drawable.player_new_shuffle, R.drawable.player_new_shuffle_remix);
         sparseIntArray.put(R.drawable.plugins_filled, R.drawable.plugins_filled_remix);
         sparseIntArray.put(R.drawable.profile_discuss, R.drawable.profile_discuss_remix);
         sparseIntArray.put(R.drawable.profile_newmsg_filled, R.drawable.profile_newmsg_filled_remix);
@@ -1145,9 +1244,25 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.profile_video, R.drawable.profile_video_remix);
         sparseIntArray.put(R.drawable.qr_flashlight, R.drawable.qr_flashlight_remix);
         sparseIntArray.put(R.drawable.reactionbutton, R.drawable.msg_reactions_remix);
+        sparseIntArray.put(R.drawable.scan_qr, R.drawable.scan_qr_remix);
         sparseIntArray.put(R.drawable.screencast_big, R.drawable.screencast_big_remix);
         sparseIntArray.put(R.drawable.search_files_filled, R.drawable.msg_round_file_remix);
         sparseIntArray.put(R.drawable.select_between, R.drawable.msg_select_between_remix);
+        sparseIntArray.put(R.drawable.settings_account, R.drawable.settings_account_remix);
+        sparseIntArray.put(R.drawable.settings_ask, R.drawable.settings_ask_remix);
+        sparseIntArray.put(R.drawable.settings_business, R.drawable.settings_business_remix);
+        sparseIntArray.put(R.drawable.settings_chat, R.drawable.settings_chat_remix);
+        sparseIntArray.put(R.drawable.settings_data, R.drawable.settings_data_remix);
+        sparseIntArray.put(R.drawable.settings_devices, R.drawable.settings_devices_remix);
+        sparseIntArray.put(R.drawable.settings_faq, R.drawable.settings_faq_remix);
+        sparseIntArray.put(R.drawable.settings_features, R.drawable.settings_features_remix);
+        sparseIntArray.put(R.drawable.settings_folders, R.drawable.settings_folders_remix);
+        sparseIntArray.put(R.drawable.settings_gift, R.drawable.settings_gift_remix);
+        sparseIntArray.put(R.drawable.settings_language, R.drawable.settings_language_remix);
+        sparseIntArray.put(R.drawable.settings_policy, R.drawable.settings_policy_remix);
+        sparseIntArray.put(R.drawable.settings_power, R.drawable.settings_power_remix);
+        sparseIntArray.put(R.drawable.settings_privacy, R.drawable.settings_privacy_remix);
+        sparseIntArray.put(R.drawable.settings_sounds, R.drawable.settings_sounds_remix);
         sparseIntArray.put(R.drawable.share, R.drawable.msg_filled_shareout_remix);
         sparseIntArray.put(R.drawable.share_arrow, R.drawable.share_arrow_remix);
         sparseIntArray.put(R.drawable.smallanimationpin, R.drawable.smallanimationpin_remix);
@@ -1167,6 +1282,15 @@ public final class BaseIconPacks {
         sparseIntArray.put(R.drawable.verified_area, R.drawable.verified_area_remix);
         sparseIntArray.put(R.drawable.verified_check, R.drawable.verified_check_remix);
         sparseIntArray.put(R.drawable.verified_profile, R.drawable.verified_profile_remix);
+        sparseIntArray.put(R.drawable.wallet_apps, R.drawable.msg_media_remix);
+        sparseIntArray.put(R.drawable.wallet_card_info, R.drawable.msg_info_remix);
+        sparseIntArray.put(R.drawable.wallet_card_qr, R.drawable.msg_qrcode_remix);
+        sparseIntArray.put(R.drawable.wallet_comment_locked, R.drawable.msg_secret_remix);
+        sparseIntArray.put(R.drawable.wallet_comment_unlocked, R.drawable.outline_header_lock_remix);
+        sparseIntArray.put(R.drawable.wallet_globe, R.drawable.msg_language_remix);
+        sparseIntArray.put(R.drawable.wallet_help, R.drawable.msg_psa_remix);
+        sparseIntArray.put(R.drawable.wallet_key, R.drawable.msg_permissions_remix);
+        sparseIntArray.put(R.drawable.wallet_lock, R.drawable.msg_secret_remix);
         sparseIntArray.put(R.drawable.action_share, R.drawable.share_remix);
         sparseIntArray.put(R.drawable.gift, R.drawable.gift_remix);
         sparseIntArray.put(R.drawable.leave, R.drawable.leave_remix);
@@ -1197,18 +1321,22 @@ public final class BaseIconPacks {
     }
 
     public final IconPack getBasePack(String id) {
-        if (id == null) {
+        int iHashCode = id.hashCode();
+        if (iHashCode == -1879254548) {
+            if (id.equals("base.remix")) {
+                return new IconPack("base.remix", "Remix Icon", "[Remix-Design](https://github.com/Remix-Design/RemixIcon)", null, null, getRemix(), null, 88, null);
+            }
             return null;
         }
-        switch (id) {
-            case "base.remix":
-                return new IconPack("base.remix", "Remix Icon", "[Remix-Design](https://github.com/Remix-Design/RemixIcon)", "1.0", Collections.emptyMap(), getRemix(), null);
-            case "base.solar":
-                return new IconPack("base.solar", "Solar Icon Set", "@Design480", "1.0", Collections.emptyMap(), getSolar(), null);
-            case "base.default":
-                return new IconPack("base.default", LocaleController.getString(R.string.Default), "Telegram", "1.0", Collections.emptyMap(), getDef(), null);
-            default:
-                return null;
+        if (iHashCode == -1878034332) {
+            if (id.equals("base.solar")) {
+                return new IconPack("base.solar", "Solar Icon Set", "@Design480", null, null, getSolar(), null, 88, null);
+            }
+            return null;
         }
+        if (iHashCode == -1624208348 && id.equals("base.default")) {
+            return new IconPack("base.default", LocaleController.getString(R.string.Default), "Telegram", null, null, getDef(), null, 88, null);
+        }
+        return null;
     }
 }

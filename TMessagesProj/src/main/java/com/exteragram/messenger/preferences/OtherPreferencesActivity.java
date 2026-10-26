@@ -6,10 +6,7 @@ import android.net.Uri;
 import android.os.CountDownTimer;
 import android.view.View;
 import android.widget.TextView;
-import com.exteragram.messenger.utils.RecordTag;
 import com.exteragram.messenger.ExteraConfig;
-import com.exteragram.messenger.ai.network.Client$ImagePayload$$ExternalSyntheticRecord0;
-import com.exteragram.messenger.ai.network.Client$ImagePayload$$ExternalSyntheticRecord1;
 import com.exteragram.messenger.api.db.DatabaseHelper;
 import com.exteragram.messenger.api.dto.BoostySubscriberDTO;
 import com.exteragram.messenger.backup.PreferencesUtils;
@@ -18,24 +15,37 @@ import com.exteragram.messenger.components.BoostyBottomSheet;
 import com.exteragram.messenger.components.SupporterBottomSheet;
 import com.exteragram.messenger.export.ui.ExportActivity;
 import com.exteragram.messenger.plugins.Plugin;
+import com.exteragram.messenger.plugins.PluginsConstants;
 import com.exteragram.messenger.plugins.PluginsController;
+import com.exteragram.messenger.utils.ExtensionsKt;
 import com.exteragram.messenger.utils.network.RemoteUtils;
 import com.exteragram.messenger.utils.system.VibratorUtils;
 import com.google.android.gms.cast.framework.media.NotificationOptions;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
-import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
+import kotlin.Metadata;
+import kotlin.TuplesKt;
+import kotlin.Unit;
+import kotlin.collections.CollectionsKt;
+import kotlin.collections.MapsKt;
+import kotlin.collections.SetsKt;
+import kotlin.enums.EnumEntries;
+import kotlin.enums.EnumEntriesKt;
+import kotlin.jvm.internal.DefaultConstructorMarker;
+import kotlin.jvm.internal.Intrinsics;
+import kotlin.jvm.internal.SourceDebugExtension;
+import kotlin.jvm.internal.StringCompanionObject;
+import kotlin.text.StringsKt;
+import okhttp3.internal.url._UrlKt;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
@@ -46,6 +56,7 @@ import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
 import org.telegram.messenger.browser.Browser;
+import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.RequestDelegate;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -56,23 +67,73 @@ import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
 
-public class OtherPreferencesActivity extends BasePreferencesActivity {
-    private List<Donate> donates = new ArrayList();
-    private final List<BoostySubscriberDTO> subscribers = new ArrayList();
+@Metadata(d1 = {"\u0000h\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0010 \n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000e\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0002\b\u0003\n\u0002\u0010\b\n\u0000\n\u0002\u0010\u0007\n\u0002\b\u0006\n\u0002\u0010$\n\u0002\b\u0010\u0018\u0000 22\u00020\u0001:\u00042345B\u0007¢\u0006\u0004\b\u0002\u0010\u0003J\u0010\u0010\f\u001a\u00020\r2\u0006\u0010\u000e\u001a\u00020\u000fH\u0014J\b\u0010\u0010\u001a\u00020\u0011H\u0016J\u001e\u0010\u0012\u001a\u00020\u00132\f\u0010\u0014\u001a\b\u0012\u0004\u0012\u00020\u00150\b2\u0006\u0010\u0016\u001a\u00020\u0017H\u0014J0\u0010\u0018\u001a\u00020\u00192\u0006\u0010\u001a\u001a\u00020\u00152\u0006\u0010\u001b\u001a\u00020\r2\u0006\u0010\u001c\u001a\u00020\u001d2\u0006\u0010\u001e\u001a\u00020\u001f2\u0006\u0010 \u001a\u00020\u001fH\u0014J0\u0010!\u001a\u00020\u00132\u0006\u0010\u001a\u001a\u00020\u00152\u0006\u0010\u001b\u001a\u00020\r2\u0006\u0010\u001c\u001a\u00020\u001d2\u0006\u0010\u001e\u001a\u00020\u001f2\u0006\u0010 \u001a\u00020\u001fH\u0014JJ\u0010\"\u001a\u00020\u00132\f\u0010\u0014\u001a\b\u0012\u0004\u0012\u00020\u00150\b2\u0006\u0010#\u001a\u00020\u00112\u000e\u0010$\u001a\n\u0012\u0004\u0012\u00020\u0006\u0018\u00010\u00052\u0012\u0010%\u001a\u000e\u0012\u0004\u0012\u00020\u0011\u0012\u0004\u0012\u00020\u000b0&2\u0006\u0010'\u001a\u00020\u001dH\u0002J\u0012\u0010(\u001a\u0004\u0018\u00010\u00062\u0006\u0010)\u001a\u00020\u001dH\u0002J\b\u0010*\u001a\u00020\u0013H\u0002J\u000f\u0010+\u001a\u0004\u0018\u00010\u0013H\u0002¢\u0006\u0002\u0010,J\b\u0010-\u001a\u00020\u0013H\u0002J\b\u0010.\u001a\u00020\u0013H\u0002J\u0010\u0010/\u001a\u00020\u00132\u0006\u00100\u001a\u00020\u0006H\u0002J\u0018\u00101\u001a\u00020\u00192\u0006\u0010\u001a\u001a\u00020\u00152\u0006\u0010\u001b\u001a\u00020\rH\u0002R\u0014\u0010\u0004\u001a\b\u0012\u0004\u0012\u00020\u00060\u0005X\u0082\u000e¢\u0006\u0002\n\u0000R\u0014\u0010\u0007\u001a\b\u0012\u0004\u0012\u00020\t0\bX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\n\u001a\u00020\u000bX\u0082\u0004¢\u0006\u0002\n\u0000¨\u00066"}, d2 = {"Lcom/exteragram/messenger/preferences/OtherPreferencesActivity;", "Lcom/exteragram/messenger/preferences/BasePreferencesActivity;", "<init>", "()V", "donates", _UrlKt.FRAGMENT_ENCODE_SET, "Lcom/exteragram/messenger/preferences/OtherPreferencesActivity$Donate;", "subscribers", "Ljava/util/ArrayList;", "Lcom/exteragram/messenger/api/dto/BoostySubscriberDTO;", "defaultDonateIcon", "Lcom/exteragram/messenger/preferences/OtherPreferencesActivity$IconInfo;", "createView", "Landroid/view/View;", "context", "Landroid/content/Context;", "getTitle", _UrlKt.FRAGMENT_ENCODE_SET, "fillItems", _UrlKt.FRAGMENT_ENCODE_SET, PluginsConstants.Settings.ITEMS, "Lorg/telegram/ui/Components/UItem;", "adapter", "Lorg/telegram/ui/Components/UniversalAdapter;", "onLongClick", _UrlKt.FRAGMENT_ENCODE_SET, PluginsConstants.Settings.ITEM, PluginsConstants.Settings.VIEW, "position", _UrlKt.FRAGMENT_ENCODE_SET, "x", _UrlKt.FRAGMENT_ENCODE_SET, "y", "onClick", "addDonateSection", "headerTitle", "donateList", "donateIcons", _UrlKt.FRAGMENT_ENCODE_SET, "idOffset", "getDonate", "id", "handleCrashlyticsClick", "handleAnalyticsClick", "()Lkotlin/Unit;", "handleResetSettingsClick", "handleDeleteAccountClick", "handleDonateClick", "donate", "handleDonateLongClick", "Companion", "OtherItem", "IconInfo", "Donate", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+@SourceDebugExtension({"SMAP\nOtherPreferencesActivity.kt\nKotlin\n*S Kotlin\n*F\n+ 1 OtherPreferencesActivity.kt\ncom/exteragram/messenger/preferences/OtherPreferencesActivity\n+ 2 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n+ 3 fake.kt\nkotlin/jvm/internal/FakeKt\n+ 4 Uri.kt\nandroidx/core/net/UriKt\n*L\n1#1,323:1\n1834#2,4:324\n1924#2,2:329\n296#2,2:331\n1926#2:333\n1#3:328\n29#4:334\n*S KotlinDebug\n*F\n+ 1 OtherPreferencesActivity.kt\ncom/exteragram/messenger/preferences/OtherPreferencesActivity\n*L\n98#1:324,4\n168#1:329,2\n171#1:331,2\n168#1:333\n288#1:334\n*E\n"})
+public final class OtherPreferencesActivity extends BasePreferencesActivity {
 
-    public static List<Donate> getDonates() {
-        Set<String> stringSetConfigValue = RemoteUtils.getStringSetConfigValue("donates", Collections.EMPTY_SET);
-        ArrayList arrayList = new ArrayList();
-        Iterator<String> it = stringSetConfigValue.iterator();
-        while (it.hasNext()) {
-            String[] strArrSplit = it.next().split("#");
-            if (strArrSplit.length == 2) {
-                arrayList.add(new Donate(strArrSplit[0], strArrSplit[1]));
+    public static final Companion INSTANCE = new Companion(null);
+    private List<Donate> donates = CollectionsKt.emptyList();
+    private final ArrayList<BoostySubscriberDTO> subscribers = new ArrayList<>();
+    private final IconInfo defaultDonateIcon = new IconInfo(R.drawable.msg_payment_card, 0);
+
+    @Metadata(k = 3, mv = {2, 2, 0}, xi = 48)
+    public static final class WhenMappings {
+        public static final int[] $EnumSwitchMapping$0;
+
+        static {
+            int[] iArr = new int[OtherItem.values().length];
+            try {
+                iArr[OtherItem.CRASHLYTICS.ordinal()] = 1;
+            } catch (NoSuchFieldError unused) {
             }
+            try {
+                iArr[OtherItem.ANALYTICS.ordinal()] = 2;
+            } catch (NoSuchFieldError unused2) {
+            }
+            try {
+                iArr[OtherItem.RESET_SETTINGS.ordinal()] = 3;
+            } catch (NoSuchFieldError unused3) {
+            }
+            try {
+                iArr[OtherItem.DELETE_ACCOUNT.ordinal()] = 4;
+            } catch (NoSuchFieldError unused4) {
+            }
+            try {
+                iArr[OtherItem.EXPORT_SETTINGS.ordinal()] = 5;
+            } catch (NoSuchFieldError unused5) {
+            }
+            try {
+                iArr[OtherItem.EXPORT_DATA.ordinal()] = 6;
+            } catch (NoSuchFieldError unused6) {
+            }
+            $EnumSwitchMapping$0 = iArr;
         }
-        return arrayList;
     }
 
+    @Metadata(d1 = {"\u0000\u0016\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0010 \n\u0002\u0018\u0002\n\u0000\b\u0086\u0003\u0018\u00002\u00020\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\f\u0010\u0004\u001a\b\u0012\u0004\u0012\u00020\u00060\u0005¨\u0006\u0007"}, d2 = {"Lcom/exteragram/messenger/preferences/OtherPreferencesActivity$Companion;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "getDonates", _UrlKt.FRAGMENT_ENCODE_SET, "Lcom/exteragram/messenger/preferences/OtherPreferencesActivity$Donate;", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+    public static final class Companion {
+        public Companion(DefaultConstructorMarker defaultConstructorMarker) {
+            this();
+        }
+
+        private Companion() {
+        }
+
+        public final List<Donate> getDonates() {
+            Set<String> stringSetConfigValue = RemoteUtils.getStringSetConfigValue("donates", SetsKt.emptySet());
+            ArrayList arrayList = new ArrayList();
+            Iterator<String> it = stringSetConfigValue.iterator();
+            while (it.hasNext()) {
+                List listSplit$default = StringsKt.split$default((CharSequence) it.next(), new String[]{"#"}, false, 0, 6, (Object) null);
+                if (listSplit$default.size() == 2) {
+                    arrayList.add(new Donate((String) listSplit$default.get(0), (String) listSplit$default.get(1)));
+                }
+            }
+            return arrayList;
+        }
+    }
+
+    @Metadata(d1 = {"\u0000\u0014\n\u0002\u0018\u0002\n\u0002\u0010\u0010\n\u0002\b\n\n\u0002\u0010\b\n\u0002\b\u0003\b\u0086\u0081\u0002\u0018\u00002\b\u0012\u0004\u0012\u00020\u00000\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003R\u0011\u0010\u000b\u001a\u00020\f¢\u0006\b\n\u0000\u001a\u0004\b\r\u0010\u000ej\u0002\b\u0004j\u0002\b\u0005j\u0002\b\u0006j\u0002\b\u0007j\u0002\b\bj\u0002\b\tj\u0002\b\n¨\u0006\u000f"}, d2 = {"Lcom/exteragram/messenger/preferences/OtherPreferencesActivity$OtherItem;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "(Ljava/lang/String;I)V", "CRASHLYTICS", "ANALYTICS", "EXPORT_SETTINGS", "EXPORT_DATA", "RESET_SETTINGS", "DELETE_ACCOUNT", "DONATE", "id", _UrlKt.FRAGMENT_ENCODE_SET, "getId", "()I", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
     public enum OtherItem {
         CRASHLYTICS,
         ANALYTICS,
@@ -82,19 +143,103 @@ public class OtherPreferencesActivity extends BasePreferencesActivity {
         DELETE_ACCOUNT,
         DONATE;
 
-        public int getId() {
-            return ordinal() + 1;
+        private static final EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
+        private final int id = ordinal() + 1;
+
+        public static EnumEntries<OtherItem> getEntries() {
+            return $ENTRIES;
+        }
+
+        OtherItem() {
+        }
+
+        public final int getId() {
+            return this.id;
+        }
+    }
+
+    @Metadata(d1 = {"\u0000 \n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\u0010\b\n\u0002\b\u0004\n\u0002\u0010\u000e\n\u0002\b\u0005\n\u0002\u0010\u000b\n\u0002\b\u0006\b\u0086\b\u0018\u00002\u00020\u0001B\u0017\u0012\u0006\u0010\u0003\u001a\u00020\u0002\u0012\u0006\u0010\u0004\u001a\u00020\u0002¢\u0006\u0004\b\u0005\u0010\u0006J\u0010\u0010\b\u001a\u00020\u0007HÖ\u0001¢\u0006\u0004\b\b\u0010\tJ\u0010\u0010\n\u001a\u00020\u0002HÖ\u0001¢\u0006\u0004\b\n\u0010\u000bJ\u001a\u0010\u000e\u001a\u00020\r2\b\u0010\f\u001a\u0004\u0018\u00010\u0001HÖ\u0003¢\u0006\u0004\b\u000e\u0010\u000fR\u0017\u0010\u0003\u001a\u00020\u00028\u0006¢\u0006\f\n\u0004\b\u0003\u0010\u0010\u001a\u0004\b\u0011\u0010\u000bR\u0017\u0010\u0004\u001a\u00020\u00028\u0006¢\u0006\f\n\u0004\b\u0004\u0010\u0010\u001a\u0004\b\u0012\u0010\u000b¨\u0006\u0013"}, d2 = {"Lcom/exteragram/messenger/preferences/OtherPreferencesActivity$IconInfo;", _UrlKt.FRAGMENT_ENCODE_SET, _UrlKt.FRAGMENT_ENCODE_SET, "iconResId", "iconColor", "<init>", "(II)V", _UrlKt.FRAGMENT_ENCODE_SET, "toString", "()Ljava/lang/String;", "hashCode", "()I", "other", _UrlKt.FRAGMENT_ENCODE_SET, "equals", "(Ljava/lang/Object;)Z", "I", "getIconResId", "getIconColor", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+    public static final /* data */ class IconInfo {
+        private final int iconColor;
+        private final int iconResId;
+
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof IconInfo)) {
+                return false;
+            }
+            IconInfo iconInfo = (IconInfo) other;
+            return this.iconResId == iconInfo.iconResId && this.iconColor == iconInfo.iconColor;
+        }
+
+        public int hashCode() {
+            return (Integer.hashCode(this.iconResId) * 31) + Integer.hashCode(this.iconColor);
+        }
+
+        public String toString() {
+            return "IconInfo(iconResId=" + this.iconResId + ", iconColor=" + this.iconColor + ")";
+        }
+
+        public IconInfo(int i, int i2) {
+            this.iconResId = i;
+            this.iconColor = i2;
+        }
+
+        public final int getIconColor() {
+            return this.iconColor;
+        }
+
+        public final int getIconResId() {
+            return this.iconResId;
+        }
+    }
+
+    @Metadata(d1 = {"\u0000 \n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\u0010\u000e\n\u0002\b\u0006\n\u0002\u0010\b\n\u0002\b\u0003\n\u0002\u0010\u000b\n\u0002\b\u0006\b\u0086\b\u0018\u00002\u00020\u0001B\u0017\u0012\u0006\u0010\u0003\u001a\u00020\u0002\u0012\u0006\u0010\u0004\u001a\u00020\u0002¢\u0006\u0004\b\u0005\u0010\u0006J\u0010\u0010\u0007\u001a\u00020\u0002HÖ\u0001¢\u0006\u0004\b\u0007\u0010\bJ\u0010\u0010\n\u001a\u00020\tHÖ\u0001¢\u0006\u0004\b\n\u0010\u000bJ\u001a\u0010\u000e\u001a\u00020\r2\b\u0010\f\u001a\u0004\u0018\u00010\u0001HÖ\u0003¢\u0006\u0004\b\u000e\u0010\u000fR\u0017\u0010\u0003\u001a\u00020\u00028\u0006¢\u0006\f\n\u0004\b\u0003\u0010\u0010\u001a\u0004\b\u0011\u0010\bR\u0017\u0010\u0004\u001a\u00020\u00028\u0006¢\u0006\f\n\u0004\b\u0004\u0010\u0010\u001a\u0004\b\u0012\u0010\b¨\u0006\u0013"}, d2 = {"Lcom/exteragram/messenger/preferences/OtherPreferencesActivity$Donate;", _UrlKt.FRAGMENT_ENCODE_SET, _UrlKt.FRAGMENT_ENCODE_SET, "name", "details", "<init>", "(Ljava/lang/String;Ljava/lang/String;)V", "toString", "()Ljava/lang/String;", _UrlKt.FRAGMENT_ENCODE_SET, "hashCode", "()I", "other", _UrlKt.FRAGMENT_ENCODE_SET, "equals", "(Ljava/lang/Object;)Z", "Ljava/lang/String;", "getName", "getDetails", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+    public static final /* data */ class Donate {
+        private final String details;
+        private final String name;
+
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof Donate)) {
+                return false;
+            }
+            Donate donate = (Donate) other;
+            return Intrinsics.areEqual(this.name, donate.name) && Intrinsics.areEqual(this.details, donate.details);
+        }
+
+        public int hashCode() {
+            return (this.name.hashCode() * 31) + this.details.hashCode();
+        }
+
+        public String toString() {
+            return "Donate(name=" + this.name + ", details=" + this.details + ")";
+        }
+
+        public Donate(String str, String str2) {
+            this.name = str;
+            this.details = str2;
+        }
+
+        public final String getDetails() {
+            return this.details;
+        }
+
+        public final String getName() {
+            return this.name;
         }
     }
 
     @Override // com.exteragram.messenger.preferences.BasePreferencesActivity, org.telegram.ui.ActionBar.BaseFragment
     public View createView(Context context) {
-        final List<BoostySubscriberDTO> list = this.subscribers;
-        Objects.requireNonNull(list);
-        DatabaseHelper.getBoostySubscribers(new Consumer() { // from class: com.exteragram.messenger.preferences.OtherPreferencesActivity$$ExternalSyntheticLambda2
+        DatabaseHelper.getBoostySubscribers(new Consumer() {
             @Override // java.util.function.Consumer
             public final void accept(Object obj) {
-                list.addAll((List) obj);
+                this.f$0.subscribers.addAll((List) obj);
             }
         });
         return super.createView(context);
@@ -106,90 +251,63 @@ public class OtherPreferencesActivity extends BasePreferencesActivity {
     }
 
     @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
-    public void fillItems(ArrayList<UItem> arrayList, UniversalAdapter universalAdapter) {
-        Map<String, IconInfo> mapM = new HashMap<>();
-        mapM.put("mastercard", new IconInfo(R.drawable.mastercard_icon, Theme.isCurrentThemeDark() ? -1 : -16777216));
-        mapM.put("tonkeeper", new IconInfo(R.drawable.ton_icon, Theme.isCurrentThemeDark() ? -14207411 : -15722977));
-        mapM.put("space", new IconInfo(R.drawable.ton_space_icon, -13587978));
-        mapM.put("boosty", new IconInfo(R.drawable.boosty_icon, Theme.isCurrentThemeDark() ? -1118482 : -14406868));
-        List<Donate> donates = getDonates();
-        this.donates = donates;
-        if (!donates.isEmpty()) {
-            arrayList.add(UItem.asHeader(LocaleController.getString(R.string.Support)));
-            int i = 0;
-            for (int i2 = 0; i2 < this.donates.size(); i2++) {
-                Donate donate = this.donates.get(i2);
-                String lowerCase = donate.name().toLowerCase();
-                IconInfo iconInfo = new IconInfo(R.drawable.msg_payment_card, i);
-                for (Map.Entry<String, IconInfo> entry : mapM.entrySet()) {
-                    if (lowerCase.contains((CharSequence) entry.getKey())) {
-                        iconInfo = entry.getValue();
-                        break;
-                    }
+    public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
+        int i;
+        this.donates = INSTANCE.getDonates();
+        Collection<Plugin> collectionValues = PluginsController.INSTANCE.getInstance().getPlugins().values();
+        if (collectionValues.isEmpty()) {
+            i = 0;
+        } else {
+            Iterator<T> it = collectionValues.iterator();
+            int i2 = 0;
+            while (it.hasNext()) {
+                if (((Plugin) it.next()).isEnabled() && (i2 = i2 + 1) < 0) {
+                    CollectionsKt.throwCountOverflow();
                 }
-                UItem searchable = UItem.asButton(OtherItem.DONATE.getId() + i2, donate.name()).setSearchable(this);
-                if (iconInfo.iconColor == 0) {
-                    searchable.setIcon(iconInfo.iconResId);
-                } else {
-                    searchable.setColorfulIcon(iconInfo.iconResId, iconInfo.iconColor);
-                }
-                arrayList.add(searchable);
             }
-            arrayList.add(UItem.asShadow(AndroidUtilities.replaceSingleTag(LocaleController.getString(R.string.GetBadgeInfo), new Runnable() { // from class: com.exteragram.messenger.preferences.OtherPreferencesActivity$$ExternalSyntheticLambda3
-                @Override // java.lang.Runnable
-                public final void run() {
-                    OtherPreferencesActivity.this.lambda$fillItems$0();
-                }
-            })));
+            i = i2;
         }
-        arrayList.add(UItem.asHeader("Google"));
-        arrayList.add(UItem.asCheck(OtherItem.CRASHLYTICS.getId(), "Crashlytics", R.drawable.msg_report).setChecked(ExteraConfig.getUseGoogleCrashlytics()).setSearchable(this).setLinkAlias("crashlytics", this));
-        arrayList.add(UItem.asCheck(OtherItem.ANALYTICS.getId(), "Analytics", R.drawable.msg_data).setChecked(ExteraConfig.getUseGoogleAnalytics()).setSearchable(this).setLinkAlias("analytics", this));
-        arrayList.add(UItem.asShadow(LocaleController.getString(R.string.AnalyticsInfo)));
-        arrayList.add(UItem.asButton(OtherItem.EXPORT_SETTINGS.getId(), R.drawable.msg_settings, LocaleController.getString(R.string.ExportSettings)).setSearchable(this).setLinkAlias("exportSettings", this));
-        int iCount = (int) PluginsController.getInstance().getPlugins().values().stream().filter(new Predicate() { // from class: com.exteragram.messenger.preferences.OtherPreferencesActivity$$ExternalSyntheticLambda4
-            @Override // java.util.function.Predicate
-            public final boolean test(Object obj) {
-                return ((Plugin) obj).isEnabled();
-            }
-        }).count();
-        if (BadgesController.INSTANCE.isDeveloper() && iCount <= 1) {
-            arrayList.add(UItem.asButton(OtherItem.EXPORT_DATA.getId(), R.drawable.msg_archive, LocaleController.getString(R.string.ExportData)).setSearchable(this).setLinkAlias("exportData", this));
-        }
-        arrayList.add(UItem.asButton(OtherItem.RESET_SETTINGS.getId(), R.drawable.msg_reset, LocaleController.getString(R.string.ResetSettings)).setSearchable(this).setLinkAlias("resetSettings", this));
-        arrayList.add(UItem.asButton(OtherItem.DELETE_ACCOUNT.getId(), R.drawable.msg_clearcache, LocaleController.getString(R.string.DeleteAccount)).red().setSearchable(this).setLinkAlias("deleteAccount", this));
-        arrayList.add(UItem.asShadow());
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$fillItems$0() {
-        SupporterBottomSheet.showAlert(this, null);
+        boolean zIsCurrentThemeDark = Theme.isCurrentThemeDark();
+        addDonateSection(items, LocaleController.getString(R.string.Support), this.donates, MapsKt.mapOf(TuplesKt.to("mastercard", new IconInfo(R.drawable.mastercard_icon, zIsCurrentThemeDark ? -1 : -16777216)), TuplesKt.to("tonkeeper", new IconInfo(R.drawable.ton_icon, zIsCurrentThemeDark ? -14207411 : -15727073)), TuplesKt.to("space", new IconInfo(R.drawable.ton_space_icon, -13587978)), TuplesKt.to("boosty", new IconInfo(R.drawable.boosty_icon, zIsCurrentThemeDark ? -1118482 : -14406868))), 0);
+        items.add(UItem.asHeader("Google"));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) OtherItem.CRASHLYTICS, (CharSequence) "Crashlytics", ExteraConfig.getUseGoogleCrashlytics(), (CharSequence) null, 0, false, "crashlytics", false, R.drawable.msg_report, 184, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) OtherItem.ANALYTICS, (CharSequence) "Analytics", ExteraConfig.getUseGoogleAnalytics(), (CharSequence) null, 0, false, "analytics", false, R.drawable.msg_data, 184, (Object) null));
+        items.add(UItem.asShadow(LocaleController.getString(R.string.AnalyticsInfo)));
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) OtherItem.EXPORT_SETTINGS, (CharSequence) LocaleController.getString(R.string.ExportSettings), R.drawable.msg_settings, (CharSequence) null, (CharSequence) null, (Boolean) null, false, "exportSettings", false, false, (Boolean) null, 1912, (Object) null));
+        ExtensionsKt.addIf(items, BadgesController.isDeveloper$default(BadgesController.INSTANCE, null, 1, null) && i <= 1, BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) OtherItem.EXPORT_DATA, (CharSequence) LocaleController.getString(R.string.ExportData), R.drawable.msg_archive, (CharSequence) null, (CharSequence) null, (Boolean) null, false, "exportData", false, false, (Boolean) null, 1912, (Object) null));
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) OtherItem.RESET_SETTINGS, (CharSequence) LocaleController.getString(R.string.ResetSettings), R.drawable.msg_reset, (CharSequence) null, (CharSequence) null, (Boolean) null, false, "resetSettings", false, false, (Boolean) null, 1912, (Object) null));
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) OtherItem.DELETE_ACCOUNT, (CharSequence) LocaleController.getString(R.string.DeleteAccount), R.drawable.msg_clearcache, (CharSequence) null, (CharSequence) null, (Boolean) null, false, "deleteAccount", true, false, (Boolean) null, 1656, (Object) null));
+        items.add(UItem.asShadow());
     }
 
     @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
-    public boolean onLongClick(UItem uItem, View view, int i, float f, float f2) {
-        int i2 = uItem.id;
+    public boolean onLongClick(UItem item, View view, int position, float x, float y) {
+        int i = item.id;
         OtherItem otherItem = OtherItem.DONATE;
-        if (i2 >= otherItem.getId() && i2 < otherItem.getId() + this.donates.size()) {
-            return handleDonateLongClick(uItem, view);
+        if (i >= otherItem.getId() && i < otherItem.getId() + this.donates.size()) {
+            return handleDonateLongClick(item, view);
         }
-        return super.onLongClick(uItem, view, i, f, f2);
+        return super.onLongClick(item, view, position, x, y);
     }
 
     @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
-    public void onClick(UItem uItem, View view, int i, float f, float f2) {
-        int i2 = uItem.id;
+    public void onClick(UItem item, View view, int position, float x, float y) {
+        int i = item.id;
         OtherItem otherItem = OtherItem.DONATE;
-        if (i2 >= otherItem.getId() && i2 < otherItem.getId() + this.donates.size()) {
-            handleDonateClick(this.donates.get(i2 - otherItem.getId()));
-        }
-        if (i2 <= 0 || i2 >= otherItem.getId()) {
+        if (i >= otherItem.getId() && i < otherItem.getId() + this.donates.size()) {
+            Donate donate = getDonate(i);
+            if (donate != null) {
+                handleDonateClick(donate);
+            }
             return;
         }
-        switch (AnonymousClass3.$SwitchMap$com$exteragram$messenger$preferences$OtherPreferencesActivity$OtherItem[OtherItem.values()[i2 - 1].ordinal()]) {
+        if (i <= 0 || i >= otherItem.getId()) {
+            return;
+        }
+        switch (WhenMappings.$EnumSwitchMapping$0[OtherItem.getEntries().get(i - 1).ordinal()]) {
             case 1:
-                toggleBooleanSettingAndRefresh(uItem, new com.google.android.exoplayer2.util.Consumer() { // from class: com.exteragram.messenger.preferences.OtherPreferencesActivity$$ExternalSyntheticLambda5
-                    @Override // com.google.android.exoplayer2.util.Consumer
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new androidx.core.util.Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setUseGoogleCrashlytics(((Boolean) obj).booleanValue());
                     }
@@ -197,8 +315,8 @@ public class OtherPreferencesActivity extends BasePreferencesActivity {
                 handleCrashlyticsClick();
                 break;
             case 2:
-                toggleBooleanSettingAndRefresh(uItem, new com.google.android.exoplayer2.util.Consumer() { // from class: com.exteragram.messenger.preferences.OtherPreferencesActivity$$ExternalSyntheticLambda6
-                    @Override // com.google.android.exoplayer2.util.Consumer
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new androidx.core.util.Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setUseGoogleAnalytics(((Boolean) obj).booleanValue());
                     }
@@ -220,173 +338,211 @@ public class OtherPreferencesActivity extends BasePreferencesActivity {
         }
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.preferences.OtherPreferencesActivity$3, reason: invalid class name */
-    public static /* synthetic */ class AnonymousClass3 {
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$preferences$OtherPreferencesActivity$OtherItem;
-
-        static {
-            int[] iArr = new int[OtherItem.values().length];
-            $SwitchMap$com$exteragram$messenger$preferences$OtherPreferencesActivity$OtherItem = iArr;
-            try {
-                iArr[OtherItem.CRASHLYTICS.ordinal()] = 1;
-            } catch (NoSuchFieldError unused) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$OtherPreferencesActivity$OtherItem[OtherItem.ANALYTICS.ordinal()] = 2;
-            } catch (NoSuchFieldError unused2) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$OtherPreferencesActivity$OtherItem[OtherItem.RESET_SETTINGS.ordinal()] = 3;
-            } catch (NoSuchFieldError unused3) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$OtherPreferencesActivity$OtherItem[OtherItem.DELETE_ACCOUNT.ordinal()] = 4;
-            } catch (NoSuchFieldError unused4) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$OtherPreferencesActivity$OtherItem[OtherItem.EXPORT_SETTINGS.ordinal()] = 5;
-            } catch (NoSuchFieldError unused5) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$OtherPreferencesActivity$OtherItem[OtherItem.EXPORT_DATA.ordinal()] = 6;
-            } catch (NoSuchFieldError unused6) {
-            }
+    private final void addDonateSection(ArrayList<UItem> items, String headerTitle, List<Donate> donateList, Map<String, IconInfo> donateIcons, int idOffset) {
+        Object obj;
+        IconInfo iconInfo;
+        List<Donate> list = donateList;
+        if (list == null || list.isEmpty()) {
+            return;
         }
+        items.add(UItem.asHeader(headerTitle));
+        boolean z = false;
+        int i = 0;
+        for (Object obj2 : donateList) {
+            int i2 = i + 1;
+            if (i < 0) {
+                CollectionsKt.throwIndexOverflow();
+            }
+            Donate donate = (Donate) obj2;
+            String lowerCase = donate.getName().toLowerCase(Locale.ROOT);
+            Iterator<T> it = donateIcons.entrySet().iterator();
+            while (true) {
+                obj = null;
+                if (!it.hasNext()) {
+                    break;
+                }
+                Object next = it.next();
+                if (StringsKt.contains$default(lowerCase, (String) ((Map.Entry) next).getKey(), z, 2, (Object) null)) {
+                    obj = next;
+                    break;
+                }
+            }
+            Map.Entry entry = (Map.Entry) obj;
+            if (entry == null || (iconInfo = (IconInfo) entry.getValue()) == null) {
+                iconInfo = this.defaultDonateIcon;
+            }
+            IconInfo iconInfo2 = iconInfo;
+            boolean z2 = z;
+            UItem uItemUButton$TMessagesProj$default = BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, OtherItem.DONATE.getId() + idOffset + i, (CharSequence) donate.getName(), 0, (CharSequence) null, (CharSequence) null, (Boolean) null, true, (String) null, false, false, (Boolean) null, 1980, (Object) null);
+            if (iconInfo2.getIconColor() == 0) {
+                uItemUButton$TMessagesProj$default.setIcon(iconInfo2.getIconResId());
+            } else {
+                uItemUButton$TMessagesProj$default.setColorfulIcon(iconInfo2.getIconResId(), iconInfo2.getIconColor());
+            }
+            items.add(uItemUButton$TMessagesProj$default);
+            i = i2;
+            z = z2;
+        }
+        items.add(UItem.asShadow(AndroidUtilities.replaceSingleTag(LocaleController.getString(R.string.GetBadgeInfo), new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                SupporterBottomSheet.showAlert(this.f$0, null);
+            }
+        })));
     }
 
-    private void handleCrashlyticsClick() {
+    private final Donate getDonate(int id) {
+        int id2 = id - OtherItem.DONATE.getId();
+        if (id2 < 0 || id2 >= this.donates.size()) {
+            return null;
+        }
+        return this.donates.get(id2);
+    }
+
+    private final void handleCrashlyticsClick() {
         FirebaseCrashlytics firebaseCrashlytics = ApplicationLoader.getFirebaseCrashlytics();
         if (firebaseCrashlytics != null) {
             firebaseCrashlytics.setCrashlyticsCollectionEnabled(ExteraConfig.getUseGoogleCrashlytics());
         }
     }
 
-    private void handleAnalyticsClick() {
+    private final Unit handleAnalyticsClick() {
         FirebaseAnalytics firebaseAnalytics = ApplicationLoader.getFirebaseAnalytics();
-        if (firebaseAnalytics != null) {
-            firebaseAnalytics.setAnalyticsCollectionEnabled(ExteraConfig.getUseGoogleAnalytics());
-            if (ExteraConfig.getUseGoogleAnalytics()) {
-                return;
-            }
+        if (firebaseAnalytics == null) {
+            return null;
+        }
+        firebaseAnalytics.setAnalyticsCollectionEnabled(ExteraConfig.getUseGoogleAnalytics());
+        if (!ExteraConfig.getUseGoogleAnalytics()) {
             firebaseAnalytics.resetAnalyticsData();
         }
+        return Unit.INSTANCE;
     }
 
-    private void handleResetSettingsClick() {
-        AlertDialog alertDialogCreate = new AlertDialog.Builder(getParentActivity()).setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.ResetPreferencesInfo))).setTitle(LocaleController.getString(R.string.ResetSettings)).setNegativeButton(LocaleController.getString(R.string.Cancel), null).setPositiveButton(LocaleController.getString(R.string.Reset), new AlertDialog.OnButtonClickListener() { // from class: com.exteragram.messenger.preferences.OtherPreferencesActivity$$ExternalSyntheticLambda7
+    private final void handleResetSettingsClick() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+        builder.setMessage(AndroidUtilities.replaceTags(LocaleController.getString(R.string.ResetPreferencesInfo)));
+        builder.setTitle(LocaleController.getString(R.string.ResetSettings));
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
+        builder.setPositiveButton(LocaleController.getString(R.string.Reset), new AlertDialog.OnButtonClickListener() {
             @Override // org.telegram.ui.ActionBar.AlertDialog.OnButtonClickListener
             public final void onClick(AlertDialog alertDialog, int i) {
-                OtherPreferencesActivity.this.lambda$handleResetSettingsClick$1(alertDialog, i);
+                OtherPreferencesActivity.$r8$lambda$DShbhmj_8_W37UQxRBukG8QD66E(this.f$0, alertDialog, i);
             }
-        }).create();
+        });
+        AlertDialog alertDialogCreate = builder.create();
         showDialog(alertDialogCreate);
-        TextView textView = (TextView) alertDialogCreate.getButton(-1);
+        View button = alertDialogCreate.getButton(-1);
+        TextView textView = button instanceof TextView ? (TextView) button : null;
         if (textView != null) {
             textView.setTextColor(Theme.getColor(Theme.key_text_RedBold));
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$handleResetSettingsClick$1(AlertDialog alertDialog, int i) {
+    public static void $r8$lambda$DShbhmj_8_W37UQxRBukG8QD66E(OtherPreferencesActivity otherPreferencesActivity, AlertDialog alertDialog, int i) {
         PreferencesUtils.clearPreferences();
-        this.parentLayout.rebuildFragments(0);
-        getNotificationCenter().postNotificationNameOnUIThread(NotificationCenter.mainUserInfoChanged, new Object[0]);
-        getNotificationCenter().postNotificationNameOnUIThread(NotificationCenter.dialogFiltersUpdated, new Object[0]);
+        otherPreferencesActivity.parentLayout.rebuildFragments(0);
+        otherPreferencesActivity.getNotificationCenter().lambda$postNotificationNameOnUIThread$1(NotificationCenter.mainUserInfoChanged, new Object[0]);
+        otherPreferencesActivity.getNotificationCenter().lambda$postNotificationNameOnUIThread$1(NotificationCenter.dialogFiltersUpdated, new Object[0]);
         LocaleController.getInstance().recreateFormatters();
-        Theme.reloadAllResources(getParentActivity());
-        BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.ResetPreferences), getResourceProvider()).show();
+        Theme.reloadAllResources(otherPreferencesActivity.getParentActivity());
+        BulletinFactory.of(otherPreferencesActivity).createErrorBulletin(LocaleController.getString(R.string.ResetPreferences), otherPreferencesActivity.resourceProvider).show();
     }
 
-    private void handleDeleteAccountClick() {
+    private final void handleDeleteAccountClick() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
         builder.setMessage(LocaleController.getString(R.string.TosDeclineDeleteAccount));
         builder.setTitle(LocaleController.getString(R.string.DeleteAccount));
-        builder.setPositiveButton(LocaleController.getString(R.string.Deactivate), new AlertDialog.OnButtonClickListener() { // from class: com.exteragram.messenger.preferences.OtherPreferencesActivity$$ExternalSyntheticLambda8
+        builder.setPositiveButton(LocaleController.getString(R.string.Deactivate), new AlertDialog.OnButtonClickListener() {
             @Override // org.telegram.ui.ActionBar.AlertDialog.OnButtonClickListener
             public final void onClick(AlertDialog alertDialog, int i) {
-                OtherPreferencesActivity.this.lambda$handleDeleteAccountClick$5(alertDialog, i);
+                OtherPreferencesActivity.m2007$r8$lambda$vTi_wXRb_f1M9isgtAXKE_w2do(this.f$0, alertDialog, i);
             }
         });
         builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
         final AlertDialog alertDialogCreate = builder.create();
-        alertDialogCreate.setOnShowListener(new DialogInterface.OnShowListener() { // from class: com.exteragram.messenger.preferences.OtherPreferencesActivity$$ExternalSyntheticLambda9
+        alertDialogCreate.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override // android.content.DialogInterface.OnShowListener
             public final void onShow(DialogInterface dialogInterface) {
-                OtherPreferencesActivity.this.lambda$handleDeleteAccountClick$6(alertDialogCreate, dialogInterface);
+                OtherPreferencesActivity.$r8$lambda$dVNaH0qjGRIV502FTtIuADYa9nA(alertDialogCreate, dialogInterface);
             }
         });
         showDialog(alertDialogCreate);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$handleDeleteAccountClick$5(AlertDialog alertDialog, int i) {
-        final AlertDialog alertDialog2 = new AlertDialog(getParentActivity(), 3);
+    public static void m2007$r8$lambda$vTi_wXRb_f1M9isgtAXKE_w2do(final OtherPreferencesActivity otherPreferencesActivity, AlertDialog alertDialog, int i) {
+        final AlertDialog alertDialog2 = new AlertDialog(otherPreferencesActivity.getParentActivity(), 3);
         alertDialog2.setCanCancel(false);
-        Utilities.globalQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.preferences.OtherPreferencesActivity$$ExternalSyntheticLambda10
+        alertDialog2.show();
+        Utilities.globalQueue.postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                OtherPreferencesActivity.this.lambda$handleDeleteAccountClick$4(alertDialog2);
+                OtherPreferencesActivity.$r8$lambda$ilM5cqEH6Q8fGXs5ROPy5rBCyec(this.f$0, alertDialog2);
             }
         }, 500L);
-        alertDialog2.show();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$handleDeleteAccountClick$4(final AlertDialog alertDialog) {
+    public static void $r8$lambda$ilM5cqEH6Q8fGXs5ROPy5rBCyec(final OtherPreferencesActivity otherPreferencesActivity, final AlertDialog alertDialog) {
+        ConnectionsManager connectionsManager = otherPreferencesActivity.getConnectionsManager();
         TL_account.deleteAccount deleteaccount = new TL_account.deleteAccount();
         deleteaccount.reason = "ЭКСТЕРАГРАМ";
-        getConnectionsManager().sendRequest(deleteaccount, new RequestDelegate() { // from class: com.exteragram.messenger.preferences.OtherPreferencesActivity$$ExternalSyntheticLambda11
+        connectionsManager.sendRequest(deleteaccount, new RequestDelegate() {
             @Override // org.telegram.tgnet.RequestDelegate
             public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
-                OtherPreferencesActivity.this.lambda$handleDeleteAccountClick$3(alertDialog, tLObject, tL_error);
+                AndroidUtilities.runOnUIThread(new Runnable() {
+                    @Override // java.lang.Runnable
+                    public final void run() {
+                        OtherPreferencesActivity.$r8$lambda$wafXI4sX6H1dACsVEwON_Y0b8JM(alertDialog, tLObject, otherPreferencesActivity, tL_error);
+                    }
+                });
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$handleDeleteAccountClick$3(final AlertDialog alertDialog, final TLObject tLObject, final TLRPC.TL_error tL_error) {
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.preferences.OtherPreferencesActivity$$ExternalSyntheticLambda12
-            @Override // java.lang.Runnable
-            public final void run() {
-                OtherPreferencesActivity.this.lambda$handleDeleteAccountClick$2(alertDialog, tLObject, tL_error);
-            }
-        });
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$handleDeleteAccountClick$2(AlertDialog alertDialog, TLObject tLObject, TLRPC.TL_error tL_error) {
+    public static void $r8$lambda$wafXI4sX6H1dACsVEwON_Y0b8JM(AlertDialog alertDialog, TLObject tLObject, OtherPreferencesActivity otherPreferencesActivity, TLRPC.TL_error tL_error) {
+        String str;
         try {
             alertDialog.dismiss();
         } catch (Exception e) {
             FileLog.e(e);
         }
         if (tLObject instanceof TLRPC.TL_boolTrue) {
-            getMessagesController().performLogout(0);
+            otherPreferencesActivity.getMessagesController().performLogout(0);
             return;
         }
         if (tL_error == null || tL_error.code != -1000) {
             String string = LocaleController.getString(R.string.ErrorOccurred);
-            if (tL_error != null) {
-                string = string + "\n" + tL_error.text;
+            String strConcat = (tL_error == null || (str = tL_error.text) == null) ? null : "\n".concat(str);
+            if (strConcat == null) {
+                strConcat = _UrlKt.FRAGMENT_ENCODE_SET;
             }
-            AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+            String str2 = string + strConcat;
+            AlertDialog.Builder builder = new AlertDialog.Builder(otherPreferencesActivity.getParentActivity());
             builder.setTitle(LocaleController.getString(R.string.AppName));
-            builder.setMessage(string);
+            builder.setMessage(str2);
             builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
             builder.show();
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$handleDeleteAccountClick$6(AlertDialog alertDialog, DialogInterface dialogInterface) {
-        final TextView textView = (TextView) alertDialog.getButton(-1);
+    public static void $r8$lambda$dVNaH0qjGRIV502FTtIuADYa9nA(AlertDialog alertDialog, DialogInterface dialogInterface) {
+        View button = alertDialog.getButton(-1);
+        final TextView textView = button instanceof TextView ? (TextView) button : null;
+        if (textView == null) {
+            return;
+        }
         textView.setTextColor(Theme.getColor(Theme.key_text_RedBold));
         textView.setEnabled(false);
         final CharSequence text = textView.getText();
-        new CountDownTimer(NotificationOptions.SKIP_STEP_THIRTY_SECONDS_IN_MS, 100L) { // from class: com.exteragram.messenger.preferences.OtherPreferencesActivity.1
+        new CountDownTimer() {
+            {
+                super(NotificationOptions.SKIP_STEP_THIRTY_SECONDS_IN_MS, 100L);
+            }
+
             @Override // android.os.CountDownTimer
-            public void onTick(long j) {
-                textView.setText(String.format(Locale.getDefault(), "%s • %d", text, Long.valueOf((j / 1000) + 1)));
+            public void onTick(long millisUntilFinished) {
+                TextView textView2 = textView;
+                StringCompanionObject stringCompanionObject = StringCompanionObject.INSTANCE;
+                textView2.setText(String.format(Locale.getDefault(), "%s • %d", Arrays.copyOf(new Object[]{text, Long.valueOf((millisUntilFinished / 1000) + 1)}, 2)));
             }
 
             @Override // android.os.CountDownTimer
@@ -397,118 +553,45 @@ public class OtherPreferencesActivity extends BasePreferencesActivity {
         }.start();
     }
 
-    private void handleDonateClick(final Donate donate) {
-        if (donate.name().toLowerCase().contains("ton")) {
-            String str = "ton://transfer/" + donate.details() + "?text=" + String.valueOf(UserConfig.getInstance(this.currentAccount).getClientUserId());
-            if (!Browser.isInternalUri(Uri.parse(str), new boolean[]{false})) {
+    private final void handleDonateClick(final Donate donate) {
+        String lowerCase = donate.getName().toLowerCase(Locale.getDefault());
+        if (StringsKt.contains$default((CharSequence) lowerCase, (CharSequence) "ton", false, 2, (Object) null)) {
+            long j = UserConfig.getInstance(this.currentAccount).clientUserId;
+            String str = "ton://transfer/" + donate.getDetails() + "?text=" + j;
+            if (!Browser.isInternalUri(Uri.parse(str), new boolean[1])) {
                 Browser.openUrl(getParentActivity(), str);
                 return;
             } else {
-                if (AndroidUtilities.addToClipboard(donate.details())) {
+                if (AndroidUtilities.addToClipboard(donate.getDetails())) {
                     BulletinFactory.of(this).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
                     return;
                 }
                 return;
             }
         }
-        if (donate.name().toLowerCase().contains("boosty") && !this.subscribers.isEmpty()) {
+        if (StringsKt.contains$default((CharSequence) lowerCase, (CharSequence) "boosty", false, 2, (Object) null) && !this.subscribers.isEmpty()) {
             if (getParentActivity() == null) {
                 return;
             }
-            showDialog(new BoostyBottomSheet(getParentActivity(), this.subscribers) { // from class: com.exteragram.messenger.preferences.OtherPreferencesActivity.2
+            showDialog(new BoostyBottomSheet(getParentActivity(), this.subscribers) {
                 @Override // com.exteragram.messenger.components.BoostyBottomSheet
                 public void onButtonClick() {
-                    Browser.openUrl(OtherPreferencesActivity.this.getParentActivity(), donate.details());
+                    Browser.openUrl(OtherPreferencesActivity.this.getParentActivity(), donate.getDetails());
                 }
             });
-        } else if (LinkifyPort.WEB_URL.matcher(donate.details()).matches()) {
-            Browser.openUrl(getParentActivity(), donate.details());
-        } else if (AndroidUtilities.addToClipboard(donate.details())) {
+        } else if (LinkifyPort.WEB_URL.matcher(donate.getDetails()).matches()) {
+            Browser.openUrl(getParentActivity(), donate.getDetails());
+        } else if (AndroidUtilities.addToClipboard(donate.getDetails())) {
             BulletinFactory.of(this).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
         }
     }
 
-    private boolean handleDonateLongClick(UItem uItem, View view) {
-        if (AndroidUtilities.addToClipboard(this.donates.get(uItem.id - OtherItem.DONATE.getId()).details())) {
+    private final boolean handleDonateLongClick(UItem item, View view) {
+        Donate donate = getDonate(item.id);
+        if (donate != null && AndroidUtilities.addToClipboard(donate.getDetails())) {
             BulletinFactory.of(this).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
         }
         view.performHapticFeedback(VibratorUtils.getType(3), 1);
         return false;
-    }
-
-    public static final class IconInfo extends RecordTag {
-        private final int iconColor;
-        private final int iconResId;
-
-        private /* synthetic */ boolean $record$equals(Object obj) {
-            if (!(obj instanceof IconInfo)) {
-                return false;
-            }
-            IconInfo iconInfo = (IconInfo) obj;
-            return this.iconResId == iconInfo.iconResId && this.iconColor == iconInfo.iconColor;
-        }
-
-        private /* synthetic */ Object[] $record$getFieldsAsObjects() {
-            return new Object[]{Integer.valueOf(this.iconResId), Integer.valueOf(this.iconColor)};
-        }
-
-        private IconInfo(int i, int i2) {
-            this.iconResId = i;
-            this.iconColor = i2;
-        }
-
-        public final boolean equals(Object obj) {
-            return $record$equals(obj);
-        }
-
-        public final int hashCode() {
-            return Objects.hash(this.iconResId, this.iconColor);
-        }
-
-        public final String toString() {
-            return "IconInfo[iconResId=" + this.iconResId + ", iconColor=" + this.iconColor + "]";
-        }
-    }
-
-    public static final class Donate extends RecordTag {
-        private final String details;
-        private final String name;
-
-        private /* synthetic */ boolean $record$equals(Object obj) {
-            if (!(obj instanceof Donate)) {
-                return false;
-            }
-            Donate donate = (Donate) obj;
-            return Objects.equals(this.name, donate.name) && Objects.equals(this.details, donate.details);
-        }
-
-        private /* synthetic */ Object[] $record$getFieldsAsObjects() {
-            return new Object[]{this.name, this.details};
-        }
-
-        public Donate(String str, String str2) {
-            this.name = str;
-            this.details = str2;
-        }
-
-        public String details() {
-            return this.details;
-        }
-
-        public final boolean equals(Object obj) {
-            return $record$equals(obj);
-        }
-
-        public final int hashCode() {
-            return Objects.hash(this.name, this.details);
-        }
-
-        public String name() {
-            return this.name;
-        }
-
-        public final String toString() {
-            return "Donate[name=" + this.name + ", details=" + this.details + "]";
-        }
     }
 }

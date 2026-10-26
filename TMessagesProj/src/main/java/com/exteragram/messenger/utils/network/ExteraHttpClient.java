@@ -12,7 +12,7 @@ import okhttp3.internal.url._UrlKt;
 public final class ExteraHttpClient {
     public static final ExteraHttpClient INSTANCE = new ExteraHttpClient();
 
-    private static final Lazy client = LazyKt.lazy(new Function0() { 
+    private static final Lazy client = LazyKt.lazy(new Function0() {
         @Override // kotlin.jvm.functions.Function0
         public final Object invoke() {
             return ExteraHttpClient.$r8$lambda$wzbHlla98iZftcZ62WKlPGXexp8();

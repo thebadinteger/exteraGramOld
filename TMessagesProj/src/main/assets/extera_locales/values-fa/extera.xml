@@ -13,7 +13,6 @@
     <string name="Preferences">تنظیمات exteraGram</string>
     <!-- Main Menu -->
     <string name="Links">لینک‌ ها</string>
-    <string name="AboutExteraDescription">یک کلاینت آزمایشی تلگرام بر پایه کد منبع رسمی!</string>
     <string name="Crowdin">ترجمه</string>
     <string name="Website">وبسایت</string>
     <string name="Categories">دسته‌ها</string>
@@ -45,23 +44,7 @@
     <string name="WeatherPillTopInfo">تنظیمات ویجت آب و هوا برای ابزارک‌های تعاملی.</string>
     <string name="PillStackInfiniteScrolling">اسکرول بی‌نهایت</string>
     <string name="CryptoPillTargetCurrency">ارز مقصد</string>
-    <string name="CryptoCurrencyUsd">دلار آمریکا</string>
-    <string name="CryptoCurrencyEur">یورو</string>
-    <string name="CryptoCurrencyRub">روبل روسیه</string>
-    <string name="CryptoCurrencyGbp">پوند انگلیس</string>
-    <string name="CryptoCurrencyKzt">تنگه قزاقستان</string>
-    <string name="CryptoCurrencyTry">لیر ترکیه</string>
-    <string name="CryptoCurrencyUah">گریونای اوکراین</string>
-    <string name="CryptoCurrencyPln">زلوتی لهستان</string>
-    <string name="CryptoCurrencyAed">درهم امارات</string>
-    <string name="CryptoCurrencyCny">یوآن چین</string>
-    <string name="CryptoCurrencyJpy">ین ژاپن</string>
-    <string name="CryptoCurrencyByn">روبل بلاروس</string>
-    <string name="CryptoCurrencyIls">شِکِل جدید اسرائیل</string>
-    <string name="CryptoCurrencyCzk">کرونای چک</string>
-    <string name="CryptoCurrencyInr">روپیه هند</string>
     <!-- Proxy -->
-    <string name="ProxyDoNotUseWithVPN">با VPN استفاده نکنید</string>
     <string name="ProxyDisableOn">غیرفعال کردن پروکسی</string>
     <string name="ProxyDisableNever">هرگز</string>
     <string name="ProxyDisableAlways">همیشه</string>
@@ -73,8 +56,6 @@
     <string name="CopyIpAddress">کپی آدرس IP</string>
     <string name="IpInfoUnavailable">اطلاعات آدرس IP دریافت نشد.</string>
     <string name="IpInfoCountry">کشور</string>
-    <string name="IpInfoRegion">منطقه</string>
-    <string name="IpInfoCity">شهر</string>
     <string name="IpInfoIsp">ارائه‌دهنده اینترنت</string>
     <string name="IpInfoOrganization">شرکت</string>
     <string name="IpInfoDomain">دامنه</string>
@@ -83,11 +64,16 @@
     <string name="TranslationProvider">ارائه‌دهنده ترجمه</string>
     <string name="TranslationTarget">زبان مقصد</string>
     <string name="TranslationTargetApp">پیروی از برنامه</string>
+    <string name="ShowTranslateChatButtonLocked">یک ارائه‌دهندهٔ ترجمهٔ دیگر انتخاب کنید یا مشترک **Telegram Premium** شوید.</string>
     <!-- Formatting & Behavior -->
     <string name="DisableNumberRounding">غیرفعال کردن گرد کردن اعداد</string>
     <string name="FormatTimeWithSeconds">فرمت زمان با ثانیه</string>
     <string name="RelativeLastSeen">نمایش نسبی آخرین بازدید</string>
     <string name="InAppVibration">لرزش داخل برنامه</string>
+    <string name="DisableNotificationDelay">خاموش کردن تاخیر اعلان ها</string>
+    <string name="AccountNotifications">اعلان های اکانت </string>
+    <string name="AccountNotificationsInfo">اکانت‌های انتخاب‌نشده هنگام استفاده از اکانت دیگر، اعلانی نشان نمی‌دهند.</string>
+    <string name="AccountNotificationsCurrent">اعلان هایی که از اکانت فعلی میاد همیشه نشان داده میشود.</string>
     <string name="FilterZalgo">فیلتر «زالگو»</string>
     <string name="FilterZalgoInfo">حذف کردن نمادهای \"%1$s\" در نام‌ها و پیام‌ها.</string>
     <string name="RestartRequired">برای اعمال تغییرات برنامه را بسته و مجدداً اجرا کنید.</string>
@@ -100,11 +86,6 @@
     <string name="UploadSpeedBoost">افزایش سرعت آپلود</string>
     <string name="Ultra">فوق‌العاده</string>
     <string name="SpeedBoostInfo">افزایش فوق‌العاده ممکن است اختلالاتی در بارگیری و پخش ویدیو‌ها در اینترنت‌های کند ایجاد کند.</string>
-    <!-- Maps -->
-    <string name="Maps">نقشه‌ها</string>
-    <string name="TermsOfUseYandexMaps">درصورت استفاده از نقشه‌های یاندکس شما با <![CDATA[<a href="https://yandex.ru/legal/maps_termsofuse/">خط مشی‌ها</a>]]> موافقت کرده‌اید.</string>
-    <string name="UseYandexMaps">استفاده از نقشه‌های یاندکس</string>
-    <string name="InstallYandexMaps">نصب نقشه‌های یاندکس؟</string>
     <!-- Storage -->
     <string name="StorageSettings">حافظه</string>
     <string name="CustomSavePath">پوشه ذخیره‌سازی دلخواه</string>
@@ -153,6 +134,7 @@
     <string name="TabTitleStyleIconsOnly">فقط آیکون‌ها</string>
     <string name="TabTitleStyleTextOnly">فقط نام‌ها</string>
     <string name="TabCounter">شمارشگر اعلان</string>
+    <string name="TabCounterUnmuted">بی‌صدا نشده</string>
     <string name="HideAllChats">پنهان کردن برگه \"%1$s\"</string>
     <string name="FoldersInfo">آیکون‌ها با حساب کاربری شما همگام‌سازی شده‌اند.</string>
     <!-- App Navigation -->
@@ -218,6 +200,8 @@
     <string name="AppIconOrbit">مدار</string>
     <string name="AppIconSus">آمانگ‌ آس</string>
     <string name="AppIconWinter">زمستان</string>
+    <string name="AppIconsApply">انتخاب</string>
+    <string name="AppIconsKeep">این را نگه دار</string>
     <!-- General Appearance -->
     <string name="Sections">بخش‌ها</string>
     <string name="SeparateHeaders">سرتیترهای جداگانه</string>
@@ -230,6 +214,7 @@
     <string name="NewLoadingStyle">سبک لود شدن</string>
     <string name="NewSliderStyle">سبک لغزنده</string>
     <string name="NewSwitchStyle">سبک سوئیچ</string>
+    <string name="NewFabStyle">دکمه معلق</string>
     <string name="TabletMode">حالت تبلت</string>
     <string name="RemoveMessageTail">حذف گوشه پیام</string>
     <string name="GooeyAvatarAnimation">انیمیشن «چسبناک» نمایه</string>
@@ -238,6 +223,9 @@
     <string name="PredictiveBackIntensity">شدت بازگشت پیش‌بینی‌کننده</string>
     <string name="PredictiveBackMax">حداکثر</string>
     <string name="PredictiveBackInfo">میزان جابجایی صفحه هنگام کشیدن به عقب را تنظیم می‌کند.</string>
+    <string name="TransitionAnimation">انیمیشن انتقال</string>
+    <string name="TransitionAnimationSpring">فنری</string>
+    <string name="TransitionAnimationInfo">AOSP از انیمیشن پیش‌فرض اندروید برای انتقال پنجره‌ها استفاده می‌کند و «فنری» از انیمیشنی نرم‌تر.</string>
     <!-- Blur & Effects -->
     <string name="BlurOptions">گزینه‌های تار شدگی</string>
     <string name="GlassOutlineStyle">حاشیه شیشه‌ای</string>
@@ -258,6 +246,7 @@
     <string name="StickerShape">حالت استیکر</string>
     <string name="StickerShapeRounded">گردشده</string>
     <string name="StickerShapeRoundedMsg">پیام</string>
+    <string name="StickerTimeHidden">پنهان</string>
     <string name="ViewEmojiSet">مشاهده مجموعه ایموجی</string>
     <string name="UnlimitedRecentStickers">استیکرهای اخیر نامحدود</string>
     <string name="HideReactions">مخفی کردن واکنش‌ها</string>
@@ -304,6 +293,8 @@
     <string name="InsertResponseAsQuote">درج پاسخ به عنوان نقل‌قول</string>
     <string name="TapToAddApiKey">برای شروع کار با قابلیت‌های هوش مصنوعی، روی افزودن کلید API ضربه بزنید.</string>
     <string name="Generate">تولید</string>
+    <string name="GenerateWithHistory">با تاریخچه</string>
+    <string name="GenerateWithPhoto">با عکس</string>
     <string name="ClearConversationHistoryInfo">آیا مطمئنید که می‌خواهید **همه** سابقه مکالمه هوش مصنوعی را پاک کنید؟</string>
     <!-- AI Errors -->
     <string name="AIError400">درخواست اشتباه</string>
@@ -324,11 +315,29 @@
     <string name="AIError503Info">سرویس به طور موقت در دسترس نیست یا بیش از حد بارگذاری شده است. لطفاً بعداً دوباره امتحان کنید.</string>
     <string name="AIError">خطای سرور</string>
     <string name="AIErrorInfo">لطفاً پس از انتظار کوتاه درخواست خود را دوباره امتحان کنید.</string>
+    <string name="AIErrorOnDeviceStopped">مدل متوقف شد</string>
+    <string name="AIOnDeviceDownloadButton">بارگیری</string>
+    <string name="AIOnDeviceBadgeReady">حاضر</string>
+    <string name="AIOnDeviceBadgeUnavailable">غیر قابل دسترس</string>
+    <string name="AIOnDeviceNotificationReady">مدل حاضر</string>
+    <string name="AIOnDeviceBadgeDownload">بارگیری</string>
+    <string name="AIOnDeviceBadgeDownloading">درحال دریافت</string>
+    <string name="AIOnDeviceFastModel">مدل سریع</string>
+    <string name="AIReplaceTelegram">هوش مصنوعی تلگرام</string>
+    <string name="AIReplaceTelegramSummariesInfo">خلاصه کردن متن های طولانی پیام ها و پست ها</string>
+    <string name="AIReplaceTelegramInfo">ویژگی های انتخاب شده از سرویس هوش مصنوعی به جای سرور های تلگرام استفاده میکنه تا محدودیت تلگرام پرمیوم را دور بزنه.</string>
+    <string name="AIOnDeviceManage">تنظیمات هسته ی هوش مصنوعی</string>
+    <string name="AIOnDeviceManageUnavailable">تنظیمات سیستم واسه ی هسته‌ی هوش مصنوعی در این دستگاه در دسترس نیست.</string>
+    <string name="AIChangeModel">تغییر مدل هوش مصنوعی</string>
+    <string name="AIAskMore">پرسیدن بیشتر</string>
+    <string name="AIAssistant">دستیار هوش مصنوعی</string>
     <!-- Chat Actions -->
-    <string name="DoubleTap">دوبار ضربه زدن</string>
     <string name="DoubleTapIncoming">پیام‌‌های دریافتی</string>
     <string name="DoubleTapOutgoing">پیام‌های خروجی</string>
     <string name="DoubleTapInfo">برخی از عملکردها به حقوق مدیران در چت یا کانال نیاز دارند.</string>
+    <string name="Gestures">اشاره ها</string>
+    <string name="SwipeActions">کنش‌های کشیدن انگشت</string>
+    <string name="SwipeActionsInfo">پیام را به چپ بکشید و بدون برداشتن انگشت، آن را بالا یا پایین ببرید تا یک کنش را انتخاب کنید.</string>
     <string name="BottomButton">دکمه‌های پایین</string>
     <string name="ChannelDiscussNoCaps">بحث</string>
     <string name="QuickTransitions">ترجمه سریع با کشیدن</string>
@@ -465,7 +474,6 @@
     <string name="PluginNotEnabled">برای نصب **%1$s**، **موتور افزونه** را فعال کنید.</string>
     <string name="PluginInstalled">**%1$s** با موفقیت نصب شد.</string>
     <string name="PluginUpdated">**%1$s** با موفقیت آپدیت شد.</string>
-    <string name="PluginInstalledButFailedToEnable">**%1$s** نصب شد، اما با خطا هنگام فعال کردن مواجه شد.</string>
     <string name="PluginEnableError">خطا در فعال‌سازی **%1$s**.</string>
     <string name="PluginDisableError">خطا در غیر فعال‌سازی **%1$s**.</string>
     <string name="PluginInstallError">خطا در نصب **%1$s**.</string>
@@ -541,7 +549,6 @@
     <!-- Login & QR -->
     <string name="LoginQrTitle">ورود با کد QR</string>
     <string name="LoginQrSubtitle">برای اسکن این کد QR از دستگاه دیگری استفاده کنید.</string>
-    <string name="SelectNumber">شماره تلفن را انتخاب کنید</string>
     <string name="WifiConnect">اتصال</string>
     <string name="WifiDisabled">وای‌فای غیرفعال است.</string>
     <string name="WifiFailed">اتصال به وای‌فای ناموفق بود.</string>
@@ -552,6 +559,7 @@
     <string name="PageBlockedDescription">exteraGram از بارگذاری صفحه زیر جلوگیری کرد:\n**%1$s**</string>
     <string name="PageBlockedGoBack">بازگشت</string>
     <string name="PageBlockedProceed">ادامه دادن</string>
+    <string name="BlockAds">مسدود کردن تبلیغات</string>
     <!-- Other -->
     <string name="SetAsBadge">تنظیم به عنوان نشان</string>
     <string name="AutoLockInstant">فوری</string>

@@ -13,7 +13,6 @@
     <string name="Preferences">exteraGram Параметрлері</string>
     <!-- Main Menu -->
     <string name="Links">Сілтемелер</string>
-    <string name="AboutExteraDescription">Ресми бастапқы кодқа негізделген эксперименталды Telegram клиенті!</string>
     <string name="Crowdin">Аударма</string>
     <string name="Website">Веб-сайт</string>
     <string name="Categories">Санаттар</string>
@@ -45,23 +44,7 @@
     <string name="WeatherPillTopInfo">Pill Stack үшін ауа райы виджетінің параметрлері.</string>
     <string name="PillStackInfiniteScrolling">Шексіз айналдыру</string>
     <string name="CryptoPillTargetCurrency">Мақсатты валюта</string>
-    <string name="CryptoCurrencyUsd">АҚШ доллары</string>
-    <string name="CryptoCurrencyEur">Еуро</string>
-    <string name="CryptoCurrencyRub">Ресей рублі</string>
-    <string name="CryptoCurrencyGbp">Британдық фунт</string>
-    <string name="CryptoCurrencyKzt">Қазақстан теңгесі</string>
-    <string name="CryptoCurrencyTry">Түрік лирасы</string>
-    <string name="CryptoCurrencyUah">Украина гривні</string>
-    <string name="CryptoCurrencyPln">Польша злотасы</string>
-    <string name="CryptoCurrencyAed">БАӘ дирхамы</string>
-    <string name="CryptoCurrencyCny">Қытай юані</string>
-    <string name="CryptoCurrencyJpy">Жапон иені</string>
-    <string name="CryptoCurrencyByn">Беларусь рублі</string>
-    <string name="CryptoCurrencyIls">Израиль жаңа шекелі</string>
-    <string name="CryptoCurrencyCzk">Чех кронасы</string>
-    <string name="CryptoCurrencyInr">Үндістан рупиясы</string>
     <!-- Proxy -->
-    <string name="ProxyDoNotUseWithVPN">VPN-мен пайдаланбаңыз</string>
     <string name="ProxyDisableOn">Проксиді өшіру</string>
     <string name="ProxyDisableNever">Ешқашан</string>
     <string name="ProxyDisableAlways">Әрқашан</string>
@@ -73,8 +56,6 @@
     <string name="CopyIpAddress">IP мекенжайын көшіру</string>
     <string name="IpInfoUnavailable">IP мекенжайы туралы ақпаратты жүктеу мүмкін болмады.</string>
     <string name="IpInfoCountry">Ел</string>
-    <string name="IpInfoRegion">Аймақ</string>
-    <string name="IpInfoCity">Қала</string>
     <string name="IpInfoIsp">Интернет провайдері</string>
     <string name="IpInfoOrganization">Ұйым</string>
     <string name="IpInfoDomain">Домен</string>
@@ -100,11 +81,6 @@
     <string name="UploadSpeedBoost">Жүктеу (жіберу) жылдамдығын арттыру</string>
     <string name="Ultra">Ультра</string>
     <string name="SpeedBoostInfo">Ультра арттыру баяу интернет қосылымдарында файлдарды жүктеу және бейнелерді көру кезінде проблемалар туғызуы мүмкін.</string>
-    <!-- Maps -->
-    <string name="Maps">Карталар</string>
-    <string name="TermsOfUseYandexMaps">Яндекс Карталарды пайдалану арқылы сіз <![CDATA[<a href="https://yandex.ru/legal/maps_termsofuse/">пайдалану шарттарымен</a>]]> келісесіз.</string>
-    <string name="UseYandexMaps">Яндекс Карталарды пайдалану</string>
-    <string name="InstallYandexMaps">Яндекс Карталарды орнату керек пе?</string>
     <!-- Storage -->
     <string name="StorageSettings">Қойма</string>
     <string name="CustomSavePath">Арнайы сақтау қалтасы</string>
@@ -324,7 +300,6 @@
     <string name="AIError">Сервер қателігі</string>
     <string name="AIErrorInfo">Қысқа үзілістен кейін сұранысты қайталаңыз.</string>
     <!-- Chat Actions -->
-    <string name="DoubleTap">Екі рет түрту</string>
     <string name="DoubleTapIncoming">Кіріс хабарламалар</string>
     <string name="DoubleTapOutgoing">Шығыс хабарламалар</string>
     <string name="DoubleTapInfo">Кейбір әрекеттер чат немесе арнада әкімші құқықтарын талап етеді.</string>
@@ -464,7 +439,6 @@
     <string name="PluginNotEnabled">**%1$s** орнату үшін **Плагиндер қозғалтқышын** қосыңыз.</string>
     <string name="PluginInstalled">**%1$s** сәтті орнатылды.</string>
     <string name="PluginUpdated">**%1$s** сәтті жаңартылды.</string>
-    <string name="PluginInstalledButFailedToEnable">**%1$s** орнатылды, бірақ қосу кезінде қате орын алды.</string>
     <string name="PluginEnableError">**%1$s** қосу сәтсіз аяқталды.</string>
     <string name="PluginDisableError">**%1$s** өшіру сәтсіз аяқталды.</string>
     <string name="PluginInstallError">**%1$s** орнату сәтсіз аяқталды.</string>
@@ -540,7 +514,6 @@
     <!-- Login & QR -->
     <string name="LoginQrTitle">QR код арқылы кіру</string>
     <string name="LoginQrSubtitle">Басқа құрылғымен осы QR кодты сканерлеңіз.</string>
-    <string name="SelectNumber">Телефон нөмірін таңдаңыз</string>
     <string name="WifiConnect">Қосу</string>
     <string name="WifiDisabled">Wi-Fi өшірулі.</string>
     <string name="WifiFailed">Wi-Fi-ға қосылу сәтсіз.</string>

@@ -15,7 +15,6 @@ import java.util.Set;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.Utilities;
 
-/* JADX INFO: loaded from: classes4.dex */
 public abstract class CameraLensStops {
     private static final float[] NO_RATIOS = new float[0];
     private static final float[] SNAP_RATIOS = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 10.0f, 12.0f, 15.0f, 20.0f};
@@ -41,7 +40,6 @@ public abstract class CameraLensStops {
         return normalizeRatios(opticalZoomRatios, f);
     }
 
-    /* JADX WARN: Code duplicated, block: B:11:0x001a  */
     private static float[] normalizeRatios(float[] fArr, float f) {
         float f2;
         if (fArr.length < 2) {

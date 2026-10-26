@@ -1,12 +1,11 @@
 package com.exteragram.messenger.export.api;
 
-import com.exteragram.messenger.utils.RecordTag;
-
+import com.android.tools.r8.RecordTag;
 public final class ApiWrap$FileProgress extends RecordTag {
     private final long ready;
     private final long total;
 
-    private /* synthetic */ boolean $record$equals(Object obj) {
+    private boolean $record$equals(Object obj) {
         if (!(obj instanceof ApiWrap$FileProgress)) {
             return false;
         }
@@ -14,7 +13,7 @@ public final class ApiWrap$FileProgress extends RecordTag {
         return this.ready == apiWrap$FileProgress.ready && this.total == apiWrap$FileProgress.total;
     }
 
-    private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+    private Object[] $record$getFieldsAsObjects() {
         return new Object[]{Long.valueOf(this.ready), Long.valueOf(this.total)};
     }
 
@@ -28,7 +27,7 @@ public final class ApiWrap$FileProgress extends RecordTag {
     }
 
     public final int hashCode() {
-        return java.util.Objects.hash(this.ready, this.total);
+        return ApiWrap$java.util.Objects.hash(this.ready, this.total);
     }
 
     public long ready() {

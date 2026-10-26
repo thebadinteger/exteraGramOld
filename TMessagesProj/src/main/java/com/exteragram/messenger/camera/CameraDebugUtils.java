@@ -94,7 +94,23 @@ public abstract class CameraDebugUtils {
     }
 
     public static String getCameraXPhysicalCameraList(CameraXSession cameraXSession) {
-        return "none";
+        Camera camera = cameraXSession.camera;
+        if (camera == null) {
+            return "none";
+        }
+        try {
+            StringBuilder sb = new StringBuilder();
+            for (CameraInfo cameraInfo : camera.getCameraInfo().getPhysicalCameraInfos()) {
+                if (sb.length() > 0) {
+                    sb.append(", ");
+                }
+                sb.append(formatCameraXInfo(cameraInfo));
+            }
+            return sb.length() == 0 ? "none" : sb.toString();
+        } catch (Exception e) {
+            FileLog.e(e);
+            return "error=".concat(e.getClass().getSimpleName());
+        }
     }
 
     public static String getCamera2CameraList(Context context) {
@@ -159,10 +175,9 @@ public abstract class CameraDebugUtils {
                 cameraInfo = null;
             } else {
                 CameraSelector cameraSelector = cameraXSession.isFrontface() ? CameraSelector.DEFAULT_FRONT_CAMERA : CameraSelector.DEFAULT_BACK_CAMERA;
-                try {
-                    List<CameraInfo> filtered = cameraSelector.filter(cameraXSession.provider.getAvailableCameraInfos());
-                    cameraInfo = filtered.isEmpty() ? null : filtered.get(0);
-                } catch (Exception ignored) {
+                if (cameraXSession.provider.hasCamera(cameraSelector)) {
+                    cameraInfo = cameraXSession.provider.getCameraInfo(cameraSelector);
+                } else {
                     cameraInfo = null;
                 }
             }
@@ -176,12 +191,45 @@ public abstract class CameraDebugUtils {
         }
     }
 
+    public static String getCamera2SupportedFpsRanges(Context context, String str) {
+        if (str == null) {
+            return "none";
+        }
+        try {
+            CameraManager cameraManager = (CameraManager) context.getSystemService(CameraManager.class);
+            if (cameraManager == null) {
+                return "manager=null";
+            }
+            return formatCamera2FpsRanges((Range[]) cameraManager.getCameraCharacteristics(str).get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES));
+        } catch (Exception e) {
+            FileLog.e(e);
+            return "error=".concat(e.getClass().getSimpleName());
+        }
+    }
+
     public static String getCamera2SupportedFpsRanges(Camera2Session camera2Session) {
-        return "none";
+        if (camera2Session == null) {
+            return "none";
+        }
+        try {
+            return formatCamera2FpsRanges(camera2Session.getAvailableFpsRanges());
+        } catch (Exception e) {
+            FileLog.e(e);
+            return "error=".concat(e.getClass().getSimpleName());
+        }
     }
 
     public static String getLegacySupportedFpsRanges(CameraSession cameraSession) {
-        return "none";
+        org.telegram.messenger.camera.CameraInfo cameraInfo;
+        if (cameraSession == null || (cameraInfo = cameraSession.cameraInfo) == null || cameraInfo.getCamera() == null) {
+            return "none";
+        }
+        try {
+            return formatLegacyFpsRanges(cameraSession.cameraInfo.getCamera().getParameters().getSupportedPreviewFpsRange());
+        } catch (Exception e) {
+            FileLog.e(e);
+            return "error=".concat(e.getClass().getSimpleName());
+        }
     }
 
     public static String formatCameraXInfo(CameraInfo cameraInfo) {
@@ -200,6 +248,32 @@ public abstract class CameraDebugUtils {
             intrinsicZoomRatio = 1.0f;
         }
         return lensFacingToShortString(Integer.valueOf(cameraInfo.getLensFacing())) + cameraId + "@" + intrinsicZoomRatio;
+    }
+
+    public static String formatZoomStops(float[] fArr) {
+        if (fArr == null || fArr.length == 0) {
+            return "none";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (float f : fArr) {
+            if (sb.length() > 0) {
+                sb.append(' ');
+            }
+            sb.append(formatZoomStop(f));
+        }
+        return sb.toString();
+    }
+
+    private static String formatZoomStop(float f) {
+        String str = String.format(Locale.US, "%.3f", Float.valueOf(f));
+        int length = str.length();
+        while (length > 0 && str.charAt(length - 1) == '0') {
+            length--;
+        }
+        if (length > 0 && str.charAt(length - 1) == '.') {
+            length--;
+        }
+        return str.substring(0, length);
     }
 
     public static char lensFacingToShortString(Integer num) {

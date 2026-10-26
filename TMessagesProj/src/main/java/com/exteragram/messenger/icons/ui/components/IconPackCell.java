@@ -134,20 +134,20 @@ public class IconPackCell extends FrameLayout {
             if (view instanceof IconPackCell) {
                 IconPackCell iconPackCell = (IconPackCell) view;
                 iconPackCell.set((IconPack) uItem.object, z, uItem.checked, uItem.reordering);
-                iconPackCell.getHandle().setOnTouchListener(new View.OnTouchListener() { 
+                iconPackCell.getHandle().setOnTouchListener(new View.OnTouchListener() {
                     @Override // android.view.View.OnTouchListener
                     public final boolean onTouch(View view2, MotionEvent motionEvent) {
-                        return IconPackCell.Factory.onTouchDrag(universalRecyclerView, view, view2, motionEvent);
+                        return IconPackCell.Factory.m1490$r8$lambda$CP8IXe3DODPybMaF8F7KjxaU4(universalRecyclerView, view, view2, motionEvent);
                     }
                 });
             }
         }
 
-        public static boolean onTouchDrag(UniversalRecyclerView universalRecyclerView, View view, View view2, MotionEvent motionEvent) {
-            if (motionEvent.getAction() != 0 || universalRecyclerView == null || universalRecyclerView.itemTouchHelper == null) {
+        public static boolean m1490$r8$lambda$CP8IXe3DODPybMaF8F7KjxaU4(UniversalRecyclerView universalRecyclerView, View view, View view2, MotionEvent motionEvent) {
+            if (motionEvent.getAction() != 0 || universalRecyclerView == null) {
                 return false;
             }
-            universalRecyclerView.itemTouchHelper.startDrag(universalRecyclerView.getChildViewHolder(view));
+            universalRecyclerView.startDrag(universalRecyclerView.getChildViewHolder(view));
             return false;
         }
 

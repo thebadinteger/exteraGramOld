@@ -8,8 +8,10 @@ import androidx.collection.LongSparseArray;
 import com.chaquo.python.internal.Common;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.ai.AiConfig;
+import com.exteragram.messenger.ai.network.backend.OnDeviceAvailability;
 import com.exteragram.messenger.pillstack.core.PillStackConfig;
 import com.exteragram.messenger.plugins.PluginsController;
+import com.exteragram.messenger.translator.TranslationProviders;
 import com.exteragram.messenger.utils.chats.ChatUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -21,12 +23,12 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.telegram.messenger.AccountInstance;
@@ -53,8 +55,8 @@ import org.telegram.ui.Components.ShareAlert;
 public class PreferencesUtils {
     private static PreferencesUtils instance;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    private static final Set<String> excludedExteraKeys = new java.util.HashSet<>(java.util.Arrays.asList("editingIconPackId", "iconPacksLayout", "iconPacksHidden", "updateScheduleTimestamp", "sdkUpdateScheduleTimestamp", "selectedService", "lastActivePillId", "debugCameraMetrics", "forceCompactSavedMusic", "debugSectionRadiusOption"));
-    private static final BackupItem[] extraExteraKeys = {new BackupItem("bottomNavigationBarMode", Integer.class), new BackupItem("mainMenuLayout", String.class), new BackupItem("mainMenuHiddenItems", String.class), new BackupItem("targetLangSend", String.class), new BackupItem("pluginsEngine", Boolean.class), new BackupItem("pinnedPlugins", Set.class), new BackupItem("saveHistory", Boolean.class), new BackupItem("responseStreaming", Boolean.class), new BackupItem("temperature", Integer.class), new BackupItem("showResponseOnly", Boolean.class), new BackupItem("insertAsQuote", Boolean.class), new BackupItem("selectedRole", String.class), new BackupItem("infiniteScrolling", Boolean.class), new BackupItem("gramTargetCurrency", String.class), new BackupItem("btcTargetCurrency", String.class), new BackupItem("usdTargetCurrency", String.class)};
+    private static final Set<String> excludedExteraKeys = new java.util.HashSet<>(java.util.Arrays.asList(new String[]{"pluginsUnknownSources", "editingIconPackId", "iconPacksLayout", "iconPacksHidden", "updateScheduleTimestamp", "sdkUpdateScheduleTimestamp", "selectedService", "selectedServiceId", "lastActivePillId", "customWeatherLocation", "customWeatherAddress", "debugCameraMetrics", "forceCompactSavedMusic", "disableApiRequests", "disableChatFadeWallpaperBlend", "chatFadeUseWhiteBackground", "heapMonitorEnabled", "heapMonitorLimitMb"}));
+    private static final BackupItem[] extraExteraKeys = {new BackupItem("bottomNavigationBarMode", Integer.class), new BackupItem("mainMenuLayout", String.class), new BackupItem("mainMenuHiddenItems", String.class), new BackupItem("targetLangSend", String.class), new BackupItem("pluginsEngine", Boolean.class), new BackupItem("pinnedPlugins", Set.class), new BackupItem("hideStickerTime", Boolean.class), new BackupItem("tabCounter", Boolean.class), new BackupItem("springAnimations", Boolean.class), new BackupItem("aospTransitions", Boolean.class), new BackupItem("stickerCornerRoundness", Integer.class), new BackupItem("saveHistory", Boolean.class), new BackupItem("responseStreaming", Boolean.class), new BackupItem("temperature", Integer.class), new BackupItem("showResponseOnly", Boolean.class), new BackupItem("insertAsQuote", Boolean.class), new BackupItem("onDeviceReasoning", Boolean.class), new BackupItem("onDevicePreviewModel", Boolean.class), new BackupItem("onDeviceFastModel", Boolean.class), new BackupItem("replaceTelegramEditor", Boolean.class), new BackupItem("replaceTelegramSummaries", Boolean.class), new BackupItem("selectedRole", String.class), new BackupItem("infiniteScrolling", Boolean.class), new BackupItem("useCurrentLocation", Boolean.class), new BackupItem("gramTargetCurrency", String.class), new BackupItem("btcTargetCurrency", String.class), new BackupItem("usdTargetCurrency", String.class)};
     private static final BackupItem[] aiConfigKeys = {new BackupItem("roles", String.class)};
     private static final BackupItem[] pillStackConfigKeys = {new BackupItem("activePills", String.class), new BackupItem("hiddenPills", String.class)};
     private static final BackupItem[] mainConfigKeys = {new BackupItem("ChatSwipeAction", Integer.class), new BackupItem("mediaColumnsCount", Integer.class), new BackupItem("bubbleRadius", Integer.class), new BackupItem("fons_size", Integer.class)};
@@ -141,6 +143,7 @@ public class PreferencesUtils {
 
     private boolean isExpectedValue(String str, String str2, Object obj) {
         JsonElement jsonTree;
+        Integer exactInteger;
         BackupItem backupItemFindBackupItem = findBackupItem(str, str2);
         if (backupItemFindBackupItem != null && obj != null) {
             if (obj instanceof JsonElement) {
@@ -161,8 +164,7 @@ public class PreferencesUtils {
                 if (backupItemFindBackupItem.clazz.equals(Set.class)) {
                     return isExpectedStringSet(str2, jsonTree);
                 }
-                Integer exactInteger = getExactInteger(jsonTree);
-                return exactInteger != null && isExpectedInteger(str2, exactInteger.intValue());
+                return (backupItemFindBackupItem.clazz.equals(Long.class) || (exactInteger = getExactInteger(jsonTree)) == null || !isExpectedInteger(str2, exactInteger.intValue())) ? false : true;
             } catch (Exception e) {
                 FileLog.e(e);
             }
@@ -216,18 +218,21 @@ public class PreferencesUtils {
         str.getClass();
         switch (str) {
             case "titleText":
+            case "stickerCornerRoundness":
             case "doubleTapSeekDuration":
-            case "translationProvider":
                 return i >= 0 && i <= 3;
             case "stickerShape":
             case "cameraType":
             case "downloadSpeedBoost":
             case "tabletMode":
+            case "stickerTimeMode":
             case "videoMessagesCamera":
+            case "transitionAnimation":
+            case "dividerStyle":
             case "tabIcons":
             case "iconPack":
+            case "glassOutlineStyle":
             case "bottomNavigationBarMode":
-            case "translationFormality":
             case "bottomButton":
             case "showIdAndDc":
                 return i >= 0 && i <= 2;
@@ -241,12 +246,16 @@ public class PreferencesUtils {
                 return i >= 12 && i <= 30;
             case "doubleTapAction":
                 return i >= 0 && i <= 8;
+            case "doNotUseProxy":
+                return i >= 0 && i <= 7;
             case "eventType":
                 return i >= 0 && i <= 4;
             case "temperature":
                 return i >= 0 && i <= 20;
             case "doubleTapActionOutOwner":
                 return i >= 0 && i <= 9;
+            case "translationProvider":
+                return i >= 0 && i <= TranslationProviders.getLastIndex();
             default:
                 return false;
         }
@@ -261,6 +270,8 @@ public class PreferencesUtils {
                         return true;
                     }
                     break;
+                case "swipeActions":
+                    return str3.isEmpty() || str3.matches("^\\d{1,2}(,\\d{1,2})*$");
                 case "customSavePath":
                     return str3.matches("^(?!\\.{1,2}$)[A-Za-z0-9._ -]{1,255}$");
                 case "mainMenuLayout":
@@ -377,17 +388,17 @@ public class PreferencesUtils {
             outputStreamWriter.write(getBackup(true));
             outputStreamWriter.flush();
             outputStreamWriter.close();
-            baseFragment.showDialog(new AnonymousClass1(baseFragment.getParentActivity(), null, null, file.getAbsolutePath(), null, false, null, null, false, false, false, null, null, baseFragment));
+            baseFragment.showDialog(new AnonymousClass1(baseFragment.getParentActivity(), null, null, file.getAbsolutePath(), null, null, false, null, null, false, false, false, null, null, baseFragment));
         } catch (Exception e) {
             FileLog.e(e);
         }
     }
 
     public class AnonymousClass1 extends ShareAlert {
-        final /* synthetic */ BaseFragment val$fragment;
+        final BaseFragment val$fragment;
 
-        public AnonymousClass1(Context context, ChatActivity chatActivity, ArrayList arrayList, String str, String str2, boolean z, String str4, String str5, boolean z2, boolean z3, boolean z4, Integer num, Theme.ResourcesProvider resourcesProvider, BaseFragment baseFragment) {
-            super(context, chatActivity, arrayList, str, str2, z, str4, str5, z2, z3, z4, num, resourcesProvider);
+        public AnonymousClass1(Context context, ChatActivity chatActivity, ArrayList arrayList, String str, String str2, String str3, boolean z, String str4, String str5, boolean z2, boolean z3, boolean z4, Integer num, Theme.ResourcesProvider resourcesProvider, BaseFragment baseFragment) {
+            super(context, chatActivity, arrayList, str, str2, str3, z, str4, str5, z2, z3, z4, num, resourcesProvider);
             this.val$fragment = baseFragment;
         }
 
@@ -395,7 +406,7 @@ public class PreferencesUtils {
         public void onSend(LongSparseArray<TLRPC.Dialog> longSparseArray, int i, TLRPC.TL_forumTopic tL_forumTopic, boolean z) {
             if (z) {
                 final BaseFragment baseFragment = this.val$fragment;
-                AndroidUtilities.runOnUIThread(new Runnable() { 
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
                         BulletinFactory.of(baseFragment).createSimpleBulletin(R.raw.contact_check, LocaleController.getString(R.string.SettingsSaved)).show();
@@ -440,15 +451,16 @@ public class PreferencesUtils {
             ExteraConfig.reloadConfig();
             PillStackConfig.reloadConfig();
             SharedConfig.reloadConfig();
+            OnDeviceAvailability.onModelConfigChanged(null);
             PluginsController.getInstance().restart();
             LocaleController.getInstance().recreateFormatters();
             Theme.reloadAllResources(activity);
-            iNavigationLayout.rebuildAllFragmentViews(false, false);
+            iNavigationLayout.rebuildFragments(0);
             NotificationCenter notificationCenter = AccountInstance.getInstance(UserConfig.selectedAccount).getNotificationCenter();
-            notificationCenter.postNotificationNameOnUIThread(NotificationCenter.reloadInterface, new Object[0]);
-            notificationCenter.postNotificationNameOnUIThread(NotificationCenter.updateInterfaces, Integer.valueOf(MessagesController.UPDATE_MASK_CHAT));
-            notificationCenter.postNotificationNameOnUIThread(NotificationCenter.mainUserInfoChanged, new Object[0]);
-            notificationCenter.postNotificationNameOnUIThread(NotificationCenter.dialogFiltersUpdated, new Object[0]);
+            notificationCenter.lambda$postNotificationNameOnUIThread$1(NotificationCenter.reloadInterface, new Object[0]);
+            notificationCenter.lambda$postNotificationNameOnUIThread$1(NotificationCenter.updateInterfaces, Integer.valueOf(MessagesController.UPDATE_MASK_CHAT));
+            notificationCenter.lambda$postNotificationNameOnUIThread$1(NotificationCenter.mainUserInfoChanged, new Object[0]);
+            notificationCenter.lambda$postNotificationNameOnUIThread$1(NotificationCenter.dialogFiltersUpdated, new Object[0]);
         }
     }
 
@@ -564,7 +576,7 @@ public class PreferencesUtils {
 
     public boolean isBackup(File file) {
         JsonObject jsonObject;
-        return file != null && file.getName().toLowerCase().endsWith(".extera") && (jsonObject = getJsonObject(file)) != null && checkKeys(jsonObject);
+        return file != null && file.getName().toLowerCase(Locale.ROOT).endsWith(".extera") && (jsonObject = getJsonObject(file)) != null && checkKeys(jsonObject);
     }
 
     public int getDiff(File file) {
@@ -604,7 +616,7 @@ public class PreferencesUtils {
         return i;
     }
 
-    public static class BackupItem implements Serializable {
+    public static class BackupItem {
         public Class<?> clazz;
         public String key;
 
@@ -621,6 +633,10 @@ public class PreferencesUtils {
                 return false;
             }
             return this.key.equals(((BackupItem) obj).key);
+        }
+
+        public int hashCode() {
+            return this.key.hashCode();
         }
     }
 }

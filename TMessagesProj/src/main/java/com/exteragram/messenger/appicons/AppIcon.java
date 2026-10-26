@@ -9,7 +9,6 @@ import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 
-/* JADX INFO: loaded from: classes4.dex */
 public final class AppIcon {
     public final String authorName;
     public final String authorUsername;

@@ -11,7 +11,7 @@ public enum TabIconsMode {
     TITLES_ONLY,
     ICONS_ONLY;
 
-    private static final /* synthetic */ EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
+    private static final EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
 
     public static EnumEntries<TabIconsMode> getEntries() {
         return $ENTRIES;

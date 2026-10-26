@@ -13,7 +13,7 @@ public enum NowPlayingServiceType {
     LAST_FM("Last.fm"),
     STATS_FM("Stats.fm");
 
-    private static final /* synthetic */ EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
+    private static final EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
     private final String displayName;
 
     public static EnumEntries<NowPlayingServiceType> getEntries() {

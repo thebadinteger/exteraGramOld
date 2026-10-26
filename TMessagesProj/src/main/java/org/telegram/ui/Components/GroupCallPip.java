@@ -1,5 +1,7 @@
 package org.telegram.ui.Components;
 
+import com.exteragram.messenger.utils.ui.PredictiveBackNavigationHelper;
+
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;

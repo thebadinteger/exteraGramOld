@@ -10,6 +10,7 @@ import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.util.SparseIntArray;
 import android.view.View;
+import androidx.core.content.res.ResourcesCompat;
 import com.exteragram.messenger.icons.ExteraResources;
 import com.exteragram.messenger.icons.IconManager;
 import com.exteragram.messenger.icons.IconPack;
@@ -72,10 +73,10 @@ public class IconPackPreviewView extends View {
         this.circCenterSize = AndroidUtilities.dp(36.0f);
         this.animationProgress = 0.0f;
         this.refreshTimeMilliseconds = 5000;
-        this.changeRunnable = new Runnable() { 
+        this.changeRunnable = new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                IconPackPreviewView.this.animateToNext();
+                this.f$0.animateToNext();
             }
         };
     }
@@ -106,7 +107,8 @@ public class IconPackPreviewView extends View {
     }
 
     public void setIconPack(IconPack iconPack) {
-        if (this.currentPack != iconPack || this.availableIconIds.isEmpty() || this.availableIconIds.size() < this.count) {
+        IconPack iconPack2 = this.currentPack;
+        if (iconPack2 == null || !sameIconSource(iconPack2, iconPack) || this.availableIconIds.isEmpty() || this.availableIconIds.size() < this.count) {
             this.currentPack = iconPack;
             this.availableIconIds.clear();
             if (iconPack.isBase()) {
@@ -164,6 +166,18 @@ public class IconPackPreviewView extends View {
         }
     }
 
+    private static boolean sameIconSource(IconPack iconPack, IconPack iconPack2) {
+        if (!iconPack.getId().equals(iconPack2.getId())) {
+            return false;
+        }
+        Map<String, String> icons = iconPack.getIcons();
+        Map<String, String> icons2 = iconPack2.getIcons();
+        if (icons != icons2) {
+            return icons.isEmpty() && icons2.isEmpty();
+        }
+        return true;
+    }
+
     private void loadIcons(final boolean z) {
         final IconPack iconPack = this.currentPack;
         final ArrayList arrayList = new ArrayList(this.availableIconIds);
@@ -174,33 +188,39 @@ public class IconPackPreviewView extends View {
             iMin = Math.min(iMin, arrayList.size());
         }
         final int i = iMin;
-        Utilities.globalQueue.postRunnable(new Runnable() { 
+        Utilities.globalQueue.postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                IconPackPreviewView.this.lambda$loadIcons$1(arrayList, i, iArr, iconPack, z);
+                this.f$0.lambda$loadIcons$1(arrayList, i, iArr, iconPack, z);
             }
         });
     }
 
-    private void lambda$loadIcons$1(List<Integer> list, int i, int[] iArr, IconPack iconPack, boolean z) {
-        List<Integer> randomIds = pickRandomIconIdsInternal(list, i, iArr);
-        Drawable[] drawables = new Drawable[this.currentIconIds.length];
-        int[] iconIds = new int[this.currentIconIds.length];
-        for (int j = 0; j < this.currentIconIds.length; j++) {
-            if (j < randomIds.size()) {
-                int iconId = randomIds.get(j);
-                iconIds[j] = iconId;
-                drawables[j] = getIconDrawableInternal(iconPack, iconId);
-            } else if (!randomIds.isEmpty() && this.isCircularMode) {
-                int iconId = randomIds.get(j % randomIds.size());
-                iconIds[j] = iconId;
-                drawables[j] = getIconDrawableInternal(iconPack, iconId);
+    public void lambda$loadIcons$1(List list, int i, int[] iArr, final IconPack iconPack, final boolean z) {
+        final List<Integer> listPickRandomIconIdsInternal = pickRandomIconIdsInternal(list, i, iArr);
+        int[] iArr2 = this.currentIconIds;
+        final Drawable[] drawableArr = new Drawable[iArr2.length];
+        final int[] iArr3 = new int[iArr2.length];
+        for (int i2 = 0; i2 < this.currentIconIds.length; i2++) {
+            if (i2 < listPickRandomIconIdsInternal.size()) {
+                int iIntValue = listPickRandomIconIdsInternal.get(i2).intValue();
+                iArr3[i2] = iIntValue;
+                drawableArr[i2] = getIconDrawableInternal(iconPack, iIntValue);
+            } else if (!listPickRandomIconIdsInternal.isEmpty() && this.isCircularMode) {
+                int iIntValue2 = listPickRandomIconIdsInternal.get(i2 % listPickRandomIconIdsInternal.size()).intValue();
+                iArr3[i2] = iIntValue2;
+                drawableArr[i2] = getIconDrawableInternal(iconPack, iIntValue2);
             } else {
-                iconIds[j] = 0;
-                drawables[j] = null;
+                iArr3[i2] = 0;
+                drawableArr[i2] = null;
             }
         }
-        AndroidUtilities.runOnUIThread(() -> lambda$loadIcons$0(iconPack, z, drawables, randomIds, iconIds));
+        AndroidUtilities.runOnUIThread(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.lambda$loadIcons$0(iconPack, z, drawableArr, listPickRandomIconIdsInternal, iArr3);
+            }
+        });
     }
 
     public void lambda$loadIcons$0(IconPack iconPack, boolean z, Drawable[] drawableArr, List list, int[] iArr) {
@@ -262,16 +282,14 @@ public class IconPackPreviewView extends View {
     }
 
     private Drawable getIconDrawableInternal(IconPack iconPack, int i) {
-        Drawable packIconDrawable = null;
+        Drawable packIconDrawable;
         if (i == 0) {
             return null;
         }
         if (iconPack.isBase()) {
             SparseIntArray preinstalledMap = iconPack.getPreinstalledMap();
             int i2 = preinstalledMap != null ? preinstalledMap.get(i, -1) : -1;
-            if (i2 != -1) {
-                packIconDrawable = getResources().getDrawable(i2);
-            }
+            packIconDrawable = i2 != -1 ? ResourcesCompat.getDrawable(getResources(), i2, null) : null;
         } else {
             packIconDrawable = IconManager.INSTANCE.getPackIconDrawable(iconPack, i);
         }
@@ -280,10 +298,10 @@ public class IconPackPreviewView extends View {
                 try {
                     packIconDrawable = ((ExteraResources) getResources()).getOriginalDrawable(i);
                 } catch (Exception unused) {
-                    packIconDrawable = getResources().getDrawable(i);
+                    packIconDrawable = ResourcesCompat.getDrawable(getResources(), i, null);
                 }
             } else {
-                packIconDrawable = getResources().getDrawable(i);
+                packIconDrawable = ResourcesCompat.getDrawable(getResources(), i, null);
             }
         }
         if (packIconDrawable == null) {
@@ -317,13 +335,13 @@ public class IconPackPreviewView extends View {
             this.animator = valueAnimatorOfFloat;
             valueAnimatorOfFloat.setDuration(300L);
             this.animator.setInterpolator(CubicBezierInterpolator.DEFAULT);
-            this.animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() { 
+            this.animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override // android.animation.ValueAnimator.AnimatorUpdateListener
                 public final void onAnimationUpdate(ValueAnimator valueAnimator2) {
-                    IconPackPreviewView.this.lambda$startTransition$2(valueAnimator2);
+                    this.f$0.lambda$startTransition$2(valueAnimator2);
                 }
             });
-            this.animator.addListener(new AnimatorListenerAdapter() { 
+            this.animator.addListener(new AnimatorListenerAdapter() {
                 private boolean cancelled;
 
                 @Override // android.animation.AnimatorListenerAdapter, android.animation.Animator.AnimatorListener
@@ -359,7 +377,7 @@ public class IconPackPreviewView extends View {
         }
     }
 
-    public /* synthetic */ void lambda$startTransition$2(ValueAnimator valueAnimator) {
+    public void lambda$startTransition$2(ValueAnimator valueAnimator) {
         this.animationProgress = ((Float) valueAnimator.getAnimatedValue()).floatValue();
         invalidate();
     }

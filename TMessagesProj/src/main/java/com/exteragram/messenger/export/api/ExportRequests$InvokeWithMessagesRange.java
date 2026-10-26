@@ -20,6 +20,7 @@ public class ExportRequests$InvokeWithMessagesRange extends TLObject {
             tL_messages_dialogs = new TLRPC.TL_messages_dialogsSlice();
         } else {
             throw new RuntimeException("unknown constructor: " + i);
+            return null;
         }
         tL_messages_dialogs.readParams(inputSerializedData, z);
         return tL_messages_dialogs;

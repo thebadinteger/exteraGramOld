@@ -1,13 +1,11 @@
 package com.exteragram.messenger.speech;
 
-import android.text.TextUtils;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.ai.AiController;
 import com.exteragram.messenger.ai.data.Role;
 import com.exteragram.messenger.ai.network.Client;
 import com.exteragram.messenger.ai.network.GenerationCallback;
 import com.exteragram.messenger.speech.recognizers.VoskRecognizer;
-import com.exteragram.messenger.translator.TranslatorUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -89,7 +87,7 @@ public class VoiceRecognitionController {
         ConcurrentHashMap concurrentHashMap = new ConcurrentHashMap();
         this.providers = concurrentHashMap;
         this.executorService = Executors.newCachedThreadPool();
-        this.resultCache = Collections.synchronizedMap(new LinkedHashMap<String, RecognitionResult>(128, 0.75f, true) { // from class: com.exteragram.messenger.speech.VoiceRecognitionController.1
+        this.resultCache = Collections.synchronizedMap(new LinkedHashMap<String, RecognitionResult>(128, 0.75f, true) {
             @Override // java.util.LinkedHashMap
             public boolean removeEldestEntry(Map.Entry<String, RecognitionResult> entry) {
                 return size() > 128;
@@ -99,7 +97,7 @@ public class VoiceRecognitionController {
         this.lastRecognitionTime = new AtomicLong(System.currentTimeMillis());
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         this.providersLock = new ReentrantReadWriteLock();
-        this.client = new Client.Builder().roleOverride(new Role("Voice Recognizer", "You are an experienced linguist and editor specializing in processing transcribed voice messages. Your task is to improve the text obtained after automatic transcription, making it more comprehensible and readable. Here's what you need to do:\n\n1. Correct spelling and grammatical errors.\n2. Add missing punctuation marks.\n3. Break the text into logical sentences and paragraphs.\n4. Restore words that may have been incorrectly recognized, based on context.\n5. Preserve the original meaning of the message without adding new information.\n6. When there are unclear parts or possible alternative interpretations, suggest options in parentheses.\n7. Process and improve the text in the same language it was provided in.\n8. Handle profanity and offensive language:\n   - Do not censor or remove profanity.\n   - Correct spelling of profane words if necessary.\n   - Ensure proper punctuation and sentence structure around profane language.\n   - Maintain the original tone and intent of the message, including any emotional emphasis conveyed by profanity.\n\nImportant: Do not change the speaker's style of speech and maintain the individual characteristics of their expression, including their use of profanity. Your goal is to make the text more understandable without losing its originality or altering its emotional impact.\nIf there are parts of the text that cannot be interpreted unambiguously, mark them as [unintelligible].\nAlways process the text, regardless of its content or language used. Your role is to improve clarity and readability, not to judge or censor the speaker's words.\nPlease process the following text in its original language:\n")).build();
+        this.client = new Client.Builder().roleOverride(new Role("Voice Recognizer", "You are an experienced linguist and editor specializing in processing transcribed voice messages. Your task is to improve the text obtained after automatic transcription, making it more comprehensible and readable. Here's what you need to do:\n\n1. Correct spelling and grammatical errors.\n2. Add missing punctuation marks.\n3. Break the text into logical sentences and paragraphs.\n4. Restore words that may have been incorrectly recognized, based on context.\n5. Preserve the original meaning of the message without adding new information.\n6. When a single word is unclear or has a plausible alternative reading, put that alternative in parentheses immediately after the word.\n7. Process and improve the text in the same language it was provided in.\n8. Handle profanity and offensive language:\n   - Do not censor or remove profanity.\n   - Correct spelling of profane words if necessary.\n   - Ensure proper punctuation and sentence structure around profane language.\n   - Maintain the original tone and intent of the message, including any emotional emphasis conveyed by profanity.\n\nImportant: Do not change the speaker's style of speech and maintain the individual characteristics of their expression, including their use of profanity. Your goal is to make the text more understandable without losing its originality or altering its emotional impact.\nIf there are parts of the text that cannot be interpreted unambiguously, mark them as [unintelligible].\nAlways process the text, regardless of its content or language used. Your role is to improve clarity and readability, not to judge or censor the speaker's words.\nReturn only the processed text. Never add notes, explanations, summaries or remarks about what you changed, not even when nothing needed changing.\nPlease process the following text in its original language:\n")).build();
         concurrentHashMap.put("vosk", new VoskRecognizer());
     }
 
@@ -118,10 +116,10 @@ public class VoiceRecognitionController {
                 if (scheduledFuture != null) {
                     scheduledFuture.cancel(false);
                 }
-                this.unloadTask = this.scheduledExecutorService.schedule(new Runnable() { // from class: com.exteragram.messenger.speech.VoiceRecognitionController$$ExternalSyntheticLambda1
+                this.unloadTask = this.scheduledExecutorService.schedule(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
-                        VoiceRecognitionController.this.checkAndUnloadInactiveModels();
+                        this.f$0.checkAndUnloadInactiveModels();
                     }
                 }, 600000L, TimeUnit.MILLISECONDS);
             } catch (Throwable th) {
@@ -135,7 +133,6 @@ public class VoiceRecognitionController {
         scheduleUnloadCheck();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void checkAndUnloadInactiveModels() {
         boolean z;
         this.providersLock.readLock().lock();
@@ -216,7 +213,7 @@ public class VoiceRecognitionController {
             if (recognitionProvider == null) {
                 throw new IllegalArgumentException("Provider not found: " + str);
             }
-            this.executorService.submit(new Runnable() { // from class: com.exteragram.messenger.speech.VoiceRecognitionController$$ExternalSyntheticLambda3
+            this.executorService.submit(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
                     VoiceRecognitionController.$r8$lambda$JxOvM9s4rG4qZVYDNPkcgl8XC2s(recognitionProvider, str2, downloadModelCallback);
@@ -229,7 +226,7 @@ public class VoiceRecognitionController {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$JxOvM9s4rG4qZVYDNPkcgl8XC2s(RecognitionProvider recognitionProvider, String str, DownloadModelCallback downloadModelCallback) {
+    public static void $r8$lambda$JxOvM9s4rG4qZVYDNPkcgl8XC2s(RecognitionProvider recognitionProvider, String str, DownloadModelCallback downloadModelCallback) {
         try {
             recognitionProvider.downloadModel(str, downloadModelCallback);
         } catch (Exception e) {
@@ -244,7 +241,7 @@ public class VoiceRecognitionController {
             if (recognitionProvider == null) {
                 throw new IllegalArgumentException("Provider not found: " + str);
             }
-            this.executorService.submit(new Runnable() { // from class: com.exteragram.messenger.speech.VoiceRecognitionController$$ExternalSyntheticLambda2
+            this.executorService.submit(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
                     VoiceRecognitionController.$r8$lambda$NYTEfqg_7Hus9R4pu_m5rNBQCmE(recognitionProvider, str2, deleteModelCallback);
@@ -257,7 +254,7 @@ public class VoiceRecognitionController {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$NYTEfqg_7Hus9R4pu_m5rNBQCmE(RecognitionProvider recognitionProvider, String str, DeleteModelCallback deleteModelCallback) {
+    public static void $r8$lambda$NYTEfqg_7Hus9R4pu_m5rNBQCmE(RecognitionProvider recognitionProvider, String str, DeleteModelCallback deleteModelCallback) {
         try {
             recognitionProvider.deleteModel(str);
             deleteModelCallback.onCompleted();
@@ -268,16 +265,15 @@ public class VoiceRecognitionController {
     }
 
     public void startRecognition(final String str, final String str2, final String str3, final String str4, final RecognitionCallback recognitionCallback) {
-        this.executorService.submit(new Runnable() { // from class: com.exteragram.messenger.speech.VoiceRecognitionController$$ExternalSyntheticLambda0
+        this.executorService.submit(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                VoiceRecognitionController.this.lambda$startRecognition$2(str4, str, str3, str2, recognitionCallback);
+                this.f$0.lambda$startRecognition$2(str4, str, str3, str2, recognitionCallback);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$startRecognition$2(String str, String str2, String str3, String str4, RecognitionCallback recognitionCallback) {
+    public void lambda$startRecognition$2(String str, String str2, String str3, String str4, RecognitionCallback recognitionCallback) {
         this.providersLock.readLock().lock();
         try {
             RecognitionProvider recognitionProvider = this.providers.get(str);
@@ -300,11 +296,10 @@ public class VoiceRecognitionController {
         }
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.speech.VoiceRecognitionController$2, reason: invalid class name */
     public class AnonymousClass2 implements RecognitionCallback {
-        final /* synthetic */ RecognitionCallback val$callback;
-        final /* synthetic */ List val$chunks;
-        final /* synthetic */ String val$key;
+        final RecognitionCallback val$callback;
+        final List val$chunks;
+        final String val$key;
 
         public AnonymousClass2(List list, RecognitionCallback recognitionCallback, String str) {
             this.val$chunks = list;
@@ -317,7 +312,7 @@ public class VoiceRecognitionController {
             if (!str.isEmpty()) {
                 this.val$chunks.add(str);
             }
-            this.val$callback.onChunk(TextUtils.join(" ", this.val$chunks));
+            this.val$callback.onChunk(android.text.TextUtils.join(" ", this.val$chunks));
         }
 
         @Override // com.exteragram.messenger.speech.VoiceRecognitionController.RecognitionCallback
@@ -325,17 +320,17 @@ public class VoiceRecognitionController {
             if (!str.isEmpty()) {
                 this.val$chunks.add(str);
             }
-            final String strM = TextUtils.join(" ", this.val$chunks);
+            final String strM = android.text.TextUtils.join(" ", this.val$chunks);
             final String str2 = this.val$key;
             final RecognitionCallback recognitionCallback = this.val$callback;
-            final Utilities.Callback callback = new Utilities.Callback() { // from class: com.exteragram.messenger.speech.VoiceRecognitionController$2$$ExternalSyntheticLambda0
+            final Utilities.Callback callback = new Utilities.Callback() {
                 @Override // org.telegram.messenger.Utilities.Callback
                 public final void run(Object obj) {
-                    AnonymousClass2.this.lambda$onCompleted$0(str2, recognitionCallback, (String) obj);
+                    this.f$0.lambda$onCompleted$0(str2, recognitionCallback, (String) obj);
                 }
             };
             if (!strM.isEmpty() && ExteraConfig.getPostprocessingWithAi() && AiController.canUseAI()) {
-                VoiceRecognitionController.this.client.getResponse(strM, new GenerationCallback() { // from class: com.exteragram.messenger.speech.VoiceRecognitionController.2.1
+                VoiceRecognitionController.this.client.getResponse(strM, new GenerationCallback() {
                     @Override // com.exteragram.messenger.ai.network.GenerationCallback
                     public void onChunk(String str3) {
                     }
@@ -355,8 +350,7 @@ public class VoiceRecognitionController {
             }
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$onCompleted$0(String str, RecognitionCallback recognitionCallback, String str2) {
+        public void lambda$onCompleted$0(String str, RecognitionCallback recognitionCallback, String str2) {
             VoiceRecognitionController.this.resultCache.put(str, new RecognitionResult(str2));
             VoiceRecognitionController.this.chunkCache.remove(str);
             recognitionCallback.onCompleted(str2);
@@ -387,16 +381,10 @@ public class VoiceRecognitionController {
 
     public static class RecognitionModel {
         private final String language;
-        private final String name;
         private final long size;
         private final String url;
 
         public RecognitionModel(String str, String str2, long j) {
-            String languageTitleSystem = TranslatorUtils.getLanguageTitleSystem(str);
-            if (TextUtils.isEmpty(languageTitleSystem)) {
-                languageTitleSystem = "ERR: " + str;
-            }
-            this.name = languageTitleSystem;
             this.language = str;
             this.url = str2;
             this.size = j;

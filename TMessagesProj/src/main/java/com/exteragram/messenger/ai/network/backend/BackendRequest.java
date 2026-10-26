@@ -1,14 +1,13 @@
 package com.exteragram.messenger.ai.network.backend;
 
+import com.android.tools.r8.RecordTag;
 import com.exteragram.messenger.ai.data.Message;
 import com.exteragram.messenger.ai.data.Role;
 import com.exteragram.messenger.ai.data.Service;
-import com.exteragram.messenger.ai.network.Client$ImagePayload$$ExternalSyntheticRecord1;
 import java.util.List;
 import java.util.Objects;
 
-/* JADX INFO: loaded from: classes4.dex */
-public final class BackendRequest {
+public final class BackendRequest extends RecordTag {
     private final Message currentMessage;
     private final List<Message> history;
     private final int maxOutputTokens;
@@ -17,7 +16,7 @@ public final class BackendRequest {
     private final boolean stream;
     private final float temperature;
 
-    private /* synthetic */ boolean $record$equals(Object obj) {
+    private boolean $record$equals(Object obj) {
         if (!(obj instanceof BackendRequest)) {
             return false;
         }
@@ -25,7 +24,7 @@ public final class BackendRequest {
         return this.stream == backendRequest.stream && this.maxOutputTokens == backendRequest.maxOutputTokens && this.temperature == backendRequest.temperature && Objects.equals(this.service, backendRequest.service) && Objects.equals(this.role, backendRequest.role) && Objects.equals(this.history, backendRequest.history) && Objects.equals(this.currentMessage, backendRequest.currentMessage);
     }
 
-    private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+    private Object[] $record$getFieldsAsObjects() {
         return new Object[]{this.service, this.role, this.history, this.currentMessage, Boolean.valueOf(this.stream), Float.valueOf(this.temperature), Integer.valueOf(this.maxOutputTokens)};
     }
 
@@ -48,7 +47,7 @@ public final class BackendRequest {
     }
 
     public final int hashCode() {
-        return Objects.hash(this.service, this.role, this.history, this.currentMessage, this.stream, this.temperature, this.maxOutputTokens);
+        return java.util.Objects.hash(this.stream, this.maxOutputTokens, this.temperature, this.service, this.role, this.history, this.currentMessage);
     }
 
     public List<Message> history() {
@@ -76,6 +75,6 @@ public final class BackendRequest {
     }
 
     public final String toString() {
-        return "BackendRequest[service=" + this.service + ", role=" + this.role + "]";
+        return com.exteragram.messenger.utils.RecordUtils.recordToString($record$getFieldsAsObjects(), BackendRequest.class, "service;role;history;currentMessage;stream;temperature;maxOutputTokens");
     }
 }

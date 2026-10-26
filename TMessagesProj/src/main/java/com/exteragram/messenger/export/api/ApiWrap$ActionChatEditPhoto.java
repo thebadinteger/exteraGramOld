@@ -1,17 +1,17 @@
 package com.exteragram.messenger.export.api;
 
-import com.exteragram.messenger.utils.RecordTag;
+import com.android.tools.r8.RecordTag;
 import com.exteragram.messenger.export.output.html.HtmlWriter;
 import java.util.Objects;
 
 public final class ApiWrap$ActionChatEditPhoto extends RecordTag {
-    public final HtmlWriter.Photo photo;
+    private final HtmlWriter.Photo photo;
 
-    private /* synthetic */ boolean $record$equals(Object obj) {
+    private boolean $record$equals(Object obj) {
         return (obj instanceof ApiWrap$ActionChatEditPhoto) && Objects.equals(this.photo, ((ApiWrap$ActionChatEditPhoto) obj).photo);
     }
 
-    private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+    private Object[] $record$getFieldsAsObjects() {
         return new Object[]{this.photo};
     }
 

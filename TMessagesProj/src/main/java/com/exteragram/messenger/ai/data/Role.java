@@ -1,10 +1,9 @@
 package com.exteragram.messenger.ai.data;
 
 import com.exteragram.messenger.ai.AiConfig;
-import java.io.Serializable;
 import java.util.Objects;
 
-public class Role implements Comparable<Role>, Serializable {
+public class Role implements Comparable<Role> {
     private long emojiId;
     private boolean isSuggestion;
     private String name;
@@ -28,6 +27,10 @@ public class Role implements Comparable<Role>, Serializable {
             return false;
         }
         return this.name.equals(((Role) obj).name);
+    }
+
+    public int hashCode() {
+        return Objects.hashCode(this.name);
     }
 
     public String getName() {

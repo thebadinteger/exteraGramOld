@@ -11,7 +11,7 @@ public enum VideoMessagesCamera {
     REAR,
     ASK;
 
-    private static final /* synthetic */ EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
+    private static final EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
 
     public static EnumEntries<VideoMessagesCamera> getEntries() {
         return $ENTRIES;

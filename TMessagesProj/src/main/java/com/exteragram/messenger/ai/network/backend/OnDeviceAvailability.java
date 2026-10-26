@@ -25,7 +25,6 @@ import org.telegram.messenger.FileLog;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.UserConfig;
 
-/* JADX INFO: loaded from: classes4.dex */
 public abstract class OnDeviceAvailability {
     private static volatile String modelName;
     private static volatile int modelNameGeneration;
@@ -188,7 +187,7 @@ public abstract class OnDeviceAvailability {
             }
             ensureRestored();
             refreshedOnce.set(true);
-            runOnWorker(new Runnable() { // from class: com.exteragram.messenger.ai.network.backend.OnDeviceAvailability$$ExternalSyntheticLambda0
+            runOnWorker(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
                     OnDeviceAvailability.check();
@@ -197,12 +196,10 @@ public abstract class OnDeviceAvailability {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    /* JADX WARN: Code duplicated, block: B:24:0x0068 A[LOOP:1: B:23:0x0066->B:24:0x0068, LOOP_END] */
     public static void check() {
         List<Runnable> list;
         int i;
-        ArrayList arrayList = new ArrayList();
+        ArrayList arrayList;
         int size;
         while (true) {
             AtomicInteger atomicInteger = configGeneration;
@@ -268,37 +265,56 @@ public abstract class OnDeviceAvailability {
     }
 
     private static int probeStatus(int i) {
-        GenerativeModel generativeModelCreateModel = null;
+        GenerativeModel generativeModelCreateModel;
         try {
             generativeModelCreateModel = createModel(i);
-            Integer num = GenerativeModelFutures.from(generativeModelCreateModel).checkStatus().get(10L, TimeUnit.SECONDS);
-            return num == null ? -1 : num.intValue();
-        } catch (Throwable th) {
-            FileLog.e("AI_ON_DEVICE_PROBE_FAILED", th);
-            return 0;
-        } finally {
-            closeQuietly(generativeModelCreateModel);
+            try {
+                Integer num = GenerativeModelFutures.from(generativeModelCreateModel).checkStatus().get(10L, TimeUnit.SECONDS);
+                int iIntValue = num == null ? -1 : num.intValue();
+                closeQuietly(generativeModelCreateModel);
+                return iIntValue;
+            } catch (Throwable th) {
+                th = th;
+                try {
+                    FileLog.e("AI_ON_DEVICE_PROBE_FAILED", th);
+                    return 0;
+                } finally {
+                    closeQuietly(generativeModelCreateModel);
+                }
+            }
+        } catch (Throwable th2) {
+            th = th2;
+            generativeModelCreateModel = null;
         }
     }
 
     private static int checkStatus(int i) {
-        GenerativeModel generativeModelCreateModel = null;
+        GenerativeModel generativeModelCreateModel;
         try {
             generativeModelCreateModel = createModel();
-            GenerativeModelFutures generativeModelFuturesFrom = GenerativeModelFutures.from(generativeModelCreateModel);
-            Integer num = generativeModelFuturesFrom.checkStatus().get(10L, TimeUnit.SECONDS);
-            int iIntValue = num == null ? -1 : num.intValue();
-            if (iIntValue == 3) {
-                readMetadata(generativeModelFuturesFrom, i);
-            } else if (isStatusSupported(iIntValue) && readModelName(generativeModelFuturesFrom, i)) {
-                notifyServicesUpdated();
+            try {
+                GenerativeModelFutures generativeModelFuturesFrom = GenerativeModelFutures.from(generativeModelCreateModel);
+                Integer num = generativeModelFuturesFrom.checkStatus().get(10L, TimeUnit.SECONDS);
+                int iIntValue = num == null ? -1 : num.intValue();
+                if (iIntValue == 3) {
+                    readMetadata(generativeModelFuturesFrom, i);
+                } else if (isStatusSupported(iIntValue) && readModelName(generativeModelFuturesFrom, i)) {
+                    notifyServicesUpdated();
+                }
+                closeQuietly(generativeModelCreateModel);
+                return iIntValue;
+            } catch (Throwable th) {
+                th = th;
+                try {
+                    FileLog.e("AI_ON_DEVICE_STATUS_FAILED", th);
+                    return 0;
+                } finally {
+                    closeQuietly(generativeModelCreateModel);
+                }
             }
-            return iIntValue;
-        } catch (Throwable th) {
-            FileLog.e("AI_ON_DEVICE_STATUS_FAILED", th);
-            return 0;
-        } finally {
-            closeQuietly(generativeModelCreateModel);
+        } catch (Throwable th2) {
+            th = th2;
+            generativeModelCreateModel = null;
         }
     }
 
@@ -368,17 +384,16 @@ public abstract class OnDeviceAvailability {
 
     public static void warmup() {
         if (AiConfig.ON_DEVICE_SERVICE.getId().equals(AiConfig.getSelectedServiceId()) && isReady() && warmedUp.compareAndSet(false, true)) {
-            runOnWorker(new Runnable() { // from class: com.exteragram.messenger.ai.network.backend.OnDeviceAvailability$$ExternalSyntheticLambda2
+            runOnWorker(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    OnDeviceAvailability.m1023$r8$lambda$KicUEHGdAl2FIno2ohu8c5fiD0();
+                    OnDeviceAvailability.m1044$r8$lambda$KicUEHGdAl2FIno2ohu8c5fiD0();
                 }
             });
         }
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$KicUEHGdAl2FIno-2ohu8c5fiD0, reason: not valid java name */
-    public static /* synthetic */ void m1023$r8$lambda$KicUEHGdAl2FIno2ohu8c5fiD0() {
+    public static void m1044$r8$lambda$KicUEHGdAl2FIno2ohu8c5fiD0() {
         GenerativeModel generativeModelCreateModel = null;
         try {
             generativeModelCreateModel = createModel();
@@ -400,86 +415,96 @@ public abstract class OnDeviceAvailability {
         } else if (downloadingModels.add(Integer.valueOf(i))) {
             downloadPercents.remove(Integer.valueOf(i));
             notifyServicesUpdated();
-            runOnWorker(new Runnable() { // from class: com.exteragram.messenger.ai.network.backend.OnDeviceAvailability$$ExternalSyntheticLambda4
+            runOnWorker(new Runnable() {
                 @Override // java.lang.Runnable
-                public final void run() {
-                    try {
-                        OnDeviceAvailability.runDownload(i, downloadListener);
-                    } catch (Throwable t) {
-                        FileLog.e(t);
-                    }
+                public final void run() throws Throwable {
+                    OnDeviceAvailability.runDownload(i, downloadListener);
                 }
             });
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public static void runDownload(final int i, final DownloadListener downloadListener) throws Throwable {
         GenerativeModel generativeModel = null;
         try {
-            GenerativeModel generativeModelCreateModel = createModel(i);
-            generativeModel = generativeModelCreateModel;
-            GenerativeModelFutures generativeModelFuturesFrom = GenerativeModelFutures.from(generativeModelCreateModel);
-            final long[] jArr = {0};
-            generativeModelFuturesFrom.download(new DownloadCallback() {
-                @Override
-                public void onDownloadStarted(long j) {
-                    jArr[0] = j;
-                    downloadListener.onStarted(j);
-                }
+            try {
+                GenerativeModel generativeModelCreateModel = createModel(i);
+                try {
+                    GenerativeModelFutures generativeModelFuturesFrom = GenerativeModelFutures.from(generativeModelCreateModel);
+                    final long[] jArr = {0};
+                    generativeModelFuturesFrom.download(new DownloadCallback() {
+                        @Override // com.google.mlkit.genai.common.DownloadCallback
+                        public void onDownloadStarted(long j) {
+                            jArr[0] = j;
+                            downloadListener.onStarted(j);
+                        }
 
-                @Override
-                public void onDownloadProgress(long j) {
-                    long j2 = jArr[0];
-                    float fMin = j2 > 0 ? Math.min(1.0f, j / j2) : -1.0f;
-                    int i2 = fMin < 0.0f ? -1 : (int) (100.0f * fMin);
-                    Integer num = (Integer) OnDeviceAvailability.downloadPercents.put(Integer.valueOf(i), Integer.valueOf(i2));
-                    if (num == null || num.intValue() != i2) {
-                        OnDeviceAvailability.notifyServicesUpdated();
-                        downloadListener.onProgress(fMin, j);
+                        @Override // com.google.mlkit.genai.common.DownloadCallback
+                        public void onDownloadProgress(long j) {
+                            long j2 = jArr[0];
+                            float fMin = j2 > 0 ? Math.min(1.0f, j / j2) : -1.0f;
+                            int i2 = fMin < 0.0f ? -1 : (int) (100.0f * fMin);
+                            Integer num = (Integer) OnDeviceAvailability.downloadPercents.put(Integer.valueOf(i), Integer.valueOf(i2));
+                            if (num == null || num.intValue() != i2) {
+                                OnDeviceAvailability.notifyServicesUpdated();
+                                downloadListener.onProgress(fMin, j);
+                            }
+                        }
+
+                        @Override // com.google.mlkit.genai.common.DownloadCallback
+                        public void onDownloadFailed(GenAiException genAiException) {
+                            FileLog.e("AI_ON_DEVICE_DOWNLOAD_FAILED", genAiException);
+                        }
+                    }).get();
+                    int iIntValue = generativeModelFuturesFrom.checkStatus().get(10L, TimeUnit.SECONDS).intValue();
+                    if (i == getModelKey()) {
+                        refresh(null);
                     }
+                    if (iIntValue == 3) {
+                        downloadListener.onProgress(1.0f, jArr[0]);
+                        downloadListener.onCompleted();
+                    } else if (iIntValue != 2) {
+                        downloadListener.onFailed(new IllegalStateException("model is not available after download, status=" + iIntValue));
+                    }
+                    closeQuietly(generativeModelCreateModel);
+                    downloadPercents.remove(Integer.valueOf(i));
+                    downloadingModels.remove(Integer.valueOf(i));
+                    notifyServicesUpdated();
+                } catch (InterruptedException e) {
+                    e = e;
+                    generativeModel = generativeModelCreateModel;
+                    Thread.currentThread().interrupt();
+                    FileLog.e("AI_ON_DEVICE_DOWNLOAD", e);
+                    downloadListener.onFailed(e);
+                    closeQuietly(generativeModel);
+                    downloadPercents.remove(Integer.valueOf(i));
+                    downloadingModels.remove(Integer.valueOf(i));
+                    notifyServicesUpdated();
+                } catch (Exception e2) {
+                    e = e2;
+                    generativeModel = generativeModelCreateModel;
+                    FileLog.e("AI_ON_DEVICE_DOWNLOAD", e);
+                    downloadListener.onFailed(e);
+                    closeQuietly(generativeModel);
+                    downloadPercents.remove(Integer.valueOf(i));
+                    downloadingModels.remove(Integer.valueOf(i));
+                    notifyServicesUpdated();
+                } catch (Throwable th) {
+                    th = th;
+                    generativeModel = generativeModelCreateModel;
+                    closeQuietly(generativeModel);
+                    downloadPercents.remove(Integer.valueOf(i));
+                    downloadingModels.remove(Integer.valueOf(i));
+                    notifyServicesUpdated();
+                    throw th;
                 }
-
-                @Override
-                public void onDownloadFailed(GenAiException genAiException) {
-                    FileLog.e("AI_ON_DEVICE_DOWNLOAD_FAILED", genAiException);
-                }
-            }).get();
-            int iIntValue = generativeModelFuturesFrom.checkStatus().get(10L, TimeUnit.SECONDS).intValue();
-            if (i == getModelKey()) {
-                refresh(null);
+            } catch (Throwable th2) {
+                th = th2;
             }
-            if (iIntValue == 3) {
-                downloadListener.onProgress(1.0f, jArr[0]);
-                downloadListener.onCompleted();
-            } else if (iIntValue != 2) {
-                downloadListener.onFailed(new IllegalStateException("model is not available after download, status=" + iIntValue));
-            }
-            closeQuietly(generativeModelCreateModel);
-            downloadPercents.remove(Integer.valueOf(i));
-            downloadingModels.remove(Integer.valueOf(i));
-            notifyServicesUpdated();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            FileLog.e("AI_ON_DEVICE_DOWNLOAD", e);
-            downloadListener.onFailed(e);
-            closeQuietly(generativeModel);
-            downloadPercents.remove(Integer.valueOf(i));
-            downloadingModels.remove(Integer.valueOf(i));
-            notifyServicesUpdated();
-        } catch (Exception e2) {
-            FileLog.e("AI_ON_DEVICE_DOWNLOAD", e2);
-            downloadListener.onFailed(e2);
-            closeQuietly(generativeModel);
-            downloadPercents.remove(Integer.valueOf(i));
-            downloadingModels.remove(Integer.valueOf(i));
-            notifyServicesUpdated();
-        } catch (Throwable th) {
-            closeQuietly(generativeModel);
-            downloadPercents.remove(Integer.valueOf(i));
-            downloadingModels.remove(Integer.valueOf(i));
-            notifyServicesUpdated();
-            throw th;
+        } catch (InterruptedException e3) {
+            e = e3;
+        } catch (Exception e4) {
+            e = e4;
         }
     }
 
@@ -506,19 +531,18 @@ public abstract class OnDeviceAvailability {
         notifyServicesUpdated();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public static void notifyServicesUpdated() {
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.ai.network.backend.OnDeviceAvailability$$ExternalSyntheticLambda1
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                NotificationCenter.getInstance(UserConfig.selectedAccount).postNotificationName(NotificationCenter.servicesUpdated);
+                NotificationCenter.getInstance(UserConfig.selectedAccount).lambda$postNotificationNameOnUIThread$1(NotificationCenter.servicesUpdated, new Object[0]);
             }
         });
     }
 
     private static void runOnWorker(final Runnable runnable) {
         final ExecutorService executorServiceNewSingleThreadExecutor = Executors.newSingleThreadExecutor();
-        executorServiceNewSingleThreadExecutor.execute(new Runnable() { // from class: com.exteragram.messenger.ai.network.backend.OnDeviceAvailability$$ExternalSyntheticLambda3
+        executorServiceNewSingleThreadExecutor.execute(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 OnDeviceAvailability.$r8$lambda$edA7BpxC7ENFv9jOjeLPcqoKwKs(runnable, executorServiceNewSingleThreadExecutor);
@@ -526,7 +550,7 @@ public abstract class OnDeviceAvailability {
         });
     }
 
-    public static /* synthetic */ void $r8$lambda$edA7BpxC7ENFv9jOjeLPcqoKwKs(Runnable runnable, ExecutorService executorService) {
+    public static void $r8$lambda$edA7BpxC7ENFv9jOjeLPcqoKwKs(Runnable runnable, ExecutorService executorService) {
         try {
             runnable.run();
         } finally {

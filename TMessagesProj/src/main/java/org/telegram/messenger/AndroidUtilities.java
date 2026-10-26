@@ -189,6 +189,7 @@ import org.telegram.ui.Stories.StoryMediaAreasView;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.telegram.ui.ThemePreviewActivity;
 import org.telegram.ui.WallpapersListActivity;
+import com.exteragram.messenger.utils.ui.TabletSplitUiHelper;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.DividerStyle;
 import com.exteragram.messenger.proxy.ProxyController;
@@ -3016,20 +3017,16 @@ public class AndroidUtilities {
     public static int getMinTabletSide() {
         if (!isSmallTablet()) {
             int smallSide = Math.min(displaySize.x, displaySize.y);
-            int leftSide = smallSide * 35 / 100;
-            if (leftSide < dp(320)) {
-                leftSide = dp(320);
-            }
-            return smallSide - leftSide;
+            return smallSide - getTabletLeftFragmentSize(smallSide, 0, 0);
         } else {
             int smallSide = Math.min(displaySize.x, displaySize.y);
             int maxSide = Math.max(displaySize.x, displaySize.y);
-            int leftSide = maxSide * 35 / 100;
-            if (leftSide < dp(320)) {
-                leftSide = dp(320);
-            }
-            return Math.min(smallSide, maxSide - leftSide);
+            return Math.min(smallSide, maxSide - getTabletLeftFragmentSize(maxSide, 0, 0));
         }
+    }
+
+    public static int getTabletLeftFragmentSize(int i, int i2, int i3) {
+        return TabletSplitUiHelper.getRightPaneStart(i, i2, i3);
     }
 
     public static int getPhotoSize() {

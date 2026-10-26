@@ -7,6 +7,7 @@ import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
 import android.graphics.Shader;
@@ -14,7 +15,6 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
 import com.google.zxing.EncodeHintType;
-import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import java.util.HashMap;
 import org.telegram.messenger.AndroidUtilities;
@@ -22,6 +22,7 @@ import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SvgHelper;
+import org.telegram.messenger.TelegramQRCodeWriter;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.AnimatedFloat;
@@ -145,10 +146,10 @@ public abstract class QrCodeLoginView extends SlideView {
             }
             final int width = getWidth();
             final int height = getHeight();
-            Utilities.themeQueue.postRunnable(new Runnable() { 
+            Utilities.themeQueue.postRunnable(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    QrRenderView.this.lambda$setData$0(width, height, str);
+                    this.f$0.lambda$setData$0(width, height, str);
                 }
             });
             invalidate();
@@ -203,10 +204,10 @@ public abstract class QrCodeLoginView extends SlideView {
                 return;
             }
             if (TextUtils.isEmpty(str)) {
-                AndroidUtilities.runOnUIThread(new Runnable() { 
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
-                        QrRenderView.this.lambda$prepareContent$1(str);
+                        this.f$0.lambda$prepareContent$1(str);
                     }
                 });
                 return;
@@ -219,7 +220,7 @@ public abstract class QrCodeLoginView extends SlideView {
             map.put(EncodeHintType.MARGIN, 0);
             int iMax = (Math.max(1, i / 37) * 37) + 32;
             try {
-                bitmapEncode = new QRCodeWriter().encode(str, iMax, iMax, map, null, 0.75f, 0, -16777216);
+                bitmapEncode = new TelegramQRCodeWriter().encode(str, iMax, iMax, map, null, 0.75f, 0, -16777216);
             } catch (Exception e) {
                 FileLog.e(e);
                 bitmapEncode = null;
@@ -228,10 +229,10 @@ public abstract class QrCodeLoginView extends SlideView {
             if (bitmap == null) {
                 return;
             }
-            AndroidUtilities.runOnUIThread(new Runnable() { 
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    QrRenderView.this.lambda$prepareContent$3(str, bitmap, i, i2);
+                    this.f$0.lambda$prepareContent$3(str, bitmap, i, i2);
                 }
             });
         }
@@ -264,7 +265,12 @@ public abstract class QrCodeLoginView extends SlideView {
             this.hadWidth = Integer.valueOf(i);
             this.hadHeight = Integer.valueOf(i2);
             this.hadLink = str;
-            lambda$prepareContent$2(bitmap);
+            new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() {
+                    this.f$0.lambda$prepareContent$2(bitmap);
+                }
+            }.run();
         }
 
         public void lambda$prepareContent$2(Bitmap bitmap) {
@@ -289,11 +295,11 @@ public abstract class QrCodeLoginView extends SlideView {
         private void drawLoading(Canvas canvas, int i, int i2, float f) {
             RLottieDrawable rLottieDrawable = this.loadingMatrix;
             if (rLottieDrawable == null) {
-                RLottieDrawable rLottieDrawable2 = new RLottieDrawable(R.raw.qr_matrix, "qr_matrix", AndroidUtilities.dp(200.0f), AndroidUtilities.dp(200.0f));
+                RLottieDrawable rLottieDrawable2 = new RLottieDrawable(R.raw.qr_matrix, AndroidUtilities.dp(200.0f), AndroidUtilities.dp(200.0f));
                 this.loadingMatrix = rLottieDrawable2;
                 rLottieDrawable2.setMasterParent(this);
                 this.loadingMatrix.setAutoRepeat(1);
-                this.loadingMatrix.setColorFilter(-16777216, PorterDuff.Mode.MULTIPLY);
+                this.loadingMatrix.setColorFilter(new PorterDuffColorFilter(-16777216, PorterDuff.Mode.MULTIPLY));
                 this.loadingMatrix.start();
             } else if (!rLottieDrawable.isRunning()) {
                 this.loadingMatrix.start();
@@ -372,9 +378,8 @@ public abstract class QrCodeLoginView extends SlideView {
 
         @Override // android.view.View
         public void onDraw(Canvas canvas) {
+            ?? r15;
             int i;
-            int i2;
-            Bitmap bitmap;
             RLottieDrawable rLottieDrawable;
             super.onDraw(canvas);
             this.paint.setColor(-1);
@@ -391,9 +396,9 @@ public abstract class QrCodeLoginView extends SlideView {
             canvas.clipPath(this.clipPath);
             int width = getWidth();
             int iMax = Math.max(1, width / 37);
-            int i3 = (iMax * 37) + 32;
+            int i2 = (iMax * 37) + 32;
             float f = width;
-            float f2 = f / i3;
+            float f2 = f / i2;
             float f3 = ((iMax * 7.0f) / 4.0f) * 0.75f * f2;
             this.qrAreaClipPath.reset();
             this.qrAreaClipPath.addRoundRect(0.0f, 0.0f, f, f, f3, f3, direction);
@@ -403,13 +408,13 @@ public abstract class QrCodeLoginView extends SlideView {
             boolean z = f4 > 0.0f && f4 < 1.0f;
             boolean z2 = this.transitionDirection == 1;
             if (f4 >= 1.0f) {
+                r15 = 0;
                 i = 255;
-                i2 = 31;
             } else {
                 if (z) {
                     RectF rectF = AndroidUtilities.rectTmp;
                     rectF.set(0.0f, 0.0f, f, f);
-                    canvas.saveLayerAlpha(rectF, 255, 31);
+                    canvas.saveLayerAlpha(rectF, 255);
                 }
                 if (this.oldContentBitmap != null) {
                     canvas.save();
@@ -417,39 +422,35 @@ public abstract class QrCodeLoginView extends SlideView {
                     canvas.drawBitmap(this.oldContentBitmap, 0.0f, 0.0f, (Paint) null);
                     canvas.restore();
                 } else if (this.loadingVisible) {
-                    drawLoading(canvas, iMax, i3, f2);
+                    drawLoading(canvas, iMax, i2, f2);
                 }
                 if (z) {
                     float fDp3 = AndroidUtilities.dp(140.0f);
                     canvas.save();
                     canvas.translate(0.0f, getScanLineY(f4, width, fDp3));
                     i = 255;
-                    i2 = 31;
+                    r15 = 0;
                     canvas.drawRect(0.0f, z2 ? (-fDp3) - f : 0.0f, f, fDp3 + f, getOldLayerMaskPaint());
                     canvas.restore();
                     canvas.restore();
                 } else {
+                    r15 = 0;
                     i = 255;
-                    i2 = 31;
                 }
             }
             if (f4 > 0.0f) {
                 if (z) {
                     RectF rectF2 = AndroidUtilities.rectTmp;
                     rectF2.set(0.0f, 0.0f, f, f);
-                    canvas.saveLayerAlpha(rectF2, i, i2);
+                    canvas.saveLayerAlpha(rectF2, i);
                 }
                 if (this.contentBitmap != null) {
                     canvas.save();
                     canvas.scale(f2, f2);
-                    bitmap = null;
-                    canvas.drawBitmap(this.contentBitmap, 0.0f, 0.0f, (Paint) null);
+                    canvas.drawBitmap(this.contentBitmap, 0.0f, 0.0f, (Paint) r15);
                     canvas.restore();
-                } else {
-                    bitmap = null;
-                    if (this.loadingVisible) {
-                        drawLoading(canvas, iMax, i3, f2);
-                    }
+                } else if (this.loadingVisible) {
+                    drawLoading(canvas, iMax, i2, f2);
                 }
                 if (z) {
                     float fDp4 = AndroidUtilities.dp(140.0f);
@@ -459,17 +460,15 @@ public abstract class QrCodeLoginView extends SlideView {
                     canvas.restore();
                     canvas.restore();
                 }
-            } else {
-                bitmap = null;
             }
             canvas.restore();
-            if (this.loadingVisible && this.contentBitmap != null && !this.contentBitmapAlpha.isInProgress() && f4 >= 1.0f) {
+            if (this.loadingVisible && this.contentBitmap != null && !this.contentBitmapAlpha.isInProgress() && f4 >= 1065353216) {
                 this.loadingVisible = false;
                 invalidate();
             }
-            if (this.oldContentBitmap != null && this.contentBitmap == null && !this.contentBitmapAlpha.isInProgress() && f4 >= 1.0f) {
+            if (this.oldContentBitmap != null && this.contentBitmap == null && !this.contentBitmapAlpha.isInProgress() && f4 >= r11) {
                 this.oldContentBitmap.recycle();
-                this.oldContentBitmap = null;
+                this.oldContentBitmap = r15;
                 invalidate();
             }
             if (!this.loadingVisible && (rLottieDrawable = this.loadingMatrix) != null && rLottieDrawable.isRunning()) {

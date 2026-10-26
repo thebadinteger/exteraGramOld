@@ -28,7 +28,6 @@ import com.exteragram.messenger.export.api.ApiWrap$Venue;
 import com.exteragram.messenger.export.api.DataTypesUtils;
 import com.exteragram.messenger.export.output.AbstractWriter;
 import com.exteragram.messenger.export.output.OutputFile;
-import com.exteragram.messenger.export.output.html.HtmlContext;
 import com.exteragram.messenger.export.output.html.HtmlWriter;
 import com.exteragram.messenger.utils.chats.ChatUtils;
 import com.google.android.gms.cast.MediaTrack;
@@ -41,7 +40,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import kotlin.text.Typography;
 import okhttp3.internal.url._UrlKt;
-import org.scilab.forge.jlatexmath.TeXSymbolParser;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.Utilities;
@@ -60,32 +58,32 @@ public class JsonContext {
     public static String SerializeMessage(final JsonContext jsonContext, final ApiWrap$Message apiWrap$Message, final HashMap<Long, ApiWrap$Peer> map, String str) {
         String str2;
         if (apiWrap$Message.media.content instanceof ApiWrap$UnsupportedMedia) {
-            return SerializeObject(jsonContext, new Pair("id", Integer.valueOf(apiWrap$Message.id)), new Pair(TeXSymbolParser.TYPE_ATTR, SerializeString("unsupported")));
+            return SerializeObject(jsonContext, new Pair("id", Integer.valueOf(apiWrap$Message.id)), new Pair("type", SerializeString("unsupported")));
         }
-        final Utilities.CallbackReturn callbackReturn = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda0
+        final Utilities.CallbackReturn callbackReturn = new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
                 return JsonContext.$r8$lambda$_82XuOS42idlN6YRygYUGxZazmU(map, (Long) obj);
             }
         };
-        Utilities.CallbackReturn callbackReturn2 = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda4
+        Utilities.CallbackReturn callbackReturn2 = new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
-                return JsonContext.m1095$r8$lambda$Lb75cXPDJ068NTmfGbGV7wsayQ(callbackReturn, (Long) obj);
+                return JsonContext.m1366$r8$lambda$Lb75cXPDJ068NTmfGbGV7wsayQ(callbackReturn, (Long) obj);
             }
         };
         final ArrayList arrayList = new ArrayList();
         arrayList.add(new Pair("id", Integer.valueOf(apiWrap$Message.id)));
-        arrayList.add(new Pair(TeXSymbolParser.TYPE_ATTR, SerializeString(apiWrap$Message.action != null ? "service" : "message")));
+        arrayList.add(new Pair("type", SerializeString(apiWrap$Message.action != null ? "service" : "message")));
         arrayList.add(new Pair("date", SerializeString(String.valueOf(apiWrap$Message.date))));
         jsonContext.nesting.add(Boolean.TRUE);
-        Utilities.CallbackVoidReturn callbackVoidReturn = new Utilities.CallbackVoidReturn() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda5
+        Utilities.CallbackVoidReturn callbackVoidReturn = new Utilities.CallbackVoidReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackVoidReturn
             public final Object run() {
-                return JsonContext.$r8$lambda$5FFhJI72fHDyOjZRMyMtJGXGYXw(jsonContext, arrayList);
+                return JsonContext.$r8$lambda$5FFhJI72fHDyOjZRMyMtJGXGYXw(this.f$0, arrayList);
             }
         };
-        final Utilities.Callback2 callback2 = new Utilities.Callback2() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda6
+        final Utilities.Callback2 callback2 = new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 JsonContext.$r8$lambda$Yw3sshGVvjPkXNdtDtvTvKbj2BM(arrayList, (String) obj, (String) obj2);
@@ -95,31 +93,31 @@ public class JsonContext {
         if (i != 0) {
             callback2.run("edited", String.valueOf(i));
         }
-        final Utilities.CallbackReturn callbackReturn3 = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda7
+        final Utilities.CallbackReturn callbackReturn3 = new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
                 return JsonContext.$r8$lambda$nuaLfrTKf9UaHQJH7HeIdHHHYPs((Long) obj);
             }
         };
-        final Utilities.Callback2 callback3 = new Utilities.Callback2() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda8
+        final Utilities.Callback2 callback3 = new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 JsonContext.$r8$lambda$E9u9TYVlppS2vBxijZACzBTyoIE(callback2, callbackReturn3, (String) obj, obj2);
             }
         };
-        final Utilities.CallbackReturn callbackReturn4 = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda9
+        final Utilities.CallbackReturn callbackReturn4 = new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
                 return JsonContext.StringAllowNull(((ApiWrap$Peer) callbackReturn.run((Long) obj)).name());
             }
         };
-        Utilities.Callback callback = new Utilities.Callback() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda10
+        Utilities.Callback callback = new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
                 JsonContext.$r8$lambda$oOh1TbUsZyqtWEJs5VUnyheqEho(apiWrap$Message, callback2, callbackReturn4, callback3, (String) obj);
             }
         };
-        Utilities.Callback callback4 = new Utilities.Callback() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda11
+        Utilities.Callback callback4 = new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
                 JsonContext.$r8$lambda$6HhGPqLT_zAglGl3BSE0SMSNzeo(apiWrap$Message, callback3, (String) obj);
@@ -157,17 +155,17 @@ public class JsonContext {
         callback2.run("text_entities", SerializeText(jsonContext, apiWrap$Message.text, true));
         ArrayList<ArrayList<ApiWrap$HistoryMessageMarkupButton>> arrayList2 = apiWrap$Message.inlineButtonRows;
         if (arrayList2 != null && !arrayList2.isEmpty()) {
-            final Utilities.CallbackReturn callbackReturn5 = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda12
+            final Utilities.CallbackReturn callbackReturn5 = new Utilities.CallbackReturn() {
                 @Override // org.telegram.messenger.Utilities.CallbackReturn
                 public final Object run(Object obj) {
-                    return JsonContext.$r8$lambda$lKrxcF5Xyg1WzKTSgzvku1TscPg(jsonContext, (ArrayList) obj);
+                    return JsonContext.$r8$lambda$lKrxcF5Xyg1WzKTSgzvku1TscPg(this.f$0, (ArrayList) obj);
                 }
             };
             jsonContext.nesting.add(Boolean.FALSE);
-            List list = (List) apiWrap$Message.inlineButtonRows.stream().map(new Function() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda1
+            List list = (List) apiWrap$Message.inlineButtonRows.stream().map(new Function() {
                 @Override // java.util.function.Function
                 public final Object apply(Object obj) {
-                    return JsonContext.m1096$r8$lambda$hmtII8_x5IKMyyqN62IoDyQTf4(callbackReturn5, (ArrayList) obj);
+                    return JsonContext.m1367$r8$lambda$hmtII8_x5IKMyyqN62IoDyQTf4(callbackReturn5, (ArrayList) obj);
                 }
             }).collect(Collectors.toList());
             ArrayList<Boolean> arrayList3 = jsonContext.nesting;
@@ -175,21 +173,23 @@ public class JsonContext {
             callback2.run("inline_bot_buttons", SerializeArray(jsonContext, new ArrayList(list)));
         }
         if (!apiWrap$Message.reactions.isEmpty()) {
-            final Utilities.CallbackReturn callbackReturn6 = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda2
+            final Utilities.CallbackReturn callbackReturn6 = new Utilities.CallbackReturn() {
                 @Override // org.telegram.messenger.Utilities.CallbackReturn
                 public final Object run(Object obj) {
-                    JsonContext jsonContext2 = jsonContext;
+                    JsonContext jsonContext2 = this.f$0;
                     Utilities.CallbackReturn callbackReturn7 = callbackReturn4;
                     Utilities.CallbackReturn callbackReturn8 = callbackReturn3;
-                    return JsonContext.$r8$lambda$JSGl0gcx13Gm7REM9tQp0tkWgrM(jsonContext2, callbackReturn7, callbackReturn8, (ApiWrap$Reaction) obj);
+                    
+                    return JsonContext.$r8$lambda$JSGl0gcx13Gm7REM9tQp0tkWgrM(jsonContext2, callbackReturn7, callbackReturn8, null);
                 }
             };
             jsonContext.nesting.add(Boolean.FALSE);
-            callback2.run("reactions", SerializeArray(jsonContext, new ArrayList((List) apiWrap$Message.reactions.stream().map(new Function() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda3
+            callback2.run("reactions", SerializeArray(jsonContext, new ArrayList((List) apiWrap$Message.reactions.stream().map(new Function() {
                 @Override // java.util.function.Function
                 public final Object apply(Object obj) {
                     Utilities.CallbackReturn callbackReturn7 = callbackReturn6;
-                    return (String) callbackReturn7.run(obj);
+                    
+                    return JsonContext.$r8$lambda$pklfCh8IPhV8pOoKh1sadePkqzY(callbackReturn7, null);
                 }
             }).collect(Collectors.toList()))));
             ArrayList<Boolean> arrayList4 = jsonContext.nesting;
@@ -198,38 +198,37 @@ public class JsonContext {
         return (String) callbackVoidReturn.run();
     }
 
-    public static /* synthetic */ ApiWrap$Peer $r8$lambda$_82XuOS42idlN6YRygYUGxZazmU(HashMap map, Long l) {
+    public static ApiWrap$Peer $r8$lambda$_82XuOS42idlN6YRygYUGxZazmU(HashMap map, Long l) {
         ApiWrap$Peer apiWrap$Peer = (ApiWrap$Peer) map.get(l);
         return apiWrap$Peer != null ? apiWrap$Peer : new ApiWrap$Peer(new ApiWrap$User());
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$Lb75cXPDJ068NTmfGbGV7wsa-yQ, reason: not valid java name */
-    public static /* synthetic */ ApiWrap$User m1095$r8$lambda$Lb75cXPDJ068NTmfGbGV7wsayQ(Utilities.CallbackReturn callbackReturn, Long l) {
+    public static ApiWrap$User m1366$r8$lambda$Lb75cXPDJ068NTmfGbGV7wsayQ(Utilities.CallbackReturn callbackReturn, Long l) {
         ApiWrap$User apiWrap$User = ((ApiWrap$Peer) callbackReturn.run(l)).user;
         return apiWrap$User != null ? apiWrap$User : new ApiWrap$User();
     }
 
-    public static /* synthetic */ String $r8$lambda$5FFhJI72fHDyOjZRMyMtJGXGYXw(JsonContext jsonContext, ArrayList arrayList) {
+    public static String $r8$lambda$5FFhJI72fHDyOjZRMyMtJGXGYXw(JsonContext jsonContext, ArrayList arrayList) {
         ArrayList<Boolean> arrayList2 = jsonContext.nesting;
         arrayList2.remove(arrayList2.size() - 1);
         return SerializeObject(jsonContext, (Pair[]) arrayList.toArray(new Pair[arrayList.size()]));
     }
 
-    public static /* synthetic */ void $r8$lambda$Yw3sshGVvjPkXNdtDtvTvKbj2BM(ArrayList arrayList, String str, String str2) {
+    public static void $r8$lambda$Yw3sshGVvjPkXNdtDtvTvKbj2BM(ArrayList arrayList, String str, String str2) {
         if (str2.isEmpty()) {
             return;
         }
         arrayList.add(new Pair(str, str2));
     }
 
-    public static /* synthetic */ String $r8$lambda$nuaLfrTKf9UaHQJH7HeIdHHHYPs(Long l) {
+    public static String $r8$lambda$nuaLfrTKf9UaHQJH7HeIdHHHYPs(Long l) {
         if (l.longValue() < 0) {
             return SerializeString("chat" + l);
         }
         return SerializeString("user" + l);
     }
 
-    public static /* synthetic */ void $r8$lambda$E9u9TYVlppS2vBxijZACzBTyoIE(Utilities.Callback2 callback2, Utilities.CallbackReturn callbackReturn, String str, Object obj) {
+    public static void $r8$lambda$E9u9TYVlppS2vBxijZACzBTyoIE(Utilities.Callback2 callback2, Utilities.CallbackReturn callbackReturn, String str, Object obj) {
         if (obj instanceof Boolean) {
             callback2.run(str, String.valueOf((Boolean) obj));
             return;
@@ -249,7 +248,7 @@ public class JsonContext {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$oOh1TbUsZyqtWEJs5VUnyheqEho(ApiWrap$Message apiWrap$Message, Utilities.Callback2 callback2, Utilities.CallbackReturn callbackReturn, Utilities.Callback2 callback3, String str) {
+    public static void $r8$lambda$oOh1TbUsZyqtWEJs5VUnyheqEho(ApiWrap$Message apiWrap$Message, Utilities.Callback2 callback2, Utilities.CallbackReturn callbackReturn, Utilities.Callback2 callback3, String str) {
         if (str == null) {
             str = "from";
         }
@@ -260,7 +259,7 @@ public class JsonContext {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$6HhGPqLT_zAglGl3BSE0SMSNzeo(ApiWrap$Message apiWrap$Message, Utilities.Callback2 callback2, String str) {
+    public static void $r8$lambda$6HhGPqLT_zAglGl3BSE0SMSNzeo(ApiWrap$Message apiWrap$Message, Utilities.Callback2 callback2, String str) {
         int i = apiWrap$Message.replyToMsgId;
         if (i != 0) {
             callback2.run(str, Integer.valueOf(i));
@@ -271,12 +270,12 @@ public class JsonContext {
         }
     }
 
-    public static /* synthetic */ String $r8$lambda$lKrxcF5Xyg1WzKTSgzvku1TscPg(final JsonContext jsonContext, ArrayList arrayList) {
+    public static String $r8$lambda$lKrxcF5Xyg1WzKTSgzvku1TscPg(final JsonContext jsonContext, ArrayList arrayList) {
         jsonContext.nesting.add(Boolean.FALSE);
-        List list = (List) arrayList.stream().map(new Function() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda13
+        List list = (List) arrayList.stream().map(new Function() {
             @Override // java.util.function.Function
             public final Object apply(Object obj) {
-                return JsonContext.m1100$r8$lambda$z_7ew4tZrjahCzTlJ65jxaK0v0(jsonContext, (ApiWrap$HistoryMessageMarkupButton) obj);
+                return JsonContext.m1371$r8$lambda$z_7ew4tZrjahCzTlJ65jxaK0v0(this.f$0, (ApiWrap$HistoryMessageMarkupButton) obj);
             }
         }).collect(Collectors.toList());
         ArrayList<Boolean> arrayList2 = jsonContext.nesting;
@@ -284,10 +283,9 @@ public class JsonContext {
         return SerializeArray(jsonContext, new ArrayList(list));
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$z_7ew4t-ZrjahCzTlJ65jxaK0v0, reason: not valid java name */
-    public static /* synthetic */ String m1100$r8$lambda$z_7ew4tZrjahCzTlJ65jxaK0v0(JsonContext jsonContext, ApiWrap$HistoryMessageMarkupButton apiWrap$HistoryMessageMarkupButton) {
+    public static String m1371$r8$lambda$z_7ew4tZrjahCzTlJ65jxaK0v0(JsonContext jsonContext, ApiWrap$HistoryMessageMarkupButton apiWrap$HistoryMessageMarkupButton) {
         ArrayList arrayList = new ArrayList();
-        arrayList.add(new Pair(TeXSymbolParser.TYPE_ATTR, SerializeString(ApiWrap$HistoryMessageMarkupButton.TypeToString(apiWrap$HistoryMessageMarkupButton))));
+        arrayList.add(new Pair("type", SerializeString(ApiWrap$HistoryMessageMarkupButton.TypeToString(apiWrap$HistoryMessageMarkupButton))));
         if (!apiWrap$HistoryMessageMarkupButton.text().isEmpty()) {
             arrayList.add(new Pair("text", SerializeString(apiWrap$HistoryMessageMarkupButton.text())));
         }
@@ -308,15 +306,14 @@ public class JsonContext {
         return SerializeObject(jsonContext, (Pair[]) arrayList.toArray(new Pair[arrayList.size()]));
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$hmtII8_x5IKMyy-qN62IoDyQTf4, reason: not valid java name */
-    public static /* synthetic */ String m1096$r8$lambda$hmtII8_x5IKMyyqN62IoDyQTf4(Utilities.CallbackReturn callbackReturn, ArrayList arrayList) {
+    public static String m1367$r8$lambda$hmtII8_x5IKMyyqN62IoDyQTf4(Utilities.CallbackReturn callbackReturn, ArrayList arrayList) {
         return (String) callbackReturn.run(arrayList);
     }
 
-    public static /* synthetic */ String $r8$lambda$JSGl0gcx13Gm7REM9tQp0tkWgrM(JsonContext jsonContext, Utilities.CallbackReturn callbackReturn, Utilities.CallbackReturn callbackReturn2, ApiWrap$Reaction apiWrap$Reaction) {
+    public static String $r8$lambda$JSGl0gcx13Gm7REM9tQp0tkWgrM(JsonContext jsonContext, Utilities.CallbackReturn callbackReturn, Utilities.CallbackReturn callbackReturn2, ApiWrap$Reaction apiWrap$Reaction) {
         jsonContext.nesting.add(Boolean.TRUE);
         try {
-            new ArrayList().add(new Pair(TeXSymbolParser.TYPE_ATTR, SerializeString(ApiWrap$Reaction.TypeToString(apiWrap$Reaction))));
+            new ArrayList().add(new Pair("type", SerializeString(ApiWrap$Reaction.TypeToString(apiWrap$Reaction))));
             throw null;
         } catch (Throwable th) {
             ArrayList<Boolean> arrayList = jsonContext.nesting;
@@ -325,11 +322,10 @@ public class JsonContext {
         }
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.export.output.json.JsonContext$1, reason: invalid class name */
-    public static /* synthetic */ class AnonymousClass1 {
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$File$SkipReason;
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$Reaction$Type;
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$TextPart$Type;
+    public static class AnonymousClass1 {
+        static final int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$File$SkipReason;
+        static final int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$Reaction$Type;
+        static final int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$TextPart$Type;
 
         static {
             int[] iArr = new int[ApiWrap$Reaction.Type.values().length];
@@ -449,50 +445,50 @@ public class JsonContext {
         }
     }
 
-    public static /* synthetic */ String $r8$lambda$pklfCh8IPhV8pOoKh1sadePkqzY(Utilities.CallbackReturn callbackReturn, ApiWrap$Reaction apiWrap$Reaction) {
+    public static String $r8$lambda$pklfCh8IPhV8pOoKh1sadePkqzY(Utilities.CallbackReturn callbackReturn, ApiWrap$Reaction apiWrap$Reaction) {
         return (String) callbackReturn.run(apiWrap$Reaction);
     }
 
     private static String SerializeMessageMedia(ApiWrap$Message apiWrap$Message, final JsonContext jsonContext, final HashMap<Long, ApiWrap$Peer> map, String str) {
         String strSerializeObject;
         final ArrayList arrayList = new ArrayList();
-        final Utilities.Callback2 callback2 = new Utilities.Callback2() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda27
+        final Utilities.Callback2 callback2 = new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 JsonContext.$r8$lambda$fua3ETEVNn_xpfDnppx9CUbOjao(arrayList, (String) obj, (String) obj2);
             }
         };
-        final Utilities.CallbackReturn callbackReturn = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda29
+        final Utilities.CallbackReturn callbackReturn = new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
-                return JsonContext.m1090$r8$lambda$0G3AK7RwrqIoB5h65Np1ClK9s((Long) obj);
+                return JsonContext.m1361$r8$lambda$0G3AK7RwrqIoB5h65Np1ClK9s((Long) obj);
             }
         };
-        final Utilities.Callback2 callback3 = new Utilities.Callback2() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda30
+        final Utilities.Callback2 callback3 = new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 JsonContext.$r8$lambda$pU0v_mdGOesT5IrtmWsJdviQKos(callback2, callbackReturn, (String) obj, obj2);
             }
         };
-        final Utilities.CallbackReturn callbackReturn2 = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda31
+        final Utilities.CallbackReturn callbackReturn2 = new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
-                return JsonContext.m1093$r8$lambda$A7SAhkqqvPMMCDUVzfseNfek48(map, (Long) obj);
+                return JsonContext.m1364$r8$lambda$A7SAhkqqvPMMCDUVzfseNfek48(map, (Long) obj);
             }
         };
-        Utilities.CallbackReturn callbackReturn3 = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda32
+        Utilities.CallbackReturn callbackReturn3 = new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
                 return JsonContext.$r8$lambda$D7Q2WtzEt_GXKZraWikmhxU1gTk(callbackReturn2, (Long) obj);
             }
         };
-        final Utilities.Callback3 callback4 = new Utilities.Callback3() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda33
+        final Utilities.Callback3 callback4 = new Utilities.Callback3() {
             @Override // org.telegram.messenger.Utilities.Callback3
             public final void run(Object obj, Object obj2, Object obj3) {
-                JsonContext.m1092$r8$lambda$5ZTMoi45tFEPX66k7pRMwqlwpI(callback3, (ApiWrap$File) obj, (String) obj2, (String) obj3);
+                JsonContext.m1363$r8$lambda$5ZTMoi45tFEPX66k7pRMwqlwpI(callback3, (ApiWrap$File) obj, (String) obj2, (String) obj3);
             }
         };
-        Utilities.Callback callback = new Utilities.Callback() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda34
+        Utilities.Callback callback = new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
                 JsonContext.$r8$lambda$LPKh2UoSVjmlAI8IwxLCjW6wJuA(callback4, callback3, (ApiWrap$Image) obj);
@@ -621,10 +617,10 @@ public class JsonContext {
                 ApiWrap$Poll apiWrap$Poll = (ApiWrap$Poll) obj;
                 callback2.run("mediaType", SerializeString("poll"));
                 jsonContext.nesting.add(Boolean.TRUE);
-                String strSerializeArray = SerializeArray(jsonContext, new ArrayList((List) apiWrap$Poll.answers.stream().map(new Function() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda35
+                String strSerializeArray = SerializeArray(jsonContext, new ArrayList((List) apiWrap$Poll.answers.stream().map(new Function() {
                     @Override // java.util.function.Function
                     public final Object apply(Object obj2) {
-                        return JsonContext.$r8$lambda$DZvvVfxINNbQgeVwZHbS0Lp0an4(jsonContext, (ApiWrap$Poll.Answer) obj2);
+                        return JsonContext.$r8$lambda$DZvvVfxINNbQgeVwZHbS0Lp0an4(this.f$0, (ApiWrap$Poll.Answer) obj2);
                     }
                 }).collect(Collectors.toList())));
                 ArrayList<Boolean> arrayList2 = jsonContext.nesting;
@@ -636,7 +632,7 @@ public class JsonContext {
                 ArrayList<Boolean> arrayList3 = jsonContext.nesting;
                 Boolean bool = Boolean.FALSE;
                 arrayList3.add(bool);
-                String strSerializeArray2 = SerializeArray(jsonContext, new ArrayList((List) apiWrap$GiveawayStart.channels.stream().map(new Function() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda36
+                String strSerializeArray2 = SerializeArray(jsonContext, new ArrayList((List) apiWrap$GiveawayStart.channels.stream().map(new Function() {
                     @Override // java.util.function.Function
                     public final Object apply(Object obj2) {
                         return DataTypesUtils.NumberToString(((Long) obj2).longValue());
@@ -645,7 +641,7 @@ public class JsonContext {
                 ArrayList<Boolean> arrayList4 = jsonContext.nesting;
                 arrayList4.remove(arrayList4.size() - 1);
                 jsonContext.nesting.add(bool);
-                String strSerializeArray3 = SerializeArray(jsonContext, new ArrayList((List) apiWrap$GiveawayStart.countries.stream().map(new Function() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda37
+                String strSerializeArray3 = SerializeArray(jsonContext, new ArrayList((List) apiWrap$GiveawayStart.countries.stream().map(new Function() {
                     @Override // java.util.function.Function
                     public final Object apply(Object obj2) {
                         return JsonContext.SerializeString((String) obj2);
@@ -658,7 +654,7 @@ public class JsonContext {
                 ApiWrap$GiveawayResults apiWrap$GiveawayResults = (ApiWrap$GiveawayResults) obj;
                 callback2.run("mediaType", SerializeString("giveawayResults"));
                 jsonContext.nesting.add(Boolean.FALSE);
-                String strSerializeArray4 = SerializeArray(jsonContext, new ArrayList((List) apiWrap$GiveawayResults.winners.stream().map(new Function() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda28
+                String strSerializeArray4 = SerializeArray(jsonContext, new ArrayList((List) apiWrap$GiveawayResults.winners.stream().map(new Function() {
                     @Override // java.util.function.Function
                     public final Object apply(Object obj2) {
                         return DataTypesUtils.NumberToString(((Long) obj2).longValue());
@@ -679,22 +675,21 @@ public class JsonContext {
         return SerializeObject(jsonContext, (Pair[]) arrayList.toArray(new Pair[arrayList.size()]));
     }
 
-    public static /* synthetic */ void $r8$lambda$fua3ETEVNn_xpfDnppx9CUbOjao(ArrayList arrayList, String str, String str2) {
+    public static void $r8$lambda$fua3ETEVNn_xpfDnppx9CUbOjao(ArrayList arrayList, String str, String str2) {
         if (str2.isEmpty()) {
             return;
         }
         arrayList.add(new Pair(str, str2));
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$0G3A-K7RwrqIoB5h6-5Np1ClK9s, reason: not valid java name */
-    public static /* synthetic */ String m1090$r8$lambda$0G3AK7RwrqIoB5h65Np1ClK9s(Long l) {
+    public static String m1361$r8$lambda$0G3AK7RwrqIoB5h65Np1ClK9s(Long l) {
         if (l.longValue() < 0) {
             return SerializeString("chat" + l);
         }
         return SerializeString("user" + l);
     }
 
-    public static /* synthetic */ void $r8$lambda$pU0v_mdGOesT5IrtmWsJdviQKos(Utilities.Callback2 callback2, Utilities.CallbackReturn callbackReturn, String str, Object obj) {
+    public static void $r8$lambda$pU0v_mdGOesT5IrtmWsJdviQKos(Utilities.Callback2 callback2, Utilities.CallbackReturn callbackReturn, String str, Object obj) {
         if (obj instanceof Boolean) {
             callback2.run(str, String.valueOf((Boolean) obj));
             return;
@@ -719,19 +714,17 @@ public class JsonContext {
         }
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$A7SAhk-qqvPMMCDUVzfseNfek48, reason: not valid java name */
-    public static /* synthetic */ ApiWrap$Peer m1093$r8$lambda$A7SAhkqqvPMMCDUVzfseNfek48(HashMap map, Long l) {
+    public static ApiWrap$Peer m1364$r8$lambda$A7SAhkqqvPMMCDUVzfseNfek48(HashMap map, Long l) {
         ApiWrap$Peer apiWrap$Peer = (ApiWrap$Peer) map.get(l);
         return apiWrap$Peer != null ? apiWrap$Peer : new ApiWrap$Peer(new ApiWrap$User());
     }
 
-    public static /* synthetic */ ApiWrap$User $r8$lambda$D7Q2WtzEt_GXKZraWikmhxU1gTk(Utilities.CallbackReturn callbackReturn, Long l) {
+    public static ApiWrap$User $r8$lambda$D7Q2WtzEt_GXKZraWikmhxU1gTk(Utilities.CallbackReturn callbackReturn, Long l) {
         ApiWrap$User apiWrap$User = ((ApiWrap$Peer) callbackReturn.run(l)).user;
         return apiWrap$User != null ? apiWrap$User : new ApiWrap$User();
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$5ZTMoi45tFE-PX66k7pRMwqlwpI, reason: not valid java name */
-    public static /* synthetic */ void m1092$r8$lambda$5ZTMoi45tFEPX66k7pRMwqlwpI(Utilities.Callback2 callback2, ApiWrap$File apiWrap$File, String str, String str2) {
+    public static void m1363$r8$lambda$5ZTMoi45tFEPX66k7pRMwqlwpI(Utilities.Callback2 callback2, ApiWrap$File apiWrap$File, String str, String str2) {
         String strConcat;
         String strConcat2 = str2.isEmpty() ? _UrlKt.FRAGMENT_ENCODE_SET : str2.concat(" ");
         int i = AnonymousClass1.$SwitchMap$com$exteragram$messenger$export$api$ApiWrap$File$SkipReason[apiWrap$File.skipReason.ordinal()];
@@ -750,7 +743,7 @@ public class JsonContext {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$LPKh2UoSVjmlAI8IwxLCjW6wJuA(Utilities.Callback3 callback3, Utilities.Callback2 callback2, ApiWrap$Image apiWrap$Image) {
+    public static void $r8$lambda$LPKh2UoSVjmlAI8IwxLCjW6wJuA(Utilities.Callback3 callback3, Utilities.Callback2 callback2, ApiWrap$Image apiWrap$Image) {
         callback3.run(apiWrap$Image.file, "photo", _UrlKt.FRAGMENT_ENCODE_SET);
         callback2.run("size", Long.valueOf(apiWrap$Image.file.size));
         int i = apiWrap$Image.width;
@@ -761,7 +754,7 @@ public class JsonContext {
         callback2.run("height", Integer.valueOf(apiWrap$Image.height));
     }
 
-    public static /* synthetic */ String $r8$lambda$DZvvVfxINNbQgeVwZHbS0Lp0an4(JsonContext jsonContext, ApiWrap$Poll.Answer answer) {
+    public static String $r8$lambda$DZvvVfxINNbQgeVwZHbS0Lp0an4(JsonContext jsonContext, ApiWrap$Poll.Answer answer) {
         jsonContext.nesting.add(Boolean.FALSE);
         String strSerializeObject = SerializeObject(jsonContext, new Pair("text", SerializeString(answer.text())), new Pair("voters", DataTypesUtils.NumberToString(answer.votes())), new Pair("chosen", answer.my() ? "true" : "false"));
         ArrayList<Boolean> arrayList = jsonContext.nesting;
@@ -776,73 +769,73 @@ public class JsonContext {
         String str3;
         String str4;
         final ArrayList arrayList = new ArrayList();
-        final Utilities.CallbackReturn callbackReturn = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda14
+        final Utilities.CallbackReturn callbackReturn = new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
                 return JsonContext.$r8$lambda$HcPXe2yaCyXRahCOHGZF0WKJQiM(map, (Long) obj);
             }
         };
-        final Utilities.CallbackReturn callbackReturn2 = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda18
+        final Utilities.CallbackReturn callbackReturn2 = new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
-                return JsonContext.m1097$r8$lambda$l3kw5Q6evJjim0J_zsiqvwknVk(callbackReturn, (Long) obj);
+                return JsonContext.m1368$r8$lambda$l3kw5Q6evJjim0J_zsiqvwknVk(callbackReturn, (Long) obj);
             }
         };
-        final Utilities.Callback2 callback2 = new Utilities.Callback2() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda19
+        final Utilities.Callback2 callback2 = new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 JsonContext.$r8$lambda$DJcpDpppJ9SASMoVONnleTMyrRE(arrayList, (String) obj, (String) obj2);
             }
         };
-        final Utilities.CallbackReturn callbackReturn3 = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda20
+        final Utilities.CallbackReturn callbackReturn3 = new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
                 return JsonContext.$r8$lambda$zTj1WpUulSBk65CIRhljeFYUJSk((Long) obj);
             }
         };
-        final Utilities.Callback2 callback3 = new Utilities.Callback2() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda21
+        final Utilities.Callback2 callback3 = new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 JsonContext.$r8$lambda$ITtAik57S_FX3F_idDa0ObsjTEY(callback2, callbackReturn3, (String) obj, obj2);
             }
         };
-        final Utilities.CallbackReturn callbackReturn4 = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda22
+        final Utilities.CallbackReturn callbackReturn4 = new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
                 return JsonContext.StringAllowNull(((ApiWrap$Peer) callbackReturn.run((Long) obj)).name());
             }
         };
-        Utilities.Callback callback = new Utilities.Callback() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda23
+        Utilities.Callback callback = new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
                 JsonContext.$r8$lambda$hw2aHHYioc0DYTvaVxxcyJjnUJs(apiWrap$Message, callback2, callbackReturn4, callback3, (String) obj);
             }
         };
-        Utilities.Callback callback4 = new Utilities.Callback() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda24
+        Utilities.Callback callback4 = new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
                 JsonContext.$r8$lambda$V1GPUI3Ji8IitWs016dE88zBqRg(apiWrap$Message, callback3, (String) obj);
             }
         };
-        Utilities.Callback2 callback5 = new Utilities.Callback2() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda25
+        Utilities.Callback2 callback5 = new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
-                JsonContext.m1099$r8$lambda$qketphKXD6umlaSqbPSIjrbZ8c(callbackReturn2, callback2, jsonContext, (ArrayList) obj, (String) obj2);
+                JsonContext.m1370$r8$lambda$qketphKXD6umlaSqbPSIjrbZ8c(callbackReturn2, callback2, jsonContext, (ArrayList) obj, (String) obj2);
             }
         };
-        final Utilities.Callback3 callback6 = new Utilities.Callback3() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda26
+        final Utilities.Callback3 callback6 = new Utilities.Callback3() {
             @Override // org.telegram.messenger.Utilities.Callback3
             public final void run(Object obj, Object obj2, Object obj3) {
                 JsonContext.$r8$lambda$j7sKj_P7pujVBJlz8XEZE23lUvo(callback3, (ApiWrap$File) obj, (String) obj2, (String) obj3);
             }
         };
-        Utilities.Callback callback7 = new Utilities.Callback() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda15
+        Utilities.Callback callback7 = new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                JsonContext.m1091$r8$lambda$0JEATGwgrDcrUlHLnU4tlxdjgY(callback6, callback3, (ApiWrap$Image) obj);
+                JsonContext.m1362$r8$lambda$0JEATGwgrDcrUlHLnU4tlxdjgY(callback6, callback3, (ApiWrap$Image) obj);
             }
         };
-        Utilities.Callback callback8 = new Utilities.Callback() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda16
+        Utilities.Callback callback8 = new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
                 callback3.run("action", (String) obj);
@@ -1024,7 +1017,7 @@ public class JsonContext {
                 callback.run("actor");
                 callback8.run("invite_to_group_call");
                 callback5.run(tL_messageActionInviteToGroupCall.users, "members");
-                callback2.run("values", SerializeArray(jsonContext, new ArrayList((Collection) tL_messageActionInviteToGroupCall.users.stream().map(new Function() { // from class: com.exteragram.messenger.export.output.json.JsonContext$$ExternalSyntheticLambda17
+                callback2.run("values", SerializeArray(jsonContext, new ArrayList((Collection) tL_messageActionInviteToGroupCall.users.stream().map(new Function() {
                     @Override // java.util.function.Function
                     public final Object apply(Object obj) {
                         return String.valueOf((Long) obj);
@@ -1169,40 +1162,42 @@ public class JsonContext {
                 callback3.run("is_limited", Boolean.valueOf(tL_messageActionStarGift.gift.limited));
                 callback3.run("is_anonymous", Boolean.valueOf(tL_messageActionStarGift.name_hidden));
                 if ((tL_messageActionStarGift.flags & 2) != 0) {
+                    arrayList = arrayList;
                     TLRPC.TL_textWithEntities tL_textWithEntities = tL_messageActionStarGift.message;
                     callback2.run("gift_text", SerializeText(jsonContext, DataTypesUtils.ParseText(tL_textWithEntities.text, tL_textWithEntities.entities), true));
                 }
             }
+            arrayList = arrayList;
         }
+        arrayList = arrayList;
         return SerializeObject(jsonContext, (Pair[]) arrayList.toArray(new Pair[arrayList.size()]));
     }
 
-    public static /* synthetic */ ApiWrap$Peer $r8$lambda$HcPXe2yaCyXRahCOHGZF0WKJQiM(HashMap map, Long l) {
+    public static ApiWrap$Peer $r8$lambda$HcPXe2yaCyXRahCOHGZF0WKJQiM(HashMap map, Long l) {
         ApiWrap$Peer apiWrap$Peer = (ApiWrap$Peer) map.get(l);
         return apiWrap$Peer != null ? apiWrap$Peer : new ApiWrap$Peer(new ApiWrap$User());
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$l3kw5Q-6evJjim0J_zsiqvwknVk, reason: not valid java name */
-    public static /* synthetic */ ApiWrap$User m1097$r8$lambda$l3kw5Q6evJjim0J_zsiqvwknVk(Utilities.CallbackReturn callbackReturn, Long l) {
+    public static ApiWrap$User m1368$r8$lambda$l3kw5Q6evJjim0J_zsiqvwknVk(Utilities.CallbackReturn callbackReturn, Long l) {
         ApiWrap$User apiWrap$User = ((ApiWrap$Peer) callbackReturn.run(l)).user;
         return apiWrap$User != null ? apiWrap$User : new ApiWrap$User();
     }
 
-    public static /* synthetic */ void $r8$lambda$DJcpDpppJ9SASMoVONnleTMyrRE(ArrayList arrayList, String str, String str2) {
+    public static void $r8$lambda$DJcpDpppJ9SASMoVONnleTMyrRE(ArrayList arrayList, String str, String str2) {
         if (str2.isEmpty()) {
             return;
         }
         arrayList.add(new Pair(str, str2));
     }
 
-    public static /* synthetic */ String $r8$lambda$zTj1WpUulSBk65CIRhljeFYUJSk(Long l) {
+    public static String $r8$lambda$zTj1WpUulSBk65CIRhljeFYUJSk(Long l) {
         if (l.longValue() < 0) {
             return SerializeString("chat" + l);
         }
         return SerializeString("user" + l);
     }
 
-    public static /* synthetic */ void $r8$lambda$ITtAik57S_FX3F_idDa0ObsjTEY(Utilities.Callback2 callback2, Utilities.CallbackReturn callbackReturn, String str, Object obj) {
+    public static void $r8$lambda$ITtAik57S_FX3F_idDa0ObsjTEY(Utilities.Callback2 callback2, Utilities.CallbackReturn callbackReturn, String str, Object obj) {
         if (obj instanceof Boolean) {
             callback2.run(str, String.valueOf((Boolean) obj));
             return;
@@ -1227,7 +1222,7 @@ public class JsonContext {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$hw2aHHYioc0DYTvaVxxcyJjnUJs(ApiWrap$Message apiWrap$Message, Utilities.Callback2 callback2, Utilities.CallbackReturn callbackReturn, Utilities.Callback2 callback3, String str) {
+    public static void $r8$lambda$hw2aHHYioc0DYTvaVxxcyJjnUJs(ApiWrap$Message apiWrap$Message, Utilities.Callback2 callback2, Utilities.CallbackReturn callbackReturn, Utilities.Callback2 callback3, String str) {
         if (str == null) {
             str = "from";
         }
@@ -1240,7 +1235,7 @@ public class JsonContext {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$V1GPUI3Ji8IitWs016dE88zBqRg(ApiWrap$Message apiWrap$Message, Utilities.Callback2 callback2, String str) {
+    public static void $r8$lambda$V1GPUI3Ji8IitWs016dE88zBqRg(ApiWrap$Message apiWrap$Message, Utilities.Callback2 callback2, String str) {
         int i = apiWrap$Message.replyToMsgId;
         if (i != 0) {
             callback2.run(str, Integer.valueOf(i));
@@ -1251,8 +1246,7 @@ public class JsonContext {
         }
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$qketphKXD6umlaSqbPSIj-rbZ8c, reason: not valid java name */
-    public static /* synthetic */ void m1099$r8$lambda$qketphKXD6umlaSqbPSIjrbZ8c(Utilities.CallbackReturn callbackReturn, Utilities.Callback2 callback2, JsonContext jsonContext, ArrayList arrayList, String str) {
+    public static void m1370$r8$lambda$qketphKXD6umlaSqbPSIjrbZ8c(Utilities.CallbackReturn callbackReturn, Utilities.Callback2 callback2, JsonContext jsonContext, ArrayList arrayList, String str) {
         ArrayList arrayList2 = new ArrayList();
         int size = arrayList.size();
         int i = 0;
@@ -1264,7 +1258,7 @@ public class JsonContext {
         callback2.run(str, SerializeArray(jsonContext, arrayList2));
     }
 
-    public static /* synthetic */ void $r8$lambda$j7sKj_P7pujVBJlz8XEZE23lUvo(Utilities.Callback2 callback2, ApiWrap$File apiWrap$File, String str, String str2) {
+    public static void $r8$lambda$j7sKj_P7pujVBJlz8XEZE23lUvo(Utilities.Callback2 callback2, ApiWrap$File apiWrap$File, String str, String str2) {
         boolean zIsEmpty = str2.isEmpty();
         String strConcat = _UrlKt.FRAGMENT_ENCODE_SET;
         String strConcat2 = zIsEmpty ? _UrlKt.FRAGMENT_ENCODE_SET : str2.concat(" ");
@@ -1281,8 +1275,7 @@ public class JsonContext {
         callback2.run(str, strConcat);
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$0JEATGwgrDcrUlHLn-U4tlxdjgY, reason: not valid java name */
-    public static /* synthetic */ void m1091$r8$lambda$0JEATGwgrDcrUlHLnU4tlxdjgY(Utilities.Callback3 callback3, Utilities.Callback2 callback2, ApiWrap$Image apiWrap$Image) {
+    public static void m1362$r8$lambda$0JEATGwgrDcrUlHLnU4tlxdjgY(Utilities.Callback3 callback3, Utilities.Callback2 callback2, ApiWrap$Image apiWrap$Image) {
         callback3.run(apiWrap$Image.file, "photo", _UrlKt.FRAGMENT_ENCODE_SET);
         int i = apiWrap$Image.width;
         if (i == 0 || apiWrap$Image.height == 0) {
@@ -1371,7 +1364,7 @@ public class JsonContext {
     }
 
     public static String Indentation(int i) {
-        return HtmlContext.repeat(" ", i);
+        return com.exteragram.messenger.utils.RecordUtils.repeat(" ", i);
     }
 
     public static String SerializeArray(JsonContext jsonContext, ArrayList<String> arrayList) {
@@ -1409,7 +1402,7 @@ public class JsonContext {
         String str;
         String strSerializeString;
         if (arrayList.isEmpty()) {
-            return z ? "[]" : SerializeString("");
+            return z ? _UrlKt.PATH_SEGMENT_ENCODE_SET_URI : SerializeString(_UrlKt.FRAGMENT_ENCODE_SET);
         }
         jsonContext.nesting.add(Boolean.FALSE);
         ArrayList arrayList2 = new ArrayList();
@@ -1488,7 +1481,7 @@ public class JsonContext {
                         str = "custom_emoji";
                         break;
                     default:
-                        FileLog.e("JsonContext: unknown text part type: " + apiWrap$TextPart2.text);
+                        throw new IllegalStateException("wtf is it? " + apiWrap$TextPart2.text);
                         return null;
                 }
                 ApiWrap$TextPart.Type type2 = apiWrap$TextPart2.type;
@@ -1501,7 +1494,7 @@ public class JsonContext {
                 } else {
                     strSerializeString = _UrlKt.FRAGMENT_ENCODE_SET;
                 }
-                arrayList2.add(SerializeObject(jsonContext, new Pair(TeXSymbolParser.TYPE_ATTR, SerializeString(str)), new Pair("text", SerializeString(apiWrap$TextPart2.text)), new Pair("additional", strSerializeString)));
+                arrayList2.add(SerializeObject(jsonContext, new Pair("type", SerializeString(str)), new Pair("text", SerializeString(apiWrap$TextPart2.text)), new Pair("additional", strSerializeString)));
             }
         }
         ArrayList<Boolean> arrayList3 = jsonContext.nesting;

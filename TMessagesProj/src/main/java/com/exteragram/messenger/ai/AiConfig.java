@@ -36,11 +36,11 @@ import okhttp3.internal.url._UrlKt;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.UserConfig;
 
-/* JADX INFO: loaded from: classes4.dex */
 @Metadata(d1 = {"\u0000R\n\u0002\u0010\u0002\n\u0002\b\u0003\n\u0002\u0010\b\n\u0000\n\u0002\u0010\u000b\n\u0002\b\u0007\n\u0002\u0018\u0002\n\u0002\b\u0006\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0002\b\u0006\n\u0002\u0018\u0002\n\u0002\b\b\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\b,\n\u0002\u0010\u000e\n\u0002\b\u000f\u001a\u000f\u0010\u0001\u001a\u00020\u0000H\u0002¢\u0006\u0004\b\u0001\u0010\u0002\u001a\r\u0010\u0003\u001a\u00020\u0000¢\u0006\u0004\b\u0003\u0010\u0002\u001a\u0019\u0010\u0007\u001a\u00020\u00062\b\b\u0002\u0010\u0005\u001a\u00020\u0004H\u0007¢\u0006\u0004\b\u0007\u0010\b\u001a\u0015\u0010\n\u001a\u00020\u00002\u0006\u0010\t\u001a\u00020\u0006¢\u0006\u0004\b\n\u0010\u000b\u001a\u0019\u0010\f\u001a\u00020\u00062\b\b\u0002\u0010\u0005\u001a\u00020\u0004H\u0007¢\u0006\u0004\b\f\u0010\b\u001a\u0015\u0010\r\u001a\u00020\u00002\u0006\u0010\t\u001a\u00020\u0006¢\u0006\u0004\b\r\u0010\u000b\u001a\r\u0010\u000f\u001a\u00020\u000e¢\u0006\u0004\b\u000f\u0010\u0010\u001a\u0015\u0010\u0012\u001a\u00020\u00002\u0006\u0010\u0011\u001a\u00020\u000e¢\u0006\u0004\b\u0012\u0010\u0013\u001a\r\u0010\u0014\u001a\u00020\u0000¢\u0006\u0004\b\u0014\u0010\u0002\u001a\u001d\u0010\u0017\u001a\u0012\u0012\u0004\u0012\u00020\u000e0\u0015j\b\u0012\u0004\u0012\u00020\u000e`\u0016¢\u0006\u0004\b\u0017\u0010\u0018\u001a%\u0010\u001a\u001a\u00020\u00002\u0016\u0010\u0019\u001a\u0012\u0012\u0004\u0012\u00020\u000e0\u0015j\b\u0012\u0004\u0012\u00020\u000e`\u0016¢\u0006\u0004\b\u001a\u0010\u001b\u001a%\u0010\u001e\u001a\u00020\u00002\u0016\u0010\u001d\u001a\u0012\u0012\u0004\u0012\u00020\u001c0\u0015j\b\u0012\u0004\u0012\u00020\u001c`\u0016¢\u0006\u0004\b\u001e\u0010\u001b\u001a\u001d\u0010\u001f\u001a\u0012\u0012\u0004\u0012\u00020\u001c0\u0015j\b\u0012\u0004\u0012\u00020\u001c`\u0016¢\u0006\u0004\b\u001f\u0010\u0018\u001a\u0015\u0010!\u001a\u00020\u00002\u0006\u0010 \u001a\u00020\u001c¢\u0006\u0004\b!\u0010\"\u001a\u001d\u0010$\u001a\u0012\u0012\u0004\u0012\u00020#0\u0015j\b\u0012\u0004\u0012\u00020#`\u0016¢\u0006\u0004\b$\u0010\u0018\u001a%\u0010&\u001a\u00020\u00002\u0016\u0010%\u001a\u0012\u0012\u0004\u0012\u00020#0\u0015j\b\u0012\u0004\u0012\u00020#`\u0016¢\u0006\u0004\b&\u0010\u001b\u001a\r\u0010'\u001a\u00020\u0000¢\u0006\u0004\b'\u0010\u0002\u001a\r\u0010(\u001a\u00020\u0000¢\u0006\u0004\b(\u0010\u0002\"\u0014\u0010)\u001a\u00020\u000e8\u0006X\u0087\u0004¢\u0006\u0006\n\u0004\b)\u0010*\"\u0014\u0010+\u001a\u00020\u000e8\u0006X\u0087\u0004¢\u0006\u0006\n\u0004\b+\u0010*\"\u0017\u0010-\u001a\u00020,8\u0006¢\u0006\f\n\u0004\b-\u0010.\u001a\u0004\b/\u00100\"\u001b\u00106\u001a\u0002018FX\u0086\u0084\u0002¢\u0006\f\n\u0004\b2\u00103\u001a\u0004\b4\u00105\"\u0014\u00107\u001a\u00020\u00008\u0002X\u0082\u0004¢\u0006\u0006\n\u0004\b7\u00108\"+\u0010?\u001a\u00020\u00062\u0006\u00109\u001a\u00020\u00068F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\b:\u0010;\u001a\u0004\b<\u0010=\"\u0004\b>\u0010\u000b\"+\u0010C\u001a\u00020\u00062\u0006\u00109\u001a\u00020\u00068F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\b@\u0010;\u001a\u0004\bA\u0010=\"\u0004\bB\u0010\u000b\"+\u0010I\u001a\u00020\u00042\u0006\u00109\u001a\u00020\u00048F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\bD\u0010;\u001a\u0004\bE\u0010F\"\u0004\bG\u0010H\"+\u0010M\u001a\u00020\u00062\u0006\u00109\u001a\u00020\u00068F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\bJ\u0010;\u001a\u0004\bK\u0010=\"\u0004\bL\u0010\u000b\"+\u0010Q\u001a\u00020\u00062\u0006\u00109\u001a\u00020\u00068F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\bN\u0010;\u001a\u0004\bO\u0010=\"\u0004\bP\u0010\u000b\"+\u0010U\u001a\u00020\u00062\u0006\u00109\u001a\u00020\u00068F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\bR\u0010;\u001a\u0004\bS\u0010=\"\u0004\bT\u0010\u000b\"+\u0010Y\u001a\u00020\u00062\u0006\u00109\u001a\u00020\u00068F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\bV\u0010;\u001a\u0004\bW\u0010=\"\u0004\bX\u0010\u000b\"+\u0010]\u001a\u00020\u00062\u0006\u00109\u001a\u00020\u00068F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\bZ\u0010;\u001a\u0004\b[\u0010=\"\u0004\b\\\u0010\u000b\"/\u0010d\u001a\u0004\u0018\u00010^2\b\u00109\u001a\u0004\u0018\u00010^8F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\b_\u0010;\u001a\u0004\b`\u0010a\"\u0004\bb\u0010c\"+\u0010h\u001a\u00020\u00042\u0006\u00109\u001a\u00020\u00048B@BX\u0082\u008e\u0002¢\u0006\u0012\n\u0004\be\u0010;\u001a\u0004\bf\u0010F\"\u0004\bg\u0010H\"+\u0010l\u001a\u00020^2\u0006\u00109\u001a\u00020^8F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\bi\u0010;\u001a\u0004\bj\u0010a\"\u0004\bk\u0010c¨\u0006m"}, d2 = {_UrlKt.FRAGMENT_ENCODE_SET, "migrateLegacyConfig", "()V", "ensureConfigMigrated", _UrlKt.FRAGMENT_ENCODE_SET, "account", _UrlKt.FRAGMENT_ENCODE_SET, "getReplaceTelegramEditor", "(I)Z", "value", "setReplaceTelegramEditor", "(Z)V", "getReplaceTelegramSummaries", "setReplaceTelegramSummaries", "Lcom/exteragram/messenger/ai/data/Service;", "getSelectedService", "()Lcom/exteragram/messenger/ai/data/Service;", "service", "setSelectedServices", "(Lcom/exteragram/messenger/ai/data/Service;)V", "clearSelectedService", "Ljava/util/ArrayList;", "Lkotlin/collections/ArrayList;", "getServices", "()Ljava/util/ArrayList;", "services", "saveServices", "(Ljava/util/ArrayList;)V", "Lcom/exteragram/messenger/ai/data/Role;", "roles", "saveRoles", "getRoles", "role", "setSelectedAiRole", "(Lcom/exteragram/messenger/ai/data/Role;)V", "Lcom/exteragram/messenger/ai/data/Message;", "getConversationHistory", "history", "saveConversationHistory", "clearConversationHistory", "removeLastFromHistory", "DEFAULT_SERVICE", "Lcom/exteragram/messenger/ai/data/Service;", "ON_DEVICE_SERVICE", "Landroid/content/SharedPreferences;", "preferences", "Landroid/content/SharedPreferences;", "getPreferences", "()Landroid/content/SharedPreferences;", "Landroid/content/SharedPreferences$Editor;", "editor$delegate", "Lkotlin/Lazy;", "getEditor", "()Landroid/content/SharedPreferences$Editor;", "editor", "legacyConfigMigrated", "Lkotlin/Unit;", "<set-?>", "saveHistory$delegate", "Lcom/exteragram/messenger/config/BasePref;", "getSaveHistory", "()Z", "setSaveHistory", "saveHistory", "responseStreaming$delegate", "getResponseStreaming", "setResponseStreaming", "responseStreaming", "temperature$delegate", "getTemperature", "()I", "setTemperature", "(I)V", "temperature", "showResponseOnly$delegate", "getShowResponseOnly", "setShowResponseOnly", "showResponseOnly", "insertAsQuote$delegate", "getInsertAsQuote", "setInsertAsQuote", "insertAsQuote", "onDeviceReasoning$delegate", "getOnDeviceReasoning", "setOnDeviceReasoning", "onDeviceReasoning", "onDevicePreviewModel$delegate", "getOnDevicePreviewModel", "setOnDevicePreviewModel", "onDevicePreviewModel", "onDeviceFastModel$delegate", "getOnDeviceFastModel", "setOnDeviceFastModel", "onDeviceFastModel", _UrlKt.FRAGMENT_ENCODE_SET, "selectedServiceId$delegate", "getSelectedServiceId", "()Ljava/lang/String;", "setSelectedServiceId", "(Ljava/lang/String;)V", "selectedServiceId", "selectedServiceHash$delegate", "getSelectedServiceHash", "setSelectedServiceHash", "selectedServiceHash", "selectedRole$delegate", "getSelectedRole", "setSelectedRole", "selectedRole", "TMessagesProj"}, k = 2, mv = {2, 2, 0}, xi = 48)
+@JvmName(name = "AiConfig")
 @SourceDebugExtension({"SMAP\nAiConfig.kt\nKotlin\n*S Kotlin\n*F\n+ 1 AiConfig.kt\ncom/exteragram/messenger/ai/AiConfig\n+ 2 SharedPreferences.kt\nandroidx/core/content/SharedPreferencesKt\n+ 3 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n+ 4 fake.kt\nkotlin/jvm/internal/FakeKt\n*L\n1#1,217:1\n41#2,6:218\n47#2,6:226\n1915#3,2:224\n1915#3,2:233\n1#4:232\n*S KotlinDebug\n*F\n+ 1 AiConfig.kt\ncom/exteragram/messenger/ai/AiConfig\n*L\n65#1:218,6\n65#1:226,6\n66#1:224,2\n149#1:233,2\n*E\n"})
 public abstract class AiConfig {
-    static final /* synthetic */ KProperty<?>[] $$delegatedProperties;
+    static final KProperty<Object>[] $$delegatedProperties;
 
     @JvmField
     public static final Service DEFAULT_SERVICE;
@@ -63,24 +63,13 @@ public abstract class AiConfig {
     private static final BasePref temperature$delegate;
 
     @Metadata(k = 3, mv = {2, 2, 0}, xi = 48)
-    public static final /* synthetic */ class EntriesMappings {
-        public static final /* synthetic */ EnumEntries<Suggestions> entries$0 = EnumEntriesKt.enumEntries(Suggestions.values());
+    public static final class EntriesMappings {
+        public static final EnumEntries<Suggestions> entries$0 = EnumEntriesKt.enumEntries(Suggestions.values());
     }
 
     public static final void ensureConfigMigrated() {
     }
 
-    @JvmOverloads
-    public static final boolean getReplaceTelegramEditor() {
-        return getReplaceTelegramEditor$default(0, 1, null);
-    }
-
-    @JvmOverloads
-    public static final boolean getReplaceTelegramSummaries() {
-        return getReplaceTelegramSummaries$default(0, 1, null);
-    }
-
-    /* JADX WARN: Multi-variable type inference failed */
     static {
         boolean z = true;
         boolean z2 = false;
@@ -93,20 +82,25 @@ public abstract class AiConfig {
         service2.setKind(Service.Kind.ON_DEVICE);
         ON_DEVICE_SERVICE = service2;
         preferences = PreferencesUtils.getPreferences("aiConfig");
-        editor$delegate = LazyKt.lazy(() -> preferences.edit());
+        editor$delegate = LazyKt.lazy(new Function0() {
+            @Override // kotlin.jvm.functions.Function0
+            public final Object invoke() {
+                return AiConfig.preferences.edit();
+            }
+        });
         migrateLegacyConfig();
         legacyConfigMigrated = Unit.INSTANCE;
-        saveHistory$delegate = new BooleanPref(z, (String) null).provideDelegate(null, kPropertyArr[0]);
-        responseStreaming$delegate = new BooleanPref(z, (String) null).provideDelegate(null, kPropertyArr[1]);
-        temperature$delegate = new IntegerPref(10, (String) null).provideDelegate(null, kPropertyArr[2]);
-        showResponseOnly$delegate = new BooleanPref(z2, (String) null).provideDelegate(null, kPropertyArr[3]);
-        insertAsQuote$delegate = new BooleanPref(z, (String) null).provideDelegate(null, kPropertyArr[4]);
-        onDeviceReasoning$delegate = new BooleanPref(z2, (String) null).provideDelegate(null, kPropertyArr[5]);
-        onDevicePreviewModel$delegate = new BooleanPref(z2, (String) null).provideDelegate(null, kPropertyArr[6]);
-        onDeviceFastModel$delegate = new BooleanPref(z2, (String) null).provideDelegate(null, kPropertyArr[7]);
+        saveHistory$delegate = new BooleanPref(z, null, i, 0 == true ? 1 : 0).provideDelegate(null, kPropertyArr[0]);
+        responseStreaming$delegate = new BooleanPref(z, 0 == true ? 1 : 0, i, 0 == true ? 1 : 0).provideDelegate(null, kPropertyArr[1]);
+        temperature$delegate = new IntegerPref(10, 0 == true ? 1 : 0, i, 0 == true ? 1 : 0).provideDelegate(null, kPropertyArr[2]);
+        showResponseOnly$delegate = new BooleanPref(z2, 0 == true ? 1 : 0, i, 0 == true ? 1 : 0).provideDelegate(null, kPropertyArr[3]);
+        insertAsQuote$delegate = new BooleanPref(z, 0 == true ? 1 : 0, i, 0 == true ? 1 : 0).provideDelegate(null, kPropertyArr[4]);
+        onDeviceReasoning$delegate = new BooleanPref(z2, 0 == true ? 1 : 0, i, 0 == true ? 1 : 0).provideDelegate(null, kPropertyArr[5]);
+        onDevicePreviewModel$delegate = new BooleanPref(z2, 0 == true ? 1 : 0, i, 0 == true ? 1 : 0).provideDelegate(null, kPropertyArr[6]);
+        onDeviceFastModel$delegate = new BooleanPref(z2, 0 == true ? 1 : 0, i, 0 == true ? 1 : 0).provideDelegate(null, kPropertyArr[7]);
         selectedServiceId$delegate = new NullableStringPref(null, "selectedServiceId").provideDelegate(null, kPropertyArr[8]);
         selectedServiceHash$delegate = new IntegerPref(service.getLegacyHash(), "selectedService").provideDelegate(null, kPropertyArr[9]);
-        selectedRole$delegate = new StringPref(EntriesMappings.entries$0.get(0).getRole().getName(), (String) null).provideDelegate(null, kPropertyArr[10]);
+        selectedRole$delegate = new StringPref(EntriesMappings.entries$0.get(0).getRole().getName(), 0 == true ? 1 : 0, i, 0 == true ? 1 : 0).provideDelegate(null, kPropertyArr[10]);
     }
 
     public static final SharedPreferences getPreferences() {
@@ -211,7 +205,7 @@ public abstract class AiConfig {
         onDeviceFastModel$delegate.setValue(null, $$delegatedProperties[7], Boolean.valueOf(z));
     }
 
-    public static /* synthetic */ boolean getReplaceTelegramEditor$default(int i, int i2, Object obj) {
+    public static boolean getReplaceTelegramEditor$default(int i, int i2, Object obj) {
         if ((i2 & 1) != 0) {
             i = UserConfig.selectedAccount;
         }
@@ -227,7 +221,7 @@ public abstract class AiConfig {
         ExteraConfig.getEditor().putBoolean("replaceTelegramEditor", z).apply();
     }
 
-    public static /* synthetic */ boolean getReplaceTelegramSummaries$default(int i, int i2, Object obj) {
+    public static boolean getReplaceTelegramSummaries$default(int i, int i2, Object obj) {
         if ((i2 & 1) != 0) {
             i = UserConfig.selectedAccount;
         }
@@ -325,7 +319,7 @@ public abstract class AiConfig {
             return new ArrayList<>();
         }
         try {
-            ArrayList<Service> arrayList = (ArrayList) ExteraConfig.getGSON().fromJson(string, new TypeToken<ArrayList<Service>>() { // from class: com.exteragram.messenger.ai.AiConfig$getServices$type$1
+            ArrayList<Service> arrayList = (ArrayList) ExteraConfig.getGSON().fromJson(string, new TypeToken<ArrayList<Service>>() {
             }.getType());
             if (arrayList == null) {
                 arrayList = new ArrayList<>();
@@ -364,7 +358,7 @@ public abstract class AiConfig {
             return new ArrayList<>();
         }
         try {
-            ArrayList<Role> arrayList = (ArrayList) ExteraConfig.getGSON().fromJson(string, new TypeToken<ArrayList<Role>>() { // from class: com.exteragram.messenger.ai.AiConfig$getRoles$type$1
+            ArrayList<Role> arrayList = (ArrayList) ExteraConfig.getGSON().fromJson(string, new TypeToken<ArrayList<Role>>() {
             }.getType());
             return arrayList == null ? new ArrayList<>() : arrayList;
         } catch (Exception e) {
@@ -383,7 +377,7 @@ public abstract class AiConfig {
             return new ArrayList<>();
         }
         try {
-            ArrayList<Message> arrayList = (ArrayList) ExteraConfig.getGSON().fromJson(string, new TypeToken<ArrayList<Message>>() { // from class: com.exteragram.messenger.ai.AiConfig$getConversationHistory$type$1
+            ArrayList<Message> arrayList = (ArrayList) ExteraConfig.getGSON().fromJson(string, new TypeToken<ArrayList<Message>>() {
             }.getType());
             return arrayList == null ? new ArrayList<>() : arrayList;
         } catch (Exception e) {

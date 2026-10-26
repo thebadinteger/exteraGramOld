@@ -12,7 +12,7 @@ final /* data */ class BadgeInfo {
     private final boolean canChangeBadge;
     private final ProfileStatus status;
 
-    public static /* synthetic */ BadgeInfo copy$default(BadgeInfo badgeInfo, BadgeDTO badgeDTO, ProfileStatus profileStatus, boolean z, int i, Object obj) {
+    public static BadgeInfo copy$default(BadgeInfo badgeInfo, BadgeDTO badgeDTO, ProfileStatus profileStatus, boolean z, int i, Object obj) {
         if ((i & 1) != 0) {
             badgeDTO = badgeInfo.badge;
         }
@@ -46,7 +46,7 @@ final /* data */ class BadgeInfo {
     }
 
     public String toString() {
-        return "BadgeInfo(badge=" + this.badge + ", status=" + this.status + ", canChangeBadge=" + this.canChangeBadge + ')';
+        return "BadgeInfo(badge=" + this.badge + ", status=" + this.status + ", canChangeBadge=" + this.canChangeBadge + ")";
     }
 
     public BadgeInfo(BadgeDTO badgeDTO, ProfileStatus profileStatus, boolean z) {

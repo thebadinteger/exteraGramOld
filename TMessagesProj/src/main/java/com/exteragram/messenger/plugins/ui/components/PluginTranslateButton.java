@@ -7,7 +7,6 @@ import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 import androidx.core.content.ContextCompat;
-import c.f$$ExternalSyntheticBUOutline1;
 import kotlin.Metadata;
 import kotlin.jvm.internal.SourceDebugExtension;
 import okhttp3.internal.url._UrlKt;
@@ -18,7 +17,6 @@ import org.telegram.ui.Components.AnimatedFloat;
 import org.telegram.ui.Components.CircularProgressDrawable;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 
-/* JADX INFO: loaded from: classes4.dex */
 @Metadata(d1 = {"\u0000F\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\b\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\b\n\u0002\u0010\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0010\u0007\n\u0002\b\u0003\u0018\u0000 !2\u00020\u0001:\u0001!B\u0017\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\u0006\u0010\u0004\u001a\u00020\u0005¢\u0006\u0004\b\u0006\u0010\u0007J\u000e\u0010\u0016\u001a\u00020\u00172\u0006\u0010\u0013\u001a\u00020\u0005J\b\u0010\u0018\u001a\u00020\u0017H\u0002J\u0010\u0010\u0019\u001a\u00020\u00172\u0006\u0010\u001a\u001a\u00020\u001bH\u0014J(\u0010\u001c\u001a\u00020\u00172\u0006\u0010\u001a\u001a\u00020\u001b2\u0006\u0010\u001d\u001a\u00020\t2\u0006\u0010\u001e\u001a\u00020\u001f2\u0006\u0010 \u001a\u00020\u001fH\u0002R\u000e\u0010\b\u001a\u00020\tX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\n\u001a\u00020\tX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u000b\u001a\u00020\fX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\r\u001a\u00020\u000eX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u000f\u001a\u00020\u000eX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0010\u001a\u00020\tX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u0011\u001a\u0004\u0018\u00010\tX\u0082\u000e¢\u0006\u0002\n\u0000R\u001e\u0010\u0013\u001a\u00020\u00052\u0006\u0010\u0012\u001a\u00020\u0005@BX\u0086\u000e¢\u0006\b\n\u0000\u001a\u0004\b\u0014\u0010\u0015¨\u0006\""}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/PluginTranslateButton;", "Landroid/view/View;", "context", "Landroid/content/Context;", "color", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "(Landroid/content/Context;I)V", "translateIcon", "Landroid/graphics/drawable/Drawable;", "resetIcon", "progressDrawable", "Lorg/telegram/ui/Components/CircularProgressDrawable;", "loadingProgress", "Lorg/telegram/ui/Components/AnimatedFloat;", "switchProgress", "icon", "previousIcon", "value", "state", "getState", "()I", "setState", _UrlKt.FRAGMENT_ENCODE_SET, "updateContentDescription", "onDraw", "canvas", "Landroid/graphics/Canvas;", "drawIcon", "drawable", "alpha", _UrlKt.FRAGMENT_ENCODE_SET, "scale", "Companion", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
 @SourceDebugExtension({"SMAP\nPluginTranslateButton.kt\nKotlin\n*S Kotlin\n*F\n+ 1 PluginTranslateButton.kt\ncom/exteragram/messenger/plugins/ui/components/PluginTranslateButton\n+ 2 Canvas.kt\nandroidx/core/graphics/CanvasKt\n*L\n1#1,134:1\n44#2,8:135\n81#2,8:143\n*S KotlinDebug\n*F\n+ 1 PluginTranslateButton.kt\ncom/exteragram/messenger/plugins/ui/components/PluginTranslateButton\n*L\n84#1:135,8\n123#1:143,8\n*E\n"})
 public final class PluginTranslateButton extends View {
@@ -38,14 +36,14 @@ public final class PluginTranslateButton extends View {
         super(context);
         Drawable drawable = ContextCompat.getDrawable(context, R.drawable.msg_translate);
         if (drawable == null) {
-            f$$ExternalSyntheticBUOutline1.m("Required value was null.");
+            throw new IllegalArgumentException("Required value was null.");
             throw null;
         }
         Drawable drawableMutate = drawable.mutate();
         this.translateIcon = drawableMutate;
         Drawable drawable2 = ContextCompat.getDrawable(context, R.drawable.photo_undo2);
         if (drawable2 == null) {
-            f$$ExternalSyntheticBUOutline1.m("Required value was null.");
+            throw new IllegalArgumentException("Required value was null.");
             throw null;
         }
         Drawable drawableMutate2 = drawable2.mutate();

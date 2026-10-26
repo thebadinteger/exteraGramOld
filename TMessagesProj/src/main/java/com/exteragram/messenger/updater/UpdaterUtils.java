@@ -19,6 +19,7 @@ import androidx.core.app.NotificationChannelCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.IntentCompat;
 import com.exteragram.messenger.badges.BadgesController;
 import com.exteragram.messenger.icons.IconManager;
 import com.exteragram.messenger.utils.AppUtils;
@@ -57,7 +58,7 @@ public abstract class UpdaterUtils {
     private static AlertDialog dialog;
 
     public static void getAppUpdate(final Utilities.Callback2<TLRPC.TL_help_appUpdate, TLRPC.TL_error> callback2) {
-        RemoteUtils.getMessages(new Utilities.Callback2() { // from class: com.exteragram.messenger.updater.UpdaterUtils$$ExternalSyntheticLambda2
+        RemoteUtils.getMessages(new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 UpdaterUtils.$r8$lambda$2UAZ2HqXxk8Nz7zqmbeCwTKXcr0(callback2, (TLRPC.messages_Messages) obj, (TLRPC.TL_error) obj2);
@@ -65,7 +66,7 @@ public abstract class UpdaterUtils {
         });
     }
 
-    public static /* synthetic */ void $r8$lambda$2UAZ2HqXxk8Nz7zqmbeCwTKXcr0(Utilities.Callback2 callback2, TLRPC.messages_Messages messages_messages, TLRPC.TL_error tL_error) {
+    public static void $r8$lambda$2UAZ2HqXxk8Nz7zqmbeCwTKXcr0(Utilities.Callback2 callback2, TLRPC.messages_Messages messages_messages, TLRPC.TL_error tL_error) {
         if (tL_error != null || messages_messages == null) {
             callback2.run(null, tL_error);
             return;
@@ -201,7 +202,7 @@ public abstract class UpdaterUtils {
         AlertDialog alertDialog = dialog;
         if (alertDialog == null || !alertDialog.isShowing()) {
             showInstallDialog(activity);
-            Utilities.globalQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.updater.UpdaterUtils$$ExternalSyntheticLambda0
+            Utilities.globalQueue.postRunnable(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
                     UpdaterUtils.$r8$lambda$zEBo0VGo0yW4IXbbAahjubhZI0U(activity, pathToAttach);
@@ -210,8 +211,8 @@ public abstract class UpdaterUtils {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$zEBo0VGo0yW4IXbbAahjubhZI0U(Activity activity, File file) {
-        InstallReceiver installReceiverRegister = register(activity, new Runnable() { // from class: com.exteragram.messenger.updater.UpdaterUtils$$ExternalSyntheticLambda1
+    public static void $r8$lambda$zEBo0VGo0yW4IXbbAahjubhZI0U(Activity activity, File file) {
+        InstallReceiver installReceiverRegister = register(activity, new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 UpdaterUtils.$r8$lambda$QoJtvgafGFst_6huPKkX41WQHeM();
@@ -224,7 +225,7 @@ public abstract class UpdaterUtils {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$QoJtvgafGFst_6huPKkX41WQHeM() {
+    public static void $r8$lambda$QoJtvgafGFst_6huPKkX41WQHeM() {
         AlertDialog alertDialog = dialog;
         if (alertDialog != null) {
             alertDialog.dismiss();
@@ -311,6 +312,8 @@ public abstract class UpdaterUtils {
                         th3.addSuppressed(th4);
                         throw th3;
                     }
+                    FileLog.e(e);
+                    handleInstallError(activity, file, e);
                 }
             } catch (Throwable th5) {
                 if (sessionOpenSession == null) {
@@ -331,18 +334,17 @@ public abstract class UpdaterUtils {
     }
 
     private static void handleInstallError(Activity activity, File file, IOException iOException) {
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.updater.UpdaterUtils$$ExternalSyntheticLambda3
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                UpdaterUtils.m1477$r8$lambda$JrnIHfIWjS4z_PFGN622PKVTCU();
+                UpdaterUtils.m2132$r8$lambda$JrnIHfIWjS4z_PFGN622PKVTCU();
             }
         });
         AlertsCreator.createSimpleAlert(activity, LocaleController.getString(R.string.ErrorOccurred) + "\n" + iOException.getLocalizedMessage()).show();
         AndroidUtilities.openForView(file, "install.apk", "application/vnd.android.package-archive", activity, null, false);
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$J-rnIHfIWjS4z_PFGN622PKVTCU, reason: not valid java name */
-    public static /* synthetic */ void m1477$r8$lambda$JrnIHfIWjS4z_PFGN622PKVTCU() {
+    public static void m2132$r8$lambda$JrnIHfIWjS4z_PFGN622PKVTCU() {
         AlertDialog alertDialog = dialog;
         if (alertDialog != null) {
             alertDialog.dismiss();
@@ -400,7 +402,7 @@ public abstract class UpdaterUtils {
         private void handlePackageInstallerResult(Intent intent) {
             int intExtra = intent.getIntExtra("android.content.pm.extra.STATUS", 4);
             if (intExtra == -1) {
-                this.intent = (Intent) intent.getParcelableExtra("android.intent.extra.INTENT");
+                this.intent = (Intent) IntentCompat.getParcelableExtra(intent, "android.intent.extra.INTENT", Intent.class);
             } else {
                 if (intExtra == 1 || intExtra == 2 || intExtra == 4 || intExtra == 5 || intExtra == 6 || intExtra == 7) {
                     handleFailure(intent);
@@ -423,7 +425,7 @@ public abstract class UpdaterUtils {
             }
             Context context = this.context;
             if (context instanceof LaunchActivity) {
-                ((LaunchActivity) context).showBulletin(new Function() { // from class: com.exteragram.messenger.updater.UpdaterUtils$InstallReceiver$$ExternalSyntheticLambda0
+                ((LaunchActivity) context).showBulletin(new Function() {
                     @Override // androidx.arch.core.util.Function
                     public final Object apply(Object obj) {
                         return ((BulletinFactory) obj).createErrorBulletin(LocaleController.formatString(R.string.UpdateFailedToInstall, Integer.valueOf(intent.getIntExtra("android.content.pm.extra.STATUS", 1))));
@@ -441,7 +443,6 @@ public abstract class UpdaterUtils {
         }
     }
 
-    @androidx.annotation.Keep
     public static class UpdateReceiver extends BroadcastReceiver {
         @Override // android.content.BroadcastReceiver
         public void onReceive(Context context, Intent intent) {

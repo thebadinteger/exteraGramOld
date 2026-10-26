@@ -10,7 +10,7 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
 
 public abstract class VibratorUtils {
-    private static final Vibrator vibrator = (Vibrator) ApplicationLoader.applicationContext.getSystemService("vibrator");
+    private static final Vibrator vibrator = (Vibrator) ApplicationLoader.applicationContext.getSystemService(Vibrator.class);
 
     private static boolean isVibrationAllowed() {
         return ExteraConfig.getInAppVibration() && vibrator.hasVibrator();

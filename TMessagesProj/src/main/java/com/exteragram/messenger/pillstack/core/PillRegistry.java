@@ -2,7 +2,7 @@ package com.exteragram.messenger.pillstack.core;
 
 import android.content.Context;
 import androidx.annotation.Keep;
-import com.exteragram.messenger.utils.RecordTag;
+import com.android.tools.r8.RecordTag;
 import com.exteragram.messenger.pillstack.ui.pills.BasePill;
 import com.exteragram.messenger.pillstack.ui.pills.crypto.BtcPill;
 import com.exteragram.messenger.pillstack.ui.pills.crypto.GramPill;
@@ -37,7 +37,7 @@ public class PillRegistry {
         private final int id;
         private final CharSequence name;
 
-        private /* synthetic */ boolean $record$equals(Object obj) {
+        private boolean $record$equals(Object obj) {
             if (!(obj instanceof PillInfo)) {
                 return false;
             }
@@ -45,7 +45,7 @@ public class PillRegistry {
             return this.id == pillInfo.id && this.iconRes == pillInfo.iconRes && this.iconColorTop == pillInfo.iconColorTop && this.iconColorBottom == pillInfo.iconColorBottom && Objects.equals(this.name, pillInfo.name) && Objects.equals(this.creator, pillInfo.creator);
         }
 
-        private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+        private Object[] $record$getFieldsAsObjects() {
             return new Object[]{Integer.valueOf(this.id), this.name, Integer.valueOf(this.iconRes), Integer.valueOf(this.iconColorTop), Integer.valueOf(this.iconColorBottom), this.creator};
         }
 
@@ -67,7 +67,7 @@ public class PillRegistry {
         }
 
         public final int hashCode() {
-            return java.util.Objects.hash(this.id, this.iconRes, this.iconColorTop, this.iconColorBottom, this.name, this.creator);
+            return PillRegistry$java.util.Objects.hash(this.id, this.iconRes, this.iconColorTop, this.iconColorBottom, this.name, this.creator);
         }
 
         public int iconColorBottom() {
@@ -111,10 +111,10 @@ public class PillRegistry {
         batchRegistration = false;
         if (PillStackConfig.getConfigLoaded()) {
             PillStackConfig.sanitizePills();
-            AndroidUtilities.runOnUIThread(new Runnable() { 
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    NotificationCenter.getGlobalInstance().postNotificationNameOnUIThread(NotificationCenter.pillStackLayoutChanged, new Object[0]);
+                    NotificationCenter.getGlobalInstance().lambda$postNotificationNameOnUIThread$1(NotificationCenter.pillStackLayoutChanged, new Object[0]);
                 }
             });
         }
@@ -125,8 +125,8 @@ public class PillRegistry {
         String string = LocaleController.getString(R.string.WeatherPill);
         int i = R.drawable.weather_cloudy;
         IconBackgroundColors iconBackgroundColors = IconBackgroundColors.BLUE_ALT;
-        register(new PillInfo(id, string, i, iconBackgroundColors.top, iconBackgroundColors.bottom, new PillCreator() { 
-            @Override 
+        register(new PillInfo(id, string, i, iconBackgroundColors.top, iconBackgroundColors.bottom, new PillCreator() {
+            @Override // com.exteragram.messenger.pillstack.core.PillRegistry.PillCreator
             public final BasePill create(Context context, Theme.ResourcesProvider resourcesProvider) {
                 return new WeatherPill(context, resourcesProvider);
             }
@@ -134,8 +134,8 @@ public class PillRegistry {
         int id2 = PillType.GRAM.getId();
         int i2 = R.drawable.settings_gram_24;
         IconBackgroundColors iconBackgroundColors2 = IconBackgroundColors.BLUE_LIGHT;
-        register(new PillInfo(id2, "GRAM", i2, iconBackgroundColors2.top, iconBackgroundColors2.bottom, new PillCreator() { 
-            @Override 
+        register(new PillInfo(id2, "GRAM", i2, iconBackgroundColors2.top, iconBackgroundColors2.bottom, new PillCreator() {
+            @Override // com.exteragram.messenger.pillstack.core.PillRegistry.PillCreator
             public final BasePill create(Context context, Theme.ResourcesProvider resourcesProvider) {
                 return new GramPill(context, resourcesProvider);
             }
@@ -143,8 +143,8 @@ public class PillRegistry {
         int id3 = PillType.BTC.getId();
         int i3 = R.drawable.pillstack_btc_settings;
         IconBackgroundColors iconBackgroundColors3 = IconBackgroundColors.ORANGE_BRIGHT;
-        register(new PillInfo(id3, "BTC", i3, iconBackgroundColors3.top, iconBackgroundColors3.bottom, new PillCreator() { 
-            @Override 
+        register(new PillInfo(id3, "BTC", i3, iconBackgroundColors3.top, iconBackgroundColors3.bottom, new PillCreator() {
+            @Override // com.exteragram.messenger.pillstack.core.PillRegistry.PillCreator
             public final BasePill create(Context context, Theme.ResourcesProvider resourcesProvider) {
                 return new BtcPill(context, resourcesProvider);
             }
@@ -152,8 +152,8 @@ public class PillRegistry {
         int id4 = PillType.USD.getId();
         int i4 = R.drawable.pillstack_usd_settings;
         IconBackgroundColors iconBackgroundColors4 = IconBackgroundColors.GREEN_DEEP;
-        register(new PillInfo(id4, "USD", i4, iconBackgroundColors4.top, iconBackgroundColors4.bottom, new PillCreator() { 
-            @Override 
+        register(new PillInfo(id4, "USD", i4, iconBackgroundColors4.top, iconBackgroundColors4.bottom, new PillCreator() {
+            @Override // com.exteragram.messenger.pillstack.core.PillRegistry.PillCreator
             public final BasePill create(Context context, Theme.ResourcesProvider resourcesProvider) {
                 return new UsdPill(context, resourcesProvider);
             }
@@ -162,8 +162,8 @@ public class PillRegistry {
         String string2 = LocaleController.getString(R.string.StorageUsage);
         int i5 = R.drawable.msg_filled_storageusage;
         IconBackgroundColors iconBackgroundColors5 = IconBackgroundColors.BLUE_DEEP;
-        register(new PillInfo(id5, string2, i5, iconBackgroundColors5.top, iconBackgroundColors5.bottom, new PillCreator() { 
-            @Override 
+        register(new PillInfo(id5, string2, i5, iconBackgroundColors5.top, iconBackgroundColors5.bottom, new PillCreator() {
+            @Override // com.exteragram.messenger.pillstack.core.PillRegistry.PillCreator
             public final BasePill create(Context context, Theme.ResourcesProvider resourcesProvider) {
                 return new CachePill(context, resourcesProvider);
             }
@@ -172,8 +172,8 @@ public class PillRegistry {
         String string3 = LocaleController.getString(R.string.Proxy);
         int i6 = R.drawable.drawer_proxy_on;
         IconBackgroundColors iconBackgroundColors6 = IconBackgroundColors.GREEN;
-        register(new PillInfo(id6, string3, i6, iconBackgroundColors6.top, iconBackgroundColors6.bottom, new PillCreator() { 
-            @Override 
+        register(new PillInfo(id6, string3, i6, iconBackgroundColors6.top, iconBackgroundColors6.bottom, new PillCreator() {
+            @Override // com.exteragram.messenger.pillstack.core.PillRegistry.PillCreator
             public final BasePill create(Context context, Theme.ResourcesProvider resourcesProvider) {
                 return new ProxyPill(context, resourcesProvider);
             }
@@ -186,10 +186,10 @@ public class PillRegistry {
             return;
         }
         PillStackConfig.sanitizePills();
-        AndroidUtilities.runOnUIThread(new Runnable() { 
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                NotificationCenter.getGlobalInstance().postNotificationNameOnUIThread(NotificationCenter.pillStackLayoutChanged, new Object[0]);
+                NotificationCenter.getGlobalInstance().lambda$postNotificationNameOnUIThread$1(NotificationCenter.pillStackLayoutChanged, new Object[0]);
             }
         });
     }
@@ -200,10 +200,10 @@ public class PillRegistry {
             PillStackConfig.getHiddenPills().remove(Integer.valueOf(i));
             PillStackConfig.getActivePills().add(Integer.valueOf(i));
             PillStackConfig.savePillsLayout();
-            AndroidUtilities.runOnUIThread(new Runnable() { 
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    NotificationCenter.getGlobalInstance().postNotificationNameOnUIThread(NotificationCenter.pillStackLayoutChanged, new Object[0]);
+                    NotificationCenter.getGlobalInstance().lambda$postNotificationNameOnUIThread$1(NotificationCenter.pillStackLayoutChanged, new Object[0]);
                 }
             });
         }
@@ -227,10 +227,10 @@ public class PillRegistry {
             return;
         }
         PillStackConfig.sanitizePills();
-        AndroidUtilities.runOnUIThread(new Runnable() { 
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                NotificationCenter.getGlobalInstance().postNotificationNameOnUIThread(NotificationCenter.pillStackLayoutChanged, new Object[0]);
+                NotificationCenter.getGlobalInstance().lambda$postNotificationNameOnUIThread$1(NotificationCenter.pillStackLayoutChanged, new Object[0]);
             }
         });
     }

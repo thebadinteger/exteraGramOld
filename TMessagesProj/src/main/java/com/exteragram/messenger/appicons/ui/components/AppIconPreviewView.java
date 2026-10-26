@@ -21,7 +21,6 @@ import java.util.Map;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.Theme;
 
-/* JADX INFO: loaded from: classes4.dex */
 public class AppIconPreviewView extends View implements AppIconPreviewLoader.Callback {
     private static final Map<String, Path> shapeCache = new HashMap();
     private Bitmap bitmap;

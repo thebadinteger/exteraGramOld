@@ -8,33 +8,27 @@ import kotlin.jvm.JvmName;
 import kotlin.jvm.internal.MutablePropertyReference0Impl;
 import kotlin.jvm.internal.Reflection;
 import kotlin.reflect.KProperty;
+import okhttp3.internal.url._UrlKt;
+
+@Metadata(d1 = {"\u0000\u0012\n\u0000\n\u0002\u0010\u000b\n\u0002\b\u001b\n\u0002\u0010\b\n\u0002\b\u0017\"+\u0010\u0002\u001a\u00020\u00012\u0006\u0010\u0000\u001a\u00020\u00018F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\b\u0007\u0010\b\u001a\u0004\b\u0003\u0010\u0004\"\u0004\b\u0005\u0010\u0006\"+\u0010\t\u001a\u00020\u00012\u0006\u0010\u0000\u001a\u00020\u00018F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\b\f\u0010\b\u001a\u0004\b\n\u0010\u0004\"\u0004\b\u000b\u0010\u0006\"+\u0010\r\u001a\u00020\u00012\u0006\u0010\u0000\u001a\u00020\u00018F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\b\u0010\u0010\b\u001a\u0004\b\u000e\u0010\u0004\"\u0004\b\u000f\u0010\u0006\"+\u0010\u0011\u001a\u00020\u00012\u0006\u0010\u0000\u001a\u00020\u00018F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\b\u0014\u0010\b\u001a\u0004\b\u0012\u0010\u0004\"\u0004\b\u0013\u0010\u0006\"+\u0010\u0015\u001a\u00020\u00012\u0006\u0010\u0000\u001a\u00020\u00018F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\b\u0018\u0010\b\u001a\u0004\b\u0016\u0010\u0004\"\u0004\b\u0017\u0010\u0006\"+\u0010\u0019\u001a\u00020\u00012\u0006\u0010\u0000\u001a\u00020\u00018F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\b\u001c\u0010\b\u001a\u0004\b\u001a\u0010\u0004\"\u0004\b\u001b\u0010\u0006\"+\u0010\u001e\u001a\u00020\u001d2\u0006\u0010\u0000\u001a\u00020\u001d8F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\b#\u0010\b\u001a\u0004\b\u001f\u0010 \"\u0004\b!\u0010\"\"+\u0010$\u001a\u00020\u00012\u0006\u0010\u0000\u001a\u00020\u00018F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\b'\u0010\b\u001a\u0004\b%\u0010\u0004\"\u0004\b&\u0010\u0006\"+\u0010(\u001a\u00020\u001d2\u0006\u0010\u0000\u001a\u00020\u001d8F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\b+\u0010\b\u001a\u0004\b)\u0010 \"\u0004\b*\u0010\"\"+\u0010,\u001a\u00020\u00012\u0006\u0010\u0000\u001a\u00020\u00018F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\b/\u0010\b\u001a\u0004\b-\u0010\u0004\"\u0004\b.\u0010\u0006\"+\u00100\u001a\u00020\u001d2\u0006\u0010\u0000\u001a\u00020\u001d8F@FX\u0086\u008e\u0002¢\u0006\u0012\n\u0004\b3\u0010\b\u001a\u0004\b1\u0010 \"\u0004\b2\u0010\"¨\u00064"}, d2 = {"<set-?>", _UrlKt.FRAGMENT_ENCODE_SET, "debugCameraMetrics", "getDebugCameraMetrics", "()Z", "setDebugCameraMetrics", "(Z)V", "debugCameraMetrics$delegate", "Lcom/exteragram/messenger/config/BasePref;", "forceCompactSavedMusic", "getForceCompactSavedMusic", "setForceCompactSavedMusic", "forceCompactSavedMusic$delegate", "disableApiRequests", "getDisableApiRequests", "setDisableApiRequests", "disableApiRequests$delegate", "disableChatFadeWallpaperBlend", "getDisableChatFadeWallpaperBlend", "setDisableChatFadeWallpaperBlend", "disableChatFadeWallpaperBlend$delegate", "chatFadeUseWhiteBackground", "getChatFadeUseWhiteBackground", "setChatFadeUseWhiteBackground", "chatFadeUseWhiteBackground$delegate", "heapMonitorEnabled", "getHeapMonitorEnabled", "setHeapMonitorEnabled", "heapMonitorEnabled$delegate", _UrlKt.FRAGMENT_ENCODE_SET, "heapMonitorLimitMb", "getHeapMonitorLimitMb", "()I", "setHeapMonitorLimitMb", "(I)V", "heapMonitorLimitMb$delegate", "loadMonitorEnabled", "getLoadMonitorEnabled", "setLoadMonitorEnabled", "loadMonitorEnabled$delegate", "loadMonitorCpuPercent", "getLoadMonitorCpuPercent", "setLoadMonitorCpuPercent", "loadMonitorCpuPercent$delegate", "freezeMonitorEnabled", "getFreezeMonitorEnabled", "setFreezeMonitorEnabled", "freezeMonitorEnabled$delegate", "freezeMonitorThresholdMs", "getFreezeMonitorThresholdMs", "setFreezeMonitorThresholdMs", "freezeMonitorThresholdMs$delegate", "TMessagesProj"}, k = 2, mv = {2, 2, 0}, xi = 48)
+@JvmName(name = "DebugConfig")
 public abstract class DebugConfig {
-    static final /* synthetic */ KProperty<Object>[] $$delegatedProperties;
+    static final KProperty<Object>[] $$delegatedProperties;
     private static final BasePref chatFadeUseWhiteBackground$delegate;
     private static final BasePref debugCameraMetrics$delegate;
     private static final BasePref disableApiRequests$delegate;
     private static final BasePref disableChatFadeWallpaperBlend$delegate;
     private static final BasePref forceCompactSavedMusic$delegate;
+    private static final BasePref freezeMonitorEnabled$delegate;
+    private static final BasePref freezeMonitorThresholdMs$delegate;
     private static final BasePref heapMonitorEnabled$delegate;
     private static final BasePref heapMonitorLimitMb$delegate;
     private static final BasePref loadMonitorCpuPercent$delegate;
     private static final BasePref loadMonitorEnabled$delegate;
-    private static final BasePref glassHeaderMenu$delegate;
 
     static {
-        KProperty<?>[] kPropertyArr = {
-                Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "debugCameraMetrics", "getDebugCameraMetrics()Z", 1)),
-                Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "forceCompactSavedMusic", "getForceCompactSavedMusic()Z", 1)),
-                Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "disableApiRequests", "getDisableApiRequests()Z", 1)),
-                Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "disableChatFadeWallpaperBlend", "getDisableChatFadeWallpaperBlend()Z", 1)),
-                Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "chatFadeUseWhiteBackground", "getChatFadeUseWhiteBackground()Z", 1)),
-                Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "heapMonitorEnabled", "getHeapMonitorEnabled()Z", 1)),
-                Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "heapMonitorLimitMb", "getHeapMonitorLimitMb()I", 1)),
-                Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "loadMonitorEnabled", "getLoadMonitorEnabled()Z", 1)),
-                Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "loadMonitorCpuPercent", "getLoadMonitorCpuPercent()I", 1)),
-                Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "glassHeaderMenu", "getGlassHeaderMenu()Z", 1))
-        };
-        $$delegatedProperties = (KProperty<Object>[]) (KProperty<?>[]) kPropertyArr;
+        KProperty<?>[] kPropertyArr = {Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "debugCameraMetrics", "getDebugCameraMetrics()Z", 1)), Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "forceCompactSavedMusic", "getForceCompactSavedMusic()Z", 1)), Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "disableApiRequests", "getDisableApiRequests()Z", 1)), Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "disableChatFadeWallpaperBlend", "getDisableChatFadeWallpaperBlend()Z", 1)), Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "chatFadeUseWhiteBackground", "getChatFadeUseWhiteBackground()Z", 1)), Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "heapMonitorEnabled", "getHeapMonitorEnabled()Z", 1)), Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "heapMonitorLimitMb", "getHeapMonitorLimitMb()I", 1)), Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "loadMonitorEnabled", "getLoadMonitorEnabled()Z", 1)), Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "loadMonitorCpuPercent", "getLoadMonitorCpuPercent()I", 1)), Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "freezeMonitorEnabled", "getFreezeMonitorEnabled()Z", 1)), Reflection.mutableProperty0(new MutablePropertyReference0Impl(DebugConfig.class, "freezeMonitorThresholdMs", "getFreezeMonitorThresholdMs()I", 1))};
+        $$delegatedProperties = kPropertyArr;
         debugCameraMetrics$delegate = new BooleanPref(false, null, 2, null).provideDelegate(null, kPropertyArr[0]);
         forceCompactSavedMusic$delegate = new BooleanPref(false, null, 2, null).provideDelegate(null, kPropertyArr[1]);
         disableApiRequests$delegate = new BooleanPref(false, null, 2, null).provideDelegate(null, kPropertyArr[2]);
@@ -44,7 +38,8 @@ public abstract class DebugConfig {
         heapMonitorLimitMb$delegate = new IntegerPref(256, null, 2, null).provideDelegate(null, kPropertyArr[6]);
         loadMonitorEnabled$delegate = new BooleanPref(false, null, 2, null).provideDelegate(null, kPropertyArr[7]);
         loadMonitorCpuPercent$delegate = new IntegerPref(5, null, 2, null).provideDelegate(null, kPropertyArr[8]);
-        glassHeaderMenu$delegate = new BooleanPref(false, null, 2, null).provideDelegate(null, kPropertyArr[9]);
+        freezeMonitorEnabled$delegate = new BooleanPref(false, null, 2, null).provideDelegate(null, kPropertyArr[9]);
+        freezeMonitorThresholdMs$delegate = new IntegerPref(700, null, 2, null).provideDelegate(null, kPropertyArr[10]);
     }
 
     public static final boolean getDebugCameraMetrics() {
@@ -119,11 +114,19 @@ public abstract class DebugConfig {
         loadMonitorCpuPercent$delegate.setValue(null, $$delegatedProperties[8], Integer.valueOf(i));
     }
 
-    public static final boolean getGlassHeaderMenu() {
-        return ((Boolean) glassHeaderMenu$delegate.getValue(null, $$delegatedProperties[9])).booleanValue();
+    public static final boolean getFreezeMonitorEnabled() {
+        return ((Boolean) freezeMonitorEnabled$delegate.getValue(null, $$delegatedProperties[9])).booleanValue();
     }
 
-    public static final void setGlassHeaderMenu(boolean z) {
-        glassHeaderMenu$delegate.setValue(null, $$delegatedProperties[9], Boolean.valueOf(z));
+    public static final void setFreezeMonitorEnabled(boolean z) {
+        freezeMonitorEnabled$delegate.setValue(null, $$delegatedProperties[9], Boolean.valueOf(z));
+    }
+
+    public static final int getFreezeMonitorThresholdMs() {
+        return ((Number) freezeMonitorThresholdMs$delegate.getValue(null, $$delegatedProperties[10])).intValue();
+    }
+
+    public static final void setFreezeMonitorThresholdMs(int i) {
+        freezeMonitorThresholdMs$delegate.setValue(null, $$delegatedProperties[10], Integer.valueOf(i));
     }
 }

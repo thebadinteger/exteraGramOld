@@ -25,7 +25,7 @@ import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 @SourceDebugExtension({"SMAP\nSafeModeBottomSheet.kt\nKotlin\n*S Kotlin\n*F\n+ 1 SafeModeBottomSheet.kt\ncom/exteragram/messenger/plugins/ui/components/SafeModeBottomSheet\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n*L\n1#1,115:1\n1#2:116\n*E\n"})
 public final class SafeModeBottomSheet extends BottomSheet {
     @Override // org.telegram.ui.ActionBar.BaseFragment.AttachedSheet
-    public /* bridge */ /* synthetic */ void setLastVisible(boolean z) {
+    public void setLastVisible(boolean z) {
         super.setLastVisible(z);
     }
 
@@ -59,18 +59,18 @@ public final class SafeModeBottomSheet extends BottomSheet {
         ButtonWithCounterView buttonWithCounterView = new ButtonWithCounterView(parentActivity, true, this.resourcesProvider);
         buttonWithCounterView.setRound();
         buttonWithCounterView.setText(LocaleController.getString(R.string.Disable), false);
-        buttonWithCounterView.setOnClickListener(new View.OnClickListener() { 
+        buttonWithCounterView.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                SafeModeBottomSheet.m1362$r8$lambda$akwXYwH2g7Yc4GuPo7nIqbaSJU(SafeModeBottomSheet.this, view);
+                SafeModeBottomSheet.$r8$lambda$OB8JQSwdEyFfmR8jRXIGBMuo7io(this.f$0, view);
             }
         });
         linearLayout.addView(buttonWithCounterView, LayoutHelper.createFrame(-1, 48.0f, 0, 16.0f, 28.0f, 16.0f, 16.0f));
         setCustomView(frameLayout);
     }
 
-    public static void m1362$r8$lambda$akwXYwH2g7Yc4GuPo7nIqbaSJU(SafeModeBottomSheet safeModeBottomSheet, View view) {
-        safeModeBottomSheet.dismiss();
+    public static void $r8$lambda$OB8JQSwdEyFfmR8jRXIGBMuo7io(SafeModeBottomSheet safeModeBottomSheet, View view) {
+        safeModeBottomSheet.lambda$new$0();
         SharedPreferences.Editor editor = ExteraConfig.getEditor();
         ExteraConfig.setPluginsSafeMode(false);
         Unit unit = Unit.INSTANCE;

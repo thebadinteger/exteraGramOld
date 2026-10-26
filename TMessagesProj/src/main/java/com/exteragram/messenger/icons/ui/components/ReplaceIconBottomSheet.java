@@ -78,6 +78,7 @@ public class ReplaceIconBottomSheet extends BottomSheet {
         this.savedCustomFileHeight = 0;
         this.needSave = false;
         this.needReset = false;
+        fixNavigationBar();
         this.resId = i;
         this.iconPack = iconPack;
         this.resourceName = context.getResources().getResourceEntryName(i);
@@ -86,106 +87,146 @@ public class ReplaceIconBottomSheet extends BottomSheet {
     }
 
     private void loadDrawables(final Context context) {
-        Utilities.globalQueue.postRunnable(() -> ReplaceIconBottomSheet.this.lambda$loadDrawables$1(context));
+        Utilities.globalQueue.postRunnable(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() throws Throwable {
+                this.f$0.lambda$loadDrawables$1(context);
+            }
+        });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    /* JADX WARN: Code duplicated, block: B:53:0x0108  */
-    /* JADX WARN: Code duplicated, block: B:55:0x0115  */
-    /* JADX WARN: Multi-variable type inference failed */
-    /* JADX WARN: Type inference failed for: r2v1 */
-    /* JADX WARN: Type inference failed for: r2v10 */
-    /* JADX WARN: Type inference failed for: r2v13 */
-    /* JADX WARN: Type inference failed for: r2v14 */
-    /* JADX WARN: Type inference failed for: r2v15 */
-    /* JADX WARN: Type inference failed for: r2v3 */
-    /* JADX WARN: Type inference failed for: r2v4 */
-    /* JADX WARN: Type inference failed for: r2v5 */
-    /* JADX WARN: Type inference failed for: r2v6 */
-    /* JADX WARN: Type inference failed for: r2v9 */
-    /* JADX WARN: Type inference failed for: r7v12 */
-    /* JADX WARN: Type inference failed for: r7v14 */
-    /* JADX WARN: Type inference failed for: r7v15 */
-    /* JADX WARN: Type inference failed for: r7v4 */
-    /* JADX WARN: Type inference failed for: r7v5 */
-    /* JADX WARN: Type inference failed for: r7v6 */
-    /* JADX WARN: Type inference failed for: r7v9 */
-    /* JADX WARN: Type inference failed for: r8v0 */
-    /* JADX WARN: Type inference failed for: r8v1, types: [int] */
-    /* JADX WARN: Type inference failed for: r8v18 */
-    /* JADX WARN: Type inference failed for: r8v19 */
-    /* JADX WARN: Type inference failed for: r8v2, types: [java.lang.StringBuilder] */
-    /* JADX WARN: Type inference failed for: r8v4 */
-    /* JADX WARN: Type inference failed for: r8v5 */
-    /* JADX WARN: Type inference failed for: r8v7 */
-    /* JADX WARN: Type inference failed for: r9v0 */
-    /* JADX WARN: Type inference failed for: r9v1, types: [int] */
-    /* JADX WARN: Type inference failed for: r9v7 */
-    public /* synthetic */ void lambda$loadDrawables$1(Context context) {
-        try {
-            lambda$loadDrawables$1_internal(context);
-        } catch (Throwable t) {
-            FileLog.e(t);
-        }
-    }
-
-    private void lambda$loadDrawables$1_internal(Context context) throws Throwable {
-        Drawable originalDrawable = null;
+    public void lambda$loadDrawables$1(Context context) throws Throwable {
+        Drawable originalDrawable;
+        final int intrinsicWidth;
+        final int intrinsicHeight;
+        final BitmapDrawable bitmapDrawable;
+        final ?? r8;
+        final ?? r9;
+        ?? r7;
+        ?? r10;
+        ?? r2;
+        int documentHeight;
+        Throwable th;
+        int i;
         if (context.getResources() instanceof ExteraResources) {
             try {
                 originalDrawable = ((ExteraResources) context.getResources()).getOriginalDrawable(this.resId);
             } catch (Exception unused) {
+                originalDrawable = null;
             }
+        } else {
+            originalDrawable = null;
         }
         if (originalDrawable == null) {
             originalDrawable = ResourcesCompat.getDrawable(context.getResources(), this.resId, context.getTheme());
         }
         final Drawable drawable = originalDrawable;
-        final int intrinsicWidth = drawable != null ? drawable.getIntrinsicWidth() : 0;
-        final int intrinsicHeight = drawable != null ? drawable.getIntrinsicHeight() : 0;
-
-        int packWidth = 0;
-        int packHeight = 0;
-        BitmapDrawable bitmapDrawable = null;
+        ?? r3 = 0;
+        ?? r4 = 0;
+        if (drawable != null) {
+            intrinsicWidth = drawable.getIntrinsicWidth();
+            intrinsicHeight = drawable.getIntrinsicHeight();
+        } else {
+            intrinsicWidth = 0;
+            intrinsicHeight = 0;
+        }
         String str = this.iconPack.getIcons().get(this.resourceName);
         if (str != null) {
             File iconPacksDirectory = IconPackStorage.INSTANCE.getIconPacksDirectory();
-            File file = new File(iconPacksDirectory, this.iconPack.getId() + "/" + str);
+            ?? sb = new StringBuilder();
+            sb.append(this.iconPack.getId());
+            sb.append("/");
+            sb.append(str);
+            File file = new File(iconPacksDirectory, sb.toString());
             if (file.exists()) {
                 try {
-                    if (file.getName().toLowerCase().endsWith(".svg")) {
-                        try (FileInputStream fileInputStream = new FileInputStream(file)) {
-                            SVG fromInputStream = SVG.getFromInputStream(fileInputStream);
-                            packWidth = (int) (fromInputStream.getDocumentWidth() > 0.0f ? fromInputStream.getDocumentWidth() : fromInputStream.getDocumentViewBox().width());
-                            packHeight = (int) (fromInputStream.getDocumentHeight() > 0.0f ? fromInputStream.getDocumentHeight() : fromInputStream.getDocumentViewBox().height());
+                    try {
+                        if (file.getName().toLowerCase(Locale.ROOT).endsWith(".svg")) {
+                            FileInputStream fileInputStream = new FileInputStream(file);
+                            try {
+                                SVG fromInputStream = SVG.getFromInputStream(fileInputStream);
+                                int documentWidth = (int) (fromInputStream.getDocumentWidth() > 0.0f ? fromInputStream.getDocumentWidth() : fromInputStream.getDocumentViewBox().width());
+                                try {
+                                    documentHeight = (int) (fromInputStream.getDocumentHeight() > 0.0f ? fromInputStream.getDocumentHeight() : fromInputStream.getDocumentViewBox().height());
+                                    fileInputStream.close();
+                                    sb = documentWidth;
+                                } catch (Throwable th2) {
+                                    i = documentWidth;
+                                    th = th2;
+                                    try {
+                                        try {
+                                            fileInputStream.close();
+                                            throw th;
+                                        } catch (Exception e) {
+                                            e = e;
+                                            r7 = 0;
+                                            r3 = i;
+                                            FileLog.e(e);
+                                            r2 = r3;
+                                            r10 = r7;
+                                            Bitmap bitmapCreateBitmapFromFile = IconManager.INSTANCE.createBitmapFromFile(file.getAbsolutePath(), this.resId, AndroidUtilities.displayMetrics.densityDpi, context.getTheme());
+                                            r8 = r2;
+                                            r9 = r10;
+                                            bitmapDrawable = bitmapCreateBitmapFromFile != null ? new BitmapDrawable(context.getResources(), bitmapCreateBitmapFromFile) : null;
+                                            AndroidUtilities.runOnUIThread(new Runnable() {
+                                                @Override // java.lang.Runnable
+                                                public final void run() {
+                                                    this.f$0.lambda$loadDrawables$0(drawable, intrinsicWidth, intrinsicHeight, bitmapDrawable, r8, r9);
+                                                }
+                                            });
+                                        }
+                                    } catch (Throwable th3) {
+                                        th.addSuppressed(th3);
+                                        throw th;
+                                    }
+                                }
+                            } catch (Throwable th4) {
+                                th = th4;
+                                i = 0;
+                            }
+                        } else {
+                            BitmapFactory.Options options = new BitmapFactory.Options();
+                            options.inJustDecodeBounds = true;
+                            BitmapFactory.decodeFile(file.getAbsolutePath(), options);
+                            int i2 = options.outWidth;
+                            documentHeight = options.outHeight;
+                            sb = i2;
                         }
-                    } else {
-                        BitmapFactory.Options options = new BitmapFactory.Options();
-                        options.inJustDecodeBounds = true;
-                        BitmapFactory.decodeFile(file.getAbsolutePath(), options);
-                        packWidth = options.outWidth;
-                        packHeight = options.outHeight;
+                        r10 = documentHeight;
+                        r4 = sb;
+                        r2 = r4;
+                    } catch (Exception e2) {
+                        e = e2;
+                        r7 = r4;
+                        r3 = sb;
                     }
-                } catch (Exception e) {
-                    FileLog.e(e);
+                } catch (Exception e3) {
+                    e = e3;
+                    r7 = 0;
                 }
-                Bitmap bitmapCreateBitmapFromFile = IconManager.INSTANCE.createBitmapFromFile(file.getAbsolutePath(), this.resId, AndroidUtilities.displayMetrics.densityDpi, context.getTheme());
-                if (bitmapCreateBitmapFromFile != null) {
-                    bitmapDrawable = new BitmapDrawable(context.getResources(), bitmapCreateBitmapFromFile);
-                }
+                Bitmap bitmapCreateBitmapFromFile2 = IconManager.INSTANCE.createBitmapFromFile(file.getAbsolutePath(), this.resId, AndroidUtilities.displayMetrics.densityDpi, context.getTheme());
+                r8 = r2;
+                r9 = r10;
+                bitmapDrawable = bitmapCreateBitmapFromFile2 != null ? new BitmapDrawable(context.getResources(), bitmapCreateBitmapFromFile2) : null;
+            } else {
+                bitmapDrawable = null;
+                r8 = 0;
+                r9 = 0;
             }
+        } else {
+            bitmapDrawable = null;
+            r8 = 0;
+            r9 = 0;
         }
-        final BitmapDrawable finalBitmapDrawable = bitmapDrawable;
-        final int finalPackWidth = packWidth;
-        final int finalPackHeight = packHeight;
         AndroidUtilities.runOnUIThread(new Runnable() {
-            @Override
+            @Override // java.lang.Runnable
             public final void run() {
-                ReplaceIconBottomSheet.this.lambda$loadDrawables$0(drawable, intrinsicWidth, intrinsicHeight, finalBitmapDrawable, finalPackWidth, finalPackHeight);
+                this.f$0.lambda$loadDrawables$0(drawable, intrinsicWidth, intrinsicHeight, bitmapDrawable, r8, r9);
             }
         });
     }
-    public /* synthetic */ void lambda$loadDrawables$0(Drawable drawable, int i, int i2, Drawable drawable2, int i3, int i4) {
+
+    public void lambda$loadDrawables$0(Drawable drawable, int i, int i2, Drawable drawable2, int i3, int i4) {
         this.originalDrawable = drawable;
         this.loadedOriginalWidth = i;
         this.loadedOriginalHeight = i2;
@@ -224,10 +265,10 @@ public class ReplaceIconBottomSheet extends BottomSheet {
         this.newIconInfoView = iconInfoView2;
         iconInfoView2.setTargetDimensions(this.loadedOriginalWidth, this.loadedOriginalHeight);
         this.newIconInfoView.getIconView().setFocusable(true);
-        this.newIconInfoView.getIconView().setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.icons.ui.components.ReplaceIconBottomSheet$$ExternalSyntheticLambda1
+        this.newIconInfoView.getIconView().setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                ReplaceIconBottomSheet.this.lambda$createView$5(context, view);
+                this.f$0.lambda$createView$5(context, view);
             }
         });
         linearLayout2.addView(this.newIconInfoView, LayoutHelper.createLinear(0, -2, 1.0f));
@@ -239,10 +280,10 @@ public class ReplaceIconBottomSheet extends BottomSheet {
         ButtonWithCounterView buttonWithCounterView = new ButtonWithCounterView(context, true, this.resourcesProvider);
         buttonWithCounterView.setRound();
         buttonWithCounterView.setText(LocaleController.getString(R.string.Save), false);
-        buttonWithCounterView.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.icons.ui.components.ReplaceIconBottomSheet$$ExternalSyntheticLambda2
+        buttonWithCounterView.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                ReplaceIconBottomSheet.this.lambda$createView$6(view);
+                this.f$0.lambda$createView$6(view);
             }
         });
         linearLayout4.addView(buttonWithCounterView, LayoutHelper.createLinear(-1, 48));
@@ -250,10 +291,10 @@ public class ReplaceIconBottomSheet extends BottomSheet {
         this.resetButton = buttonWithCounterView2;
         buttonWithCounterView2.setRound().setNeutral();
         this.resetButton.setText(LocaleController.getString(this.iconPack.getIcons().get(this.resourceName) != null ? R.string.Reset : R.string.Cancel), false);
-        this.resetButton.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.icons.ui.components.ReplaceIconBottomSheet$$ExternalSyntheticLambda3
+        this.resetButton.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                ReplaceIconBottomSheet.this.lambda$createView$7(view);
+                this.f$0.lambda$createView$7(view);
             }
         });
         linearLayout4.addView(this.resetButton, LayoutHelper.createLinear(-1, 48, 0.0f, 8.0f, 0.0f, 0.0f));
@@ -261,8 +302,7 @@ public class ReplaceIconBottomSheet extends BottomSheet {
         return linearLayout;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$createView$5(final Context context, View view) {
+    public void lambda$createView$5(final Context context, View view) {
         BaseFragment safeLastFragment;
         final Activity parentActivity;
         boolean z;
@@ -285,26 +325,25 @@ public class ReplaceIconBottomSheet extends BottomSheet {
             }
             z = true;
         }
-        ItemOptions.makeOptions(this.containerView, view).addIf(z, R.drawable.msg_copy, LocaleController.getString(R.string.PasteFromClipboard), new Runnable() { // from class: com.exteragram.messenger.icons.ui.components.ReplaceIconBottomSheet$$ExternalSyntheticLambda5
+        ItemOptions.makeOptions(this.containerView, view).addIf(z, R.drawable.msg_copy, LocaleController.getString(R.string.PasteFromClipboard), new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                ReplaceIconBottomSheet.this.lambda$createView$2(clipboardManager, context);
+                this.f$0.lambda$createView$2(clipboardManager, context);
             }
-        }).add(R.drawable.msg_photos, LocaleController.getString(R.string.SelectFromGallery), new Runnable() { // from class: com.exteragram.messenger.icons.ui.components.ReplaceIconBottomSheet$$ExternalSyntheticLambda6
+        }).add(R.drawable.msg_photos, LocaleController.getString(R.string.SelectFromGallery), new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                ReplaceIconBottomSheet.this.lambda$createView$3(parentActivity);
+                this.f$0.lambda$createView$3(parentActivity);
             }
-        }).add(R.drawable.msg2_folder, LocaleController.getString(R.string.StoryMusicSelectFromFiles), new Runnable() { // from class: com.exteragram.messenger.icons.ui.components.ReplaceIconBottomSheet$$ExternalSyntheticLambda7
+        }).add(R.drawable.msg2_folder, LocaleController.getString(R.string.StoryMusicSelectFromFiles), new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                ReplaceIconBottomSheet.this.lambda$createView$4(parentActivity);
+                this.f$0.lambda$createView$4(parentActivity);
             }
         }).setDrawScrim(false).setOnTopOfScrim().setDimAlpha(0).setGravity(1).show();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$createView$2(ClipboardManager clipboardManager, Context context) {
+    public void lambda$createView$2(ClipboardManager clipboardManager, Context context) {
         if (clipboardManager == null || clipboardManager.getPrimaryClip() == null || clipboardManager.getPrimaryClip().getItemCount() <= 0) {
             return;
         }
@@ -320,30 +359,26 @@ public class ReplaceIconBottomSheet extends BottomSheet {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$createView$3(Activity activity) {
+    public void lambda$createView$3(Activity activity) {
         startPicker(activity, false);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$createView$4(Activity activity) {
+    public void lambda$createView$4(Activity activity) {
         startPicker(activity, true);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$createView$6(View view) {
+    public void lambda$createView$6(View view) {
         if (this.newIconTempFile != null) {
             this.needSave = true;
         }
-        dismiss();
+        lambda$new$0();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$createView$7(View view) {
+    public void lambda$createView$7(View view) {
         if (this.newDrawable != null) {
             this.needReset = true;
         }
-        dismiss();
+        lambda$new$0();
     }
 
     private void updateNewInfo(Drawable drawable, String str, int i, int i2) {
@@ -360,16 +395,15 @@ public class ReplaceIconBottomSheet extends BottomSheet {
 
     private void startPicker(final Activity activity, boolean z) {
         this.waitingForResult = true;
-        IconManager.INSTANCE.startIconPicker(activity, z, new Function1() { // from class: com.exteragram.messenger.icons.ui.components.ReplaceIconBottomSheet$$ExternalSyntheticLambda10
+        IconManager.INSTANCE.startIconPicker(activity, z, new Function1() {
             @Override // kotlin.jvm.functions.Function1
             public final Object invoke(Object obj) {
-                return ReplaceIconBottomSheet.this.lambda$startPicker$8(activity, (Uri) obj);
+                return this.f$0.lambda$startPicker$8(activity, (Uri) obj);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ Unit lambda$startPicker$8(Activity activity, Uri uri) {
+    public Unit lambda$startPicker$8(Activity activity, Uri uri) {
         this.waitingForResult = false;
         if (uri != null) {
             processSelectedImage(activity, uri);
@@ -381,17 +415,16 @@ public class ReplaceIconBottomSheet extends BottomSheet {
         Bitmap bitmapCreateBitmapFromFile = IconManager.INSTANCE.createBitmapFromFile(file.getAbsolutePath(), this.resId, AndroidUtilities.displayMetrics.densityDpi, context.getTheme());
         if (bitmapCreateBitmapFromFile != null) {
             final BitmapDrawable bitmapDrawable = new BitmapDrawable(context.getResources(), bitmapCreateBitmapFromFile);
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.icons.ui.components.ReplaceIconBottomSheet$$ExternalSyntheticLambda11
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    ReplaceIconBottomSheet.this.lambda$updateNewIconFromFile$9(file, str, bitmapDrawable, i, i2);
+                    this.f$0.lambda$updateNewIconFromFile$9(file, str, bitmapDrawable, i, i2);
                 }
             });
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$updateNewIconFromFile$9(File file, String str, Drawable drawable, int i, int i2) {
+    public void lambda$updateNewIconFromFile$9(File file, String str, Drawable drawable, int i, int i2) {
         if (isDismissed()) {
             file.delete();
             return;
@@ -411,16 +444,15 @@ public class ReplaceIconBottomSheet extends BottomSheet {
     }
 
     private void processClipboardText(final Context context, final CharSequence charSequence) {
-        Utilities.globalQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.icons.ui.components.ReplaceIconBottomSheet$$ExternalSyntheticLambda9
+        Utilities.globalQueue.postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                ReplaceIconBottomSheet.this.lambda$processClipboardText$10(charSequence, context);
+                this.f$0.lambda$processClipboardText$10(charSequence, context);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$processClipboardText$10(CharSequence charSequence, Context context) {
+    public void lambda$processClipboardText$10(CharSequence charSequence, Context context) {
         try {
             String string = charSequence.toString();
             if (!string.contains("<svg") && !string.contains("<SVG")) {
@@ -470,108 +502,207 @@ public class ReplaceIconBottomSheet extends BottomSheet {
     }
 
     private void processSelectedImage(final Context context, final Uri uri) {
-        Utilities.globalQueue.postRunnable(() -> ReplaceIconBottomSheet.this.lambda$processSelectedImage$11(context, uri));
-    }
-
-    public /* synthetic */ void lambda$processSelectedImage$11(Context context, Uri uri) {
-        try {
-            lambda$processSelectedImage$11_internal(context, uri);
-        } catch (Throwable t) {
-            FileLog.e(t);
-        }
-    }
-
-    private void lambda$processSelectedImage$11_internal(Context context, Uri uri) throws Throwable {
-        String string = null;
-        try (Cursor cursorQuery = context.getContentResolver().query(uri, null, null, null, null)) {
-            if (cursorQuery != null && cursorQuery.moveToFirst()) {
-                int columnIndex = cursorQuery.getColumnIndex("_display_name");
-                if (columnIndex != -1) {
-                    string = cursorQuery.getString(columnIndex);
-                }
+        Utilities.globalQueue.postRunnable(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() throws Throwable {
+                this.f$0.lambda$processSelectedImage$11(context, uri);
             }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
+        });
+    }
 
-        if (TextUtils.isEmpty(string)) {
-            string = "icon_" + System.currentTimeMillis();
-        }
-
-        File file2 = new File(ApplicationLoader.applicationContext.getCacheDir(), "temp_import_" + System.currentTimeMillis() + "_raw");
+    public void lambda$processSelectedImage$11(Context context, Uri uri) throws Throwable {
+        Throwable th;
+        Exception exc;
+        int columnIndex;
+        String string;
+        boolean z;
+        String str;
+        int documentWidth;
+        int documentHeight;
+        File file = null;
         try {
-            try (InputStream inputStream = context.getContentResolver().openInputStream(uri);
-                 FileOutputStream fileOutputStream = new FileOutputStream(file2)) {
-                if (inputStream != null) {
-                    byte[] bArr = new byte[4096];
-                    while (true) {
-                        int i = inputStream.read(bArr);
-                        if (i == -1) {
-                            break;
+            try {
+                Cursor cursorQuery = context.getContentResolver().query(uri, null, null, null, null);
+                if (cursorQuery != null) {
+                    try {
+                        if (!cursorQuery.moveToFirst() || (columnIndex = cursorQuery.getColumnIndex("_display_name")) == -1) {
+                            string = null;
+                        } else {
+                            string = cursorQuery.getString(columnIndex);
                         }
-                        fileOutputStream.write(bArr, 0, i);
-                    }
-                }
-            }
-
-            boolean z = false;
-            try (FileInputStream fileInputStream = new FileInputStream(file2)) {
-                byte[] bArr2 = new byte[1024];
-                int i2 = fileInputStream.read(bArr2);
-                if (i2 > 0) {
-                    String lowerCase = new String(bArr2, 0, i2).trim().toLowerCase(Locale.ROOT);
-                    if (lowerCase.contains("<svg") || (lowerCase.startsWith("<?xml") && lowerCase.contains("<svg"))) {
-                        z = true;
-                    }
-                }
-            } catch (Exception e2) {
-                FileLog.e(e2);
-            }
-
-            String str;
-            if (z) {
-                str = "svg";
-            } else if (string.toLowerCase().endsWith(".jpg") || string.toLowerCase().endsWith(".jpeg")) {
-                str = "jpg";
-            } else if (string.toLowerCase().endsWith(".webp")) {
-                str = "webp";
-            } else {
-                str = "png";
-            }
-
-            if (!string.toLowerCase().endsWith("." + str)) {
-                int iLastIndexOf = string.lastIndexOf(46);
-                if (iLastIndexOf > 0) {
-                    string = string.substring(0, iLastIndexOf);
-                }
-                string = string + "." + str;
-            }
-            String str2 = string;
-            File file3 = new File(ApplicationLoader.applicationContext.getCacheDir(), "temp_import_" + System.currentTimeMillis() + "." + str);
-            if (file2.renameTo(file3)) {
-                int documentWidth;
-                int documentHeight;
-                if (z) {
-                    try (FileInputStream fileInputStream2 = new FileInputStream(file3)) {
-                        SVG fromInputStream = SVG.getFromInputStream(fileInputStream2);
-                        documentWidth = (int) (fromInputStream.getDocumentWidth() > 0.0f ? fromInputStream.getDocumentWidth() : fromInputStream.getDocumentViewBox().width());
-                        documentHeight = (int) (fromInputStream.getDocumentHeight() > 0.0f ? fromInputStream.getDocumentHeight() : fromInputStream.getDocumentViewBox().height());
+                    } catch (Throwable th2) {
+                        try {
+                            cursorQuery.close();
+                            throw th2;
+                        } catch (Throwable th3) {
+                            th2.addSuppressed(th3);
+                            throw th2;
+                        }
                     }
                 } else {
-                    BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inJustDecodeBounds = true;
-                    BitmapFactory.decodeFile(file3.getAbsolutePath(), options);
-                    documentWidth = options.outWidth;
-                    documentHeight = options.outHeight;
+                    string = null;
                 }
-                updateNewIconFromFile(context, file3, str2, documentWidth, documentHeight);
+                if (cursorQuery != null) {
+                    cursorQuery.close();
+                }
+                if (TextUtils.isEmpty(string)) {
+                    string = "icon_" + System.currentTimeMillis();
+                }
+                File file2 = new File(ApplicationLoader.applicationContext.getCacheDir(), "temp_import_" + System.currentTimeMillis() + "_raw");
+                try {
+                    try {
+                        InputStream inputStreamOpenInputStream = context.getContentResolver().openInputStream(uri);
+                        try {
+                            FileOutputStream fileOutputStream = new FileOutputStream(file2);
+                            if (inputStreamOpenInputStream != null) {
+                                try {
+                                    byte[] bArr = new byte[4096];
+                                    while (true) {
+                                        int i = inputStreamOpenInputStream.read(bArr);
+                                        if (i == -1) {
+                                            break;
+                                        } else {
+                                            fileOutputStream.write(bArr, 0, i);
+                                        }
+                                        if (inputStreamOpenInputStream != null) {
+                                            throw th;
+                                        }
+                                        try {
+                                            inputStreamOpenInputStream.close();
+                                            throw th;
+                                        } catch (Throwable th4) {
+                                            th.addSuppressed(th4);
+                                            throw th;
+                                        }
+                                    }
+                                } catch (Throwable th5) {
+                                    try {
+                                        fileOutputStream.close();
+                                        throw th5;
+                                    } catch (Throwable th6) {
+                                        th5.addSuppressed(th6);
+                                        throw th5;
+                                    }
+                                }
+                            }
+                            fileOutputStream.close();
+                            if (inputStreamOpenInputStream != null) {
+                                inputStreamOpenInputStream.close();
+                            }
+                            try {
+                                FileInputStream fileInputStream = new FileInputStream(file2);
+                                try {
+                                    byte[] bArr2 = new byte[1024];
+                                    int i2 = fileInputStream.read(bArr2);
+                                    if (i2 > 0) {
+                                        String lowerCase = new String(bArr2, 0, i2).trim().toLowerCase(Locale.ROOT);
+                                        if (lowerCase.contains("<svg") || (lowerCase.startsWith("<?xml") && lowerCase.contains("<svg"))) {
+                                            z = true;
+                                        } else {
+                                            z = false;
+                                        }
+                                    } else {
+                                        z = false;
+                                    }
+                                    try {
+                                        fileInputStream.close();
+                                    } catch (Exception e) {
+                                        e = e;
+                                        FileLog.e(e);
+                                    }
+                                } catch (Throwable th7) {
+                                    try {
+                                        fileInputStream.close();
+                                        throw th7;
+                                    } catch (Throwable th8) {
+                                        th7.addSuppressed(th8);
+                                        throw th7;
+                                    }
+                                }
+                            } catch (Exception e2) {
+                                e = e2;
+                                z = false;
+                            }
+                            if (z) {
+                                str = "svg";
+                            } else {
+                                Locale locale = Locale.ROOT;
+                                if (string.toLowerCase(locale).endsWith(".jpg") || string.toLowerCase(locale).endsWith(".jpeg")) {
+                                    str = "jpg";
+                                } else if (string.toLowerCase(locale).endsWith(".webp")) {
+                                    str = "webp";
+                                } else {
+                                    str = "png";
+                                }
+                            }
+                            if (!string.toLowerCase(Locale.ROOT).endsWith("." + str)) {
+                                int iLastIndexOf = string.lastIndexOf(46);
+                                if (iLastIndexOf > 0) {
+                                    string = string.substring(0, iLastIndexOf);
+                                }
+                                string = string + "." + str;
+                            }
+                            String str2 = string;
+                            File file3 = new File(ApplicationLoader.applicationContext.getCacheDir(), "temp_import_" + System.currentTimeMillis() + "." + str);
+                            if (file2.renameTo(file3)) {
+                                if (z) {
+                                    FileInputStream fileInputStream2 = new FileInputStream(file3);
+                                    try {
+                                        SVG fromInputStream = SVG.getFromInputStream(fileInputStream2);
+                                        documentWidth = (int) (fromInputStream.getDocumentWidth() > 0.0f ? fromInputStream.getDocumentWidth() : fromInputStream.getDocumentViewBox().width());
+                                        documentHeight = (int) (fromInputStream.getDocumentHeight() > 0.0f ? fromInputStream.getDocumentHeight() : fromInputStream.getDocumentViewBox().height());
+                                        fileInputStream2.close();
+                                    } catch (Throwable th9) {
+                                        try {
+                                            fileInputStream2.close();
+                                            throw th9;
+                                        } catch (Throwable th10) {
+                                            th9.addSuppressed(th10);
+                                            throw th9;
+                                        }
+                                    }
+                                } else {
+                                    BitmapFactory.Options options = new BitmapFactory.Options();
+                                    options.inJustDecodeBounds = true;
+                                    BitmapFactory.decodeFile(file3.getAbsolutePath(), options);
+                                    documentWidth = options.outWidth;
+                                    documentHeight = options.outHeight;
+                                }
+                                updateNewIconFromFile(context, file3, str2, documentWidth, documentHeight);
+                            }
+                            if (file2.exists()) {
+                                file2.delete();
+                            }
+                        } catch (Throwable th11) {
+                            if (inputStreamOpenInputStream != null) {
+                                throw th11;
+                            }
+                            inputStreamOpenInputStream.close();
+                            throw th11;
+                        }
+                    } catch (Exception e3) {
+                        exc = e3;
+                        file = file2;
+                        FileLog.e(exc);
+                        if (file == null || !file.exists()) {
+                            return;
+                        }
+                        file.delete();
+                    }
+                } catch (Throwable th12) {
+                    th = th12;
+                    file = file2;
+                    if (file != null && file.exists()) {
+                        file.delete();
+                        throw th;
+                    }
+                    throw th;
+                }
+            } catch (Exception e4) {
+                exc = e4;
             }
-        } catch (Exception exc) {
-            FileLog.e(exc);
-        } finally {
-            if (file2.exists()) {
-                file2.delete();
-            }
+        } catch (Throwable th13) {
+            th = th13;
         }
     }
 
@@ -778,11 +909,11 @@ public class ReplaceIconBottomSheet extends BottomSheet {
         }
     }
 
-    @Override
-    public void dismiss() {
+    @Override // org.telegram.ui.ActionBar.BottomSheet, android.app.Dialog, android.content.DialogInterface, org.telegram.ui.ActionBar.BaseFragment.AttachedSheet
+    public void lambda$new$0() {
         if (this.waitingForResult) {
             return;
         }
-        super.dismiss();
+        super.lambda$new$0();
     }
 }

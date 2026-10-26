@@ -22,7 +22,6 @@ import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.UniversalRecyclerView;
 
-/* JADX INFO: loaded from: classes4.dex */
 @SuppressLint({"ViewConstructor"})
 public class HistoryMessageCell extends FrameLayout {
     private boolean needDivider;

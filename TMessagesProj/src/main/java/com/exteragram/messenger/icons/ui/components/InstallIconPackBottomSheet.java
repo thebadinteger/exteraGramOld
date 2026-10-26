@@ -5,12 +5,13 @@ import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.StrikethroughSpan;
 import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.exteragram.messenger.ExteraConfig;
+import com.exteragram.messenger.components.CheckBoxRow;
 import com.exteragram.messenger.icons.IconManager;
 import com.exteragram.messenger.icons.IconPack;
+import com.exteragram.messenger.plugins.PluginsConstants;
 import com.exteragram.messenger.utils.text.LocaleUtils;
 import java.io.File;
 import kotlin.Metadata;
@@ -23,10 +24,8 @@ import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.Components.CheckBox2;
 import org.telegram.ui.Components.EffectsTextView;
 import org.telegram.ui.Components.LayoutHelper;
-import org.telegram.ui.Components.ScaleStateListAnimator;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 
@@ -35,7 +34,7 @@ public final class InstallIconPackBottomSheet extends BottomSheet {
     private final IconPack iconPack;
     private final InstallDelegate installDelegate;
 
-    @Metadata(d1 = {"\u0000\u0018\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0010\u000b\n\u0002\b\u0002\bæ\u0080\u0001\u0018\u00002\u00020\u0001J\u0018\u0010\u0002\u001a\u00020\u00032\u0006\u0010\u0004\u001a\u00020\u00052\u0006\u0010\u0006\u001a\u00020\u0005H&¨\u0006\u0007À\u0006\u0003"}, d2 = {"Lcom/exteragram/messenger/icons/ui/components/InstallIconPackBottomSheet$InstallDelegate;", _UrlKt.FRAGMENT_ENCODE_SET, "onInstall", _UrlKt.FRAGMENT_ENCODE_SET, "enable", _UrlKt.FRAGMENT_ENCODE_SET, "update", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+    @Metadata(d1 = {"\u0000\u0018\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0010\u000b\n\u0002\b\u0002\bæ\u0080\u0001\u0018\u00002\u00020\u0001J\u0018\u0010\u0002\u001a\u00020\u00032\u0006\u0010\u0004\u001a\u00020\u00052\u0006\u0010\u0006\u001a\u00020\u0005H&¨\u0006\u0007À\u0006\u0003"}, d2 = {"Lcom/exteragram/messenger/icons/ui/components/InstallIconPackBottomSheet$InstallDelegate;", _UrlKt.FRAGMENT_ENCODE_SET, "onInstall", _UrlKt.FRAGMENT_ENCODE_SET, "enable", _UrlKt.FRAGMENT_ENCODE_SET, PluginsConstants.UPDATE, "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
     public interface InstallDelegate {
         void onInstall(boolean enable, boolean update);
     }
@@ -44,17 +43,35 @@ public final class InstallIconPackBottomSheet extends BottomSheet {
         super(context, false);
         this.iconPack = iconPack;
         this.installDelegate = installDelegate;
+        fixNavigationBar();
         setCustomView(createView(context));
-        setOnDismissListener(() -> AndroidUtilities.runOnUIThread(() -> Utilities.globalQueue.postRunnable(() -> {
-            File location = InstallIconPackBottomSheet.this.iconPack.getLocation();
-            if (location != null) {
-                FilesKt.deleteRecursively(location);
+        setOnDismissListener(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                AndroidUtilities.runOnUIThread(new Runnable() {
+                    @Override // java.lang.Runnable
+                    public final void run() {
+                        Utilities.globalQueue.postRunnable(new Runnable() {
+                            @Override // java.lang.Runnable
+                            public final void run() {
+                                InstallIconPackBottomSheet.$r8$lambda$lYsEcB3VdRolPxkK_mP_jzm3nus(installIconPackBottomSheet);
+                            }
+                        });
+                    }
+                }, 1000L);
             }
-        }), 1000L));
+        });
+    }
+
+    public static void $r8$lambda$lYsEcB3VdRolPxkK_mP_jzm3nus(InstallIconPackBottomSheet installIconPackBottomSheet) {
+        File location = installIconPackBottomSheet.iconPack.getLocation();
+        if (location != null) {
+            FilesKt.deleteRecursively(location);
+        }
     }
 
     private final View createView(Context context) {
-        final CheckBox2 checkBox2;
+        final CheckBoxRow checkBoxRow;
         LinearLayout linearLayout = new LinearLayout(context);
         linearLayout.setOrientation(1);
         linearLayout.setPadding(0, AndroidUtilities.dp(16.0f), 0, 0);
@@ -79,8 +96,7 @@ public final class InstallIconPackBottomSheet extends BottomSheet {
         effectsTextView.setMovementMethod(new AndroidUtilities.LinkMovementMethodMy());
         effectsTextView.setLinkTextColor(getThemedColor(Theme.key_dialogTextLink));
         effectsTextView.setTextSize(1, 14.0f);
-        int i = Theme.key_windowBackgroundWhiteGrayText;
-        effectsTextView.setTextColor(getThemedColor(i));
+        effectsTextView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText));
         SpannableStringBuilder spannableStringBuilderAppend = new SpannableStringBuilder(LocaleController.getString(R.string.PluginVersion)).append((CharSequence) " ");
         int length = spannableStringBuilderAppend.length();
         if (iconPackFindPackById != null) {
@@ -92,8 +108,11 @@ public final class InstallIconPackBottomSheet extends BottomSheet {
             spannableStringBuilderAppend.append((CharSequence) this.iconPack.getVersion());
         }
         if (!TextUtils.isEmpty(this.iconPack.getAuthor())) {
-            spannableStringBuilderAppend.append((CharSequence) " • ").append(LocaleUtils.formatWithUsernames(this.iconPack.getAuthor(), safeLastFragment, () -> {
-                InstallIconPackBottomSheet.this.dismiss();
+            spannableStringBuilderAppend.append((CharSequence) " • ").append(LocaleUtils.formatWithUsernames(this.iconPack.getAuthor(), safeLastFragment, new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() {
+                    this.f$0.lambda$new$0();
+                }
             }));
         }
         effectsTextView.setText(spannableStringBuilderAppend);
@@ -108,38 +127,36 @@ public final class InstallIconPackBottomSheet extends BottomSheet {
         }
         linearLayout.addView(buttonWithCounterView, LayoutHelper.createLinear(-1, 48, 0, 16, 0, 16, 16));
         if (ExteraConfig.getIconPacksLayout().contains(this.iconPack.getId())) {
-            checkBox2 = null;
+            checkBoxRow = null;
         } else {
-            checkBox2 = new CheckBox2(context, 21, this.resourcesProvider);
-            checkBox2.setColor(Theme.key_radioBackgroundChecked, Theme.key_checkboxDisabled, Theme.key_checkboxCheck);
-            checkBox2.setDrawUnchecked(true);
-            checkBox2.setChecked(true, false);
-            checkBox2.setDrawBackgroundAsArc(10);
-            TextView textView2 = new TextView(context);
-            textView2.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
-            textView2.setTextSize(1, 14.0f);
-            textView2.setText(LocaleController.getString(R.string.EnableAfterInstallation));
-            FrameLayout frameLayout = new FrameLayout(context);
-            frameLayout.addView(checkBox2, LayoutHelper.createFrame(21, 21.0f, 17, 0.0f, 0.0f, 0.0f, 0.0f));
-            LinearLayout linearLayout2 = new LinearLayout(context);
-            linearLayout2.setOrientation(0);
-            linearLayout2.setPadding(AndroidUtilities.dp(8.0f), AndroidUtilities.dp(6.0f), AndroidUtilities.dp(10.0f), AndroidUtilities.dp(6.0f));
-            linearLayout2.addView(frameLayout, LayoutHelper.createLinear(24, 24, 16, 0, 0, 6, 0));
-            linearLayout2.addView(textView2, LayoutHelper.createLinear(-2, -2, 16));
-            linearLayout2.setOnClickListener(view -> {
-                CheckBox2 checkBox3 = checkBox2;
-                checkBox3.setChecked(!checkBox3.isChecked(), true);
-            });
-            ScaleStateListAnimator.apply(linearLayout2, 0.05f, 1.2f);
-            linearLayout2.setBackground(Theme.createRadSelectorDrawable(getThemedColor(Theme.key_listSelector), 8, 8));
-            linearLayout.addView(linearLayout2, LayoutHelper.createLinear(-2, -2, 1, 0, 0, 0, 8));
+            checkBoxRow = new CheckBoxRow(context, LocaleController.getString(R.string.EnableAfterInstallation), true, this.resourcesProvider);
+            linearLayout.addView(checkBoxRow, LayoutHelper.createLinear(-2, -2, 1, 0, 0, 0, 8));
         }
-        buttonWithCounterView.setOnClickListener(view -> {
-            dismiss();
-            AndroidUtilities.runOnUIThread(() -> {
-                installDelegate.onInstall(checkBox2 != null && checkBox2.isChecked(), z);
-            }, 200L);
+        buttonWithCounterView.setOnClickListener(new View.OnClickListener() {
+            @Override // android.view.View.OnClickListener
+            public final void onClick(View view) {
+                InstallIconPackBottomSheet.$r8$lambda$16Mca43Svex8CFfxTTCwGRlDHWU(this.f$0, checkBoxRow, z, view);
+            }
         });
         return linearLayout;
+    }
+
+    public static void $r8$lambda$16Mca43Svex8CFfxTTCwGRlDHWU(final InstallIconPackBottomSheet installIconPackBottomSheet, final CheckBoxRow checkBoxRow, final boolean z, View view) {
+        installIconPackBottomSheet.lambda$new$0();
+        AndroidUtilities.runOnUIThread(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                InstallIconPackBottomSheet.m1499$r8$lambda$DgxMVL65kbfZyL8piBwuZ2k21o(this.f$0, checkBoxRow, z);
+            }
+        }, 200L);
+    }
+
+    public static void m1499$r8$lambda$DgxMVL65kbfZyL8piBwuZ2k21o(InstallIconPackBottomSheet installIconPackBottomSheet, CheckBoxRow checkBoxRow, boolean z) {
+        InstallDelegate installDelegate = installIconPackBottomSheet.installDelegate;
+        boolean z2 = false;
+        if (checkBoxRow != null && checkBoxRow.isChecked()) {
+            z2 = true;
+        }
+        installDelegate.onInstall(z2, z);
     }
 }

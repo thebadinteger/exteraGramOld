@@ -12,7 +12,7 @@ public final /* data */ class BoostySubscriberDTO {
     private final BigDecimal totalAmountRub;
     private final BigDecimal totalAmountUsd;
 
-    public static /* synthetic */ BoostySubscriberDTO copy$default(BoostySubscriberDTO boostySubscriberDTO, long j, String str, BigDecimal bigDecimal, BigDecimal bigDecimal2, int i, Object obj) {
+    public static BoostySubscriberDTO copy$default(BoostySubscriberDTO boostySubscriberDTO, long j, String str, BigDecimal bigDecimal, BigDecimal bigDecimal2, int i, Object obj) {
         if ((i & 1) != 0) {
             j = boostySubscriberDTO.id;
         }
@@ -67,7 +67,7 @@ public final /* data */ class BoostySubscriberDTO {
     }
 
     public String toString() {
-        return "BoostySubscriberDTO(id=" + this.id + ", name=" + this.name + ", totalAmountRub=" + this.totalAmountRub + ", totalAmountUsd=" + this.totalAmountUsd + ')';
+        return "BoostySubscriberDTO(id=" + this.id + ", name=" + this.name + ", totalAmountRub=" + this.totalAmountRub + ", totalAmountUsd=" + this.totalAmountUsd + ")";
     }
 
     public BoostySubscriberDTO(long j, String str, BigDecimal bigDecimal, BigDecimal bigDecimal2) {
@@ -75,5 +75,21 @@ public final /* data */ class BoostySubscriberDTO {
         this.name = str;
         this.totalAmountRub = bigDecimal;
         this.totalAmountUsd = bigDecimal2;
+    }
+
+    public final long getId() {
+        return this.id;
+    }
+
+    public final String getName() {
+        return this.name;
+    }
+
+    public final BigDecimal getTotalAmountRub() {
+        return this.totalAmountRub;
+    }
+
+    public final BigDecimal getTotalAmountUsd() {
+        return this.totalAmountUsd;
     }
 }

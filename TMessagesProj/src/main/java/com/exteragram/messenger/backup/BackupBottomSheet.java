@@ -61,10 +61,10 @@ public class BackupBottomSheet extends BottomSheet {
         ButtonWithCounterView buttonWithCounterView = new ButtonWithCounterView(parentActivity, true, this.resourcesProvider);
         buttonWithCounterView.setRound();
         buttonWithCounterView.setText(LocaleController.getString(R.string.ImportConfirm), false);
-        buttonWithCounterView.setOnClickListener(new View.OnClickListener() { 
+        buttonWithCounterView.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                BackupBottomSheet.this.lambda$new$0(file, baseFragment, view);
+                this.f$0.lambda$new$0(file, baseFragment, view);
             }
         });
         linearLayout.addView(buttonWithCounterView, LayoutHelper.createFrame(-1, 48.0f, 0, 16.0f, 15.0f, 16.0f, 8.0f));
@@ -72,10 +72,10 @@ public class BackupBottomSheet extends BottomSheet {
         buttonWithCounterView2.setRound();
         buttonWithCounterView2.setNeutral();
         buttonWithCounterView2.setText(LocaleController.getString(R.string.CancelConfirm), false);
-        buttonWithCounterView2.setOnClickListener(new View.OnClickListener() { 
+        buttonWithCounterView2.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                BackupBottomSheet.this.lambda$new$1(view);
+                this.f$0.lambda$new$1(view);
             }
         });
         linearLayout.addView(buttonWithCounterView2, LayoutHelper.createFrame(-1, 48.0f, 0, 16.0f, 0.0f, 16.0f, 0.0f));
@@ -99,9 +99,9 @@ public class BackupBottomSheet extends BottomSheet {
             show();
         } else {
             AndroidUtilities.runOnUIThread(new Runnable() {
-                @Override
+                @Override // java.lang.Runnable
                 public final void run() {
-                    BackupBottomSheet.this.lambda$showIfPossible$2();
+                    this.f$0.lambda$showIfPossible$2();
                 }
             });
         }

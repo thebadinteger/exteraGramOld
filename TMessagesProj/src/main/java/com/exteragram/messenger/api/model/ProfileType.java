@@ -10,7 +10,7 @@ public enum ProfileType {
     USER,
     CHAT;
 
-    private static final /* synthetic */ EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
+    private static final EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
 
     public static EnumEntries<ProfileType> getEntries() {
         return $ENTRIES;

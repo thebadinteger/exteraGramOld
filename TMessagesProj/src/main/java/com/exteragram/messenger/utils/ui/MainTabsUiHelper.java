@@ -1,42 +1,45 @@
 package com.exteragram.messenger.utils.ui;
 
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.Shape;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Interpolator;
 import android.widget.TextView;
+import androidx.dynamicanimation.animation.FloatPropertyCompat;
+import androidx.dynamicanimation.animation.SpringAnimation;
+import androidx.dynamicanimation.animation.SpringForce;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.config.BottomNavigationBar;
-import me.vkryl.android.animator.BoolAnimator;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundProviderBuilder;
 import org.telegram.ui.MainTabsLayout;
 
 public abstract class MainTabsUiHelper {
-    public static float getMaterial3MainTabIconTopDp() {
-        return 10.0f;
-    }
-
-    private static float lerp(float f, float f2, float f3) {
-        return f + ((f2 - f) * f3);
-    }
-
     public static boolean isMaterial3NavigationBar() {
         return ExteraConfig.getNewNavigationBarStyle();
     }
 
+    private static int getMaterial3ContainerHeightDp() {
+        return ExteraConfig.getHideNavigationBarLabels() ? 56 : 64;
+    }
+
     public static int getTabsViewHeightDp() {
-        return isMaterial3NavigationBar() ? 64 : 72;
+        if (isMaterial3NavigationBar()) {
+            return getMaterial3ContainerHeightDp();
+        }
+        return 72;
     }
 
     public static int getTabsFabOffsetDp() {
-        isMaterial3NavigationBar();
+        if (isMaterial3NavigationBar()) {
+            return getMaterial3ContainerHeightDp();
+        }
         return 64;
     }
 
@@ -63,7 +66,7 @@ public abstract class MainTabsUiHelper {
 
     private static int getTabsViewHeight(int i) {
         if (isMaterial3NavigationBar()) {
-            return AndroidUtilities.dp(64.0f) + i;
+            return AndroidUtilities.dp(getMaterial3ContainerHeightDp()) + i;
         }
         return AndroidUtilities.dp(72.0f);
     }
@@ -86,21 +89,31 @@ public abstract class MainTabsUiHelper {
         mainTabsLayout.setDrawTopDivider(zIsMaterial3NavigationBar);
     }
 
-    public static void applyTabsBottomInset(MainTabsLayout mainTabsLayout, View view, int i) {
-        int tabsViewHeight = getTabsViewHeight(i);
+    public static void applyTabsBottomInset(MainTabsLayout mainTabsLayout, View view, int i, int i2, int i3) {
+        int tabsViewHeight = getTabsViewHeight(i3);
         ViewGroup.MarginLayoutParams marginLayoutParams = (ViewGroup.MarginLayoutParams) mainTabsLayout.getLayoutParams();
         if (marginLayoutParams.height != tabsViewHeight) {
             marginLayoutParams.height = tabsViewHeight;
             mainTabsLayout.setLayoutParams(marginLayoutParams);
         }
-        int tabsInnerPaddingVertical = getTabsInnerPaddingVertical() + (isMaterial3NavigationBar() ? i : 0);
+        int tabsInnerPaddingVertical = getTabsInnerPaddingVertical() + (isMaterial3NavigationBar() ? i3 : 0);
         if (mainTabsLayout.getPaddingBottom() != tabsInnerPaddingVertical) {
             mainTabsLayout.setPadding(mainTabsLayout.getPaddingLeft(), mainTabsLayout.getPaddingTop(), mainTabsLayout.getPaddingRight(), tabsInnerPaddingVertical);
         }
         if (isMaterial3NavigationBar()) {
-            i = 0;
+            i3 = 0;
         }
-        view.setPadding(0, 0, 0, i);
+        view.setPadding(i, 0, i2, i3);
+    }
+
+    public static void applyTabsVisibilityScale(View view, View view2, float f) {
+        if (isMaterial3NavigationBar()) {
+            f = 1.0f;
+        }
+        view.setPivotX(view2.getLeft() + (view2.getWidth() / 2.0f));
+        view.setPivotY(view2.getTop() + (view2.getHeight() / 2.0f));
+        view.setScaleX(f);
+        view.setScaleY(f);
     }
 
     public static Drawable createMainTabsScrimBackground(Theme.ResourcesProvider resourcesProvider, boolean z) {
@@ -111,12 +124,28 @@ public abstract class MainTabsUiHelper {
         ShapeDrawable shapeDrawableCreateRoundRectDrawable;
         if (z) {
             shapeDrawableCreateRoundRectDrawable = Theme.createCircleDrawable(AndroidUtilities.dp(40.0f), i);
+        } else if (isMaterial3NavigationBar()) {
+            ShapeDrawable shapeDrawable = new ShapeDrawable(new MainTabIndicatorShape());
+            shapeDrawable.getPaint().setColor(i);
+            shapeDrawableCreateRoundRectDrawable = shapeDrawable;
         } else {
             shapeDrawableCreateRoundRectDrawable = Theme.createRoundRectDrawable(AndroidUtilities.dp(28.0f), i);
         }
-        ShapeDrawable shapeDrawable = shapeDrawableCreateRoundRectDrawable;
-        shapeDrawable.getPaint().setShadowLayer(AndroidUtilities.dp(6.0f), 0.0f, AndroidUtilities.dp(1.0f), Theme.multAlpha(-16777216, 0.15f));
-        return !isMaterial3NavigationBar() ? shapeDrawable : new InsetDrawable((Drawable) shapeDrawable, AndroidUtilities.dp(8.0f), 0, AndroidUtilities.dp(8.0f), 0);
+        shapeDrawableCreateRoundRectDrawable.getPaint().setShadowLayer(AndroidUtilities.dp(6.0f), 0.0f, AndroidUtilities.dp(1.0f), Theme.multAlpha(-16777216, 0.15f));
+        return shapeDrawableCreateRoundRectDrawable;
+    }
+
+    public static final class MainTabIndicatorShape extends Shape {
+        private MainTabIndicatorShape() {
+        }
+
+        @Override // android.graphics.drawable.shapes.Shape
+        public void draw(Canvas canvas, Paint paint) {
+            RectF rectF = AndroidUtilities.rectTmp;
+            MainTabsUiHelper.setMainTabSelectedIndicatorBounds(rectF, getWidth(), (int) getHeight(), 1.0f);
+            float fHeight = rectF.height() / 2.0f;
+            canvas.drawRoundRect(rectF, fHeight, fHeight, paint);
+        }
     }
 
     public static float getBackgroundRadius() {
@@ -133,56 +162,60 @@ public abstract class MainTabsUiHelper {
         return AndroidUtilities.dp(7.666f);
     }
 
-    public static float getMaterial3MainTabAvatarTopDp() {
-        return getMaterial3MainTabIconTopDp() + 1.0f;
+    private static float getMaterial3IndicatorTopDp() {
+        if (ExteraConfig.getHideNavigationBarLabels()) {
+            return (getMaterial3ContainerHeightDp() - 32) / 2.0f;
+        }
+        return 6.0f;
     }
 
-    public static void applyMaterial3MainTabStyle(TextView textView, BoolAnimator boolAnimator) {
-        boolAnimator.setDuration(500L);
-        boolAnimator.setInterpolator(CubicBezierInterpolator.Emphasized);
+    public static float getMainTabIconTopDp() {
+        if (isMaterial3NavigationBar()) {
+            return getMaterial3IndicatorTopDp() + 4.0f;
+        }
+        return ExteraConfig.getHideNavigationBarLabels() ? 12.0f : 4.0f;
+    }
+
+    public static float getMainTabAvatarTopDp() {
+        return getMainTabIconTopDp() + 1.0f;
+    }
+
+    public static float getMainTabIconOnlyWidth() {
+        return AndroidUtilities.dp(40.0f);
+    }
+
+    public static void applyMaterial3MainTabStyle(TextView textView) {
         textView.setIncludeFontPadding(false);
         textView.setLetterSpacing(0.04166667f);
         textView.setLayoutParams(LayoutHelper.createFrame(-1, 16.0f, 49, 0.0f, 42.0f, 0.0f, 0.0f));
     }
 
-    public static void setMaterial3MainTabSelected(BoolAnimator boolAnimator, BoolAnimator boolAnimator2, boolean z, boolean z2) {
-        Interpolator interpolator;
-        boolAnimator.setValue(z, z2);
-        boolAnimator2.setDuration(z ? 100L : 200L);
-        if (z) {
-            interpolator = CubicBezierInterpolator.Emphasized;
-        } else {
-            interpolator = CubicBezierInterpolator.EmphasizedAccelerate;
-        }
-        boolAnimator2.setInterpolator(interpolator);
-        boolAnimator2.setValue(z, z2);
+    public static <K> SpringAnimation createMaterial3IndicatorSizeSpring(K k, FloatPropertyCompat<K> floatPropertyCompat) {
+        return new SpringAnimation(k, floatPropertyCompat).setMinimumVisibleChange(0.01f).setSpring(new SpringForce(0.0f).setDampingRatio(0.8f).setStiffness(380.0f));
+    }
+
+    public static <K> SpringAnimation createMaterial3ColorSpring(K k, FloatPropertyCompat<K> floatPropertyCompat) {
+        return new SpringAnimation(k, floatPropertyCompat).setMinimumVisibleChange(0.01f).setSpring(new SpringForce(0.0f).setDampingRatio(1.0f).setStiffness(1600.0f));
     }
 
     public static float getMainTabCounterCenterY(boolean z) {
-        return z ? AndroidUtilities.dp(getMaterial3MainTabIconTopDp() + 6.0f) : AndroidUtilities.dpf2(10.0f);
+        return AndroidUtilities.dpf2((z ? getMainTabIconTopDp() : 4.0f) + 6.0f);
     }
 
-    public static float getSelectedBackgroundScaleX(boolean z, float f) {
-        return lerp(z ? 0.4f : 0.6f, 1.0f, f);
-    }
-
-    public static float getSelectedBackgroundScaleY(boolean z, float f) {
-        if (z) {
-            return 1.0f;
-        }
-        return getSelectedBackgroundScaleX(false, f);
+    public static float getSelectedBackgroundScale(float f) {
+        return AndroidUtilities.lerp(0.6f, 1.0f, f);
     }
 
     public static int getMainTabSelectedIndicatorColor(int i, float f) {
         return Theme.multAlpha(i, f * 0.125f);
     }
 
-    public static void setMainTabSelectedIndicatorBounds(RectF rectF, float f, int i) {
-        float fMin = Math.min(AndroidUtilities.dp(56.0f), Math.max(0.0f, f - (AndroidUtilities.dp(4.0f) * 2.0f)));
+    public static void setMainTabSelectedIndicatorBounds(RectF rectF, float f, int i, float f2) {
+        float fMin = Math.min(AndroidUtilities.dp(56.0f), Math.max(0.0f, f - (AndroidUtilities.dp(4.0f) * 2.0f))) * Math.max(0.0f, f2);
         float fMin2 = Math.min(AndroidUtilities.dp(32.0f), i);
-        float f2 = (f - fMin) / 2.0f;
-        float fDp = AndroidUtilities.dp(6.0f);
-        rectF.set(f2, fDp, fMin + f2, fMin2 + fDp);
+        float f3 = (f - fMin) / 2.0f;
+        float fDp = AndroidUtilities.dp(getMaterial3IndicatorTopDp());
+        rectF.set(f3, fDp, fMin + f3, fMin2 + fDp);
     }
 
     public static void applyBackgroundStroke(BlurredBackgroundProviderBuilder blurredBackgroundProviderBuilder) {
@@ -198,7 +231,7 @@ public abstract class MainTabsUiHelper {
         int iDp;
         if (isMaterial3NavigationBar()) {
             measuredHeight = view.getMeasuredHeight();
-            iDp = (measuredHeight - AndroidUtilities.dp(64.0f)) - i;
+            iDp = (measuredHeight - AndroidUtilities.dp(getMaterial3ContainerHeightDp())) - i;
         } else {
             measuredHeight = (view.getMeasuredHeight() - i) - AndroidUtilities.dp(8.0f);
             iDp = measuredHeight - AndroidUtilities.dp(56.0f);

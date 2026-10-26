@@ -1,5 +1,8 @@
 package com.exteragram.messenger.feed.ui;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -11,40 +14,53 @@ import androidx.core.view.OnApplyWindowInsetsListener;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import com.exteragram.messenger.ExteraConfig;
+import com.exteragram.messenger.config.BottomNavigationBar;
 import com.exteragram.messenger.feed.FeedConfig;
 import com.exteragram.messenger.feed.FeedController;
 import com.exteragram.messenger.utils.ui.MainTabsUiHelper;
 import java.util.ArrayList;
+import java.util.List;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
-import org.telegram.messenger.UserConfig;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.INavigationLayout;
 import org.telegram.ui.ActionBar.Theme;
-import org.telegram.ui.Components.AvatarDrawable;
 import org.telegram.ui.ChatActivity;
 import org.telegram.ui.ChatActivityContainer;
+import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.Bulletin;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.ChatAvatarContainer;
+import org.telegram.ui.Components.ChatSearchTabs;
+import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.MainTabsActivity;
+import org.telegram.ui.MainTabsActivityController;
 
 public class FeedActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate, MainTabsActivity.TabFragmentDelegate {
+    private FeedCategoryTabsView categoryTabs;
+    private ValueAnimator categoryTransitionAnimator;
     private ChatActivityContainer chatContainer;
     private boolean embeddedChatCreated;
     private boolean hasMainTabs;
+    private final View.OnLayoutChangeListener headerAlignmentListener;
+    private int headerAvatarShift;
+    private final int[] headerLocation;
+    private int lastCategoriesVersion;
     private int lastConfigGeneration;
+    private int lastSelectedCategoryId;
     private WindowInsetsCompat lastWindowInsets;
     private final Runnable loadNewPosts;
+    private MainTabsActivityController mainTabsActivityController;
     private Runnable parentTabsGlassInvalidationCallback;
+    private int pendingCategoryId;
     private boolean resumedOnce;
     private boolean uiActiveHeld;
     private boolean uiResumedHeld;
@@ -60,18 +76,58 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
         return true;
     }
 
+    public void lambda$new$0(View view, int i, int i2, int i3, int i4, int i5, int i6, int i7, int i8) {
+        if (i == i5 && i3 == i7) {
+            return;
+        }
+        view.post(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.updateHeaderAvatarAlignment();
+            }
+        });
+    }
+
     public FeedActivity() {
         this(null);
     }
 
     public FeedActivity(Bundle bundle) {
         super(bundle);
-        this.loadNewPosts = new Runnable() { // from class: com.exteragram.messenger.feed.ui.FeedActivity$$ExternalSyntheticLambda1
-            @Override // java.lang.Runnable
-            public final void run() {
-                FeedActivity.this.lambda$new$0();
+        this.pendingCategoryId = -1;
+        this.headerLocation = new int[2];
+        this.headerAlignmentListener = new View.OnLayoutChangeListener() {
+            @Override // android.view.View.OnLayoutChangeListener
+            public final void onLayoutChange(View view, int i, int i2, int i3, int i4, int i5, int i6, int i7, int i8) {
+                this.f$0.lambda$new$0(view, i, i2, i3, i4, i5, i6, i7, i8);
             }
         };
+        this.loadNewPosts = new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.lambda$new$1();
+            }
+        };
+    }
+
+    public void setMainTabsActivityController(MainTabsActivityController mainTabsActivityController) {
+        this.mainTabsActivityController = mainTabsActivityController;
+    }
+
+    @Override // org.telegram.ui.MainTabsActivity.TabFragmentDelegate
+    public void updateMainTabsVisibility() {
+        MainTabsActivityController mainTabsActivityController = this.mainTabsActivityController;
+        if (mainTabsActivityController != null) {
+            mainTabsActivityController.setTabsVisible(BottomNavigationBar.visible());
+        }
+    }
+
+    public ChatActivity getChatActivity() {
+        ChatActivityContainer chatActivityContainer = this.chatContainer;
+        if (chatActivityContainer != null) {
+            return chatActivityContainer.chatActivity;
+        }
+        return null;
     }
 
     public static void presentFeed(BaseFragment baseFragment) {
@@ -96,14 +152,13 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
         rightActionBarLayout.presentFragment(new INavigationLayout.NavigationParams(new FeedActivity()).setNoAnimation(true).forceRightLayout());
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$0() {
+    public void lambda$new$1() {
         ChatActivity chatActivity;
         ChatActivityContainer chatActivityContainer = this.chatContainer;
-        if (chatActivityContainer == null || chatActivityContainer.chatActivity == null || !this.uiResumedHeld) {
+        if (chatActivityContainer == null || (chatActivity = chatActivityContainer.chatActivity) == null || !this.uiResumedHeld) {
             return;
         }
-        FeedController.getInstance(this.currentAccount).loadNewer(0, 0);
+        chatActivity.loadNewerFeed(true);
     }
 
     @Override // org.telegram.ui.ActionBar.BaseFragment
@@ -117,7 +172,9 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
         this.viewportFullyVisible = !z;
         NotificationCenter.getInstance(this.currentAccount).addObserver(this, NotificationCenter.didReceiveNewMessages);
         NotificationCenter.getInstance(this.currentAccount).addObserver(this, NotificationCenter.feedNeedReload);
+        FeedController.getInstance(this.currentAccount).activateSelectedTimeline();
         this.lastConfigGeneration = FeedConfig.getInstance(this.currentAccount).getGeneration();
+        this.lastSelectedCategoryId = FeedController.getInstance(this.currentAccount).getActiveTimelineId();
         return super.onFragmentCreate();
     }
 
@@ -140,14 +197,23 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     private void destroyEmbeddedChat() {
+        ChatActivity chatActivity;
+        cancelCategoryTransition();
         ChatActivityContainer chatActivityContainer = this.chatContainer;
-        if (chatActivityContainer != null && chatActivityContainer.chatActivity != null) {
+        if (chatActivityContainer != null && (chatActivity = chatActivityContainer.chatActivity) != null) {
+            if (!this.hasMainTabs && this.embeddedChatCreated) {
+                chatActivity.saveFeedScrollPosition();
+            }
+            this.chatContainer.chatActivity.setFeedChannelsChangedCallback(null);
+            this.chatContainer.chatActivity.setGlassSourceInvalidationCallback(null);
             if (this.embeddedChatCreated) {
                 this.chatContainer.chatActivity.onFragmentDestroy();
             }
         }
         this.embeddedChatCreated = false;
         this.chatContainer = null;
+        this.categoryTabs = null;
+        this.headerAvatarShift = 0;
     }
 
     @Override // org.telegram.ui.ActionBar.BaseFragment
@@ -176,6 +242,13 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
             return;
         }
         if (i == NotificationCenter.feedNeedReload) {
+            ChatActivityContainer chatActivityContainer = this.chatContainer;
+            if (chatActivityContainer != null && chatActivityContainer.chatActivity != null) {
+                if (objArr.length > 0 && Boolean.TRUE.equals(objArr[0])) {
+                    z = true;
+                }
+                this.chatContainer.chatActivity.onFeedChannelsChanged(z);
+            }
             updateFeedSubtitle();
         }
     }
@@ -190,13 +263,13 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
         this.fragmentView = frameLayout;
         frameLayout.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundWhite));
         if (this.hasMainTabs) {
-            ViewCompat.setOnApplyWindowInsetsListener(frameLayout, new OnApplyWindowInsetsListener() { // from class: com.exteragram.messenger.feed.ui.FeedActivity$$ExternalSyntheticLambda2
+            ViewCompat.setOnApplyWindowInsetsListener(frameLayout, new OnApplyWindowInsetsListener() {
                 @Override // androidx.core.view.OnApplyWindowInsetsListener
                 public final WindowInsetsCompat onApplyWindowInsets(View view, WindowInsetsCompat windowInsetsCompat) {
-                    return FeedActivity.this.lambda$createView$1(view, windowInsetsCompat);
+                    return this.f$0.lambda$createView$2(view, windowInsetsCompat);
                 }
             });
-            frameLayout.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() { // from class: com.exteragram.messenger.feed.ui.FeedActivity.1
+            frameLayout.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
                 @Override // android.view.View.OnAttachStateChangeListener
                 public void onViewDetachedFromWindow(View view) {
                 }
@@ -217,7 +290,7 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
         bundle.putInt("chatMode", 7);
         bundle.putInt("searchType", 4);
         bundle.putBoolean("hasMainTabs", this.hasMainTabs);
-        ChatActivityContainer chatActivityContainer = new ChatActivityContainer(context, getParentLayout(), bundle) { // from class: com.exteragram.messenger.feed.ui.FeedActivity.2
+        ChatActivityContainer chatActivityContainer = new ChatActivityContainer(context, getParentLayout(), bundle) {
             boolean activityCreated = false;
 
             @Override // org.telegram.ui.ChatActivityContainer
@@ -233,6 +306,7 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
                 FeedActivity.this.applyFloatingWindowLayout();
                 FeedActivity.this.setupChatActionBar();
                 FeedActivity.this.setupChatTitle();
+                FeedActivity.this.setupCategoryTabs();
                 if (FeedActivity.this.lastWindowInsets != null && (view = (feedActivity = FeedActivity.this).fragmentView) != null) {
                     ViewCompat.dispatchApplyWindowInsets(view, feedActivity.lastWindowInsets);
                 }
@@ -242,6 +316,18 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
         this.chatContainer = chatActivityContainer;
         ChatActivity chatActivity = chatActivityContainer.chatActivity;
         chatActivity.isInsideContainer = false;
+        chatActivity.setFeedChannelsChangedCallback(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.updateFeedSubtitle();
+            }
+        });
+        this.chatContainer.chatActivity.setGlassSourceInvalidationCallback(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.invalidateParentTabsGlass();
+            }
+        });
         updateFeedViewportActive(this.viewportFullyVisible);
         if (!this.uiResumedHeld) {
             this.chatContainer.onPause();
@@ -251,37 +337,51 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
             this.uiActiveHeld = true;
             FeedController.getInstance(this.currentAccount).setUiActive(true);
         }
-        Bulletin.addDelegate(this, new Bulletin.Delegate() { // from class: com.exteragram.messenger.feed.ui.FeedActivity.3
+        Bulletin.addDelegate(this, new Bulletin.Delegate() {
             @Override // org.telegram.ui.Components.Bulletin.Delegate
             public int getTopOffset(int i) {
+                if (FeedActivity.this.chatContainer != null && FeedActivity.this.chatContainer.chatActivity != null) {
+                    return FeedActivity.this.chatContainer.chatActivity.getBulletinTopOffset();
+                }
                 return AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight();
             }
 
             @Override // org.telegram.ui.Components.Bulletin.Delegate
             public int getBottomOffset(int i) {
-                return 0;
+                if (FeedActivity.this.chatContainer == null || FeedActivity.this.chatContainer.chatActivity == null) {
+                    return 0;
+                }
+                return FeedActivity.this.chatContainer.chatActivity.getBulletinBottomOffset();
             }
         });
         return this.fragmentView;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ WindowInsetsCompat lambda$createView$1(View view, WindowInsetsCompat windowInsetsCompat) {
+    public WindowInsetsCompat lambda$createView$2(View view, WindowInsetsCompat windowInsetsCompat) {
         this.lastWindowInsets = windowInsetsCompat;
-        int iDp = AndroidUtilities.dp(MainTabsUiHelper.getTabsViewHeightDp());
-        if (iDp == 0) {
-            return windowInsetsCompat;
-        }
-        Insets insets = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.systemBars());
-        Insets insets2 = windowInsetsCompat.getInsets(WindowInsetsCompat.Type.navigationBars());
-        return new WindowInsetsCompat.Builder(windowInsetsCompat).setInsets(WindowInsetsCompat.Type.systemBars(), Insets.of(insets.left, insets.top, insets.right, insets.bottom + iDp)).setInsets(WindowInsetsCompat.Type.navigationBars(), Insets.of(insets2.left, insets2.top, insets2.right, insets2.bottom + iDp)).build();
+        int iDp = BottomNavigationBar.visible() ? AndroidUtilities.dp(MainTabsUiHelper.getTabsViewHeightDp()) : 0;
+        return iDp == 0 ? windowInsetsCompat : addTabsBottomInset(windowInsetsCompat, iDp);
+    }
+
+    private static WindowInsetsCompat addTabsBottomInset(WindowInsetsCompat windowInsetsCompat, int i) {
+        int iSystemBars = WindowInsetsCompat.Type.systemBars();
+        int iNavigationBars = WindowInsetsCompat.Type.navigationBars();
+        return new WindowInsetsCompat.Builder(windowInsetsCompat).setStableInsets(addBottomInset(windowInsetsCompat.getInsetsIgnoringVisibility(iSystemBars), i)).setInsets(iSystemBars, addBottomInset(windowInsetsCompat.getInsets(iSystemBars), i)).setInsets(iNavigationBars, addBottomInset(windowInsetsCompat.getInsets(iNavigationBars), i)).setInsetsIgnoringVisibility(iSystemBars, addBottomInset(windowInsetsCompat.getInsetsIgnoringVisibility(iSystemBars), i)).setInsetsIgnoringVisibility(iNavigationBars, addBottomInset(windowInsetsCompat.getInsetsIgnoringVisibility(iNavigationBars), i)).build();
+    }
+
+    private static Insets addBottomInset(Insets insets, int i) {
+        return Insets.of(insets.left, insets.top, insets.right, insets.bottom + i);
     }
 
     @Override // org.telegram.ui.ActionBar.BaseFragment
     public void onResume() {
+        ChatActivityContainer chatActivityContainer;
+        ChatActivity chatActivity;
+        ChatActivity chatActivity2;
         View view;
         WindowInsetsCompat windowInsetsCompat;
         super.onResume();
+        updateMainTabsVisibility();
         ChatActivityContainer chatActivityContainer2 = this.chatContainer;
         if (chatActivityContainer2 != null) {
             chatActivityContainer2.onResume();
@@ -295,13 +395,21 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
             ViewCompat.dispatchApplyWindowInsets(view, windowInsetsCompat);
         }
         reattachCurrentFeedVideoTexture();
+        boolean zApplyCategoryChanges = applyCategoryChanges();
         int generation = FeedConfig.getInstance(this.currentAccount).getGeneration();
-        if (generation != this.lastConfigGeneration) {
+        if (zApplyCategoryChanges) {
             this.lastConfigGeneration = generation;
-            FeedController.getInstance(this.currentAccount).applyConfigChange(null);
-        } else if (this.resumedOnce) {
+        } else if (generation != this.lastConfigGeneration) {
+            this.lastConfigGeneration = generation;
+            ChatActivityContainer chatActivityContainer3 = this.chatContainer;
+            if (chatActivityContainer3 != null && (chatActivity2 = chatActivityContainer3.chatActivity) != null) {
+                chatActivity2.applyFeedConfigChange();
+            }
+        } else if (this.resumedOnce && (chatActivityContainer = this.chatContainer) != null && (chatActivity = chatActivityContainer.chatActivity) != null) {
+            chatActivity.reconcileFeedList();
+            this.chatContainer.chatActivity.refreshFeedUnreadDivider();
             if (!FeedController.getInstance(this.currentAccount).getMessages().isEmpty()) {
-                FeedController.getInstance(this.currentAccount).loadNewer(0, 0);
+                this.chatContainer.chatActivity.loadNewerFeed(true);
             }
         }
         this.resumedOnce = true;
@@ -312,6 +420,7 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
     public void onBecomeFullyVisible() {
         super.onBecomeFullyVisible();
         this.viewportFullyVisible = true;
+        updateMainTabsVisibility();
         updateFeedViewportActive(true);
         reattachCurrentFeedVideoTexture();
     }
@@ -341,6 +450,7 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
+    @Override // org.telegram.ui.MainTabsActivity.TabFragmentDelegate
     public void onParentBecomeFullyVisible() {
         reattachCurrentFeedVideoTexture();
     }
@@ -359,12 +469,21 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     private void updateFeedViewportActive(boolean z) {
-        FeedController.getInstance(this.currentAccount).setUiActive(z);
+        ChatActivity chatActivity;
+        ChatActivityContainer chatActivityContainer = this.chatContainer;
+        if (chatActivityContainer == null || (chatActivity = chatActivityContainer.chatActivity) == null) {
+            return;
+        }
+        chatActivity.setFeedViewportActive(z);
     }
 
     @Override // org.telegram.ui.MainTabsActivity.TabFragmentDelegate
     public boolean canParentTabsSlide(MotionEvent motionEvent, boolean z) {
         ChatActivity chatActivity;
+        FeedCategoryTabsView feedCategoryTabsView = this.categoryTabs;
+        if (feedCategoryTabsView != null && feedCategoryTabsView.isTouchInside(motionEvent)) {
+            return false;
+        }
         ChatActivityContainer chatActivityContainer = this.chatContainer;
         return chatActivityContainer == null || (chatActivity = chatActivityContainer.chatActivity) == null || chatActivity.getActionBar() == null || !this.chatContainer.chatActivity.getActionBar().isActionModeShowed();
     }
@@ -380,9 +499,14 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
     }
 
     private void reattachCurrentFeedVideoTexture() {
+        ChatActivity chatActivity;
+        ChatActivityContainer chatActivityContainer = this.chatContainer;
+        if (chatActivityContainer == null || (chatActivity = chatActivityContainer.chatActivity) == null) {
+            return;
+        }
+        chatActivity.reattachCurrentFeedVideoTexture();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void setupChatActionBar() {
         ChatActivity chatActivity;
         final ActionBar actionBar;
@@ -401,7 +525,7 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
             applyMainTabsHeaderLayout();
         }
         final ActionBar.ActionBarMenuOnItemClick actionBarMenuOnItemClick = actionBar.getActionBarMenuOnItemClick();
-        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() { // from class: com.exteragram.messenger.feed.ui.FeedActivity.4
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override // org.telegram.ui.ActionBar.ActionBar.ActionBarMenuOnItemClick
             public void onItemClick(int i) {
                 if (i == -1 && FeedActivity.this.hasMainTabs && !actionBar.isActionModeShowed()) {
@@ -429,7 +553,6 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void applyFloatingWindowLayout() {
         ChatActivityContainer chatActivityContainer;
         ChatActivity chatActivity;
@@ -459,7 +582,7 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
         ViewGroup.LayoutParams layoutParams = chatAvatarContainer.getLayoutParams();
         if (layoutParams instanceof ViewGroup.MarginLayoutParams) {
             ViewGroup.MarginLayoutParams marginLayoutParams = (ViewGroup.MarginLayoutParams) layoutParams;
-            int iDp = AndroidUtilities.dp(ExteraConfig.getNewChatHeaderStyle() ? 12.0f : 0.0f);
+            int iDp = AndroidUtilities.dp(ExteraConfig.getNewChatHeaderStyle() ? 12.0f : 0.0f) + this.headerAvatarShift;
             if (marginLayoutParams.leftMargin != iDp) {
                 marginLayoutParams.leftMargin = iDp;
                 this.chatContainer.chatActivity.avatarContainer.setLayoutParams(marginLayoutParams);
@@ -467,7 +590,309 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
+    public void setupCategoryTabs() {
+        ChatActivity chatActivity;
+        ChatSearchTabs chatSearchTabs;
+        ChatActivityContainer chatActivityContainer = this.chatContainer;
+        if (chatActivityContainer == null || (chatActivity = chatActivityContainer.chatActivity) == null || (chatSearchTabs = chatActivity.hashtagSearchTabs) == null) {
+            return;
+        }
+        FeedCategoryTabsView feedCategoryTabsView = new FeedCategoryTabsView(this.chatContainer.getContext(), this, this.currentAccount, this.chatContainer.chatActivity.getResourceProvider(), new AnonymousClass5());
+        this.categoryTabs = feedCategoryTabsView;
+        feedCategoryTabsView.attachTo(chatSearchTabs);
+        this.lastCategoriesVersion = FeedConfig.getInstance(this.currentAccount).getCategoriesVersion();
+        chatSearchTabs.show(this.categoryTabs.hasCategories(), false);
+        if (this.hasMainTabs) {
+            this.categoryTabs.addOnLayoutChangeListener(this.headerAlignmentListener);
+            ChatAvatarContainer chatAvatarContainer = this.chatContainer.chatActivity.avatarContainer;
+            if (chatAvatarContainer != null) {
+                chatAvatarContainer.addOnLayoutChangeListener(this.headerAlignmentListener);
+            }
+        }
+    }
+
+    public class AnonymousClass5 implements FeedCategoryTabsView.Delegate {
+        public AnonymousClass5() {
+        }
+
+        @Override // com.exteragram.messenger.feed.ui.FeedCategoryTabsView.Delegate
+        public void onCategorySelected(int i) {
+            FeedActivity.this.switchCategoryAnimated(i);
+        }
+
+        @Override // com.exteragram.messenger.feed.ui.FeedCategoryTabsView.Delegate
+        public void onCreateCategory() {
+            FeedActivity.this.presentFragment(new FeedCategoryEditActivity(0, true));
+        }
+
+        @Override // com.exteragram.messenger.feed.ui.FeedCategoryTabsView.Delegate
+        public void onEditCategory(FeedConfig.Category category) {
+            FeedActivity.this.presentFragment(new FeedCategoryEditActivity(category.getId(), false));
+        }
+
+        @Override // com.exteragram.messenger.feed.ui.FeedCategoryTabsView.Delegate
+        public void onHideCategory(FeedConfig.Category category) {
+            FeedActivity.this.hideCategory(category);
+        }
+
+        @Override // com.exteragram.messenger.feed.ui.FeedCategoryTabsView.Delegate
+        public void onDeleteCategory(FeedConfig.Category category) {
+            final FeedActivity feedActivity = FeedActivity.this;
+            FeedCategoryEditActivity.showDeleteDialog(feedActivity, category, new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() {
+                    feedActivity.onCategoryRemoved();
+                }
+            });
+        }
+    }
+
+    public void updateHeaderAvatarAlignment() {
+        ChatActivityContainer chatActivityContainer;
+        ChatActivity chatActivity;
+        ChatAvatarContainer chatAvatarContainer;
+        FeedCategoryTabsView feedCategoryTabsView;
+        if (!this.hasMainTabs || (chatActivityContainer = this.chatContainer) == null || (chatActivity = chatActivityContainer.chatActivity) == null || (chatAvatarContainer = chatActivity.avatarContainer) == null) {
+            return;
+        }
+        BackupImageView avatarImageView = chatAvatarContainer.getAvatarImageView();
+        ChatSearchTabs chatSearchTabs = this.chatContainer.chatActivity.hashtagSearchTabs;
+        int i = 0;
+        if (!LocaleController.isRTL && (feedCategoryTabsView = this.categoryTabs) != null && feedCategoryTabsView.hasCategories() && chatSearchTabs != null && this.categoryTabs.getWidth() > 0 && avatarImageView.getWidth() > 0) {
+            chatSearchTabs.getLocationInWindow(this.headerLocation);
+            int left = this.headerLocation[0] + this.categoryTabs.getLeft();
+            avatarImageView.getLocationInWindow(this.headerLocation);
+            i = (this.headerAvatarShift + left) - this.headerLocation[0];
+        }
+        if (i != this.headerAvatarShift) {
+            this.headerAvatarShift = i;
+            applyMainTabsHeaderLayout();
+        }
+    }
+
+    private boolean applyCategoryChanges() {
+        ChatActivity chatActivity;
+        FeedConfig feedConfig = FeedConfig.getInstance(this.currentAccount);
+        if (this.categoryTabs != null && this.lastCategoriesVersion != feedConfig.getCategoriesVersion()) {
+            this.lastCategoriesVersion = feedConfig.getCategoriesVersion();
+            this.categoryTabs.update();
+            ChatActivityContainer chatActivityContainer = this.chatContainer;
+            ChatSearchTabs chatSearchTabs = (chatActivityContainer == null || (chatActivity = chatActivityContainer.chatActivity) == null) ? null : chatActivity.hashtagSearchTabs;
+            if (chatSearchTabs != null && chatSearchTabs.isShown() != this.categoryTabs.hasCategories()) {
+                chatSearchTabs.show(this.categoryTabs.hasCategories());
+            }
+            updateHeaderAvatarAlignment();
+        }
+        if (feedConfig.getSelectedCategoryId() == this.lastSelectedCategoryId) {
+            return false;
+        }
+        onCategorySwitched();
+        return true;
+    }
+
+    private void onCategorySwitched() {
+        ChatActivity chatActivity;
+        FeedConfig feedConfig = FeedConfig.getInstance(this.currentAccount);
+        int i = this.lastSelectedCategoryId;
+        this.lastSelectedCategoryId = feedConfig.getSelectedCategoryId();
+        this.lastConfigGeneration = feedConfig.getGeneration();
+        if (this.categoryTabs != null) {
+            this.lastCategoriesVersion = feedConfig.getCategoriesVersion();
+            this.categoryTabs.update();
+        }
+        ChatActivityContainer chatActivityContainer = this.chatContainer;
+        if (chatActivityContainer != null && (chatActivity = chatActivityContainer.chatActivity) != null) {
+            if (chatActivity.getActionBar() != null && chatActivity.getActionBar().isActionModeShowed()) {
+                chatActivity.clearSelectionMode();
+            }
+            chatActivity.switchFeedTimeline(i);
+        } else {
+            FeedController.getInstance(this.currentAccount).activateSelectedTimeline();
+        }
+        updateFeedSubtitle();
+    }
+
+    public void hideCategory(final FeedConfig.Category category) {
+        final FeedConfig feedConfig = FeedConfig.getInstance(this.currentAccount);
+        final boolean z = feedConfig.getSelectedCategoryId() == category.getId();
+        if (feedConfig.setCategoryHidden(category.getId(), true)) {
+            FeedController.getInstance(this.currentAccount).notifyCategoriesChanged();
+            onCategoryRemoved();
+            BulletinFactory.of(this).createSimpleBulletin(R.raw.caption_hide, AndroidUtilities.replaceTags(LocaleController.formatString(R.string.FeedCategoryHiddenInfo, category.getTitle())), LocaleController.getString(R.string.Undo), new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() {
+                    this.f$0.lambda$hideCategory$3(feedConfig, category, z);
+                }
+            }).show();
+        }
+    }
+
+    public void lambda$hideCategory$3(FeedConfig feedConfig, FeedConfig.Category category, boolean z) {
+        if (feedConfig.setCategoryHidden(category.getId(), false)) {
+            FeedController.getInstance(this.currentAccount).notifyCategoriesChanged();
+            applyCategoryChanges();
+            if (z) {
+                switchCategoryAnimated(category.getId());
+            }
+        }
+    }
+
+    public void onCategoryRemoved() {
+        int selectedCategoryId = FeedConfig.getInstance(this.currentAccount).getSelectedCategoryId();
+        if (selectedCategoryId != this.lastSelectedCategoryId) {
+            switchCategoryAnimated(selectedCategoryId);
+        } else {
+            applyCategoryChanges();
+        }
+    }
+
+    public void switchCategoryAnimated(int i) {
+        FeedCategoryTabsView feedCategoryTabsView = this.categoryTabs;
+        if (feedCategoryTabsView != null) {
+            feedCategoryTabsView.setSelectedCategory(i);
+        }
+        final View feedListView = getFeedListView();
+        if (feedListView == null || !this.viewportFullyVisible) {
+            this.pendingCategoryId = -1;
+            FeedController.getInstance(this.currentAccount).selectCategory(i);
+            applyCategoryChanges();
+            return;
+        }
+        boolean z = this.pendingCategoryId != -1;
+        this.pendingCategoryId = i;
+        if (z) {
+            return;
+        }
+        ValueAnimator valueAnimator = this.categoryTransitionAnimator;
+        if (valueAnimator != null) {
+            valueAnimator.cancel();
+        }
+        final float alpha = feedListView.getAlpha();
+        final float translationX = feedListView.getTranslationX();
+        final float fDp = (-getTransitionDirection(this.lastSelectedCategoryId, i)) * AndroidUtilities.dp(24.0f);
+        ValueAnimator valueAnimatorOfFloat = ValueAnimator.ofFloat(0.0f, 1.0f);
+        valueAnimatorOfFloat.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override // android.animation.ValueAnimator.AnimatorUpdateListener
+            public final void onAnimationUpdate(ValueAnimator valueAnimator2) {
+                this.f$0.lambda$switchCategoryAnimated$4(feedListView, alpha, translationX, fDp, valueAnimator2);
+            }
+        });
+        valueAnimatorOfFloat.addListener(new AnimatorListenerAdapter() {
+            @Override // android.animation.AnimatorListenerAdapter, android.animation.Animator.AnimatorListener
+            public void onAnimationEnd(Animator animator) {
+                if (FeedActivity.this.categoryTransitionAnimator == animator) {
+                    FeedActivity.this.categoryTransitionAnimator = null;
+                    FeedActivity.this.applyPendingCategory();
+                }
+            }
+        });
+        valueAnimatorOfFloat.setDuration((long) (alpha * 120.0f));
+        valueAnimatorOfFloat.setInterpolator(CubicBezierInterpolator.EASE_IN);
+        this.categoryTransitionAnimator = valueAnimatorOfFloat;
+        valueAnimatorOfFloat.start();
+    }
+
+    public void lambda$switchCategoryAnimated$4(View view, float f, float f2, float f3, ValueAnimator valueAnimator) {
+        float fFloatValue = ((Float) valueAnimator.getAnimatedValue()).floatValue();
+        setFeedContentTransform(view, AndroidUtilities.lerp(f, 0.0f, fFloatValue), AndroidUtilities.lerp(f2, f3, fFloatValue));
+    }
+
+    public void applyPendingCategory() {
+        final float transitionDirection;
+        FeedCategoryTabsView feedCategoryTabsView;
+        int i = this.pendingCategoryId;
+        int i2 = this.lastSelectedCategoryId;
+        this.pendingCategoryId = -1;
+        if (i != -1) {
+            FeedController.getInstance(this.currentAccount).selectCategory(i);
+        }
+        if (!applyCategoryChanges() && (feedCategoryTabsView = this.categoryTabs) != null) {
+            feedCategoryTabsView.update();
+        }
+        final View feedListView = getFeedListView();
+        if (feedListView == null) {
+            return;
+        }
+        int i3 = this.lastSelectedCategoryId;
+        if (i3 == i2) {
+            transitionDirection = feedListView.getTranslationX();
+        } else {
+            transitionDirection = getTransitionDirection(i2, i3) * AndroidUtilities.dp(24.0f);
+        }
+        ValueAnimator valueAnimatorOfFloat = ValueAnimator.ofFloat(0.0f, 1.0f);
+        valueAnimatorOfFloat.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override // android.animation.ValueAnimator.AnimatorUpdateListener
+            public final void onAnimationUpdate(ValueAnimator valueAnimator) {
+                this.f$0.lambda$applyPendingCategory$5(feedListView, transitionDirection, valueAnimator);
+            }
+        });
+        valueAnimatorOfFloat.addListener(new AnimatorListenerAdapter() {
+            @Override // android.animation.AnimatorListenerAdapter, android.animation.Animator.AnimatorListener
+            public void onAnimationEnd(Animator animator) {
+                if (FeedActivity.this.categoryTransitionAnimator == animator) {
+                    FeedActivity.this.categoryTransitionAnimator = null;
+                }
+            }
+        });
+        valueAnimatorOfFloat.setDuration(280L);
+        valueAnimatorOfFloat.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
+        this.categoryTransitionAnimator = valueAnimatorOfFloat;
+        valueAnimatorOfFloat.start();
+    }
+
+    public void lambda$applyPendingCategory$5(View view, float f, ValueAnimator valueAnimator) {
+        float fFloatValue = ((Float) valueAnimator.getAnimatedValue()).floatValue();
+        setFeedContentTransform(view, fFloatValue, f * (1.0f - fFloatValue));
+    }
+
+    private void cancelCategoryTransition() {
+        this.pendingCategoryId = -1;
+        ValueAnimator valueAnimator = this.categoryTransitionAnimator;
+        if (valueAnimator != null) {
+            this.categoryTransitionAnimator = null;
+            valueAnimator.cancel();
+        }
+        View feedListView = getFeedListView();
+        if (feedListView != null) {
+            setFeedContentTransform(feedListView, 1.0f, 0.0f);
+        }
+    }
+
+    private void setFeedContentTransform(View view, float f, float f2) {
+        ChatActivity chatActivity;
+        view.setAlpha(f);
+        view.setTranslationX(f2);
+        ChatActivityContainer chatActivityContainer = this.chatContainer;
+        View feedEmptyView = (chatActivityContainer == null || (chatActivity = chatActivityContainer.chatActivity) == null) ? null : chatActivity.getFeedEmptyView();
+        if (feedEmptyView != null) {
+            feedEmptyView.setAlpha(f);
+            feedEmptyView.setTranslationX(f2);
+        }
+    }
+
+    private View getFeedListView() {
+        ChatActivity chatActivity;
+        ChatActivityContainer chatActivityContainer = this.chatContainer;
+        if (chatActivityContainer == null || (chatActivity = chatActivityContainer.chatActivity) == null) {
+            return null;
+        }
+        return chatActivity.getChatListView();
+    }
+
+    private int getTransitionDirection(int i, int i2) {
+        return getCategoryOrder(i2) >= getCategoryOrder(i) ? 1 : -1;
+    }
+
+    private int getCategoryOrder(int i) {
+        List<FeedConfig.Category> categories = FeedConfig.getInstance(this.currentAccount).getCategories();
+        for (int i2 = 0; i2 < categories.size(); i2++) {
+            if (categories.get(i2).getId() == i) {
+                return i2 + 1;
+            }
+        }
+        return 0;
+    }
+
     public void showMarkAllReadDialog() {
         if (getParentActivity() == null) {
             return;
@@ -475,31 +900,41 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), getResourceProvider());
         builder.setTitle(LocaleController.getString(R.string.FeedMarkAllRead));
         builder.setMessage(LocaleController.getString(R.string.FeedMarkAllReadConfirm));
-        builder.setPositiveButton(LocaleController.getString(R.string.MarkAsRead), new AlertDialog.OnButtonClickListener() { // from class: com.exteragram.messenger.feed.ui.FeedActivity$$ExternalSyntheticLambda5
+        builder.setPositiveButton(LocaleController.getString(R.string.MarkAsRead), new AlertDialog.OnButtonClickListener() {
             @Override // org.telegram.ui.ActionBar.AlertDialog.OnButtonClickListener
             public final void onClick(AlertDialog alertDialog, int i) {
-                FeedActivity.this.lambda$showMarkAllReadDialog$2(alertDialog, i);
+                this.f$0.lambda$showMarkAllReadDialog$6(alertDialog, i);
             }
         });
         builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
         showDialog(builder.create());
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$showMarkAllReadDialog$2(AlertDialog alertDialog, int i) {
+    public void lambda$showMarkAllReadDialog$6(AlertDialog alertDialog, int i) {
         markAllRead();
         BulletinFactory.of(this).createSimpleBulletin(R.raw.contact_check, LocaleController.getString(R.string.FeedMarkAllReadDone)).show();
     }
 
     public void markAllRead() {
-        FeedController.getInstance(this.currentAccount).markAllRead();
+        ChatActivity chatActivity;
+        ChatActivityContainer chatActivityContainer = this.chatContainer;
+        if (chatActivityContainer != null && (chatActivity = chatActivityContainer.chatActivity) != null) {
+            chatActivity.markFeedAsRead();
+        } else {
+            FeedController.getInstance(this.currentAccount).markAllRead();
+        }
     }
 
     @Override // org.telegram.ui.MainTabsActivity.TabFragmentDelegate
     public void onParentScrollToTop() {
+        ChatActivity chatActivity;
+        ChatActivityContainer chatActivityContainer = this.chatContainer;
+        if (chatActivityContainer == null || (chatActivity = chatActivityContainer.chatActivity) == null) {
+            return;
+        }
+        chatActivity.onPageDownClicked(false);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void setupChatTitle() {
         ChatActivity chatActivity;
         ChatAvatarContainer chatAvatarContainer;
@@ -508,34 +943,24 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
             return;
         }
         chatAvatarContainer.setTitle(LocaleController.getString(R.string.Feed));
-        AvatarDrawable avatarDrawable = new AvatarDrawable();
-        avatarDrawable.setInfo(UserConfig.getInstance(this.currentAccount).getClientUserId());
-        avatarDrawable.setAvatarType(1);
-        if (Theme.avatarDrawables != null && Theme.avatarDrawables.length > 25) {
-            avatarDrawable.setCustomIcon(Theme.avatarDrawables[25]);
-        }
-        if (chatAvatarContainer.avatarImageView != null) {
-            chatAvatarContainer.avatarImageView.setImage(null, null, avatarDrawable, null);
-        }
+        this.chatContainer.chatActivity.avatarContainer.setFeedAvatar();
         updateFeedSubtitle();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void updateFeedSubtitle() {
-        FeedController feedController = FeedController.getInstance(this.currentAccount);
+        final FeedController feedController = FeedController.getInstance(this.currentAccount);
         setFeedSubtitle(feedController.getIncludedChannelCount());
-        feedController.loadChannels(new FeedController.ChannelsCallback() { // from class: com.exteragram.messenger.feed.ui.FeedActivity$$ExternalSyntheticLambda0
+        feedController.loadChannels(new FeedController.ChannelsCallback() {
             @Override // com.exteragram.messenger.feed.FeedController.ChannelsCallback
-            public final void onChannels(ArrayList arrayList, int i, boolean z, int i2) {
-                FeedActivity.this.lambda$updateFeedSubtitle$3(arrayList, i, z, i2);
+            public final void onChannels(ArrayList arrayList, int i, boolean z, FeedConfig.Snapshot snapshot) {
+                this.f$0.lambda$updateFeedSubtitle$7(feedController, arrayList, i, z, snapshot);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$updateFeedSubtitle$3(ArrayList arrayList, int i, boolean z, int i2) {
+    public void lambda$updateFeedSubtitle$7(FeedController feedController, ArrayList arrayList, int i, boolean z, FeedConfig.Snapshot snapshot) {
         if (z) {
-            return;
+            i = feedController.getIncludedChannelCount();
         }
         setFeedSubtitle(i);
     }
@@ -543,11 +968,17 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
     private void setFeedSubtitle(int i) {
         ChatActivity chatActivity;
         ChatAvatarContainer chatAvatarContainer;
+        String pluralString;
         ChatActivityContainer chatActivityContainer = this.chatContainer;
         if (chatActivityContainer == null || (chatActivity = chatActivityContainer.chatActivity) == null || (chatAvatarContainer = chatActivity.avatarContainer) == null) {
             return;
         }
-        chatAvatarContainer.setSubtitle(LocaleController.formatPluralString("Channels", i, new Object[0]));
+        if (i < 0) {
+            pluralString = LocaleController.getString(R.string.Loading);
+        } else {
+            pluralString = LocaleController.formatPluralString("Channels", i, new Object[0]);
+        }
+        chatAvatarContainer.setSubtitle(pluralString);
         View subtitleTextView = this.chatContainer.chatActivity.avatarContainer.getSubtitleTextView();
         if (subtitleTextView != null) {
             subtitleTextView.setVisibility(0);
@@ -556,14 +987,19 @@ public class FeedActivity extends BaseFragment implements NotificationCenter.Not
 
     @Override // org.telegram.ui.MainTabsActivity.TabFragmentDelegate
     public BlurredBackgroundSourceRenderNode getGlassSource() {
-        return null;
+        ChatActivity chatActivity;
+        ChatActivityContainer chatActivityContainer = this.chatContainer;
+        if (chatActivityContainer == null || (chatActivity = chatActivityContainer.chatActivity) == null) {
+            return null;
+        }
+        return chatActivity.getGlassSource();
     }
 
+    @Override // org.telegram.ui.MainTabsActivity.TabFragmentDelegate
     public void setParentTabsGlassInvalidationCallback(Runnable runnable) {
         this.parentTabsGlassInvalidationCallback = runnable;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void invalidateParentTabsGlass() {
         Runnable runnable = this.parentTabsGlassInvalidationCallback;
         if (runnable != null) {

@@ -10,6 +10,7 @@ import android.text.TextWatcher;
 import android.view.View;
 import androidx.recyclerview.widget.RecyclerView;
 import com.exteragram.messenger.plugins.Plugin;
+import com.exteragram.messenger.plugins.PluginsConstants;
 import com.exteragram.messenger.plugins.PluginsController;
 import com.exteragram.messenger.plugins.models.EditTextSetting;
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import kotlin.Metadata;
+import kotlin.jvm.JvmOverloads;
 import kotlin.jvm.JvmStatic;
 import kotlin.jvm.internal.DefaultConstructorMarker;
 import kotlin.jvm.internal.SourceDebugExtension;
@@ -31,19 +33,25 @@ import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.UniversalRecyclerView;
 
+@Metadata(d1 = {"\u0000S\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000e\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\b\u0003\n\u0002\u0010\u0002\n\u0002\b\u0002\n\u0002\u0010\u000b\n\u0002\b\u0005\n\u0002\u0010\r\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0004*\u0001\u0010\b\u0007\u0018\u0000 #2\u00020\u0001:\u0002\"#B\u0019\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\b\u0010\u0004\u001a\u0004\u0018\u00010\u0005¢\u0006\u0004\b\u0006\u0010\u0007J\b\u0010\u0012\u001a\u00020\u0013H\u0002J\u0010\u0010\u0014\u001a\u00020\u00132\u0006\u0010\u0015\u001a\u00020\u0016H\u0014J\b\u0010\u0017\u001a\u00020\u0013H\u0014J\b\u0010\u0018\u001a\u00020\u0013H\u0002J$\u0010\u0019\u001a\u00020\u00132\u0006\u0010\u000e\u001a\u00020\u000b2\u0006\u0010\u001a\u001a\u00020\r2\n\b\u0002\u0010\u001b\u001a\u0004\u0018\u00010\u001cH\u0007J\u0010\u0010\u001d\u001a\u00020\u00132\u0006\u0010\u001e\u001a\u00020\u0016H\u0002J\u0014\u0010\u001f\u001a\u0004\u0018\u00010 2\b\u0010!\u001a\u0004\u0018\u00010\u000bH\u0002R\u0010\u0010\b\u001a\u0004\u0018\u00010\tX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\n\u001a\u0004\u0018\u00010\u000bX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\f\u001a\u0004\u0018\u00010\rX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u000e\u001a\u0004\u0018\u00010\u000bX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u000f\u001a\u00020\u0010X\u0082\u0004¢\u0006\u0004\n\u0002\u0010\u0011¨\u0006$"}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/PluginEditTextCell;", "Lorg/telegram/ui/Cells/EditTextCell;", "context", "Landroid/content/Context;", "resourcesProvider", "Lorg/telegram/ui/ActionBar/Theme$ResourcesProvider;", "<init>", "(Landroid/content/Context;Lorg/telegram/ui/ActionBar/Theme$ResourcesProvider;)V", "pendingSaveRunnable", "Ljava/lang/Runnable;", "valueToSave", _UrlKt.FRAGMENT_ENCODE_SET, "currentSetting", "Lcom/exteragram/messenger/plugins/models/EditTextSetting;", "pluginId", "saveTextWatcher", "com/exteragram/messenger/plugins/ui/components/PluginEditTextCell$saveTextWatcher$1", "Lcom/exteragram/messenger/plugins/ui/components/PluginEditTextCell$saveTextWatcher$1;", "scheduleSave", _UrlKt.FRAGMENT_ENCODE_SET, "onFocusChanged", "focused", _UrlKt.FRAGMENT_ENCODE_SET, "onDetachedFromWindow", "flushPendingSave", "bind", "setting", PluginsConstants.Settings.HINT, _UrlKt.FRAGMENT_ENCODE_SET, "setWatchersEnabled", "enabled", "createInputFilter", "Landroid/text/InputFilter;", "maskRegex", "Factory", "Companion", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
 @SuppressLint({"ViewConstructor"})
-@SourceDebugExtension({"SMAP\nPluginEditTextCell.kt\nKotlin\n*S Kotlin\n*F\n+ 1 PluginEditTextCell.kt\ncom/exteragram/messenger/plugins/ui/components/PluginEditTextCell\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n+ 3 ArraysJVM.kt\nkotlin/collections/ArraysKt__ArraysJVMKt\n*L\n1#1,257:1\n1#2:258\n37#3,2:259\n*S KotlinDebug\n*F\n+ 1 PluginEditTextCell.kt\ncom/exteragram/messenger/plugins/ui/components/PluginEditTextCell\n*L\n156#1:259,2\n*E\n"})
+@SourceDebugExtension({"SMAP\nPluginEditTextCell.kt\nKotlin\n*S Kotlin\n*F\n+ 1 PluginEditTextCell.kt\ncom/exteragram/messenger/plugins/ui/components/PluginEditTextCell\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n+ 3 ArraysJVM.kt\nkotlin/collections/ArraysKt__ArraysJVMKt\n*L\n1#1,256:1\n1#2:257\n37#3,2:258\n*S KotlinDebug\n*F\n+ 1 PluginEditTextCell.kt\ncom/exteragram/messenger/plugins/ui/components/PluginEditTextCell\n*L\n157#1:258,2\n*E\n"})
 public final class PluginEditTextCell extends EditTextCell {
     private static final int SAVE_DEBOUNCE_MS = 750;
     private EditTextSetting currentSetting;
     private Runnable pendingSaveRunnable;
     private String pluginId;
-    private final TextWatcher saveTextWatcher;
+    private final PluginEditTextCell$saveTextWatcher$1 saveTextWatcher;
     private String valueToSave;
+
+    @JvmOverloads
+    public final void bind(String str, EditTextSetting editTextSetting) {
+        bind$default(this, str, editTextSetting, null, 4, null);
+    }
 
     public PluginEditTextCell(Context context, Theme.ResourcesProvider resourcesProvider) {
         super(context, null, false, false, -1, resourcesProvider);
-        TextWatcher r7 = new TextWatcher() { // from class: com.exteragram.messenger.plugins.ui.components.PluginEditTextCell$saveTextWatcher$1
+        ?? r7 = new TextWatcher() {
             @Override // android.text.TextWatcher
             public void afterTextChanged(Editable s) {
             }
@@ -54,8 +62,8 @@ public final class PluginEditTextCell extends EditTextCell {
 
             @Override // android.text.TextWatcher
             public void onTextChanged(CharSequence newText, int start, int before, int count) {
-                PluginEditTextCell.this.valueToSave = newText.toString();
-                PluginEditTextCell.this.scheduleSave();
+                this.this$0.valueToSave = newText.toString();
+                this.this$0.scheduleSave();
             }
         };
         this.saveTextWatcher = r7;
@@ -64,7 +72,6 @@ public final class PluginEditTextCell extends EditTextCell {
         this.editText.addTextChangedListener(r7);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final void scheduleSave() {
         Runnable runnable = this.pendingSaveRunnable;
         if (runnable != null) {
@@ -78,28 +85,27 @@ public final class PluginEditTextCell extends EditTextCell {
         if (key == null || str == null || str2 == null || editTextSetting2 == null) {
             return;
         }
-        Runnable runnable2 = new Runnable() { // from class: com.exteragram.messenger.plugins.ui.components.PluginEditTextCell$$ExternalSyntheticLambda0
+        Runnable runnable2 = new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                PluginEditTextCell.$r8$lambda$Ta83XVBXVLaC75iTOLwtEhLaxn4(PluginEditTextCell.this, editTextSetting2, str, str2, key);
+                PluginEditTextCell.$r8$lambda$IbrC_cSxtCiu_K4wjWo2euGo6o8(this.f$0, editTextSetting2, str, str2, key);
             }
         };
         this.pendingSaveRunnable = runnable2;
         AndroidUtilities.runOnUIThread(runnable2, 750L);
     }
 
-    public static void $r8$lambda$Ta83XVBXVLaC75iTOLwtEhLaxn4(PluginEditTextCell pluginEditTextCell, final EditTextSetting editTextSetting, final String str, final String str2, final String str3) {
+    public static void $r8$lambda$IbrC_cSxtCiu_K4wjWo2euGo6o8(PluginEditTextCell pluginEditTextCell, final EditTextSetting editTextSetting, final String str, final String str2, final String str3) {
         pluginEditTextCell.pendingSaveRunnable = null;
-        PluginsController.INSTANCE.runOnPluginsQueue(new Runnable() { // from class: com.exteragram.messenger.plugins.ui.components.PluginEditTextCell$$ExternalSyntheticLambda2
+        PluginsController.INSTANCE.runOnPluginsQueue(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                PluginEditTextCell.scheduleSave$lambda$0$0(editTextSetting, str, str2, str3);
+                PluginEditTextCell.$r8$lambda$jcl0iUP5pG5MF2sgNmuVkCk7LY4(editTextSetting, str, str2, str3);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public static final void scheduleSave$lambda$0$0(EditTextSetting editTextSetting, String str, String str2, String str3) {
+    public static void $r8$lambda$jcl0iUP5pG5MF2sgNmuVkCk7LY4(EditTextSetting editTextSetting, String str, String str2, String str3) {
         if (editTextSetting.getMaxLength() > 0 && str.length() > editTextSetting.getMaxLength()) {
             str = str.substring(0, editTextSetting.getMaxLength());
         }
@@ -130,8 +136,15 @@ public final class PluginEditTextCell extends EditTextCell {
         }
     }
 
-    /* JADX WARN: Code duplicated, block: B:10:0x001a  */
-    public final void bind(String pluginId, EditTextSetting setting) {
+    public static void bind$default(PluginEditTextCell pluginEditTextCell, String str, EditTextSetting editTextSetting, CharSequence charSequence, int i, Object obj) {
+        if ((i & 4) != 0) {
+            charSequence = editTextSetting.getHint();
+        }
+        pluginEditTextCell.bind(str, editTextSetting, charSequence);
+    }
+
+    @JvmOverloads
+    public final void bind(String pluginId, EditTextSetting setting, CharSequence hint) {
         boolean z;
         InputFilter[] inputFilterArr;
         EditTextSetting editTextSetting = this.currentSetting;
@@ -150,6 +163,7 @@ public final class PluginEditTextCell extends EditTextCell {
         this.pluginId = pluginId;
         this.currentSetting = setting;
         setWatchersEnabled(false);
+        setMultiline(setting.getMultiline());
         int i = (setting.getMultiline() ? 131072 : 0) | 573441;
         if (this.editText.getInputType() != i) {
             this.editText.setInputType(i);
@@ -183,8 +197,11 @@ public final class PluginEditTextCell extends EditTextCell {
             setText(pluginSettingString);
         }
         this.valueToSave = pluginSettingString;
-        if (setting.getHint() != null) {
-            this.editText.setHint(setting.getHint());
+        if (hint == null) {
+            hint = setting.getHint();
+        }
+        if (hint != null) {
+            this.editText.setHint(hint);
         }
         setWatchersEnabled(true);
     }
@@ -197,28 +214,27 @@ public final class PluginEditTextCell extends EditTextCell {
     }
 
     private final InputFilter createInputFilter(String maskRegex) {
-        Pattern pattern = null;
+        final Pattern patternCompile = null;
         if (TextUtils.isEmpty(maskRegex)) {
             return null;
         }
         if (maskRegex != null) {
             try {
-                pattern = Pattern.compile(maskRegex);
+                patternCompile = Pattern.compile(maskRegex);
             } catch (PatternSyntaxException e) {
                 FileLog.e("Invalid mask for EditText: ".concat(maskRegex), e);
                 return null;
             }
         }
-        final Pattern patternCompile = pattern;
-        return new InputFilter() { // from class: com.exteragram.messenger.plugins.ui.components.PluginEditTextCell$$ExternalSyntheticLambda1
+        return new InputFilter() {
             @Override // android.text.InputFilter
             public final CharSequence filter(CharSequence charSequence, int i, int i2, Spanned spanned, int i3, int i4) {
-                return PluginEditTextCell.$r8$lambda$V7Y2RoWGJo4arI5W4MF0XsqMNDo(patternCompile, charSequence, i, i2, spanned, i3, i4);
+                return PluginEditTextCell.m1967$r8$lambda$yi_0eYqsHGvmzLBjgazYnBufaA(patternCompile, charSequence, i, i2, spanned, i3, i4);
             }
         };
     }
 
-    public static CharSequence $r8$lambda$V7Y2RoWGJo4arI5W4MF0XsqMNDo(Pattern pattern, CharSequence charSequence, int i, int i2, Spanned spanned, int i3, int i4) {
+    public static CharSequence m1967$r8$lambda$yi_0eYqsHGvmzLBjgazYnBufaA(Pattern pattern, CharSequence charSequence, int i, int i2, Spanned spanned, int i3, int i4) {
         Matcher matcher;
         StringBuilder sb = new StringBuilder(i2 - i);
         boolean z = true;
@@ -237,10 +253,9 @@ public final class PluginEditTextCell extends EditTextCell {
         return sb.toString();
     }
 
-    @Metadata(d1 = {"\u0000N\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\b\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\u0018\u0000 \u001b2\b\u0012\u0004\u0012\u00020\u00020\u0001:\u0001\u001bB\u0007¢\u0006\u0004\b\u0003\u0010\u0004J2\u0010\u0005\u001a\u00020\u00022\u0006\u0010\u0006\u001a\u00020\u00072\u0006\u0010\b\u001a\u00020\t2\u0006\u0010\n\u001a\u00020\u000b2\u0006\u0010\f\u001a\u00020\u000b2\b\u0010\r\u001a\u0004\u0018\u00010\u000eH\u0016J0\u0010\u000f\u001a\u00020\u00102\u0006\u0010\u0011\u001a\u00020\u00122\u0006\u0010\u0013\u001a\u00020\u00142\u0006\u0010\u0015\u001a\u00020\u00162\u0006\u0010\u0017\u001a\u00020\u00182\u0006\u0010\b\u001a\u00020\u0019H\u0016J\b\u0010\u001a\u001a\u00020\u0016H\u0016¨\u0006\u001c"}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/PluginEditTextCell$Factory;", "Lorg/telegram/ui/Components/UItem$UItemFactory;", "Lcom/exteragram/messenger/plugins/ui/components/PluginEditTextCell;", "<init>", "()V", "createView", "context", "Landroid/content/Context;", "listView", "Lorg/telegram/ui/Components/RecyclerListView;", "currentAccount", _UrlKt.FRAGMENT_ENCODE_SET, "classGuid", "resourcesProvider", "Lorg/telegram/ui/ActionBar/Theme$ResourcesProvider;", "bindView", _UrlKt.FRAGMENT_ENCODE_SET, "view", "Landroid/view/View;", "item", "Lorg/telegram/ui/Components/UItem;", "divider", _UrlKt.FRAGMENT_ENCODE_SET, "adapter", "Lorg/telegram/ui/Components/UniversalAdapter;", "Lorg/telegram/ui/Components/UniversalRecyclerView;", "isClickable", "Companion", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+    @Metadata(d1 = {"\u0000N\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\b\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\u0018\u0000 \u001b2\b\u0012\u0004\u0012\u00020\u00020\u0001:\u0001\u001bB\u0007¢\u0006\u0004\b\u0003\u0010\u0004J2\u0010\u0005\u001a\u00020\u00022\u0006\u0010\u0006\u001a\u00020\u00072\u0006\u0010\b\u001a\u00020\t2\u0006\u0010\n\u001a\u00020\u000b2\u0006\u0010\f\u001a\u00020\u000b2\b\u0010\r\u001a\u0004\u0018\u00010\u000eH\u0016J0\u0010\u000f\u001a\u00020\u00102\u0006\u0010\u0011\u001a\u00020\u00122\u0006\u0010\u0013\u001a\u00020\u00142\u0006\u0010\u0015\u001a\u00020\u00162\u0006\u0010\u0017\u001a\u00020\u00182\u0006\u0010\b\u001a\u00020\u0019H\u0016J\b\u0010\u001a\u001a\u00020\u0016H\u0016¨\u0006\u001c"}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/PluginEditTextCell$Factory;", "Lorg/telegram/ui/Components/UItem$UItemFactory;", "Lcom/exteragram/messenger/plugins/ui/components/PluginEditTextCell;", "<init>", "()V", "createView", "context", "Landroid/content/Context;", "listView", "Lorg/telegram/ui/Components/RecyclerListView;", "currentAccount", _UrlKt.FRAGMENT_ENCODE_SET, "classGuid", "resourcesProvider", "Lorg/telegram/ui/ActionBar/Theme$ResourcesProvider;", "bindView", _UrlKt.FRAGMENT_ENCODE_SET, PluginsConstants.Settings.VIEW, "Landroid/view/View;", PluginsConstants.Settings.ITEM, "Lorg/telegram/ui/Components/UItem;", PluginsConstants.Settings.TYPE_DIVIDER, _UrlKt.FRAGMENT_ENCODE_SET, "adapter", "Lorg/telegram/ui/Components/UniversalAdapter;", "Lorg/telegram/ui/Components/UniversalRecyclerView;", "isClickable", "Companion", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
     public static final class Factory extends UItem.UItemFactory<PluginEditTextCell> {
 
-        /* JADX INFO: renamed from: Companion, reason: from kotlin metadata */
         public static final Companion INSTANCE = new Companion(null);
 
         @JvmStatic
@@ -249,7 +264,7 @@ public final class PluginEditTextCell extends EditTextCell {
         }
 
         @Override // org.telegram.ui.Components.UItem.UItemFactory
-        public boolean isClickable() {
+        public boolean getIsClickableValue() {
             return false;
         }
 
@@ -264,7 +279,7 @@ public final class PluginEditTextCell extends EditTextCell {
                 Object obj = item.object;
                 if (obj instanceof Plugin) {
                     PluginEditTextCell pluginEditTextCell = (PluginEditTextCell) view;
-                    pluginEditTextCell.bind(((Plugin) obj).getId(), (EditTextSetting) item.settingItem);
+                    pluginEditTextCell.bind(((Plugin) obj).getId(), (EditTextSetting) item.settingItem, item.text);
                     pluginEditTextCell.setDivider(divider);
                 }
             }
@@ -272,7 +287,7 @@ public final class PluginEditTextCell extends EditTextCell {
 
         @Metadata(d1 = {"\u0000\u001e\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\b\u0086\u0003\u0018\u00002\u00020\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\u0018\u0010\u0004\u001a\u00020\u00052\u0006\u0010\u0006\u001a\u00020\u00072\u0006\u0010\b\u001a\u00020\tH\u0007¨\u0006\n"}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/PluginEditTextCell$Factory$Companion;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "as", "Lorg/telegram/ui/Components/UItem;", "plugin", "Lcom/exteragram/messenger/plugins/Plugin;", "setting", "Lcom/exteragram/messenger/plugins/models/EditTextSetting;", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
         public static final class Companion {
-            public /* synthetic */ Companion(DefaultConstructorMarker defaultConstructorMarker) {
+            public Companion(DefaultConstructorMarker defaultConstructorMarker) {
                 this();
             }
 

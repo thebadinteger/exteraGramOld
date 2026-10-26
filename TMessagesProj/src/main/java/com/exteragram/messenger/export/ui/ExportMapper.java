@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import okhttp3.internal.url._UrlKt;
-import org.scilab.forge.jlatexmath.TeXSymbolParser;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.MessageObject;
@@ -183,7 +182,7 @@ public class ExportMapper {
         @SerializedName("name")
         public String name;
 
-        @SerializedName(TeXSymbolParser.TYPE_ATTR)
+        @SerializedName("type")
         public String type;
     }
 
@@ -195,7 +194,7 @@ public class ExportMapper {
         @SerializedName("text")
         public String text;
 
-        @SerializedName(TeXSymbolParser.TYPE_ATTR)
+        @SerializedName("type")
         public String type;
     }
 
@@ -222,7 +221,7 @@ public class ExportMapper {
         @SerializedName("text_entities")
         public List<Entity> text_entities;
 
-        @SerializedName(TeXSymbolParser.TYPE_ATTR)
+        @SerializedName("type")
         public String type;
     }
 
@@ -410,37 +409,68 @@ public class ExportMapper {
         return new Pair<>(sb.toString(), arrayList);
     }
 
-    private TLRPC.MessageMedia mapMedia(final JsonMessage jsonMessage) {
+    private TLRPC.MessageMedia mapMedia(final JsonMessage jsonMessage) throws Throwable {
+        NativeByteBuffer nativeByteBuffer;
+        Utilities.Callback0Return callback0Return = new Utilities.Callback0Return() {
+            @Override // org.telegram.messenger.Utilities.Callback0Return
+            public final Object run() {
+                return this.f$0.lambda$mapMedia$0(jsonMessage);
+            }
+        };
         String str = jsonMessage.media.mediaType;
         if (str == null) {
-            return lambda$mapMedia$0(jsonMessage);
+            return (TLRPC.MessageMedia) callback0Return.run();
         }
+        str.getClass();
         switch (str) {
             case "sticker":
-                try {
-                    byte[] bArrDecode = Base64.decode(jsonMessage.media.serializedSticker, 0);
-                    NativeByteBuffer nativeByteBuffer = new NativeByteBuffer(bArrDecode.length);
-                    try {
-                        nativeByteBuffer.buffer.put(bArrDecode);
-                        nativeByteBuffer.rewind();
-                        TLRPC.MessageMedia messageMediaTLdeserialize = TLRPC.MessageMedia.TLdeserialize(nativeByteBuffer, nativeByteBuffer.readInt32(false), false);
-                        nativeByteBuffer.reuse();
-                        return messageMediaTLdeserialize;
-                    } catch (Exception e) {
-                        FileLog.e("Export: failed to deserialize sticker: ", e);
-                        nativeByteBuffer.reuse();
-                        return null;
-                    }
-                } catch (Exception e2) {
-                    FileLog.e("Export: failed to decode sticker: ", e2);
-                    return null;
-                }
             case "video_file":
             case "video_message":
             case "voice_message":
             case "animation":
             case "audio_file":
-                return lambda$mapMedia$0(jsonMessage);
+                if (jsonMessage.media.mediaType.equals("sticker")) {
+                    byte[] bArrDecode = Base64.decode(jsonMessage.media.serializedSticker, 0);
+                    NativeByteBuffer nativeByteBuffer2 = null;
+                    try {
+                        nativeByteBuffer = new NativeByteBuffer(bArrDecode.length);
+                        try {
+                            try {
+                                nativeByteBuffer.buffer.put(bArrDecode);
+                                nativeByteBuffer.rewind();
+                                TLRPC.MessageMedia messageMediaTLdeserialize = TLRPC.MessageMedia.TLdeserialize(nativeByteBuffer, nativeByteBuffer.readInt32(false), false);
+                                nativeByteBuffer.reuse();
+                                return messageMediaTLdeserialize;
+                            } catch (Exception e) {
+                                e = e;
+                                FileLog.e("Export: failed to deserialize sticker: ", e);
+                                if (nativeByteBuffer != null) {
+                                    nativeByteBuffer.reuse();
+                                }
+                                return null;
+                            }
+                        } catch (Throwable th) {
+                            th = th;
+                            nativeByteBuffer2 = nativeByteBuffer;
+                            if (nativeByteBuffer2 != null) {
+                                nativeByteBuffer2.reuse();
+                            }
+                            throw th;
+                        }
+                    } catch (Exception e2) {
+                        e = e2;
+                        nativeByteBuffer = null;
+                    } catch (Throwable th2) {
+                        th = th2;
+                        if (nativeByteBuffer2 != null) {
+                            nativeByteBuffer2.reuse();
+                        }
+                        throw th;
+                    }
+                } else {
+                    return (TLRPC.MessageMedia) callback0Return.run();
+                }
+                break;
             case "paidMedia":
                 TLRPC.TL_messageMediaPaidMedia tL_messageMediaPaidMedia = new TLRPC.TL_messageMediaPaidMedia();
                 tL_messageMediaPaidMedia.stars_amount = jsonMessage.media.paidStarsAmount;
@@ -449,20 +479,20 @@ public class ExportMapper {
                 TLRPC.TL_messageMediaGiveawayResults tL_messageMediaGiveawayResults = new TLRPC.TL_messageMediaGiveawayResults();
                 GiveawayResults giveawayResults = jsonMessage.media.giveawayResults;
                 tL_messageMediaGiveawayResults.channel_id = Utilities.parseLong(giveawayResults.channel).longValue();
-                tL_messageMediaGiveawayResults.winners = new ArrayList<>();
-                if (giveawayResults.winners != null) {
-                    for (String w : giveawayResults.winners) {
-                        tL_messageMediaGiveawayResults.winners.add(Utilities.parseLong(w));
+                tL_messageMediaGiveawayResults.winners = (ArrayList) giveawayResults.winners.stream().map(new Function() {
+                    @Override // java.util.function.Function
+                    public final Object apply(Object obj) {
+                        return Utilities.parseLong((String) obj);
                     }
-                }
+                }).collect(Collectors.toCollection(java.util.ArrayList::new));
                 tL_messageMediaGiveawayResults.prize_description = giveawayResults.additionalPrize;
-                tL_messageMediaGiveawayResults.until_date = Utilities.parseInt((CharSequence) giveawayResults.untilDate).intValue();
-                tL_messageMediaGiveawayResults.launch_msg_id = Utilities.parseInt((CharSequence) giveawayResults.launchMessageId).intValue();
-                tL_messageMediaGiveawayResults.additional_peers_count = Utilities.parseInt((CharSequence) giveawayResults.additionalPeersCount).intValue();
-                tL_messageMediaGiveawayResults.winners_count = Utilities.parseInt((CharSequence) giveawayResults.winnersCount).intValue();
-                tL_messageMediaGiveawayResults.unclaimed_count = Utilities.parseInt((CharSequence) giveawayResults.unclaimedCount).intValue();
-                tL_messageMediaGiveawayResults.months = Utilities.parseInt((CharSequence) giveawayResults.months).intValue();
-                tL_messageMediaGiveawayResults.stars = Utilities.parseInt((CharSequence) giveawayResults.stars).intValue();
+                tL_messageMediaGiveawayResults.until_date = Utilities.parseInt((CharSequence) giveawayResults.untilDate);
+                tL_messageMediaGiveawayResults.launch_msg_id = Utilities.parseInt((CharSequence) giveawayResults.launchMessageId);
+                tL_messageMediaGiveawayResults.additional_peers_count = Utilities.parseInt((CharSequence) giveawayResults.additionalPeersCount);
+                tL_messageMediaGiveawayResults.winners_count = Utilities.parseInt((CharSequence) giveawayResults.winnersCount);
+                tL_messageMediaGiveawayResults.unclaimed_count = Utilities.parseInt((CharSequence) giveawayResults.unclaimedCount);
+                tL_messageMediaGiveawayResults.months = Utilities.parseInt((CharSequence) giveawayResults.months);
+                tL_messageMediaGiveawayResults.stars = Utilities.parseInt((CharSequence) giveawayResults.stars);
                 tL_messageMediaGiveawayResults.refunded = giveawayResults.isRefunded;
                 tL_messageMediaGiveawayResults.only_new_subscribers = giveawayResults.onlyNewSubscribers;
                 return tL_messageMediaGiveawayResults;
@@ -488,7 +518,7 @@ public class ExportMapper {
                     tL_poll.answers.add(tL_pollAnswer);
                 }
                 TLRPC.TL_pollResults tL_pollResults = new TLRPC.TL_pollResults();
-                tL_pollResults.total_voters = Utilities.parseInt((CharSequence) jsonMessage.media.poll.totalVotes).intValue();
+                tL_pollResults.total_voters = Utilities.parseInt((CharSequence) jsonMessage.media.poll.totalVotes);
                 tL_messageMediaPoll.poll = tL_poll;
                 tL_messageMediaPoll.results = tL_pollResults;
                 return tL_messageMediaPoll;
@@ -513,7 +543,7 @@ public class ExportMapper {
                 tL_photoSize.h = media3.height;
                 tL_photoSize.type = "y";
                 tL_photoSize.location = new ExportFileLocation(this.path);
-                tL_photoSize.size = Utilities.parseInt((CharSequence) ((jsonMessage.media.size / 1024) + "")).intValue();
+                tL_photoSize.size = Utilities.parseInt((CharSequence) ((jsonMessage.media.size / 1024) + _UrlKt.FRAGMENT_ENCODE_SET));
                 tL_messageMediaPhoto.photo.sizes.add(tL_photoSize);
                 return tL_messageMediaPhoto;
             case "venue":
@@ -558,18 +588,18 @@ public class ExportMapper {
                 tL_messageMediaInvoice.total_amount = Utilities.parseLong(invoiceInformation.amount).longValue();
                 InvoiceInformation invoiceInformation2 = jsonMessage.media.invoice;
                 tL_messageMediaInvoice.currency = invoiceInformation2.currency;
-                tL_messageMediaInvoice.receipt_msg_id = Utilities.parseInt((CharSequence) invoiceInformation2.receiptMsgId).intValue();
+                tL_messageMediaInvoice.receipt_msg_id = Utilities.parseInt((CharSequence) invoiceInformation2.receiptMsgId);
                 return tL_messageMediaInvoice;
             case "giveawayStart":
                 TLRPC.TL_messageMediaGiveaway tL_messageMediaGiveaway = new TLRPC.TL_messageMediaGiveaway();
                 GiveawayInformation giveawayInformation = jsonMessage.media.giveawayInformation;
-                tL_messageMediaGiveaway.quantity = Utilities.parseInt((CharSequence) giveawayInformation.quantity).intValue();
-                tL_messageMediaGiveaway.months = Utilities.parseInt((CharSequence) giveawayInformation.months).intValue();
-                tL_messageMediaGiveaway.until_date = Utilities.parseInt((CharSequence) giveawayInformation.until_date).intValue();
+                tL_messageMediaGiveaway.quantity = Utilities.parseInt((CharSequence) giveawayInformation.quantity);
+                tL_messageMediaGiveaway.months = Utilities.parseInt((CharSequence) giveawayInformation.months);
+                tL_messageMediaGiveaway.until_date = Utilities.parseInt((CharSequence) giveawayInformation.until_date);
                 tL_messageMediaGiveaway.channels = new ArrayList<>(giveawayInformation.channels);
                 tL_messageMediaGiveaway.countries_iso2 = new ArrayList<>(giveawayInformation.countries);
                 tL_messageMediaGiveaway.prize_description = giveawayInformation.additionalPrize;
-                tL_messageMediaGiveaway.stars = Utilities.parseInt((CharSequence) giveawayInformation.stars).intValue();
+                tL_messageMediaGiveaway.stars = Utilities.parseInt((CharSequence) giveawayInformation.stars);
                 tL_messageMediaGiveaway.only_new_subscribers = giveawayInformation.onlyNew;
                 return tL_messageMediaGiveaway;
             default:

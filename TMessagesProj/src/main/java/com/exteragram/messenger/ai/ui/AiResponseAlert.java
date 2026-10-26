@@ -9,14 +9,10 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
+import android.text.Layout;
 import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.TextPaint;
 import android.text.TextUtils;
-import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.URLSpan;
@@ -35,40 +31,41 @@ import androidx.core.math.MathUtils;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.android.tools.r8.RecordTag;
 import com.exteragram.messenger.ai.AiConfig;
 import com.exteragram.messenger.ai.AiController;
+import com.exteragram.messenger.ai.data.Message;
+import com.exteragram.messenger.ai.data.Role;
 import com.exteragram.messenger.ai.data.Service;
 import com.exteragram.messenger.ai.network.Client;
 import com.exteragram.messenger.ai.network.GenerationCallback;
-import io.noties.markwon.AbstractMarkwonPlugin;
-import io.noties.markwon.Markwon;
-import io.noties.markwon.core.CorePlugin;
-import io.noties.markwon.core.MarkwonTheme;
-import io.noties.markwon.ext.strikethrough.StrikethroughPlugin;
-import io.noties.markwon.ext.tables.TablePlugin;
-import io.noties.markwon.ext.tables.TableTheme;
-import io.noties.markwon.html.HtmlPlugin;
-import io.noties.markwon.inlineparser.MarkwonInlineParserPlugin;
+import com.exteragram.messenger.ai.network.backend.OnDeviceAvailability;
 import java.util.ArrayList;
+import java.util.Objects;
+import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
+import okhttp3.internal.url._UrlKt;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.Emoji;
+import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LinkifyPort;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.messenger.RichMessageLayout;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
-import org.telegram.messenger.XiaomiUtilities;
 import org.telegram.messenger.utils.DrawableUtils;
 import org.telegram.tgnet.TLObject;
+import org.telegram.tgnet.tl.TL_iv;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.ActionBarMenuSubItem;
-import org.telegram.ui.ActionBar.ActionBarPopupWindow;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.DialogCell;
+import org.telegram.ui.Cells.TextSelectionHelper;
 import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.Components.AnimatedFloat;
 import org.telegram.ui.Components.AnimatedTextView;
@@ -77,38 +74,52 @@ import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.ColoredImageSpan;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.EllipsizeSpanAnimator;
+import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.LinkPath;
 import org.telegram.ui.Components.LinkSpanDrawable;
 import org.telegram.ui.Components.LoadingDrawable;
+import org.telegram.ui.Components.MarkdownParser;
+import org.telegram.ui.Components.QuoteSpan;
 import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.ScaleStateListAnimator;
 import org.telegram.ui.Components.TypingDotsDrawable;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
+import org.telegram.ui.iv.RichMessageConvert;
 
 public abstract class AiResponseAlert extends BottomSheet implements NotificationCenter.NotificationCenterDelegate {
     private final PaddedAdapter adapter;
     private final Client client;
+    private final View contextDivider;
+    private final LinearLayout contextView;
     private String currentRequestId;
     private CharSequence currentResponse;
+    private TL_iv.RichMessage currentRichMessage;
     EllipsizeSpanAnimator ellipsizeSpanAnimator;
+    private boolean errorState;
     private BaseFragment fragment;
+    private boolean generating;
     private final HeaderView headerView;
     private String imagePath;
     private final RecyclerListView listView;
     private final LoadingTextView loadingTextView;
     private final ButtonWithCounterView mainButton;
-    private final Markwon markwon;
-    private Utilities.Callback2<String, CharSequence> onInsertPress;
+    private Utilities.Callback3<String, CharSequence, TL_iv.RichMessage> onInsertPress;
     private Utilities.CallbackReturn<URLSpan, Boolean> onLinkPress;
+    private int parseGeneration;
+    private boolean parsingMarkdown;
+    private String pendingMarkdown;
+    private final RichMessageLayout.PreviewView previewView;
     private String prompt;
+    private final TextView promptTextView;
+    private final ResponseContainer responseContainer;
     private final AnimatedFloat sheetTopAnimated;
     private boolean sheetTopNotAnimate;
-    private Spanned spannedPrompt;
-    private final LinkSpanDrawable.LinksTextView textView;
-    private final FrameLayout textViewContainer;
+    private final TextSelectionHelper.ArticleTextSelectionHelper textSelectionHelper;
+    private final TextSelectionHelper<?>.TextSelectionOverlay textSelectionOverlay;
     private final ThinkingDotsView thinkingDotsView;
     private boolean thinkingVisible;
+    private boolean turnSaved;
     private boolean useHistory;
 
     @Override // org.telegram.ui.ActionBar.BottomSheet
@@ -116,12 +127,11 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
         return false;
     }
 
-    private AiResponseAlert(Context context, final Client client, String str, String str2, boolean z, Theme.ResourcesProvider resourcesProvider) {
+    private AiResponseAlert(Context context, Client client, String str, String str2, boolean z, Theme.ResourcesProvider resourcesProvider) {
         super(context, false, resourcesProvider);
         this.client = client;
         this.imagePath = str2;
         this.useHistory = z;
-        this.markwon = createMarkwon(context);
         this.backgroundPaddingLeft = 0;
         fixNavigationBar();
         ContainerView containerView = new ContainerView(context);
@@ -136,54 +146,56 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
         loadingTextView.setTypeface(AndroidUtilities.regular());
         loadingTextView.setLinkTextColor(Theme.multAlpha(getThemedColor(i), 0.2f));
         this.thinkingDotsView = new ThinkingDotsView(context, getThemedColor(i));
-        setPrompt(str.trim());
-        this.textViewContainer = new FrameLayout(context) { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert.1
-            @Override // android.widget.FrameLayout, android.view.View
-            public void onMeasure(int i2, int i3) {
-                super.onMeasure(View.MeasureSpec.makeMeasureSpec(View.MeasureSpec.getSize(i2), TLObject.FLAG_30), i3);
+        TextView textView = new TextView(context);
+        this.promptTextView = textView;
+        textView.setPadding(AndroidUtilities.dp(22.0f), AndroidUtilities.dp(12.0f), AndroidUtilities.dp(22.0f), 0);
+        textView.setTextSize(1, SharedConfig.fontSize);
+        textView.setTypeface(AndroidUtilities.regular());
+        textView.setTextColor(getThemedColor(Theme.key_player_actionBarSubtitle));
+        RichMessageLayout.PreviewView previewView = new RichMessageLayout.PreviewView(context, UserConfig.selectedAccount, createRichResourcesProvider());
+        this.previewView = previewView;
+        previewView.setPadding(AndroidUtilities.dp(22.0f), AndroidUtilities.dp(12.0f), AndroidUtilities.dp(22.0f), AndroidUtilities.dp(6.0f));
+        previewView.setOnLinkPress(new Utilities.Callback() {
+            @Override // org.telegram.messenger.Utilities.Callback
+            public final void run(Object obj) {
+                this.f$0.lambda$new$0((URLSpan) obj);
+            }
+        });
+        LinearLayout linearLayout = new LinearLayout(context) {
+            @Override // android.view.View
+            public boolean hasOverlappingRendering() {
+                return false;
             }
         };
-        LinkSpanDrawable.LinksTextView linksTextView = new LinkSpanDrawable.LinksTextView(context, resourcesProvider);
-        this.textView = linksTextView;
-        linksTextView.setDisablePaddingsOffsetY(true);
-        linksTextView.setPadding(AndroidUtilities.dp(22.0f), AndroidUtilities.dp(12.0f), AndroidUtilities.dp(22.0f), AndroidUtilities.dp(6.0f));
-        linksTextView.setTextSize(1, SharedConfig.fontSize);
-        linksTextView.setTypeface(AndroidUtilities.regular());
-        linksTextView.setTextColor(getThemedColor(i));
-        linksTextView.setLinkTextColor(getThemedColor(Theme.key_chat_messageLinkIn));
-        linksTextView.setTextIsSelectable(true);
-        linksTextView.setHighlightColor(getThemedColor(Theme.key_chat_inTextSelectionHighlight));
-        int themedColor = getThemedColor(Theme.key_chat_TextSelectionCursor);
-        try {
-            if (Build.VERSION.SDK_INT >= 29 && !XiaomiUtilities.isMIUI()) {
-                Drawable textSelectHandleLeft = linksTextView.getTextSelectHandleLeft();
-                if (textSelectHandleLeft != null) {
-                    textSelectHandleLeft.setColorFilter(themedColor, PorterDuff.Mode.SRC_IN);
-                    linksTextView.setTextSelectHandleLeft(textSelectHandleLeft);
-                }
-                Drawable textSelectHandleRight = linksTextView.getTextSelectHandleRight();
-                if (textSelectHandleRight != null) {
-                    textSelectHandleRight.setColorFilter(themedColor, PorterDuff.Mode.SRC_IN);
-                    linksTextView.setTextSelectHandleRight(textSelectHandleRight);
-                }
-            }
-        } catch (Exception unused) {
-        }
-        this.textViewContainer.addView(this.textView, LayoutHelper.createFrame(-1, -1.0f));
-        RecyclerListView recyclerListView = new RecyclerListView(context, resourcesProvider) { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert.2
+        this.contextView = linearLayout;
+        linearLayout.setOrientation(1);
+        linearLayout.setAlpha(0.55f);
+        linearLayout.setVisibility(8);
+        View view = new View(context);
+        this.contextDivider = view;
+        view.setBackgroundColor(Theme.multAlpha(getThemedColor(Theme.key_divider), 0.75f));
+        view.setVisibility(8);
+        ResponseContainer responseContainer = new ResponseContainer(context);
+        this.responseContainer = responseContainer;
+        responseContainer.addView(linearLayout, LayoutHelper.createLinear(-1, -2));
+        responseContainer.addView(view, LayoutHelper.createLinear(-1, 1, 22.0f, 10.0f, 22.0f, 0.0f));
+        responseContainer.addView(textView, LayoutHelper.createLinear(-1, -2));
+        responseContainer.addView(previewView, LayoutHelper.createLinear(-1, -2));
+        setPrompt(str.trim());
+        RecyclerListView recyclerListView = new RecyclerListView(context, resourcesProvider) {
             @Override // androidx.recyclerview.widget.RecyclerView, android.view.ViewGroup
             public boolean onRequestFocusInDescendants(int i2, Rect rect) {
                 return true;
             }
 
             @Override // androidx.recyclerview.widget.RecyclerView, android.view.ViewGroup, android.view.ViewParent
-            public void requestChildFocus(View view, View view2) {
+            public void requestChildFocus(View view2, View view3) {
             }
 
             @Override // org.telegram.ui.Components.RecyclerListView, android.view.ViewGroup, android.view.View
             public boolean dispatchTouchEvent(MotionEvent motionEvent) {
                 if (motionEvent.getAction() == 0 && motionEvent.getY() < AiResponseAlert.this.getSheetTop() - getTop()) {
-                    AiResponseAlert.this.dismiss();
+                    AiResponseAlert.this.lambda$new$0();
                     return true;
                 }
                 return super.dispatchTouchEvent(motionEvent);
@@ -193,14 +205,16 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
         recyclerListView.setOverScrollMode(1);
         recyclerListView.setPadding(0, AndroidUtilities.statusBarHeight + AndroidUtilities.dp(56.0f), 0, AndroidUtilities.dp(80.0f));
         recyclerListView.setClipToPadding(true);
-        recyclerListView.setLayoutManager(new LinearLayoutManager(context));
-        PaddedAdapter paddedAdapter = new PaddedAdapter(context, this.loadingTextView);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
+        recyclerListView.setLayoutManager(linearLayoutManager);
+        PaddedAdapter paddedAdapter = new PaddedAdapter(context, loadingTextView);
         this.adapter = paddedAdapter;
         recyclerListView.setAdapter(paddedAdapter);
-        recyclerListView.setOnScrollListener(new RecyclerView.OnScrollListener() { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert.3
+        recyclerListView.setOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override // androidx.recyclerview.widget.RecyclerView.OnScrollListener
             public void onScrolled(RecyclerView recyclerView, int i2, int i3) {
-                AiResponseAlert.this.containerView.invalidate();
+                ((BottomSheet) AiResponseAlert.this).containerView.invalidate();
+                AiResponseAlert.this.textSelectionHelper.onParentScrolled();
             }
 
             @Override // androidx.recyclerview.widget.RecyclerView.OnScrollListener
@@ -214,21 +228,30 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
                 }
             }
         });
-        DefaultItemAnimator defaultItemAnimator = new DefaultItemAnimator() { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert.4
+        DefaultItemAnimator defaultItemAnimator = new DefaultItemAnimator() {
             @Override // androidx.recyclerview.widget.DefaultItemAnimator
             public void onChangeAnimationUpdate(RecyclerView.ViewHolder viewHolder) {
-                AiResponseAlert.this.containerView.invalidate();
+                ((BottomSheet) AiResponseAlert.this).containerView.invalidate();
             }
 
             @Override // androidx.recyclerview.widget.DefaultItemAnimator
             public void onMoveAnimationUpdate(RecyclerView.ViewHolder viewHolder) {
-                AiResponseAlert.this.containerView.invalidate();
+                ((BottomSheet) AiResponseAlert.this).containerView.invalidate();
             }
         };
         defaultItemAnimator.setDurations(180L);
         defaultItemAnimator.setInterpolator(new LinearInterpolator());
         recyclerListView.setItemAnimator(defaultItemAnimator);
         this.containerView.addView(recyclerListView, LayoutHelper.createFrame(-1, -2, 80));
+        TextSelectionHelper.ArticleTextSelectionHelper articleTextSelectionHelper = new TextSelectionHelper.ArticleTextSelectionHelper();
+        this.textSelectionHelper = articleTextSelectionHelper;
+        articleTextSelectionHelper.setParentView(recyclerListView);
+        articleTextSelectionHelper.layoutManager = linearLayoutManager;
+        TextSelectionHelper<?>.TextSelectionOverlay overlayView = articleTextSelectionHelper.getOverlayView(context);
+        this.textSelectionOverlay = overlayView;
+        AndroidUtilities.removeFromParent(overlayView);
+        this.containerView.addView(overlayView, LayoutHelper.createFrame(-1, -1, 119));
+        previewView.setTextSelectionHelper(articleTextSelectionHelper);
         HeaderView headerView = new HeaderView(context);
         this.headerView = headerView;
         this.containerView.addView(headerView, LayoutHelper.createFrame(-1, 78, 55));
@@ -236,58 +259,92 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
         this.mainButton = buttonWithCounterView;
         buttonWithCounterView.setRound();
         buttonWithCounterView.setColor(getThemedColor(Theme.key_featuredStickers_addButton));
-        buttonWithCounterView.setText(LocaleController.getString(R.string.Close), false);
-        buttonWithCounterView.setLoading(true);
-        buttonWithCounterView.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert$$ExternalSyntheticLambda0
+        buttonWithCounterView.setText(LocaleController.getString(R.string.Stop), false);
+        this.generating = true;
+        buttonWithCounterView.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
-            public final void onClick(View view) {
-                AiResponseAlert.this.lambda$new$0(client, view);
+            public final void onClick(View view2) {
+                this.f$0.lambda$new$1(view2);
             }
         });
         this.containerView.addView(buttonWithCounterView, LayoutHelper.createFrame(-1, 48.0f, 87, 16.0f, 16.0f, 16.0f, 16.0f));
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$0(Client client, View view) {
-        client.stopRequest(this.currentRequestId);
-        dismiss();
+    public void lambda$new$0(URLSpan uRLSpan) {
+        openUrl(uRLSpan.getURL());
     }
 
-    private Markwon createMarkwon(Context context) {
-        final int themedColor = getThemedColor(Theme.key_dialogTextBlack);
-        final int themedColor2 = getThemedColor(Theme.key_dialogTextLink);
-        int themedColor3 = getThemedColor(Theme.key_windowBackgroundGray);
-        final int iBlendARGB = ColorUtils.blendARGB(themedColor3, themedColor, 0.04f);
-        final int iBlendARGB2 = ColorUtils.blendARGB(themedColor3, themedColor, 0.06f);
-        final int iMultAlpha = Theme.multAlpha(themedColor, 0.16f);
-        final int iMultAlpha2 = Theme.multAlpha(themedColor, 0.08f);
-        final int iMultAlpha3 = Theme.multAlpha(themedColor, 0.04f);
-        return Markwon.builderNoCore(context).usePlugin(CorePlugin.create().hasExplicitMovementMethod(true)).usePlugin(new AbstractMarkwonPlugin() { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert.5
-            @Override // io.noties.markwon.AbstractMarkwonPlugin, io.noties.markwon.MarkwonPlugin
-            public void configureTheme(MarkwonTheme.Builder builder) {
-                MarkwonTheme.Builder builderCodeBlockTextSize = builder.linkColor(themedColor2).isLinkUnderlined(false).blockMargin(AndroidUtilities.dp(16.0f)).blockQuoteWidth(AndroidUtilities.dp(3.0f)).blockQuoteColor(themedColor2).listItemColor(themedColor).bulletListItemStrokeWidth(AndroidUtilities.dp(1.0f)).bulletWidth(AndroidUtilities.dp(4.0f)).codeTextColor(themedColor).codeBlockTextColor(themedColor).codeBackgroundColor(iBlendARGB).codeBlockBackgroundColor(iBlendARGB2).codeBlockMargin(AndroidUtilities.dp(12.0f)).codeTextSize(AndroidUtilities.dp((int) (SharedConfig.fontSize * 0.92f))).codeBlockTextSize(AndroidUtilities.dp((int) (SharedConfig.fontSize * 0.92f)));
-                Typeface typeface = Typeface.MONOSPACE;
-                builderCodeBlockTextSize.codeTypeface(typeface).codeBlockTypeface(typeface).headingBreakHeight(0).headingBreakColor(Theme.multAlpha(themedColor, 0.12f)).headingTextSizeMultipliers(new float[]{1.25f, 1.18f, 1.12f, 1.06f, 1.0f, 1.0f}).thematicBreakColor(Theme.multAlpha(themedColor, 0.12f)).thematicBreakHeight(AndroidUtilities.dp(1.0f));
+    public void lambda$new$1(View view) {
+        if (this.errorState) {
+            regenerate();
+        } else if (this.generating) {
+            stopGeneration();
+        } else {
+            lambda$new$0();
+        }
+    }
+
+    private Theme.ResourcesProvider createRichResourcesProvider() {
+        final Theme.ResourcesProvider resourcesProvider = this.resourcesProvider;
+        return new Theme.ResourcesProvider() {
+            @Override // org.telegram.ui.ActionBar.Theme.ResourcesProvider
+            public int getColor(int i) {
+                if (i == Theme.key_chat_messageTextIn || i == Theme.key_chat_messageTextOut) {
+                    i = Theme.key_dialogTextBlack;
+                } else if (i == Theme.key_chat_messageLinkIn || i == Theme.key_chat_messageLinkOut) {
+                    i = Theme.key_dialogTextLink;
+                }
+                return Theme.getColor(i, resourcesProvider);
             }
-        }).usePlugin(MarkwonInlineParserPlugin.create()).usePlugin(StrikethroughPlugin.create()).usePlugin(TablePlugin.create(new TablePlugin.ThemeConfigure() { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert$$ExternalSyntheticLambda1
-            @Override // io.noties.markwon.ext.tables.TablePlugin.ThemeConfigure
-            public final void configureTheme(TableTheme.Builder builder) {
-                int i = iMultAlpha;
-                builder.tableCellPadding(AndroidUtilities.dp(8.0f)).tableBorderWidth(AndroidUtilities.dp(1.0f)).tableBorderColor(i).tableHeaderRowBackgroundColor(iMultAlpha2).tableOddRowBackgroundColor(iMultAlpha3);
+
+            @Override // org.telegram.ui.ActionBar.Theme.ResourcesProvider
+            public Drawable getDrawable(String str) {
+                Theme.ResourcesProvider resourcesProvider2 = resourcesProvider;
+                if (resourcesProvider2 == null) {
+                    return null;
+                }
+                return resourcesProvider2.getDrawable(str);
             }
-        })).usePlugin(HtmlPlugin.create()).build();
+
+            @Override // org.telegram.ui.ActionBar.Theme.ResourcesProvider
+            public Paint getPaint(String str) {
+                Theme.ResourcesProvider resourcesProvider2 = resourcesProvider;
+                return resourcesProvider2 == null ? Theme.getThemePaint(str) : resourcesProvider2.getPaint(str);
+            }
+
+            @Override // org.telegram.ui.ActionBar.Theme.ResourcesProvider
+            public boolean hasGradientService() {
+                Theme.ResourcesProvider resourcesProvider2 = resourcesProvider;
+                return resourcesProvider2 != null && resourcesProvider2.hasGradientService();
+            }
+
+            @Override // org.telegram.ui.ActionBar.Theme.ResourcesProvider
+            public boolean isDark() {
+                Theme.ResourcesProvider resourcesProvider2 = resourcesProvider;
+                return resourcesProvider2 == null ? Theme.isCurrentThemeDark() : resourcesProvider2.isDark();
+            }
+
+            @Override // org.telegram.ui.ActionBar.Theme.ResourcesProvider
+            public void applyServiceShaderMatrix(int i, int i2, float f, float f2) {
+                Theme.ResourcesProvider resourcesProvider2 = resourcesProvider;
+                if (resourcesProvider2 == null) {
+                    Theme.applyServiceShaderMatrix(i, i2, f, f2);
+                } else {
+                    resourcesProvider2.applyServiceShaderMatrix(i, i2, f, f2);
+                }
+            }
+        };
     }
 
-    public static AiResponseAlert showAlert(BaseFragment baseFragment, Client client, String str, boolean z, boolean z2, Utilities.CallbackReturn<URLSpan, Boolean> callbackReturn, Runnable runnable, Utilities.Callback2<String, CharSequence> callback2) {
-        return showAlert(baseFragment, client, str, null, z, z2, callbackReturn, runnable, callback2);
+    public static AiResponseAlert showAlert(BaseFragment baseFragment, Client client, String str, boolean z, boolean z2, Utilities.CallbackReturn<URLSpan, Boolean> callbackReturn, Runnable runnable, Utilities.Callback3<String, CharSequence, TL_iv.RichMessage> callback3) {
+        return showAlert(baseFragment, client, str, null, z, z2, callbackReturn, runnable, callback3);
     }
 
-    public static AiResponseAlert showAlert(BaseFragment baseFragment, Client client, String str, String str2, boolean z, boolean z2, Utilities.CallbackReturn<URLSpan, Boolean> callbackReturn, final Runnable runnable, Utilities.Callback2<String, CharSequence> callback2) {
-        AiResponseAlert aiResponseAlert = new AiResponseAlert(baseFragment.getContext(), client, str, str2, z, baseFragment.getResourceProvider()) { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert.6
+    public static AiResponseAlert showAlert(BaseFragment baseFragment, Client client, String str, String str2, boolean z, boolean z2, Utilities.CallbackReturn<URLSpan, Boolean> callbackReturn, final Runnable runnable, Utilities.Callback3<String, CharSequence, TL_iv.RichMessage> callback3) {
+        AiResponseAlert aiResponseAlert = new AiResponseAlert(baseFragment.getContext(), client, str, str2, z, baseFragment.getResourceProvider()) {
             @Override // com.exteragram.messenger.ai.ui.AiResponseAlert, org.telegram.ui.ActionBar.BottomSheet, android.app.Dialog, android.content.DialogInterface, org.telegram.ui.ActionBar.BaseFragment.AttachedSheet
-            /* JADX INFO: renamed from: dismiss */
-            public void dismiss() {
-                super.dismiss();
+            public void lambda$new$0() {
+                super.lambda$new$0();
                 Runnable runnable2 = runnable;
                 if (runnable2 != null) {
                     runnable2.run();
@@ -297,7 +354,7 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
         aiResponseAlert.setNoforwards(z2);
         aiResponseAlert.setFragment(baseFragment);
         aiResponseAlert.setOnLinkPress(callbackReturn);
-        aiResponseAlert.setOnInsertPress(callback2);
+        aiResponseAlert.setOnInsertPress(callback3);
         if (baseFragment.getParentActivity() != null) {
             baseFragment.showDialog(aiResponseAlert);
         }
@@ -312,48 +369,173 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
         formatPrompt();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void updateMainButton(boolean z) {
         updateMainButton(z, false);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void updateMainButton(boolean z, boolean z2) {
-        this.mainButton.setLoading(z);
+        int i;
+        this.generating = z;
+        this.errorState = z2;
+        ButtonWithCounterView buttonWithCounterView = this.mainButton;
+        if (z) {
+            i = R.string.Stop;
+        } else {
+            i = z2 ? R.string.Retry : R.string.Close;
+        }
+        buttonWithCounterView.setText(LocaleController.getString(i), true);
         boolean z3 = false;
-        AndroidUtilities.updateViewVisibilityAnimated(this.headerView.optionsButton, (z || z2) ? false : true, 0.5f, true);
+        boolean z4 = (z || z2 || TextUtils.isEmpty(this.currentResponse)) ? false : true;
+        ActionBarMenuItem actionBarMenuItem = this.headerView.optionsButton;
+        if (this.useHistory && this.turnSaved) {
+            z3 = true;
+        }
+        actionBarMenuItem.setSubItemShown(4, z3);
+        AndroidUtilities.updateViewVisibilityAnimated(this.headerView.optionsButton, z4, 0.5f, true);
         if (this.onInsertPress != null) {
-            ImageView imageView = this.headerView.insertButton;
-            if (!z && !z2) {
-                z3 = true;
-            }
-            AndroidUtilities.updateViewVisibilityAnimated(imageView, z3, 0.5f, true);
+            AndroidUtilities.updateViewVisibilityAnimated(this.headerView.insertButton, z4, 0.5f, true);
+        }
+    }
+
+    private void stopGeneration() {
+        this.client.stopRequest(this.currentRequestId);
+        this.currentRequestId = null;
+        stopThinking();
+        if (TextUtils.isEmpty(this.currentResponse)) {
+            lambda$new$0();
+        } else {
+            this.adapter.updateMainView(this.responseContainer);
+            updateMainButton(false);
+        }
+    }
+
+    public void regenerate() {
+        dropLastTurnFromHistory();
+        showLoadingView();
+        generate();
+    }
+
+    public void dropLastTurnFromHistory() {
+        if (this.turnSaved) {
+            AiConfig.removeLastFromHistory();
+            this.turnSaved = false;
         }
     }
 
     private void formatPrompt() {
+        if (AiConfig.getShowResponseOnly() || TextUtils.isEmpty(this.prompt)) {
+            this.promptTextView.setVisibility(8);
+            this.promptTextView.setText(_UrlKt.FRAGMENT_ENCODE_SET);
+        } else {
+            this.promptTextView.setVisibility(0);
+            this.promptTextView.setText(Emoji.replaceEmoji(formatPromptText(this.prompt), this.promptTextView.getPaint().getFontMetricsInt(), false));
+        }
+    }
+
+    private CharSequence formatPromptText(String str) {
         ColoredImageSpan coloredImageSpan = new ColoredImageSpan(R.drawable.msg_mini_arrow_mediathin);
         int i = Theme.key_player_actionBarSubtitle;
         coloredImageSpan.setColorKey(i);
         coloredImageSpan.setScale(1.0f, 1.0f);
         coloredImageSpan.setTranslateY(AndroidUtilities.dpf2(1.5f));
         coloredImageSpan.spaceScaleX = 0.95f;
-        SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder("→ " + this.prompt);
+        SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder("→ " + str);
         spannableStringBuilder.setSpan(coloredImageSpan, 0, 1, 33);
         spannableStringBuilder.setSpan(new DialogCell.FixedWidthSpan(AndroidUtilities.dp(4.0f)), 1, 2, 33);
         spannableStringBuilder.setSpan(new RelativeSizeSpan(0.8f), 2, spannableStringBuilder.length(), 33);
         spannableStringBuilder.setSpan(new ForegroundColorSpan(getThemedColor(i)), 2, spannableStringBuilder.length(), 33);
-        this.spannedPrompt = spannableStringBuilder;
+        return spannableStringBuilder;
     }
 
-    private CharSequence formatResponse(CharSequence charSequence) {
-        if (AiConfig.getShowResponseOnly() || this.spannedPrompt == null) {
-            return formatMarkdown(charSequence);
+    public ArrayList<Service> availableServices() {
+        ArrayList<Service> arrayList = new ArrayList<>();
+        for (Service service : AiController.getInstance().getAll()) {
+            if (!service.isOnDevice() || OnDeviceAvailability.isReady()) {
+                arrayList.add(service);
+            }
         }
-        return new SpannableStringBuilder(this.spannedPrompt).append((CharSequence) "\n\n").append(formatMarkdown(charSequence));
+        return arrayList;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
+    private void updateContextView() {
+        this.contextView.removeAllViews();
+        ArrayList<Message> conversationHistory = (!this.useHistory || AiConfig.getShowResponseOnly()) ? null : AiConfig.getConversationHistory();
+        ArrayList<Message> arrayList = new ArrayList<>();
+        if (conversationHistory != null) {
+            for (int iMax = Math.max(0, conversationHistory.size() - 6); iMax < conversationHistory.size(); iMax++) {
+                Message message = conversationHistory.get(iMax);
+                if (message != null && !TextUtils.isEmpty(message.content())) {
+                    arrayList.add(message);
+                    this.contextView.addView(createContextTextView(message), LayoutHelper.createLinear(-1, -2));
+                }
+            }
+        }
+        boolean z = this.contextView.getChildCount() > 0;
+        this.contextView.setVisibility(z ? 0 : 8);
+        this.contextDivider.setVisibility(z ? 0 : 8);
+        formatContextAsync(arrayList);
+    }
+
+    private void formatContextAsync(final ArrayList<Message> arrayList) {
+        if (arrayList.isEmpty()) {
+            return;
+        }
+        final int i = this.parseGeneration;
+        Utilities.globalQueue.postRunnable(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.lambda$formatContextAsync$3(arrayList, i);
+            }
+        });
+    }
+
+    public void lambda$formatContextAsync$3(ArrayList arrayList, final int i) {
+        final ArrayList arrayList2 = new ArrayList(arrayList.size());
+        int size = arrayList.size();
+        int i2 = 0;
+        while (i2 < size) {
+            Object obj = arrayList.get(i2);
+            i2++;
+            Message message = (Message) obj;
+            arrayList2.add("assistant".equals(message.role()) ? MarkdownPreview.format(message.content()) : null);
+        }
+        AndroidUtilities.runOnUIThread(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.lambda$formatContextAsync$2(i, arrayList2);
+            }
+        });
+    }
+
+    public void lambda$formatContextAsync$2(int i, ArrayList arrayList) {
+        if (i == this.parseGeneration && this.contextView.getChildCount() == arrayList.size()) {
+            for (int i2 = 0; i2 < arrayList.size(); i2++) {
+                CharSequence charSequence = (CharSequence) arrayList.get(i2);
+                if (charSequence != null) {
+                    View childAt = this.contextView.getChildAt(i2);
+                    if (childAt instanceof TextView) {
+                        TextView textView = (TextView) childAt;
+                        textView.setText(Emoji.replaceEmoji(charSequence, textView.getPaint().getFontMetricsInt(), false));
+                    }
+                }
+            }
+        }
+    }
+
+    private TextView createContextTextView(Message message) {
+        boolean zEquals = "assistant".equals(message.role());
+        TextView textView = new TextView(getContext());
+        textView.setTextSize(1, SharedConfig.fontSize);
+        textView.setTypeface(AndroidUtilities.regular());
+        textView.setMaxLines(3);
+        textView.setEllipsize(TextUtils.TruncateAt.END);
+        textView.setPadding(AndroidUtilities.dp(22.0f), AndroidUtilities.dp(!zEquals ? 12.0f : 6.0f), AndroidUtilities.dp(22.0f), 0);
+        textView.setTextColor(getThemedColor(!zEquals ? Theme.key_player_actionBarSubtitle : Theme.key_dialogTextBlack));
+        textView.setLinkTextColor(getThemedColor(Theme.key_dialogTextLink));
+        textView.setText(Emoji.replaceEmoji(!zEquals ? formatPromptText(message.content()) : message.content(), textView.getPaint().getFontMetricsInt(), false));
+        return textView;
+    }
+
     public CharSequence getRawResponse(CharSequence charSequence) {
         if (AiConfig.getShowResponseOnly() || TextUtils.isEmpty(this.prompt)) {
             return charSequence;
@@ -361,64 +543,85 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
         return "→ " + this.prompt + "\n\n" + ((Object) charSequence);
     }
 
-    private CharSequence formatMarkdown(CharSequence charSequence) {
-        if (TextUtils.isEmpty(charSequence)) {
-            return charSequence;
+    public CharSequence getInsertResponse() {
+        TL_iv.RichMessage richMessage = this.currentRichMessage;
+        if (richMessage == null) {
+            return getRawResponse(this.currentResponse);
         }
-        try {
-            charSequence = this.markwon.toMarkdown(charSequence.toString());
-        } catch (Exception unused) {
+        CharSequence charSequenceBlocksToCharSequence = RichMessageConvert.blocksToCharSequence(richMessage.blocks);
+        if (AiConfig.getInsertAsQuote()) {
+            charSequenceBlocksToCharSequence = AndroidUtilities.removeSpans(AndroidUtilities.removeSpans(charSequenceBlocksToCharSequence, QuoteSpan.QuoteStyleSpan.class), QuoteSpan.class);
         }
-        return replaceLinks(replaceMarkdownLinks(charSequence));
+        if (AiConfig.getShowResponseOnly() || TextUtils.isEmpty(this.prompt)) {
+            return charSequenceBlocksToCharSequence;
+        }
+        return new SpannableStringBuilder("→ " + this.prompt + "\n\n").append(charSequenceBlocksToCharSequence);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void generate() {
         this.currentResponse = null;
+        this.currentRichMessage = null;
+        this.pendingMarkdown = null;
+        this.turnSaved = false;
+        this.parseGeneration++;
+        updateMainButton(true);
+        updateContextView();
+        this.textSelectionHelper.clear(true);
         stopThinking();
         if (AiController.getInstance().getSelected().isReasoningEnabled() && AiConfig.getResponseStreaming()) {
             showThinking();
         }
-        this.currentRequestId = this.client.getResponse(this.prompt, this.useHistory, AiConfig.getResponseStreaming(), this.imagePath, new GenerationCallback() { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert.7
-            @Override // com.exteragram.messenger.ai.network.GenerationCallback
-            public void onThinking() {
-                AiResponseAlert.this.showThinking();
-            }
-
-            @Override // com.exteragram.messenger.ai.network.GenerationCallback
-            public void onResponse(String str) {
-                if (TextUtils.isEmpty(str)) {
-                    return;
-                }
-                AiResponseAlert.this.stopThinking();
-                AiResponseAlert.this.currentResponse = str;
-                AiResponseAlert.this.setFormattedResponse(str);
-                AiResponseAlert.this.adapter.updateMainView(AiResponseAlert.this.textViewContainer);
-                AiResponseAlert.this.updateMainButton(false);
-            }
-
-            @Override // com.exteragram.messenger.ai.network.GenerationCallback
-            public void onChunk(String str) {
-                if (TextUtils.isEmpty(str)) {
-                    return;
-                }
-                AiResponseAlert.this.stopThinking();
-                AiResponseAlert.this.currentResponse = str;
-                AiResponseAlert.this.setFormattedResponse(str);
-                AiResponseAlert.this.adapter.updateMainView(AiResponseAlert.this.textViewContainer);
-            }
-
-            @Override // com.exteragram.messenger.ai.network.GenerationCallback
-            public void onError(int i, String str) {
-                AiResponseAlert.this.stopThinking();
-                AiController.showErrorBulletin(AiResponseAlert.this.containerView, AiResponseAlert.this.resourcesProvider, i);
-                AiResponseAlert.this.adapter.updateMainView(AiResponseAlert.this.textViewContainer);
-                AiResponseAlert.this.updateMainButton(false, true);
-            }
-        });
+        this.currentRequestId = this.client.getResponse(this.prompt, this.useHistory, AiConfig.getResponseStreaming(), this.imagePath, new AnonymousClass7());
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
+    public class AnonymousClass7 implements GenerationCallback {
+        public AnonymousClass7() {
+        }
+
+        @Override // com.exteragram.messenger.ai.network.GenerationCallback
+        public void onThinking() {
+            AiResponseAlert.this.showThinking();
+        }
+
+        @Override // com.exteragram.messenger.ai.network.GenerationCallback
+        public void onResponse(String str) {
+            if (TextUtils.isEmpty(str)) {
+                return;
+            }
+            AiResponseAlert.this.currentResponse = str;
+            AiResponseAlert aiResponseAlert = AiResponseAlert.this;
+            aiResponseAlert.turnSaved = aiResponseAlert.useHistory;
+            AiResponseAlert.this.setResponse(str);
+            AiResponseAlert.this.updateMainButton(false);
+        }
+
+        @Override // com.exteragram.messenger.ai.network.GenerationCallback
+        public void onChunk(String str) {
+            if (TextUtils.isEmpty(str)) {
+                return;
+            }
+            AiResponseAlert.this.currentResponse = str;
+            AiResponseAlert.this.setResponse(str);
+        }
+
+        @Override // com.exteragram.messenger.ai.network.GenerationCallback
+        public void onError(int i, String str) {
+            AiResponseAlert.this.stopThinking();
+            AiController.showErrorBulletin(((BottomSheet) AiResponseAlert.this).containerView, ((BottomSheet) AiResponseAlert.this).resourcesProvider, i, str, (!AiController.isOnDeviceError(i) || AiResponseAlert.this.availableServices().size() <= 1) ? null : new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() {
+                    this.f$0.lambda$onError$0();
+                }
+            });
+            AiResponseAlert.this.adapter.updateMainView(AiResponseAlert.this.responseContainer);
+            AiResponseAlert.this.updateMainButton(false, true);
+        }
+
+        public void lambda$onError$0() {
+            AiResponseAlert.this.headerView.openModelSelect();
+        }
+    }
+
     public void showThinking() {
         if (this.thinkingVisible || !TextUtils.isEmpty(this.currentResponse)) {
             return;
@@ -428,96 +631,221 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
         this.adapter.updateMainView(this.thinkingDotsView);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void stopThinking() {
         this.thinkingVisible = false;
         this.thinkingDotsView.stop();
     }
 
-    private CharSequence replaceMarkdownLinks(CharSequence charSequence) {
-        SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(charSequence);
-        for (URLSpan uRLSpan : (URLSpan[]) spannableStringBuilder.getSpans(0, spannableStringBuilder.length(), URLSpan.class)) {
-            int spanStart = spannableStringBuilder.getSpanStart(uRLSpan);
-            int spanEnd = spannableStringBuilder.getSpanEnd(uRLSpan);
-            int spanFlags = spannableStringBuilder.getSpanFlags(uRLSpan);
-            if (spanStart >= 0 && spanEnd >= 0) {
-                String url = uRLSpan.getURL();
-                spannableStringBuilder.removeSpan(uRLSpan);
-                spannableStringBuilder.setSpan(createUrlSpan(url), spanStart, spanEnd, spanFlags);
+    public void showLoadingView() {
+        this.textSelectionHelper.clear(true);
+        this.adapter.updateMainView(this.loadingTextView);
+    }
+
+    public void setResponse(String str) {
+        this.pendingMarkdown = str;
+        parseMarkdownAsync();
+    }
+
+    private void parseMarkdownAsync() {
+        final String str;
+        if (this.parsingMarkdown || (str = this.pendingMarkdown) == null) {
+            return;
+        }
+        final int i = this.parseGeneration;
+        this.pendingMarkdown = null;
+        this.parsingMarkdown = true;
+        Utilities.globalQueue.postRunnable(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.lambda$parseMarkdownAsync$5(str, i);
+            }
+        });
+    }
+
+    public void lambda$parseMarkdownAsync$5(String str, final int i) {
+        final TL_iv.RichMessage markdown = parseMarkdown(str);
+        AndroidUtilities.runOnUIThread(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.lambda$parseMarkdownAsync$4(i, markdown);
+            }
+        });
+    }
+
+    public void lambda$parseMarkdownAsync$4(int i, TL_iv.RichMessage richMessage) {
+        this.parsingMarkdown = false;
+        if (i != this.parseGeneration) {
+            return;
+        }
+        stopThinking();
+        this.currentRichMessage = richMessage;
+        this.previewView.set(richMessage);
+        this.adapter.updateMainView(this.responseContainer);
+        parseMarkdownAsync();
+    }
+
+    private static TL_iv.RichMessage parseMarkdown(String str) {
+        TL_iv.RichMessage richMessage = new TL_iv.RichMessage();
+        try {
+            MarkdownParser.parse(str, richMessage.blocks);
+        } catch (Throwable th) {
+            FileLog.e(th);
+            richMessage.blocks.clear();
+        }
+        if (richMessage.blocks.isEmpty()) {
+            TL_iv.pageBlockParagraph pageblockparagraph = new TL_iv.pageBlockParagraph();
+            pageblockparagraph.text = plainText(str);
+            richMessage.blocks.add(pageblockparagraph);
+        }
+        linkifyBlocks(richMessage.blocks);
+        return richMessage;
+    }
+
+    private static void linkifyBlocks(ArrayList<TL_iv.PageBlock> arrayList) {
+        int size = arrayList.size();
+        int i = 0;
+        while (i < size) {
+            TL_iv.PageBlock pageBlock = arrayList.get(i);
+            i++;
+            TL_iv.PageBlock pageBlock2 = pageBlock;
+            if (!(pageBlock2 instanceof TL_iv.pageBlockPreformatted)) {
+                if (pageBlock2 instanceof TL_iv.pageBlockDetails) {
+                    TL_iv.pageBlockDetails pageblockdetails = (TL_iv.pageBlockDetails) pageBlock2;
+                    pageblockdetails.title = linkify(pageblockdetails.title);
+                    linkifyBlocks(pageblockdetails.blocks);
+                } else if (pageBlock2 instanceof TL_iv.pageBlockList) {
+                    ArrayList<TL_iv.PageListItem> arrayList2 = ((TL_iv.pageBlockList) pageBlock2).items;
+                    int size2 = arrayList2.size();
+                    int i2 = 0;
+                    while (i2 < size2) {
+                        TL_iv.PageListItem pageListItem = arrayList2.get(i2);
+                        i2++;
+                        TL_iv.PageListItem pageListItem2 = pageListItem;
+                        if (pageListItem2 instanceof TL_iv.TL_pageListItemText) {
+                            TL_iv.TL_pageListItemText tL_pageListItemText = (TL_iv.TL_pageListItemText) pageListItem2;
+                            tL_pageListItemText.text = linkify(tL_pageListItemText.text);
+                        } else if (pageListItem2 instanceof TL_iv.TL_pageListItemBlocks) {
+                            linkifyBlocks(((TL_iv.TL_pageListItemBlocks) pageListItem2).blocks);
+                        }
+                    }
+                } else if (pageBlock2 instanceof TL_iv.pageBlockOrderedList) {
+                    ArrayList<TL_iv.PageListOrderedItem> arrayList3 = ((TL_iv.pageBlockOrderedList) pageBlock2).items;
+                    int size3 = arrayList3.size();
+                    int i3 = 0;
+                    while (i3 < size3) {
+                        TL_iv.PageListOrderedItem pageListOrderedItem = arrayList3.get(i3);
+                        i3++;
+                        TL_iv.PageListOrderedItem pageListOrderedItem2 = pageListOrderedItem;
+                        if (pageListOrderedItem2 instanceof TL_iv.TL_pageListOrderedItemText) {
+                            TL_iv.TL_pageListOrderedItemText tL_pageListOrderedItemText = (TL_iv.TL_pageListOrderedItemText) pageListOrderedItem2;
+                            tL_pageListOrderedItemText.text = linkify(tL_pageListOrderedItemText.text);
+                        } else if (pageListOrderedItem2 instanceof TL_iv.TL_pageListOrderedItemBlocks) {
+                            linkifyBlocks(((TL_iv.TL_pageListOrderedItemBlocks) pageListOrderedItem2).blocks);
+                        }
+                    }
+                } else if (pageBlock2 instanceof TL_iv.pageBlockTable) {
+                    ArrayList<TL_iv.pageTableRow> arrayList4 = ((TL_iv.pageBlockTable) pageBlock2).rows;
+                    int size4 = arrayList4.size();
+                    int i4 = 0;
+                    while (i4 < size4) {
+                        TL_iv.pageTableRow pagetablerow = arrayList4.get(i4);
+                        i4++;
+                        ArrayList<TL_iv.pageTableCell> arrayList5 = pagetablerow.cells;
+                        int size5 = arrayList5.size();
+                        int i5 = 0;
+                        while (i5 < size5) {
+                            TL_iv.pageTableCell pagetablecell = arrayList5.get(i5);
+                            i5++;
+                            TL_iv.pageTableCell pagetablecell2 = pagetablecell;
+                            pagetablecell2.text = linkify(pagetablecell2.text);
+                        }
+                    }
+                } else {
+                    pageBlock2.text = linkify(pageBlock2.text);
+                }
             }
         }
-        return spannableStringBuilder;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public void setFormattedResponse(CharSequence charSequence) {
-        CharSequence response = formatResponse(charSequence);
-        if (response instanceof Spanned) {
-            this.markwon.setParsedMarkdown(this.textView, (Spanned) response);
-        } else {
-            this.textView.setText(response);
+    public static TL_iv.RichText linkify(TL_iv.RichText richText) {
+        if (richText == null || (richText instanceof TL_iv.textEmpty) || (richText instanceof TL_iv.textUrl) || (richText instanceof TL_iv.textEmail) || (richText instanceof TL_iv.textPhone) || (richText instanceof TL_iv.textFixed) || (richText instanceof TL_iv.textMath) || (richText instanceof TL_iv.textImage)) {
+            return richText;
         }
+        if (richText instanceof TL_iv.textConcat) {
+            richText.texts.replaceAll(new UnaryOperator() {
+                @Override // java.util.function.Function
+                public final Object apply(Object obj) {
+                    return AiResponseAlert.linkify((TL_iv.RichText) obj);
+                }
+            });
+            return richText;
+        }
+        if (richText instanceof TL_iv.textPlain) {
+            return linkifyPlain((TL_iv.textPlain) richText);
+        }
+        richText.text = linkify(richText.text);
+        return richText;
     }
 
-    public CharSequence replaceLinks(CharSequence charSequence) {
-        SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder();
-        Matcher matcher = LinkifyPort.WEB_URL.matcher(charSequence);
+    private static TL_iv.RichText linkifyPlain(TL_iv.textPlain textplain) {
+        if (LinkifyPort.WEB_URL == null || TextUtils.isEmpty(textplain.text)) {
+            return textplain;
+        }
+        String str = textplain.text;
+        Matcher matcher = LinkifyPort.WEB_URL.matcher(str);
+        TL_iv.textConcat textconcat = null;
         int iEnd = 0;
         while (matcher.find()) {
-            if (hasClickableSpan(charSequence, matcher.start(), matcher.end())) {
-                spannableStringBuilder.append(charSequence, iEnd, matcher.end());
-                iEnd = matcher.end();
-            } else {
-                spannableStringBuilder.append(charSequence, iEnd, matcher.start());
-                String strGroup = matcher.group(1);
-                String strGroup2 = matcher.group(2);
-                spannableStringBuilder.append((CharSequence) strGroup);
-                spannableStringBuilder.setSpan(createUrlSpan(strGroup2), strGroup != null ? spannableStringBuilder.length() - strGroup.length() : 0, spannableStringBuilder.length(), 33);
+            String strGroup = matcher.group();
+            if (!TextUtils.isEmpty(strGroup)) {
+                if (textconcat == null) {
+                    textconcat = new TL_iv.textConcat();
+                }
+                if (matcher.start() > iEnd) {
+                    textconcat.texts.add(plainText(str.substring(iEnd, matcher.start())));
+                }
+                TL_iv.textUrl texturl = new TL_iv.textUrl();
+                texturl.text = plainText(strGroup);
+                texturl.url = strGroup;
+                textconcat.texts.add(texturl);
                 iEnd = matcher.end();
             }
         }
-        spannableStringBuilder.append(charSequence, iEnd, charSequence.length());
-        return Emoji.replaceEmoji((CharSequence) spannableStringBuilder, this.textView.getPaint().getFontMetricsInt(), false, (int[]) null);
+        if (textconcat == null) {
+            return textplain;
+        }
+        if (iEnd < str.length()) {
+            textconcat.texts.add(plainText(str.substring(iEnd)));
+        }
+        return textconcat;
     }
 
-    private boolean hasClickableSpan(CharSequence charSequence, int i, int i2) {
-        if (charSequence instanceof Spanned) {
-            Spanned spanned = (Spanned) charSequence;
-            for (ClickableSpan clickableSpan : (ClickableSpan[]) spanned.getSpans(i, i2, ClickableSpan.class)) {
-                if (spanned.getSpanStart(clickableSpan) < i2 && spanned.getSpanEnd(clickableSpan) > i) {
-                    return true;
-                }
+    private static TL_iv.RichText plainText(String str) {
+        TL_iv.textPlain textplain = new TL_iv.textPlain();
+        if (str == null) {
+            str = _UrlKt.FRAGMENT_ENCODE_SET;
+        }
+        textplain.text = str;
+        return textplain;
+    }
+
+    private void openUrl(String str) {
+        if (TextUtils.isEmpty(str)) {
+            return;
+        }
+        Utilities.CallbackReturn<URLSpan, Boolean> callbackReturn = this.onLinkPress;
+        if (callbackReturn != null) {
+            if (callbackReturn.run(new URLSpan(str)).booleanValue()) {
+                lambda$new$0();
+            }
+        } else {
+            BaseFragment baseFragment = this.fragment;
+            if (baseFragment != null) {
+                AlertsCreator.showOpenUrlAlert(baseFragment, str, false, false);
             }
         }
-        return false;
     }
 
-    private ClickableSpan createUrlSpan(final String str) {
-        return new ClickableSpan() { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert.8
-            @Override // android.text.style.ClickableSpan
-            public void onClick(View view) {
-                Utilities.CallbackReturn callbackReturn = AiResponseAlert.this.onLinkPress;
-                AiResponseAlert aiResponseAlert = AiResponseAlert.this;
-                if (callbackReturn != null) {
-                    if (((Boolean) aiResponseAlert.onLinkPress.run(new URLSpan(str))).booleanValue()) {
-                        AiResponseAlert.this.dismiss();
-                    }
-                } else if (aiResponseAlert.fragment != null) {
-                    AlertsCreator.showOpenUrlAlert(AiResponseAlert.this.fragment, str, false, false);
-                }
-            }
-
-            @Override // android.text.style.ClickableSpan, android.text.style.CharacterStyle
-            public void updateDrawState(TextPaint textPaint) {
-                int iMin = Math.min(textPaint.getAlpha(), (textPaint.getColor() >> 24) & 255);
-                textPaint.setUnderlineText(false);
-                textPaint.setColor(Theme.getColor(Theme.key_dialogTextLink));
-                textPaint.setAlpha(iMin);
-            }
-        };
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
     public boolean hasEnoughHeight() {
         RecyclerListView recyclerListView;
         float height = 0.0f;
@@ -545,14 +873,14 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
         this.onLinkPress = callbackReturn;
     }
 
-    private void setOnInsertPress(Utilities.Callback2<String, CharSequence> callback2) {
-        this.onInsertPress = callback2;
+    private void setOnInsertPress(Utilities.Callback3<String, CharSequence, TL_iv.RichMessage> callback3) {
+        this.onInsertPress = callback3;
     }
 
     public void setNoforwards(boolean z) {
-        LinkSpanDrawable.LinksTextView linksTextView = this.textView;
-        if (linksTextView != null) {
-            linksTextView.setTextIsSelectable(!z);
+        this.previewView.setTextSelectionHelper(z ? null : this.textSelectionHelper);
+        if (z) {
+            this.textSelectionHelper.clear(true);
         }
         if (getWindow() != null) {
             if (z) {
@@ -563,12 +891,10 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public float getSheetTop() {
         return getSheetTop(true);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public float getSheetTop(boolean z) {
         AnimatedFloat animatedFloat;
         float top = this.listView.getTop();
@@ -593,10 +919,14 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
     }
 
     @Override // org.telegram.ui.ActionBar.BottomSheet, android.app.Dialog, android.content.DialogInterface, org.telegram.ui.ActionBar.BaseFragment.AttachedSheet
-    /* JADX INFO: renamed from: dismiss */
-    public void dismiss() {
-        super.dismiss();
+    public void lambda$new$0() {
+        super.lambda$new$0();
+        this.client.stopRequest(this.currentRequestId);
+        this.currentRequestId = null;
         stopThinking();
+        this.pendingMarkdown = null;
+        this.parseGeneration++;
+        this.textSelectionHelper.clear(true);
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.emojiLoaded);
     }
 
@@ -604,7 +934,102 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
     public void didReceivedNotification(int i, int i2, Object... objArr) {
         if (i == NotificationCenter.emojiLoaded) {
             this.loadingTextView.invalidate();
-            this.textView.invalidate();
+            this.promptTextView.invalidate();
+            this.previewView.invalidate();
+        }
+    }
+
+    public class ResponseContainer extends LinearLayout implements TextSelectionHelper.ArticleSelectableView {
+        public ResponseContainer(Context context) {
+            super(context);
+            setOrientation(1);
+        }
+
+        @Override // org.telegram.ui.Cells.TextSelectionHelper.ArticleSelectableView
+        public void fillTextLayoutBlocks(ArrayList<TextSelectionHelper.TextLayoutBlock> arrayList) {
+            AiResponseAlert.this.previewView.fillTextLayoutBlocks(arrayList);
+            for (int size = arrayList.size(); size < arrayList.size(); size++) {
+                arrayList.set(size, new OffsetTextLayoutBlock(arrayList.get(size), AiResponseAlert.this.previewView.getLeft(), AiResponseAlert.this.previewView.getTop()));
+            }
+        }
+
+        @Override // android.view.View, org.telegram.ui.Cells.TextSelectionHelper.SelectableView
+        public void invalidate() {
+            super.invalidate();
+            if (AiResponseAlert.this.previewView != null) {
+                AiResponseAlert.this.previewView.invalidate();
+            }
+        }
+
+        @Override // android.widget.LinearLayout, android.view.View
+        public void onMeasure(int i, int i2) {
+            super.onMeasure(View.MeasureSpec.makeMeasureSpec(View.MeasureSpec.getSize(i), TLObject.FLAG_30), i2);
+        }
+    }
+
+    public static final class OffsetTextLayoutBlock extends RecordTag implements TextSelectionHelper.TextLayoutBlock {
+        private final TextSelectionHelper.TextLayoutBlock block;
+        private final int offsetX;
+        private final int offsetY;
+
+        public final boolean $record$equals(Object obj) {
+            if (!(obj instanceof OffsetTextLayoutBlock)) {
+                return false;
+            }
+            OffsetTextLayoutBlock offsetTextLayoutBlock = (OffsetTextLayoutBlock) obj;
+            return this.offsetX == offsetTextLayoutBlock.offsetX && this.offsetY == offsetTextLayoutBlock.offsetY && Objects.equals(this.block, offsetTextLayoutBlock.block);
+        }
+
+        public final Object[] $record$getFieldsAsObjects() {
+            return new Object[]{this.block, Integer.valueOf(this.offsetX), Integer.valueOf(this.offsetY)};
+        }
+
+        private OffsetTextLayoutBlock(TextSelectionHelper.TextLayoutBlock textLayoutBlock, int i, int i2) {
+            this.block = textLayoutBlock;
+            this.offsetX = i;
+            this.offsetY = i2;
+        }
+
+        public final boolean equals(Object obj) {
+            return $record$equals(obj);
+        }
+
+        public final int hashCode() {
+            return AiResponseAlert$java.util.Objects.hash(this.offsetX, this.offsetY, this.block);
+        }
+
+        public final String toString() {
+            return com.exteragram.messenger.utils.RecordUtils.recordToString($record$getFieldsAsObjects(), OffsetTextLayoutBlock.class, "block;offsetX;offsetY");
+        }
+
+        @Override // org.telegram.ui.Cells.TextSelectionHelper.TextLayoutBlock
+        public Layout getLayout() {
+            return this.block.getLayout();
+        }
+
+        @Override // org.telegram.ui.Cells.TextSelectionHelper.TextLayoutBlock
+        public int getX() {
+            return this.block.getX() + this.offsetX;
+        }
+
+        @Override // org.telegram.ui.Cells.TextSelectionHelper.TextLayoutBlock
+        public int getY() {
+            return this.block.getY() + this.offsetY;
+        }
+
+        @Override // org.telegram.ui.Cells.TextSelectionHelper.TextLayoutBlock
+        public int getRow() {
+            return this.block.getRow();
+        }
+
+        @Override // org.telegram.ui.Cells.TextSelectionHelper.TextLayoutBlock
+        public CharSequence getPrefix() {
+            return this.block.getPrefix();
+        }
+
+        @Override // org.telegram.ui.Cells.TextSelectionHelper.TextLayoutBlock
+        public CharSequence getText() {
+            return this.block.getText();
         }
     }
 
@@ -636,7 +1061,8 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
                 return;
             }
             linkPath.rewind();
-            if (getLayout() != null && getLayout().getText() != null) {
+            if (getLayout() != null) {
+                getLayout().getText();
                 this.path.setCurrentLayout(getLayout(), 0, getPaddingLeft(), getPaddingTop());
                 getLayout().getSelectionPath(0, getLayout().getText().length(), this.path);
             }
@@ -725,7 +1151,7 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
         }
     }
 
-    public static class PaddedAdapter extends RecyclerView.Adapter {
+    public static class PaddedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         private final Context mContext;
         private View mMainView;
         private int mainViewType = 1;
@@ -756,7 +1182,7 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
         @Override // androidx.recyclerview.widget.RecyclerView.Adapter
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
             if (i == 0) {
-                return new RecyclerListView.Holder(new View(this.mContext) { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert.PaddedAdapter.1
+                return new RecyclerListView.Holder(new View(this.mContext) {
                     @Override // android.view.View
                     public void onMeasure(int i2, int i3) {
                         super.onMeasure(View.MeasureSpec.makeMeasureSpec(View.MeasureSpec.getSize(i2), TLObject.FLAG_30), View.MeasureSpec.makeMeasureSpec((int) (AndroidUtilities.displaySize.y * 0.4f), TLObject.FLAG_30));
@@ -782,9 +1208,10 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
         public final ActionBarMenuItem optionsButton;
         private final View shadow;
         private final LinearLayout subtitleView;
-        private final AnimatedTextView titleTextView;
+        private final TextView titleTextView;
 
         public HeaderView(Context context) {
+            float f;
             super(context);
             View view = new View(context);
             view.setBackgroundColor(AiResponseAlert.this.getThemedColor(Theme.key_dialogBackground));
@@ -801,10 +1228,10 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
             int i2 = Theme.key_listSelector;
             imageView.setBackground(Theme.createSelectorDrawable(AiResponseAlert.this.getThemedColor(i2)));
             imageView.setAlpha(0.0f);
-            imageView.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert$HeaderView$$ExternalSyntheticLambda0
+            imageView.setOnClickListener(new View.OnClickListener() {
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view2) {
-                    HeaderView.this.lambda$new$0(view2);
+                    this.f$0.lambda$new$0(view2);
                 }
             });
             addView(imageView, LayoutHelper.createFrame(54, 54.0f, 48, 1.0f, 1.0f, 1.0f, 1.0f));
@@ -817,14 +1244,14 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
             imageView2.setColorFilter(new PorterDuffColorFilter(AiResponseAlert.this.getThemedColor(i3), mode));
             imageView2.setBackground(Theme.createSelectorDrawable(AiResponseAlert.this.getThemedColor(i2)));
             imageView2.setVisibility(8);
-            imageView2.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert$HeaderView$$ExternalSyntheticLambda1
+            imageView2.setOnClickListener(new View.OnClickListener() {
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view2) {
-                    HeaderView.this.lambda$new$1(view2);
+                    this.f$0.lambda$new$1(view2);
                 }
             });
             addView(imageView2, LayoutHelper.createFrame(48, 54.0f, 53, 1.0f, 1.0f, 64.0f, 1.0f));
-            ActionBarMenuItem actionBarMenuItem = new ActionBarMenuItem(context, null, 0, i3, false, AiResponseAlert.this.resourcesProvider);
+            ActionBarMenuItem actionBarMenuItem = new ActionBarMenuItem(context, null, 0, i3, false, ((BottomSheet) AiResponseAlert.this).resourcesProvider);
             this.optionsButton = actionBarMenuItem;
             actionBarMenuItem.setLongClickEnabled(false);
             actionBarMenuItem.setShowSubmenuByMove(false);
@@ -836,37 +1263,71 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
             actionBarMenuItem.addSubItem(1, R.drawable.msg_copy, LocaleController.getString(R.string.Copy));
             actionBarMenuItem.addSubItem(2, R.drawable.msg_retry, LocaleController.getString(R.string.Retry));
             actionBarMenuItem.addSubItem(3, R.drawable.msg_edit, LocaleController.getString(R.string.Edit));
-            if (AiResponseAlert.this.useHistory) {
-                actionBarMenuItem.addSubItem(4, R.drawable.menu_reply, LocaleController.getString(R.string.Reply));
-            }
+            actionBarMenuItem.addSubItem(4, R.drawable.msg_discuss, LocaleController.getString(R.string.AIAskMore));
+            actionBarMenuItem.setSubItemShown(4, false);
             actionBarMenuItem.setShowedFromBottom(false);
-            actionBarMenuItem.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert$HeaderView$$ExternalSyntheticLambda2
+            actionBarMenuItem.setOnClickListener(new View.OnClickListener() {
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view2) {
-                    HeaderView.this.lambda$new$2(view2);
+                    this.f$0.lambda$new$2(view2);
                 }
             });
-            actionBarMenuItem.setDelegate(new ActionBarMenuItem.ActionBarMenuItemDelegate() { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert$HeaderView$$ExternalSyntheticLambda3
+            actionBarMenuItem.setDelegate(new ActionBarMenuItem.ActionBarMenuItemDelegate() {
                 @Override // org.telegram.ui.ActionBar.ActionBarMenuItem.ActionBarMenuItemDelegate
                 public final void onItemClick(int i4) {
-                    HeaderView.this.lambda$new$5(i4);
+                    this.f$0.lambda$new$5(i4);
                 }
             });
             actionBarMenuItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
-            AnimatedTextView animatedTextView = new AnimatedTextView(context, true, true, false);
-            this.titleTextView = animatedTextView;
-            animatedTextView.setTextColor(AiResponseAlert.this.getThemedColor(i));
-            animatedTextView.setTextSize(AndroidUtilities.dp(20.0f));
-            animatedTextView.setTypeface(AndroidUtilities.bold());
-            animatedTextView.setText(AiConfig.getSelectedRole());
-            animatedTextView.setPivotX(0.0f);
-            animatedTextView.setPivotY(0.0f);
-            addView(animatedTextView, LayoutHelper.createFrame(-1, 30.0f, 55, 22.0f, 20.0f, 22.0f, 0.0f));
+            TextView textView = new TextView(context) {
+                @Override // android.widget.TextView, android.view.View
+                public void onMeasure(int i4, int i5) {
+                    super.onMeasure(i4, i5);
+                    if (LocaleController.isRTL) {
+                        HeaderView.this.titleTextView.setPivotX(getMeasuredWidth());
+                    }
+                }
+            };
+            this.titleTextView = textView;
+            textView.setTextColor(AiResponseAlert.this.getThemedColor(i));
+            textView.setTextSize(1, 20.0f);
+            textView.setTypeface(AndroidUtilities.bold());
+            textView.setSingleLine(true);
+            textView.setEllipsize(TextUtils.TruncateAt.END);
+            textView.setText(AiConfig.getSelectedRole());
+            textView.setIncludeFontPadding(false);
+            textView.setGravity(LocaleController.isRTL ? 5 : 3);
+            textView.setMaxWidth(((AndroidUtilities.displaySize.x - AndroidUtilities.dp(22.0f)) - AndroidUtilities.dp(112.0f)) - AndroidUtilities.dp(2.0f));
+            Drawable drawable = ContextCompat.getDrawable(getContext(), R.drawable.ic_arrow_drop_down);
+            if (drawable != null) {
+                Drawable drawableMutate = drawable.mutate();
+                f = 1.0f;
+                drawableMutate.setColorFilter(new PorterDuffColorFilter(AiResponseAlert.this.getThemedColor(i), mode));
+                drawableMutate.setBounds(0, -AndroidUtilities.dp(1.0f), AndroidUtilities.dp(22.0f), AndroidUtilities.dp(21.0f));
+                if (LocaleController.isRTL) {
+                    textView.setCompoundDrawables(drawableMutate, null, null, null);
+                } else {
+                    textView.setCompoundDrawables(null, null, drawableMutate, null);
+                }
+            } else {
+                f = 1.0f;
+            }
+            textView.setCompoundDrawablePadding(AndroidUtilities.dp(2.0f));
+            textView.setPadding(0, 0, 0, 0);
+            textView.setOnClickListener(new View.OnClickListener() {
+                @Override // android.view.View.OnClickListener
+                public final void onClick(View view2) {
+                    this.f$0.lambda$new$6(view2);
+                }
+            });
+            textView.setPivotX(0.0f);
+            textView.setPivotY(0.0f);
+            addView(textView, LayoutHelper.createFrame(-2, -2.0f, (LocaleController.isRTL ? 5 : 3) | 48, 22.0f, 20.0f, 112.0f, 0.0f));
             LinearLayout linearLayout = new LinearLayout(context);
             this.subtitleView = linearLayout;
             linearLayout.setPivotX(0.0f);
             linearLayout.setPivotY(0.0f);
-            AnimatedTextView animatedTextView2 = new AnimatedTextView(context) { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert.HeaderView.1
+            AnimatedTextView animatedTextView = new AnimatedTextView(context) {
                 private final Paint bgPaint = new Paint(1);
                 private final LinkSpanDrawable.LinkCollector links = new LinkSpanDrawable.LinkCollector();
 
@@ -886,7 +1347,7 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
                 @SuppressLint({"ClickableViewAccessibility"})
                 public boolean onTouchEvent(MotionEvent motionEvent) {
                     if (motionEvent.getAction() == 0) {
-                        LinkSpanDrawable linkSpanDrawable = new LinkSpanDrawable(null, AiResponseAlert.this.resourcesProvider, motionEvent.getX(), motionEvent.getY());
+                        LinkSpanDrawable linkSpanDrawable = new LinkSpanDrawable(null, ((BottomSheet) AiResponseAlert.this).resourcesProvider, motionEvent.getX(), motionEvent.getY());
                         linkSpanDrawable.setColor(Theme.multAlpha(AiResponseAlert.this.getThemedColor(Theme.key_player_actionBarSubtitle), 0.1175f));
                         LinkPath linkPathObtainNewPath = linkSpanDrawable.obtainNewPath();
                         RectF rectF = AndroidUtilities.rectTmp;
@@ -906,106 +1367,96 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
                     return super.onTouchEvent(motionEvent);
                 }
             };
-            this.modelSelector = animatedTextView2;
-            animatedTextView2.setAnimationProperties(0.25f, 0L, 350L, CubicBezierInterpolator.EASE_OUT_QUINT);
-            animatedTextView2.setTextColor(AiResponseAlert.this.getThemedColor(i3));
-            animatedTextView2.setTextSize(AndroidUtilities.dp(14.0f));
-            animatedTextView2.setText(AiController.getInstance().getSelected().getShortModel());
-            animatedTextView2.setPadding(AndroidUtilities.dp(4.0f), AndroidUtilities.dp(2.0f), AndroidUtilities.dp(4.0f), AndroidUtilities.dp(2.0f));
-            animatedTextView2.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert$HeaderView$$ExternalSyntheticLambda4
+            this.modelSelector = animatedTextView;
+            animatedTextView.setAnimationProperties(0.25f, 0L, 350L, CubicBezierInterpolator.EASE_OUT_QUINT);
+            animatedTextView.setTextColor(AiResponseAlert.this.getThemedColor(i3));
+            animatedTextView.setTextSize(AndroidUtilities.dp(14.0f));
+            animatedTextView.setText(AiController.getInstance().getSelected().getShortModel());
+            animatedTextView.setPadding(AndroidUtilities.dp(4.0f), AndroidUtilities.dp(2.0f), AndroidUtilities.dp(4.0f), AndroidUtilities.dp(2.0f));
+            animatedTextView.setOnClickListener(new View.OnClickListener() {
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view2) {
-                    HeaderView.this.lambda$new$6(view2);
+                    this.f$0.lambda$new$7(view2);
                 }
             });
-            linearLayout.addView(animatedTextView2, LayoutHelper.createLinear(-2, -2, 16, 0, 0, 3, 0));
+            linearLayout.addView(animatedTextView, LayoutHelper.createLinear(-2, -2, 16, 0, 0, 3, 0));
             addView(linearLayout, LayoutHelper.createFrame(-1, -2.0f, 55, 22.0f, 43.0f, 22.0f, 0.0f));
             View view2 = new View(context);
             this.shadow = view2;
             view2.setBackgroundColor(AiResponseAlert.this.getThemedColor(Theme.key_divider));
             view2.setAlpha(0.0f);
-            addView(view2, LayoutHelper.createFrame(-1, AndroidUtilities.getShadowHeight() / AndroidUtilities.dpf2(1.0f), 55, 0.0f, 56.0f, 0.0f, 0.0f));
+            addView(view2, LayoutHelper.createFrame(-1, AndroidUtilities.getShadowHeight() / AndroidUtilities.dpf2(f), 55, 0.0f, 56.0f, 0.0f, 0.0f));
+            imageView.bringToFront();
+            imageView2.bringToFront();
+            actionBarMenuItem.bringToFront();
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$new$0(View view) {
-            AiResponseAlert.this.dismiss();
+        public void lambda$new$0(View view) {
+            AiResponseAlert.this.lambda$new$0();
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$new$1(View view) {
-            Utilities.Callback2 callback2 = AiResponseAlert.this.onInsertPress;
-            String str = AiResponseAlert.this.prompt;
-            AiResponseAlert aiResponseAlert = AiResponseAlert.this;
-            callback2.run(str, aiResponseAlert.getRawResponse(aiResponseAlert.currentResponse));
-            AiResponseAlert.this.dismiss();
+        public void lambda$new$1(View view) {
+            AiResponseAlert.this.onInsertPress.run(AiResponseAlert.this.prompt, AiResponseAlert.this.getInsertResponse(), AiResponseAlert.this.currentRichMessage);
+            AiResponseAlert.this.lambda$new$0();
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$new$2(View view) {
+        public void lambda$new$2(View view) {
             this.optionsButton.toggleSubMenu();
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$new$3(GenerateFromMessageBottomSheet.GenerationData generationData) {
-            AiConfig.removeLastFromHistory();
+        public void lambda$new$3(GenerateFromMessageBottomSheet.GenerationData generationData) {
+            AiResponseAlert.this.dropLastTurnFromHistory();
             AiResponseAlert.this.setPrompt(generationData.prompt());
             AiResponseAlert.this.imagePath = generationData.imagePath();
             AiResponseAlert.this.useHistory = generationData.useHistory();
-            AiResponseAlert.this.adapter.updateMainView(AiResponseAlert.this.loadingTextView);
-            AiResponseAlert.this.updateMainButton(true);
+            AiResponseAlert.this.showLoadingView();
             AiResponseAlert.this.generate();
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$new$5(int i) {
+        public void lambda$new$5(int i) {
             if (i == 1) {
                 AiResponseAlert aiResponseAlert = AiResponseAlert.this;
                 if (AndroidUtilities.addToClipboard(aiResponseAlert.getRawResponse(aiResponseAlert.currentResponse))) {
-                    BulletinFactory.of((FrameLayout) AiResponseAlert.this.containerView, AiResponseAlert.this.resourcesProvider).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
+                    BulletinFactory.of((FrameLayout) ((BottomSheet) AiResponseAlert.this).containerView, ((BottomSheet) AiResponseAlert.this).resourcesProvider).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
                     return;
                 }
                 return;
             }
             if (i == 2) {
-                AiConfig.removeLastFromHistory();
-                AiResponseAlert.this.adapter.updateMainView(AiResponseAlert.this.loadingTextView);
-                AiResponseAlert.this.updateMainButton(true);
-                AiResponseAlert.this.generate();
-                return;
-            }
-            if (i == 3) {
-                new GenerateFromMessageBottomSheet(AiResponseAlert.this.prompt, AiResponseAlert.this.imagePath, AiResponseAlert.this.fragment, getContext(), new Utilities.Callback() { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert$HeaderView$$ExternalSyntheticLambda5
+                AiResponseAlert.this.regenerate();
+            } else if (i == 3) {
+                new GenerateFromMessageBottomSheet(AiResponseAlert.this.prompt, AiResponseAlert.this.imagePath, AiResponseAlert.this.fragment, getContext(), new Utilities.Callback() {
                     @Override // org.telegram.messenger.Utilities.Callback
                     public final void run(Object obj) {
-                        HeaderView.this.lambda$new$3((GenerateFromMessageBottomSheet.GenerationData) obj);
+                        this.f$0.lambda$new$3((GenerateFromMessageBottomSheet.GenerationData) obj);
                     }
                 }, AiResponseAlert.this.useHistory).show();
             } else {
                 if (i != 4) {
                     return;
                 }
-                new GenerateFromMessageBottomSheet(AiResponseAlert.this.fragment, getContext(), new Utilities.Callback() { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert$HeaderView$$ExternalSyntheticLambda6
+                new GenerateFromMessageBottomSheet(AiResponseAlert.this.fragment, getContext(), new Utilities.Callback() {
                     @Override // org.telegram.messenger.Utilities.Callback
                     public final void run(Object obj) {
-                        HeaderView.this.lambda$new$4((GenerateFromMessageBottomSheet.GenerationData) obj);
+                        this.f$0.lambda$new$4((GenerateFromMessageBottomSheet.GenerationData) obj);
                     }
                 }, false).show();
             }
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$new$4(GenerateFromMessageBottomSheet.GenerationData generationData) {
+        public void lambda$new$4(GenerateFromMessageBottomSheet.GenerationData generationData) {
             AiResponseAlert.this.setPrompt(generationData.prompt());
             AiResponseAlert.this.imagePath = null;
             AiResponseAlert.this.useHistory = generationData.useHistory();
-            AiResponseAlert.this.adapter.updateMainView(AiResponseAlert.this.loadingTextView);
-            AiResponseAlert.this.updateMainButton(true);
+            AiResponseAlert.this.showLoadingView();
             AiResponseAlert.this.generate();
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$new$6(View view) {
+        public void lambda$new$6(View view) {
+            openRoleSelect();
+        }
+
+        public void lambda$new$7(View view) {
             openModelSelect();
         }
 
@@ -1013,74 +1464,79 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
             if (AiResponseAlert.this.client.isGenerating()) {
                 return;
             }
-            final ArrayList<Service> services = AiConfig.getServices();
-            ActionBarPopupWindow.ActionBarPopupWindowLayout actionBarPopupWindowLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(getContext()) { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert.HeaderView.2
-                @Override // org.telegram.ui.ActionBar.ActionBarPopupWindow.ActionBarPopupWindowLayout, android.widget.FrameLayout, android.view.View
-                public void onMeasure(int i, int i2) {
-                    if (services.size() >= 6) {
-                        super.onMeasure(i, View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(336.0f), TLObject.FLAG_30));
-                    } else {
-                        super.onMeasure(i, i2);
-                    }
-                }
-            };
-            Drawable drawableMutate = ContextCompat.getDrawable(getContext(), R.drawable.popup_fixed_alert).mutate();
-            drawableMutate.setColorFilter(new PorterDuffColorFilter(AiResponseAlert.this.getThemedColor(Theme.key_actionBarDefaultSubmenuBackground), PorterDuff.Mode.MULTIPLY));
-            actionBarPopupWindowLayout.setBackground(drawableMutate);
-            final Runnable[] runnableArr = new Runnable[1];
+            final ItemOptions itemOptionsTranslate = ItemOptions.makeOptions(((BottomSheet) AiResponseAlert.this).containerView, ((BottomSheet) AiResponseAlert.this).resourcesProvider, this.modelSelector, false, false, true).setDrawScrim(false).setDimAlpha(0).setMaxHeight(AndroidUtilities.dp(336.0f)).setGravity(LocaleController.isRTL ? 5 : 3).translate(LocaleController.isRTL ? AndroidUtilities.dp(8.0f) : -AndroidUtilities.dp(8.0f), 0.0f);
+            ArrayList arrayListAvailableServices = AiResponseAlert.this.availableServices();
+            int size = arrayListAvailableServices.size();
             int i = 0;
-            while (i < services.size()) {
-                final Service service = services.get(i);
-                ActionBarMenuSubItem actionBarMenuSubItem = new ActionBarMenuSubItem(getContext(), 2, i == 0, i == services.size() - 1, AiResponseAlert.this.resourcesProvider);
+            while (i < size) {
+                Object obj = arrayListAvailableServices.get(i);
+                i++;
+                final Service service = (Service) obj;
+                ActionBarMenuSubItem actionBarMenuSubItem = new ActionBarMenuSubItem(getContext(), 2, false, false, ((BottomSheet) AiResponseAlert.this).resourcesProvider);
                 actionBarMenuSubItem.setText(service.getModel());
-                actionBarMenuSubItem.setSubtext(service.getUrl());
+                actionBarMenuSubItem.setSubtext(service.isOnDevice() ? LocaleController.getString(R.string.AIOnDevice) : service.getUrl());
                 actionBarMenuSubItem.subtextView.setPadding(0, 0, service.isSelected() ? AndroidUtilities.dp(34.0f) : 0, 0);
                 actionBarMenuSubItem.setMinimumWidth(AndroidUtilities.dp(196.0f));
                 actionBarMenuSubItem.setItemHeight(56);
                 actionBarMenuSubItem.setChecked(service.isSelected());
-                actionBarMenuSubItem.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert$HeaderView$$ExternalSyntheticLambda7
+                actionBarMenuSubItem.setOnClickListener(new View.OnClickListener() {
                     @Override // android.view.View.OnClickListener
                     public final void onClick(View view) {
-                        HeaderView.this.lambda$openModelSelect$7(runnableArr, service, view);
+                        this.f$0.lambda$openModelSelect$8(itemOptionsTranslate, service, view);
                     }
                 });
-                actionBarPopupWindowLayout.addView(actionBarMenuSubItem);
-                i++;
+                itemOptionsTranslate.add(actionBarMenuSubItem);
             }
-            final ActionBarPopupWindow actionBarPopupWindow = new ActionBarPopupWindow(actionBarPopupWindowLayout, -2, -2);
-            runnableArr[0] = new Runnable() { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert$HeaderView$$ExternalSyntheticLambda8
-                @Override // java.lang.Runnable
-                public final void run() {
-                    actionBarPopupWindow.dismiss();
-                }
-            };
-            actionBarPopupWindow.setPauseNotifications(true);
-            actionBarPopupWindow.setDismissAnimationDuration(220);
-            actionBarPopupWindow.setOutsideTouchable(true);
-            actionBarPopupWindow.setClippingEnabled(true);
-            actionBarPopupWindow.setAnimationStyle(R.style.PopupContextAnimation);
-            actionBarPopupWindow.setFocusable(true);
-            int[] iArr = new int[2];
-            this.modelSelector.getLocationInWindow(iArr);
-            actionBarPopupWindowLayout.measure(View.MeasureSpec.makeMeasureSpec(AndroidUtilities.displaySize.x, Integer.MIN_VALUE), View.MeasureSpec.makeMeasureSpec(AndroidUtilities.displaySize.y, Integer.MIN_VALUE));
-            int measuredHeight = actionBarPopupWindowLayout.getMeasuredHeight();
-            int i2 = iArr[1];
-            actionBarPopupWindow.showAtLocation(AiResponseAlert.this.containerView, 51, iArr[0] - AndroidUtilities.dp(8.0f), ((float) i2) > (((float) AndroidUtilities.displaySize.y) * 0.9f) - ((float) measuredHeight) ? (i2 - measuredHeight) + AndroidUtilities.dp(8.0f) : (i2 + this.modelSelector.getMeasuredHeight()) - AndroidUtilities.dp(8.0f));
+            itemOptionsTranslate.show();
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$openModelSelect$7(Runnable[] runnableArr, Service service, View view) {
-            Runnable runnable = runnableArr[0];
-            if (runnable != null) {
-                runnable.run();
-            }
+        public void lambda$openModelSelect$8(ItemOptions itemOptions, Service service, View view) {
+            itemOptions.dismiss();
             if (service.isSelected()) {
                 return;
             }
-            this.modelSelector.setText(service.getShortModel());
-            AiResponseAlert.this.adapter.updateMainView(AiResponseAlert.this.loadingTextView);
+            AiResponseAlert.this.dropLastTurnFromHistory();
             AiConfig.setSelectedServices(service);
-            AiResponseAlert.this.updateMainButton(true);
+            this.modelSelector.setText(service.getShortModel());
+            AiResponseAlert.this.showLoadingView();
+            AiResponseAlert.this.generate();
+        }
+
+        public void openRoleSelect() {
+            if (AiResponseAlert.this.client.isGenerating()) {
+                return;
+            }
+            int i = 0;
+            ItemOptions itemOptionsTranslate = ItemOptions.makeOptions(((BottomSheet) AiResponseAlert.this).containerView, ((BottomSheet) AiResponseAlert.this).resourcesProvider, this.titleTextView).setDrawScrim(false).setDimAlpha(0).setGravity(LocaleController.isRTL ? 5 : 3).translate(LocaleController.isRTL ? AndroidUtilities.dp(8.0f) : -AndroidUtilities.dp(8.0f), 0.0f);
+            ArrayList arrayList = new ArrayList(AiController.getInstance().getSuggestedRoles());
+            for (Role role : AiController.getInstance().getRoles()) {
+                if (!arrayList.contains(role)) {
+                    arrayList.add(role);
+                }
+            }
+            int size = arrayList.size();
+            while (i < size) {
+                Object obj = arrayList.get(i);
+                i++;
+                final Role role2 = (Role) obj;
+                itemOptionsTranslate.addChecked(role2.isSelected(), role2.getName(), new Runnable() {
+                    @Override // java.lang.Runnable
+                    public final void run() {
+                        this.f$0.lambda$openRoleSelect$9(role2);
+                    }
+                });
+            }
+            itemOptionsTranslate.show();
+        }
+
+        public void lambda$openRoleSelect$9(Role role) {
+            if (role.isSelected()) {
+                return;
+            }
+            AiResponseAlert.this.dropLastTurnFromHistory();
+            this.titleTextView.setText(role.getName());
+            AiConfig.setSelectedRole(role.getName());
+            AiResponseAlert.this.showLoadingView();
             AiResponseAlert.this.generate();
         }
 
@@ -1156,6 +1612,17 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
         }
 
         @Override // android.view.ViewGroup, android.view.View
+        public boolean dispatchTouchEvent(MotionEvent motionEvent) {
+            if (AiResponseAlert.this.textSelectionHelper.isInSelectionMode() && AiResponseAlert.this.textSelectionOverlay.onTouchEvent(motionEvent)) {
+                return true;
+            }
+            if (AiResponseAlert.this.textSelectionOverlay.checkOnTap(motionEvent)) {
+                motionEvent.setAction(3);
+            }
+            return super.dispatchTouchEvent(motionEvent);
+        }
+
+        @Override // android.view.ViewGroup, android.view.View
         public void dispatchDraw(Canvas canvas) {
             float sheetTop = AiResponseAlert.this.getSheetTop();
             float fLerp = AndroidUtilities.lerp(0, AndroidUtilities.dp(12.0f), MathUtils.clamp(sheetTop / AndroidUtilities.dpf2(24.0f), 0.0f, 1.0f));
@@ -1193,7 +1660,7 @@ public abstract class AiResponseAlert extends BottomSheet implements Notificatio
         @Override // android.view.ViewGroup, android.view.View
         public void onAttachedToWindow() {
             super.onAttachedToWindow();
-            Bulletin.addDelegate(this, new Bulletin.Delegate() { // from class: com.exteragram.messenger.ai.ui.AiResponseAlert.ContainerView.1
+            Bulletin.addDelegate(this, new Bulletin.Delegate() {
                 @Override // org.telegram.ui.Components.Bulletin.Delegate
                 public int getBottomOffset(int i) {
                     return AndroidUtilities.dp(80.0f);

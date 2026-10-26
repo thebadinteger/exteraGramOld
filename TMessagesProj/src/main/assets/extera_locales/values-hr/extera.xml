@@ -13,7 +13,6 @@
     <string name="Preferences">exteraGram Postavke</string>
     <!-- Main Menu -->
     <string name="Links">Linkovi</string>
-    <string name="AboutExteraDescription">Eksperimentalni Telegram klijent temeljen na službenom izvornoj kodu!</string>
     <string name="Crowdin">Prevedi</string>
     <string name="Website">Web stranica</string>
     <string name="Categories">Kategorije</string>
@@ -45,23 +44,7 @@
     <string name="WeatherPillTopInfo">Postavke widgeta za vrijeme za Stog pločica.</string>
     <string name="PillStackInfiniteScrolling">Beskonačno pomicanje</string>
     <string name="CryptoPillTargetCurrency">Ciljana valuta</string>
-    <string name="CryptoCurrencyUsd">Američki dolar</string>
-    <string name="CryptoCurrencyEur">Euro</string>
-    <string name="CryptoCurrencyRub">Ruska rublja</string>
-    <string name="CryptoCurrencyGbp">Britanska funta</string>
-    <string name="CryptoCurrencyKzt">Kazahstanski tenge</string>
-    <string name="CryptoCurrencyTry">Turska lira</string>
-    <string name="CryptoCurrencyUah">Ukrajinska hrivnja</string>
-    <string name="CryptoCurrencyPln">Poljski zlot</string>
-    <string name="CryptoCurrencyAed">Dirham Ujedinjenih Arapskih Emirata</string>
-    <string name="CryptoCurrencyCny">Kineski yuan</string>
-    <string name="CryptoCurrencyJpy">Japanski jen</string>
-    <string name="CryptoCurrencyByn">Bjeloruska rublja</string>
-    <string name="CryptoCurrencyIls">Izraelski novi šekel</string>
-    <string name="CryptoCurrencyCzk">Češka kruna</string>
-    <string name="CryptoCurrencyInr">Indijska rupija</string>
     <!-- Proxy -->
-    <string name="ProxyDoNotUseWithVPN">Nemojte koristiti s VPN-om</string>
     <string name="ProxyDisableOn">Onemogući proxy</string>
     <string name="ProxyDisableNever">Nikada</string>
     <string name="ProxyDisableAlways">Uvijek</string>
@@ -73,9 +56,6 @@
     <string name="CopyIpAddress">Kopiraj IP adresu</string>
     <string name="IpInfoUnavailable">Nije moguće učitati informacije o IP adresi.</string>
     <string name="IpInfoCountry">Država</string>
-    <string name="IpInfoRegion">Regija</string>
-    <string name="IpInfoCity">Grad</string>
-    <string name="IpInfoIsp">ISP</string>
     <string name="IpInfoOrganization">Organizacija</string>
     <string name="IpInfoDomain">Domena</string>
     <string name="IpInfoTimezone">Vremenska zona</string>
@@ -98,13 +78,7 @@
     <!-- Speed -->
     <string name="DownloadSpeedBoost">Ubrzanje preuzimanja</string>
     <string name="UploadSpeedBoost">Ubrzanje slanja</string>
-    <string name="Ultra">Ultra</string>
     <string name="SpeedBoostInfo">Ultra ubrzanje može uzrokovati probleme s preuzimanjem datoteka i streamingom videa na sporim internetskim vezama.</string>
-    <!-- Maps -->
-    <string name="Maps">Karte</string>
-    <string name="TermsOfUseYandexMaps">Korištenjem Yandex karata slažete se s <![CDATA[<a href="https://yandex.ru/legal/maps_termsofuse/">uvjetima korištenja</a>]]>.</string>
-    <string name="UseYandexMaps">Koristi Yandex karte</string>
-    <string name="InstallYandexMaps">Instalirati Yandex karte?</string>
     <!-- Storage -->
     <string name="StorageSettings">Pohrana</string>
     <string name="CustomSavePath">Prilagođena mapa za spremanje</string>
@@ -161,7 +135,6 @@
     <string name="NavigationDrawer">Navigacijska ladica</string>
     <string name="NavigationDrawerInfo">Zamjenjuje gornji desni izbornik klasičnom ladicom koja se otvara povlačenjem i gumbom za hamburger.</string>
     <string name="NavigationDrawerImmersiveAnimation">Immerzivna animacija</string>
-    <string name="NavigationDrawerProxyPingShort">%1$d ms</string>
     <string name="MainMenuItems">Stavke izbornika</string>
     <string name="MainMenuItemsInfo">Dodirnite za prikaz ili skrivanje stavki, držite za promjenu redoslijeda. Raspored je zajednički za izbornik i ladicu.</string>
     <string name="MainMenuHiddenItems">Skrivene stavke izbornika</string>
@@ -208,15 +181,12 @@
     <!-- App Icons -->
     <string name="IconPack">Paket ikona</string>
     <string name="AppIconSunset">Zalazak sunca</string>
-    <string name="AppIconAurora">Aurora</string>
     <string name="AppIconAmethyst">Ametist</string>
     <string name="AppIconInvincible">Nepobjediv</string>
-    <string name="AppIconCyberpunk">Cyberpunk</string>
     <string name="AppIconSpace">Svemir</string>
     <string name="AppIconIceAge">Ledeno doba</string>
     <string name="AppIconEditor">Urednik</string>
     <string name="AppIconOrbit">Orbita</string>
-    <string name="AppIconSus">Impostor</string>
     <string name="AppIconWinter">Zima</string>
     <!-- General Appearance -->
     <string name="Sections">Odjeljci</string>
@@ -272,7 +242,6 @@
     <string name="ServicesInfo">Odaberite odgovarajuću uslugu za interakciju s jezičnim modelima.</string>
     <string name="NewService">Nova usluga</string>
     <string name="EditService">Uredi uslugu</string>
-    <string name="ServiceModel">Model</string>
     <string name="ServiceKey">API ključ</string>
     <string name="ServiceInfo">Informacije o usluzi</string>
     <string name="ServiceProvider">Pružatelj</string>
@@ -325,7 +294,6 @@
     <string name="AIError">Pogreška poslužitelja</string>
     <string name="AIErrorInfo">Ponovite zahtjev nakon kratkog čekanja.</string>
     <!-- Chat Actions -->
-    <string name="DoubleTap">Dvostruki dodir</string>
     <string name="DoubleTapIncoming">Dolazne poruke</string>
     <string name="DoubleTapOutgoing">Odlazne poruke</string>
     <string name="DoubleTapInfo">Neke radnje zahtijevaju administratorska prava u razgovoru ili kanalu.</string>
@@ -390,12 +358,10 @@
     <string name="AlwaysSendInHD">Uvijek šalji u HD</string>
     <string name="HideCameraTile">Sakrij pločicu za trenutnu kameru</string>
     <string name="HideCameraTileInfo">Pločica kamere bit će zamijenjena plutajućim gumbom. Pritiskom se pokreće Telegram kamera; držanjem se pokreće sustavska kamera.</string>
-    <string name="ShortStandardQuality">SD</string>
     <!-- Playback -->
     <string name="DoubleTapSeekDuration">Vrijeme preskoka dvostrukim dodirom</string>
     <string name="PreferOriginalQuality">Preferiraj izvornu kvalitetu</string>
     <string name="PauseOnMinimize">Automatska pauza</string>
-    <string name="PauseOnMinimizeVideo">Video</string>
     <string name="PauseOnMinimizeVoice">Glas</string>
     <string name="PauseOnMinimizeRound">Kružno</string>
     <string name="PauseOnMinimizeInfo">Pauzira reprodukciju medija kada je uređaj zaključan ili je exteraGram minimiziran.</string>
@@ -465,7 +431,6 @@
     <string name="PluginNotEnabled">Omogućite **Pogon dodataka** za instalaciju **%1$s**.</string>
     <string name="PluginInstalled">**%1$s** uspješno instaliran.</string>
     <string name="PluginUpdated">**%1$s** uspješno ažuriran.</string>
-    <string name="PluginInstalledButFailedToEnable">**%1$s** instaliran, ali došlo je do pogreške pri omogućavanju.</string>
     <string name="PluginEnableError">Neuspješno omogućavanje **%1$s**.</string>
     <string name="PluginDisableError">Neuspješno onemogućavanje **%1$s**.</string>
     <string name="PluginInstallError">Neuspješna instalacija **%1$s**.</string>
@@ -525,12 +490,10 @@
     <string name="FilePath">Put datoteke</string>
     <string name="Platform">Platforma</string>
     <string name="Resolution">Rezolucija</string>
-    <string name="Bitrate">Bitrate</string>
     <string name="Duration">Trajanje</string>
     <string name="MimeType">Mime vrsta</string>
     <string name="Datacenter">Podatkovni centar</string>
     <!-- Date Formatting -->
-    <string name="DateFormatOption">Format:</string>
     <string name="DateFormatOptionNone">Nijedan</string>
     <string name="DateFormatOptionRelative">Relativno</string>
     <string name="DateFormatOptionShortTime">Kratko vrijeme</string>
@@ -541,7 +504,6 @@
     <!-- Login & QR -->
     <string name="LoginQrTitle">Prijava QR kodom</string>
     <string name="LoginQrSubtitle">Koristite drugi uređaj za skeniranje ovog QR koda.</string>
-    <string name="SelectNumber">Odaberite broj telefona</string>
     <string name="WifiConnect">Poveži</string>
     <string name="WifiDisabled">Wi-Fi je onemogućen.</string>
     <string name="WifiFailed">Neuspješno povezivanje na Wi-Fi.</string>
@@ -623,7 +585,6 @@
     <string name="StickerCornerRadiusSmall">Mali</string>
     <string name="StickerCornerRadiusNone">Nijedan</string>
     <!-- Feed -->
-    <string name="Feed">Feed</string>
     <string name="FeedShownChannels">Prikazano u feedu</string>
     <string name="FeedHiddenChannels">Skriveno</string>
     <string name="FeedChannels">Kanali</string>

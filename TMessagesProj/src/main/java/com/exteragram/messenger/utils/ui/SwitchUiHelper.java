@@ -16,12 +16,10 @@ import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 
-/* JADX INFO: loaded from: classes4.dex */
 public abstract class SwitchUiHelper {
     private static final float[] MATERIAL3_ICON_CROSS = {6.0f, 6.0f, 18.0f, 18.0f, 6.0f, 18.0f, 18.0f, 6.0f};
     private static final float[] MATERIAL3_ICON_CHECK = {4.5f, 13.1f, 9.0f, 17.6f, 9.0f, 17.6f, 19.8f, 6.8f};
     private static final Interpolator MATERIAL3_THUMB_INTERPOLATOR = new AccelerateDecelerateInterpolator();
-    private static final double[] colorLab = new double[3];
 
     public static boolean isMaterial3SwitchStyle() {
         return ExteraConfig.getNewSwitchStyle();
@@ -88,26 +86,15 @@ public abstract class SwitchUiHelper {
     }
 
     private static boolean isLightSurface(Theme.ResourcesProvider resourcesProvider) {
-        int color = Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider);
-        double[] dArr = colorLab;
-        ColorUtils.colorToLAB(color, dArr);
-        return dArr[0] > 50.0d;
+        return ColorTones.isLightSurface(Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider));
     }
 
     private static int trackAtTone(int i, Theme.ResourcesProvider resourcesProvider, float f, float f2) {
+        int color = Theme.getColor(i, resourcesProvider);
         if (!isLightSurface(resourcesProvider)) {
             f = f2;
         }
-        int color = Theme.getColor(i, resourcesProvider);
-        double[] dArr = colorLab;
-        ColorUtils.colorToLAB(color, dArr);
-        double dHypot = Math.hypot(dArr[1], dArr[2]);
-        if (dHypot > 32.0d) {
-            double d = 32.0d / dHypot;
-            dArr[1] = dArr[1] * d;
-            dArr[2] = dArr[2] * d;
-        }
-        return ColorUtils.LABToColor(f, dArr[1], dArr[2]);
+        return ColorTones.withTone(color, f, 32.0d);
     }
 
     public static float getThumbCenterX(int i, float f) {

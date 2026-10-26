@@ -33,6 +33,7 @@ import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.api.dto.BadgeDTO;
 import com.exteragram.messenger.badges.BadgesController;
 import com.exteragram.messenger.utils.AppUtils;
+import com.exteragram.messenger.utils.ui.AccountsUiHelper;
 import java.util.function.Consumer;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
@@ -54,7 +55,6 @@ import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.DialogsActivity;
-import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.MainTabsActivity;
 import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.ProxyListActivity;
@@ -64,7 +64,7 @@ import org.telegram.ui.ThemeActivity;
 public class DrawerContainer extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
     private static final int COLOR_KEY_DRAWER_BACKGROUND = Theme.key_windowBackgroundWhite;
     private static final int COLOR_KEY_POPUP_ACCENT = Theme.key_windowBackgroundWhiteBlueIcon;
-    private static final FloatPropertyCompat<DrawerContainer> DRAWER_OFFSET = new FloatPropertyCompat<DrawerContainer>("drawerOffset") { // from class: com.exteragram.messenger.drawer.DrawerContainer.1
+    private static final FloatPropertyCompat<DrawerContainer> DRAWER_OFFSET = new FloatPropertyCompat<DrawerContainer>("drawerOffset") {
         @Override // androidx.dynamicanimation.animation.FloatPropertyCompat
         public float getValue(DrawerContainer drawerContainer) {
             return drawerContainer.getDrawerOffset();
@@ -76,6 +76,7 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
         }
     };
     private final DrawerAccountPickerView accountPickerView;
+    private boolean animationInterruptedByTouch;
     private final FrameLayout bulletinContainer;
     private float cachedBottomRightRadius;
     private float cachedTopRightRadius;
@@ -146,84 +147,77 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
     }
 
     private void setupCallbacks() {
-        this.headerView.setOnChevronClick(new Runnable() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda0
+        this.headerView.setOnChevronClick(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                DrawerContainer.this.lambda$setupCallbacks$0();
+                this.f$0.lambda$setupCallbacks$0();
             }
         });
-        this.headerView.setOnThemeToggle(new Runnable() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda1
+        this.headerView.setOnThemeToggle(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                DrawerContainer.this.lambda$setupCallbacks$2();
+                this.f$0.lambda$setupCallbacks$2();
             }
         });
-        this.headerView.setOnThemeToggleLongClick(new Runnable() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda2
+        this.headerView.setOnThemeToggleLongClick(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                DrawerContainer.this.lambda$setupCallbacks$4();
+                this.f$0.lambda$setupCallbacks$4();
             }
         });
-        this.headerView.setOnNavigateToProfile(new Runnable() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda3
+        this.headerView.setOnNavigateToProfile(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                DrawerContainer.this.lambda$setupCallbacks$6();
+                this.f$0.lambda$setupCallbacks$6();
             }
         });
-        this.headerView.setOnStatusClick(new Runnable() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda4
+        this.headerView.setOnStatusClick(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                DrawerContainer.this.showStatusSelect();
+                this.f$0.showStatusSelect();
             }
         });
-        this.headerView.setOnBadgeClick(new Runnable() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda5
+        this.headerView.setOnBadgeClick(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                DrawerContainer.this.showBadgeSelect();
+                this.f$0.showBadgeSelect();
             }
         });
-        this.headerView.setOnProxyClick(new Runnable() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda6
+        this.headerView.setOnProxyClick(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                DrawerContainer.this.lambda$setupCallbacks$8();
+                this.f$0.lambda$setupCallbacks$8();
             }
         });
-        this.accountPickerView.setOnAccountSelected(new Runnable() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda7
+        this.accountPickerView.setOnAccountSelected(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                DrawerContainer.this.lambda$setupCallbacks$9();
+                this.f$0.lambda$setupCallbacks$9();
             }
         });
-        this.accountPickerView.setOnAccountLongClick(new DrawerAccountPickerView.OnAccountLongClick() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda8
+        this.accountPickerView.setOnAccountLongClick(new DrawerAccountPickerView.OnAccountLongClick() {
             @Override // com.exteragram.messenger.drawer.DrawerAccountPickerView.OnAccountLongClick
             public final void onLongClick(int i, View view) {
-                DrawerContainer.this.lambda$setupCallbacks$10(i, view);
+                this.f$0.lambda$setupCallbacks$10(i, view);
             }
         });
-        this.menuView.setOnItemClick(new Runnable() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda9
+        this.menuView.setOnItemClick(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                DrawerContainer.this.lambda$setupCallbacks$11();
+                this.f$0.lambda$setupCallbacks$11();
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$setupCallbacks$0() {
+    public void lambda$setupCallbacks$0() {
         this.accountPickerView.toggleExpand();
         this.headerView.setChevronExpanded(this.accountPickerView.isExpanded());
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    /* JADX WARN: Code duplicated, block: B:29:0x0079  */
-    /* JADX WARN: Code duplicated, block: B:30:0x007e  */
-    /* JADX WARN: Code duplicated, block: B:32:0x0084  */
-    /* JADX WARN: Code duplicated, block: B:34:0x00b4  */
-    /* JADX WARN: Code duplicated, block: B:36:? A[RETURN, SYNTHETIC] */
-    /* JADX WARN: Code duplicated, block: B:37:? A[RETURN, SYNTHETIC] */
-    public /* synthetic */ void lambda$setupCallbacks$2() {
+    public void lambda$setupCallbacks$2() {
         boolean zEquals;
         Theme.ThemeInfo theme;
+        final BaseFragment lastFragment;
         if (DialogsActivity.switchingTheme) {
             return;
         }
@@ -256,13 +250,13 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
                 NotificationCenter globalInstance = NotificationCenter.getGlobalInstance();
                 int i = NotificationCenter.needSetDayNightTheme;
                 Boolean bool = Boolean.FALSE;
-                globalInstance.postNotificationNameOnUIThread(i, theme, bool, themeTogglePosition, -1, Boolean.valueOf(zEquals), this.headerView.getThemeToggleView(), null, null, bool, null);
-                final BaseFragment lastFragment1 = getLastFragment();
-                if (lastFragment1 != null) {
-                    Theme.turnOffAutoNight(BulletinFactory.of(lastFragment1), new Runnable() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda14
+                globalInstance.lambda$postNotificationNameOnUIThread$1(i, theme, bool, themeTogglePosition, -1, Boolean.valueOf(zEquals), this.headerView.getThemeToggleView(), null, null, bool, null);
+                lastFragment = getLastFragment();
+                if (lastFragment != null) {
+                    Theme.turnOffAutoNight(BulletinFactory.of(lastFragment), new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
-                            lastFragment1.presentFragment(new ThemeActivity(1));
+                            lastFragment.presentFragment(new ThemeActivity(1));
                         }
                     });
                 }
@@ -282,51 +276,47 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
             NotificationCenter globalInstance2 = NotificationCenter.getGlobalInstance();
             int i2 = NotificationCenter.needSetDayNightTheme;
             Boolean bool2 = Boolean.FALSE;
-            globalInstance2.postNotificationNameOnUIThread(i2, theme, bool2, themeTogglePosition, -1, Boolean.valueOf(zEquals), this.headerView.getThemeToggleView(), null, null, bool2, null);
-            final BaseFragment lastFragment2 = getLastFragment();
-            if (lastFragment2 != null) {
-                Theme.turnOffAutoNight(BulletinFactory.of(lastFragment2), new Runnable() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda14
+            globalInstance2.lambda$postNotificationNameOnUIThread$1(i2, theme, bool2, themeTogglePosition, -1, Boolean.valueOf(zEquals), this.headerView.getThemeToggleView(), null, null, bool2, null);
+            lastFragment = getLastFragment();
+            if (lastFragment != null) {
+                Theme.turnOffAutoNight(BulletinFactory.of(lastFragment), new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
-                        lastFragment2.presentFragment(new ThemeActivity(1));
+                        lastFragment.presentFragment(new ThemeActivity(1));
                     }
                 });
             }
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$setupCallbacks$4() {
+    public void lambda$setupCallbacks$4() {
         closeDrawer(true);
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda15
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                DrawerContainer.this.lambda$setupCallbacks$3();
+                this.f$0.lambda$setupCallbacks$3();
             }
         }, 200L);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$setupCallbacks$3() {
+    public void lambda$setupCallbacks$3() {
         BaseFragment lastFragment = getLastFragment();
         if (lastFragment != null) {
             lastFragment.presentFragment(new ThemeActivity(0));
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$setupCallbacks$6() {
+    public void lambda$setupCallbacks$6() {
         closeDrawer(true);
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda16
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                DrawerContainer.this.lambda$setupCallbacks$5();
+                this.f$0.lambda$setupCallbacks$5();
             }
         }, 200L);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$setupCallbacks$5() {
+    public void lambda$setupCallbacks$5() {
         BaseFragment lastFragment = getLastFragment();
         Bundle bundle = new Bundle();
         bundle.putLong("user_id", UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId());
@@ -336,41 +326,35 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$setupCallbacks$8() {
+    public void lambda$setupCallbacks$8() {
         closeDrawer(true);
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda13
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                DrawerContainer.this.lambda$setupCallbacks$7();
+                this.f$0.lambda$setupCallbacks$7();
             }
         }, 200L);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$setupCallbacks$7() {
+    public void lambda$setupCallbacks$7() {
         BaseFragment lastFragment = getLastFragment();
         if (lastFragment != null) {
             lastFragment.presentFragment(new ProxyListActivity());
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$setupCallbacks$9() {
+    public void lambda$setupCallbacks$9() {
         closeDrawer(true);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$setupCallbacks$10(int i, View view) {
+    public void lambda$setupCallbacks$10(int i, View view) {
         showAccountPreview(i);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$setupCallbacks$11() {
+    public void lambda$setupCallbacks$11() {
         closeDrawer(true);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void showStatusSelect() {
         BaseFragment lastFragment;
         if (this.selectAnimatedEmojiDialog == null && (lastFragment = getLastFragment()) != null) {
@@ -387,30 +371,36 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
             int iClamp = MathUtils.clamp(rightDrawableX - (popupWidth / 2), 0, AndroidUtilities.displaySize.x - popupWidth);
             int height = iArr[1] + nameView.getHeight();
             final SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow[] selectAnimatedEmojiDialogWindowArr = new SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow[1];
-            SelectAnimatedEmojiDialog selectAnimatedEmojiDialog = new SelectAnimatedEmojiDialog(lastFragment, getContext(), true, Integer.valueOf(Math.max(0, rightDrawableX - iClamp)), 0, true, null, 16) { // from class: com.exteragram.messenger.drawer.DrawerContainer.2
+            SelectAnimatedEmojiDialog selectAnimatedEmojiDialog = new SelectAnimatedEmojiDialog(lastFragment, getContext(), true, Integer.valueOf(Math.max(0, rightDrawableX - iClamp)), 0, true, null, 16) {
                 @Override // org.telegram.ui.SelectAnimatedEmojiDialog
                 public void onEmojiSelected(View view, Long l, TLRPC.Document document, TL_stars.TL_starGiftUnique tL_starGiftUnique, Integer num) {
-                    TLRPC.EmojiStatus emojiStatus;
+                    TLRPC.TL_emojiStatus tL_emojiStatus;
+                    TLRPC.EmojiStatus tL_emojiStatusEmpty;
+                    TLRPC.TL_inputEmojiStatusCollectible tL_inputEmojiStatusCollectible;
                     if (tL_starGiftUnique != null) {
-                        TLRPC.TL_inputEmojiStatusCollectible collectible = new TLRPC.TL_inputEmojiStatusCollectible();
-                        collectible.collectible_id = tL_starGiftUnique.id;
+                        tL_inputEmojiStatusCollectible = new TLRPC.TL_inputEmojiStatusCollectible();
+                        tL_inputEmojiStatusCollectible.collectible_id = tL_starGiftUnique.id;
                         if (num != null) {
-                            collectible.flags |= 1;
-                            collectible.until = num.intValue();
+                            tL_emojiStatusEmpty = tL_inputEmojiStatusCollectible;
+                            tL_inputEmojiStatusCollectible.flags |= 1;
+                            tL_inputEmojiStatusCollectible.until = num.intValue();
+                            tL_emojiStatusEmpty = tL_inputEmojiStatusCollectible;
                         }
-                        emojiStatus = collectible;
                     } else if (l == null) {
-                        emojiStatus = new TLRPC.TL_emojiStatusEmpty();
+                        tL_emojiStatusEmpty = new TLRPC.TL_emojiStatusEmpty();
                     } else {
-                        TLRPC.TL_emojiStatus status = new TLRPC.TL_emojiStatus();
-                        status.document_id = l.longValue();
+                        tL_emojiStatus = new TLRPC.TL_emojiStatus();
+                        tL_emojiStatus.document_id = l.longValue();
                         if (num != null) {
-                            status.flags |= 1;
-                            status.until = num.intValue();
+                            tL_emojiStatusEmpty = tL_emojiStatus;
+                            tL_emojiStatus.flags |= 1;
+                            tL_emojiStatus.until = num.intValue();
+                            tL_emojiStatusEmpty = tL_emojiStatus;
                         }
-                        emojiStatus = status;
                     }
-                    MessagesController.getInstance(i).updateEmojiStatus(0L, emojiStatus, tL_starGiftUnique);
+                    tL_emojiStatusEmpty = tL_emojiStatus;
+                    tL_emojiStatusEmpty = tL_inputEmojiStatusCollectible;
+                    MessagesController.getInstance(i).updateEmojiStatus(0L, tL_emojiStatusEmpty, tL_starGiftUnique);
                     DrawerContainer.this.headerView.updateUserInfo();
                     if (selectAnimatedEmojiDialogWindowArr[0] != null) {
                         DrawerContainer.this.selectAnimatedEmojiDialog = null;
@@ -423,7 +413,7 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
             selectAnimatedEmojiDialog.setSelected(emojiStatusDocumentId != 0 ? Long.valueOf(emojiStatusDocumentId) : null);
             selectAnimatedEmojiDialog.setSaveState(3);
             int i2 = -2;
-            SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow selectAnimatedEmojiDialogWindow = new SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow(selectAnimatedEmojiDialog, i2, i2) { // from class: com.exteragram.messenger.drawer.DrawerContainer.3
+            SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow selectAnimatedEmojiDialogWindow = new SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow(selectAnimatedEmojiDialog, i2, i2) {
                 @Override // org.telegram.ui.SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow, android.widget.PopupWindow
                 public void dismiss() {
                     super.dismiss();
@@ -439,13 +429,11 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
         }
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.drawer.DrawerContainer$4, reason: invalid class name */
     public class AnonymousClass4 extends SelectAnimatedEmojiDialog {
-        final /* synthetic */ BadgeDTO val$defaultBadge;
-        final /* synthetic */ BaseFragment val$fragment;
-        final /* synthetic */ SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow[] val$popup;
+        final BadgeDTO val$defaultBadge;
+        final BaseFragment val$fragment;
+        final SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow[] val$popup;
 
-        /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
         public AnonymousClass4(BaseFragment baseFragment, Context context, boolean z, Integer num, int i, boolean z2, Theme.ResourcesProvider resourcesProvider, int i2, int i3, boolean z3, BadgeDTO badgeDTO, BaseFragment baseFragment2, SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow[] selectAnimatedEmojiDialogWindowArr) {
             super(baseFragment, context, z, num, i, z2, resourcesProvider, i2, i3, z3);
             this.val$defaultBadge = badgeDTO;
@@ -470,10 +458,10 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
             DrawerContainer.this.accountPickerView.loadAccounts(badgeDTO2);
             BadgesController badgesController = BadgesController.INSTANCE;
             final BaseFragment baseFragment = this.val$fragment;
-            badgesController.updateBadge(badgeDTO2, new Consumer() { // from class: com.exteragram.messenger.drawer.DrawerContainer$4$$ExternalSyntheticLambda0
+            badgesController.updateBadge(badgeDTO2, new Consumer() {
                 @Override // java.util.function.Consumer
                 public final void accept(Object obj) {
-                    AnonymousClass4.this.lambda$onEmojiSelected$1(baseFragment, (String) obj);
+                    this.f$0.lambda$onEmojiSelected$1(baseFragment, (String) obj);
                 }
             });
             if (this.val$popup[0] != null) {
@@ -482,18 +470,16 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
             }
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$onEmojiSelected$1(final BaseFragment baseFragment, final String str) {
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.drawer.DrawerContainer$4$$ExternalSyntheticLambda1
+        public void lambda$onEmojiSelected$1(final BaseFragment baseFragment, final String str) {
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    AnonymousClass4.this.lambda$onEmojiSelected$0(str, baseFragment);
+                    this.f$0.lambda$onEmojiSelected$0(str, baseFragment);
                 }
             });
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$onEmojiSelected$0(String str, BaseFragment baseFragment) {
+        public void lambda$onEmojiSelected$0(String str, BaseFragment baseFragment) {
             if (str == null || !str.equals("ok")) {
                 BulletinFactory.of(DrawerContainer.this.bulletinContainer, baseFragment.getResourceProvider()).createErrorBulletin(LocaleController.getString(R.string.UnknownError)).show();
             }
@@ -502,7 +488,6 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void showBadgeSelect() {
         BaseFragment lastFragment = getLastFragment();
         if (lastFragment == null) {
@@ -543,7 +528,7 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
             anonymousClass4.setSelected(Long.valueOf(badge.getDocumentId()));
         }
         int i3 = -2;
-        SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow selectAnimatedEmojiDialogWindow = new SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow(anonymousClass4, i3, i3) { // from class: com.exteragram.messenger.drawer.DrawerContainer.5
+        SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow selectAnimatedEmojiDialogWindow = new SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow(anonymousClass4, i3, i3) {
             @Override // org.telegram.ui.SelectAnimatedEmojiDialog.SelectAnimatedEmojiDialogWindow, android.widget.PopupWindow
             public void dismiss() {
                 super.dismiss();
@@ -575,7 +560,7 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
         }
         Bundle bundle = new Bundle();
         bundle.putBoolean("drawer_account_preview", true);
-        MainTabsActivity mainTabsActivity = new MainTabsActivity(bundle) { // from class: com.exteragram.messenger.drawer.DrawerContainer.6
+        MainTabsActivity mainTabsActivity = new MainTabsActivity(bundle) {
             @Override // org.telegram.ui.MainTabsActivity, org.telegram.ui.ActionBar.BaseFragment
             public void onTransitionAnimationEnd(boolean z, boolean z2) {
                 super.onTransitionAnimationEnd(z, z2);
@@ -590,10 +575,10 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
                 super.onPreviewOpenAnimationEnd();
                 DrawerContainer.this.restoreDrawerAbovePreview();
                 DrawerContainer.this.closeDrawer(false);
-                if (i == UserConfig.selectedAccount || !(getContext() instanceof LaunchActivity)) {
-                    return;
+                int i2 = i;
+                if (i2 != UserConfig.selectedAccount) {
+                    AccountsUiHelper.switchTo(i2);
                 }
-                ((LaunchActivity) getContext()).switchToAccount(i, true);
             }
         };
         mainTabsActivity.setCurrentAccount(i);
@@ -603,7 +588,6 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void restoreDrawerAbovePreview() {
         ViewParent parent = getParent();
         if (parent instanceof DrawerLayoutContainer) {
@@ -656,9 +640,9 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
     public void cancelPredictiveBack() {
         if (this.predictiveBackInProgress) {
             this.predictiveBackInProgress = false;
-            float f = this.predictiveBackStartProgress;
-            this.isOpen = f > 0.001f;
-            animateProgress(f, true, 0.0f);
+            boolean z = this.predictiveBackStartProgress > 0.001f;
+            this.isOpen = z;
+            animateProgress(z ? 1.0f : 0.0f, true, 0.0f);
         }
     }
 
@@ -786,12 +770,10 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
         this.tapClosePending = false;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public float getDrawerOffset() {
         return this.drawerWidth * this.progress;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void setDrawerOffset(float f) {
         float fMax = Math.max(0.0f, Math.min(this.drawerWidth, f));
         int i = this.drawerWidth;
@@ -924,17 +906,17 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
         cancelAnimations();
         this.isAnimating = true;
         final float f3 = this.drawerWidth * f;
-        if (ExteraConfig.getSpringAnimations()) {
+        if (ExteraConfig.getSpringSwipeback()) {
             SpringAnimation springAnimation = new SpringAnimation(this, DRAWER_OFFSET);
             this.springAnimation = springAnimation;
             springAnimation.setSpring(new SpringForce(f3).setStiffness(z ? 1500.0f : 950.0f).setDampingRatio(1.0f));
             if (f2 != 0.0f) {
                 this.springAnimation.setStartVelocity(f2);
             }
-            this.springAnimation.addEndListener(new DynamicAnimation.OnAnimationEndListener() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda10
+            this.springAnimation.addEndListener(new DynamicAnimation.OnAnimationEndListener() {
                 @Override // androidx.dynamicanimation.animation.DynamicAnimation.OnAnimationEndListener
                 public final void onAnimationEnd(DynamicAnimation dynamicAnimation, boolean z2, float f4, float f5) {
-                    DrawerContainer.this.lambda$animateProgress$12(f3, f, dynamicAnimation, z2, f4, f5);
+                    this.f$0.lambda$animateProgress$12(f3, f, dynamicAnimation, z2, f4, f5);
                 }
             });
             this.springAnimation.animateToFinalPosition(f3);
@@ -944,13 +926,13 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
         this.standardAnimator = valueAnimatorOfFloat;
         valueAnimatorOfFloat.setDuration(getAnimationDuration(f3, z));
         this.standardAnimator.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
-        this.standardAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda11
+        this.standardAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override // android.animation.ValueAnimator.AnimatorUpdateListener
             public final void onAnimationUpdate(ValueAnimator valueAnimator) {
-                DrawerContainer.this.lambda$animateProgress$13(valueAnimator);
+                this.f$0.lambda$animateProgress$13(valueAnimator);
             }
         });
-        this.standardAnimator.addListener(new AnimatorListenerAdapter() { // from class: com.exteragram.messenger.drawer.DrawerContainer.7
+        this.standardAnimator.addListener(new AnimatorListenerAdapter() {
             private boolean canceled;
 
             @Override // android.animation.AnimatorListenerAdapter, android.animation.Animator.AnimatorListener
@@ -976,8 +958,7 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
         this.standardAnimator.start();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$animateProgress$12(float f, float f2, DynamicAnimation dynamicAnimation, boolean z, float f3, float f4) {
+    public void lambda$animateProgress$12(float f, float f2, DynamicAnimation dynamicAnimation, boolean z, float f3, float f4) {
         if (this.springAnimation == dynamicAnimation) {
             this.springAnimation = null;
         }
@@ -991,8 +972,7 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$animateProgress$13(ValueAnimator valueAnimator) {
+    public void lambda$animateProgress$13(ValueAnimator valueAnimator) {
         setDrawerOffset(((Float) valueAnimator.getAnimatedValue()).floatValue());
     }
 
@@ -1026,11 +1006,11 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
         onCloseComplete();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void onCloseComplete() {
         this.isOpen = false;
         this.tracking = false;
         this.startedEdgeSwipe = false;
+        this.animationInterruptedByTouch = false;
         this.predictiveBackInProgress = false;
         this.predictiveBackStartProgress = 0.0f;
         setProgress(0.0f);
@@ -1047,6 +1027,7 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
         if (motionEvent.getAction() == 0) {
             if (this.isAnimating) {
                 cancelAnimations();
+                this.animationInterruptedByTouch = true;
             }
             this.startX = motionEvent.getX();
             this.startY = motionEvent.getY();
@@ -1066,9 +1047,6 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
         return false;
     }
 
-    /* JADX WARN: Code duplicated, block: B:26:0x006c  */
-    /* JADX WARN: Code duplicated, block: B:28:0x0070  */
-    /* JADX WARN: Code duplicated, block: B:30:0x0074  */
     @Override // android.view.View
     @SuppressLint({"ClickableViewAccessibility"})
     public boolean onTouchEvent(MotionEvent motionEvent) {
@@ -1083,6 +1061,7 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
         if (action == 0) {
             if (this.isAnimating) {
                 cancelAnimations();
+                this.animationInterruptedByTouch = true;
             }
             this.startX = motionEvent.getX();
             this.startY = motionEvent.getY();
@@ -1123,6 +1102,33 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
             this.tapClosePending = false;
         }
         return true;
+    }
+
+    @Override // android.view.ViewGroup, android.view.View
+    public boolean dispatchTouchEvent(MotionEvent motionEvent) {
+        boolean zDispatchTouchEvent = super.dispatchTouchEvent(motionEvent);
+        int actionMasked = motionEvent.getActionMasked();
+        if (this.animationInterruptedByTouch && (actionMasked == 1 || actionMasked == 3)) {
+            this.animationInterruptedByTouch = false;
+            settleInterruptedAnimation();
+        }
+        return zDispatchTouchEvent;
+    }
+
+    private void settleInterruptedAnimation() {
+        if (this.isAnimating || this.tracking || this.startedEdgeSwipe || this.predictiveBackInProgress) {
+            return;
+        }
+        float f = this.isOpen ? 1.0f : 0.0f;
+        if (Math.abs(this.progress - f) <= 0.001f) {
+            setProgress(f);
+            if (this.isOpen) {
+                return;
+            }
+            onCloseComplete();
+            return;
+        }
+        animateProgress(f, true, 0.0f);
     }
 
     private boolean isClosingAnimationInProgress() {
@@ -1427,7 +1433,7 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
         registerNotifications();
-        Bulletin.addDelegate(this.bulletinContainer, new Bulletin.Delegate() { // from class: com.exteragram.messenger.drawer.DrawerContainer.8
+        Bulletin.addDelegate(this.bulletinContainer, new Bulletin.Delegate() {
             @Override // org.telegram.ui.Components.Bulletin.Delegate
             public int getBottomOffset(int i) {
                 return AndroidUtilities.navigationBarHeight;
@@ -1520,10 +1526,10 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
             return;
         }
         if (i == NotificationCenter.themeAccentListUpdated) {
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.drawer.DrawerContainer$$ExternalSyntheticLambda12
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    DrawerContainer.this.updateColors();
+                    this.f$0.updateColors();
                 }
             });
             return;
@@ -1561,7 +1567,6 @@ public class DrawerContainer extends FrameLayout implements NotificationCenter.N
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void updateColors() {
         this.drawerPanel.setBackgroundColor(Theme.getColor(COLOR_KEY_DRAWER_BACKGROUND));
         this.headerView.updateColors();

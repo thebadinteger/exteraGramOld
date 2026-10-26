@@ -11,7 +11,7 @@ public enum DividerStyle {
     LINE,
     SEGMENTS;
 
-    private static final /* synthetic */ EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
+    private static final EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
 
     public static EnumEntries<DividerStyle> getEntries() {
         return $ENTRIES;

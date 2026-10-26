@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import androidx.core.graphics.ColorUtils;
+import kotlin.Deprecated;
 import kotlin.Metadata;
 import kotlin.jvm.internal.DefaultConstructorMarker;
 import okhttp3.internal.url._UrlKt;
@@ -25,9 +26,13 @@ public final class PreviewBackgroundDrawable extends Drawable {
     }
 
     @Override // android.graphics.drawable.Drawable
-    @Deprecated
+    @Deprecated(message = "Deprecated in Java")
     public int getOpacity() {
         return -3;
+    }
+
+    public PreviewBackgroundDrawable(float f, int i, DefaultConstructorMarker defaultConstructorMarker) {
+        this((i & 1) != 0 ? 12.0f : f);
     }
 
     public PreviewBackgroundDrawable(float f) {
@@ -37,10 +42,6 @@ public final class PreviewBackgroundDrawable extends Drawable {
         this.strokePaint = paint;
         this.rectF = new RectF();
         this.radius = AndroidUtilities.dp(f);
-    }
-
-    public /* synthetic */ PreviewBackgroundDrawable(float f, int i, DefaultConstructorMarker defaultConstructorMarker) {
-        this((i & 1) != 0 ? 12.0f : f);
     }
 
     public final void setSelectionProgress(float f) {

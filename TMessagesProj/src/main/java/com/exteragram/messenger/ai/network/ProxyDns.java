@@ -1,5 +1,6 @@
 package com.exteragram.messenger.ai.network;
 
+import android.content.SharedPreferences;
 import com.exteragram.messenger.utils.network.ExteraHttpClient;
 import com.exteragram.messenger.utils.network.RemoteUtils;
 import java.io.ByteArrayOutputStream;
@@ -21,8 +22,10 @@ import okhttp3.Response;
 
 public class ProxyDns implements Dns {
     public static final Dns INSTANCE = new ProxyDns();
-    private static final String URL = RemoteUtils.getStringConfigValue("dns_url", "https://dns.comss.one/dns-query");
+    private volatile String cachedUrl;
+    private SharedPreferences.OnSharedPreferenceChangeListener changeListener;
     private final OkHttpClient client;
+    private volatile boolean listenerInitialized = false;
 
     private ProxyDns() {
         OkHttpClient.Builder builderNewBuilder = ExteraHttpClient.INSTANCE.getClient().newBuilder();
@@ -30,8 +33,45 @@ public class ProxyDns implements Dns {
         this.client = builderNewBuilder.connectTimeout(5L, timeUnit).readTimeout(5L, timeUnit).build();
     }
 
+    private void initializeListener() {
+        if (this.listenerInitialized) {
+            return;
+        }
+        RemoteUtils.initCached();
+        if (RemoteUtils.sharedPreferences != null) {
+            SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+                @Override // android.content.SharedPreferences.OnSharedPreferenceChangeListener
+                public final void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String str) {
+                    this.f$0.lambda$initializeListener$0(sharedPreferences, str);
+                }
+            };
+            this.changeListener = onSharedPreferenceChangeListener;
+            RemoteUtils.sharedPreferences.registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
+            this.listenerInitialized = true;
+        }
+    }
+
+    public void lambda$initializeListener$0(SharedPreferences sharedPreferences, String str) {
+        if ("dns_url".equals(str)) {
+            this.cachedUrl = null;
+        }
+    }
+
+    private String getUrl() {
+        if (!this.listenerInitialized) {
+            initializeListener();
+        }
+        String str = this.cachedUrl;
+        if (str != null) {
+            return str;
+        }
+        String stringConfigValue = RemoteUtils.getStringConfigValue("dns_url", "https://dns.comss.one/dns-query");
+        this.cachedUrl = stringConfigValue;
+        return stringConfigValue;
+    }
+
     @Override // okhttp3.Dns
-    public List<InetAddress> lookup(String str) throws java.net.UnknownHostException {
+    public List<InetAddress> lookup(String str) {
         try {
             List<String> listResolveDns = resolveDns(str);
             if (listResolveDns != null && !listResolveDns.isEmpty()) {
@@ -50,9 +90,9 @@ public class ProxyDns implements Dns {
 
     private List<String> resolveDns(String str) {
         try {
-            Response responseExecute = this.client.newCall(new Request.Builder().url(URL).post(RequestBody.create(buildDnsQuery(str), MediaType.parse("application/dns-message"))).addHeader("Accept", "application/dns-message").build()).execute();
+            Response responseExecute = this.client.newCall(new Request.Builder().url(getUrl()).post(RequestBody.create(buildDnsQuery(str), MediaType.parse("application/dns-message"))).addHeader("Accept", "application/dns-message").build()).execute();
             try {
-                if (!responseExecute.isSuccessful() || responseExecute.body() == null) {
+                if (!responseExecute.getIsSuccessful() || responseExecute.body() == null) {
                     responseExecute.close();
                     return null;
                 }
@@ -72,6 +112,7 @@ public class ProxyDns implements Dns {
         } catch (IOException unused) {
             return null;
         }
+        return null;
     }
 
     private byte[] buildDnsQuery(String str) {

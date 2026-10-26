@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Outline;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
@@ -19,7 +18,6 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
-import android.view.ViewOutlineProvider;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.widget.EditText;
@@ -40,6 +38,7 @@ import com.exteragram.messenger.icons.IconPack;
 import com.exteragram.messenger.icons.ui.IconPacksEditorActivity;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -51,6 +50,7 @@ import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.utils.ViewOutlineProviderImpl;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
@@ -88,8 +88,7 @@ public class IconPickerView extends FrameLayout implements NotificationCenter.No
     private final int touchSlop;
     private int wasStatusBar;
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$0() {
+    public void lambda$new$0() {
         this.inLongPress = true;
         try {
             performHapticFeedback(0);
@@ -99,17 +98,17 @@ public class IconPickerView extends FrameLayout implements NotificationCenter.No
 
     public IconPickerView(final Context context) {
         super(context);
-        this.onLongPress = new Runnable() { // from class: com.exteragram.messenger.icons.ui.picker.IconPickerView$$ExternalSyntheticLambda1
+        this.onLongPress = new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                IconPickerView.this.lambda$new$0();
+                this.f$0.lambda$new$0();
             }
         };
         this.systemTopInset = 0;
         this.systemBottomInset = 0;
         this.mPrefs = context.getSharedPreferences("icon_picker", 0);
         this.touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
-        final GestureDetector gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() { // from class: com.exteragram.messenger.icons.ui.picker.IconPickerView.1
+        final GestureDetector gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
             private float startX;
             private float startY;
 
@@ -140,10 +139,10 @@ public class IconPickerView extends FrameLayout implements NotificationCenter.No
                 IconPickerView iconPickerView = IconPickerView.this;
                 if (finalPosition >= width) {
                     displayMetrics = iconPickerView.getResources().getDisplayMetrics();
-                    f3 = 2.1474836E9f;
+                    f3 = 2.14748365E9f;
                 } else {
                     displayMetrics = iconPickerView.getResources().getDisplayMetrics();
-                    f3 = -2.1474836E9f;
+                    f3 = -2.14748365E9f;
                 }
                 spring.setFinalPosition(iconPickerView.clampX(displayMetrics, f3));
                 SpringForce spring2 = IconPickerView.this.fabYSpring.getSpring();
@@ -179,7 +178,7 @@ public class IconPickerView extends FrameLayout implements NotificationCenter.No
             }
         });
         gestureDetector.setIsLongpressEnabled(false);
-        FrameLayout frameLayout = new FrameLayout(context) { // from class: com.exteragram.messenger.icons.ui.picker.IconPickerView.2
+        FrameLayout frameLayout = new FrameLayout(context) {
             @Override // android.view.View
             public void invalidate() {
                 super.invalidate();
@@ -238,7 +237,7 @@ public class IconPickerView extends FrameLayout implements NotificationCenter.No
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(false);
         ActionBarMenu actionBarMenuCreateMenu = actionBar.createMenu();
-        actionBarMenuCreateMenu.addItem(0, R.drawable.outline_header_search).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() { // from class: com.exteragram.messenger.icons.ui.picker.IconPickerView.3
+        actionBarMenuCreateMenu.addItem(0, R.drawable.outline_header_search).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
             @Override // org.telegram.ui.ActionBar.ActionBarMenuItem.ActionBarMenuItemSearchListener
             public void onSearchExpand() {
                 IconPickerView.this.searching = true;
@@ -270,7 +269,7 @@ public class IconPickerView extends FrameLayout implements NotificationCenter.No
         this.saveItem = actionBarMenuSubItemAddSubItem;
         int i = Theme.key_featuredStickers_addButtonPressed;
         actionBarMenuSubItemAddSubItem.setColors(Theme.getColor(i), Theme.getColor(i));
-        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() { // from class: com.exteragram.messenger.icons.ui.picker.IconPickerView.4
+        actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override // org.telegram.ui.ActionBar.ActionBar.ActionBarMenuOnItemClick
             public void onItemClick(int i2) {
                 IconPack iconPackFindPackById;
@@ -292,21 +291,21 @@ public class IconPickerView extends FrameLayout implements NotificationCenter.No
                 }
                 Context context3 = context;
                 if (context3 instanceof LaunchActivity) {
-                    ((LaunchActivity) context3).presentFragment(new IconPacksEditorActivity(iconPackFindPackById));
+                    ((LaunchActivity) context3).lambda$runLinkRequest$108(new IconPacksEditorActivity(iconPackFindPackById));
                     IconPickerView.this.showIconList(false);
                 }
             }
         });
         linearLayout.addView(actionBar, LayoutHelper.createLinear(-1, -2));
-        UniversalRecyclerView universalRecyclerView = new UniversalRecyclerView(context, UserConfig.selectedAccount, 0, new Utilities.Callback2() { // from class: com.exteragram.messenger.icons.ui.picker.IconPickerView$$ExternalSyntheticLambda2
+        UniversalRecyclerView universalRecyclerView = new UniversalRecyclerView(context, UserConfig.selectedAccount, 0, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
-                IconPickerView.this.fillItems((ArrayList) obj, (UniversalAdapter) obj2);
+                this.f$0.fillItems((ArrayList) obj, (UniversalAdapter) obj2);
             }
-        }, new Utilities.Callback5() { // from class: com.exteragram.messenger.icons.ui.picker.IconPickerView$$ExternalSyntheticLambda3
+        }, new Utilities.Callback5() {
             @Override // org.telegram.messenger.Utilities.Callback5
             public final void run(Object obj, Object obj2, Object obj3, Object obj4, Object obj5) {
-                IconPickerView.this.onClick((UItem) obj, (View) obj2, ((Integer) obj3).intValue(), ((Float) obj4).floatValue(), ((Float) obj5).floatValue());
+                this.f$0.onClick((UItem) obj, (View) obj2, ((Integer) obj3).intValue(), ((Float) obj4).floatValue(), ((Float) obj5).floatValue());
             }
         }, null, null);
         this.listView = universalRecyclerView;
@@ -314,24 +313,18 @@ public class IconPickerView extends FrameLayout implements NotificationCenter.No
         linearLayout.addView(universalRecyclerView, LayoutHelper.createLinear(-1, 0, 1.0f));
         addView(linearLayout, LayoutHelper.createFrame(-1, -1.0f, 0, 8.0f, 8.0f, 8.0f, 8.0f));
         linearLayout.setClipToOutline(true);
-        linearLayout.setOutlineProvider(new ViewOutlineProvider() { // from class: com.exteragram.messenger.icons.ui.picker.IconPickerView.5
-            @Override // android.view.ViewOutlineProvider
-            public void getOutline(View view, Outline outline) {
-                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), AndroidUtilities.dp(10.0f));
-            }
-        });
-        setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() { // from class: com.exteragram.messenger.icons.ui.picker.IconPickerView$$ExternalSyntheticLambda4
+        linearLayout.setOutlineProvider(ViewOutlineProviderImpl.boundsWithRoundRect(AndroidUtilities.dp(10.0f)));
+        setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
             @Override // android.view.View.OnApplyWindowInsetsListener
             public final WindowInsets onApplyWindowInsets(View view, WindowInsets windowInsets) {
-                return IconPickerView.this.lambda$new$1(view, windowInsets);
+                return this.f$0.lambda$new$1(view, windowInsets);
             }
         });
         updateDrawables();
         setWillNotDraw(false);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ WindowInsets lambda$new$1(View view, WindowInsets windowInsets) {
+    public WindowInsets lambda$new$1(View view, WindowInsets windowInsets) {
         this.systemTopInset = windowInsets.getSystemWindowInsetTop();
         this.systemBottomInset = windowInsets.getSystemWindowInsetBottom();
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) this.bigLayout.getLayoutParams();
@@ -346,17 +339,16 @@ public class IconPickerView extends FrameLayout implements NotificationCenter.No
         return windowInsets;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void updateSpringPositions() {
         DisplayMetrics displayMetrics;
         float f;
         SpringForce spring = this.fabXSpring.getSpring();
         if (this.fabXSpring.getSpring().getFinalPosition() >= getWidth() / 2.0f) {
             displayMetrics = getResources().getDisplayMetrics();
-            f = 2.1474836E9f;
+            f = 2.14748365E9f;
         } else {
             displayMetrics = getResources().getDisplayMetrics();
-            f = -2.1474836E9f;
+            f = -2.14748365E9f;
         }
         spring.setFinalPosition(clampX(displayMetrics, f));
         this.fabYSpring.getSpring().setFinalPosition(clampY(getResources().getDisplayMetrics(), this.fabYSpring.getSpring().getFinalPosition()));
@@ -364,33 +356,31 @@ public class IconPickerView extends FrameLayout implements NotificationCenter.No
         this.fabYSpring.start();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void onClick(UItem uItem, View view, int i, float f, float f2) {
         IconManager.INSTANCE.showReplaceAlert(getContext(), uItem.id);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void fillItems(final ArrayList<UItem> arrayList, UniversalAdapter universalAdapter) {
-        final String lowerCase = (!this.searching || TextUtils.isEmpty(this.query)) ? null : this.query.toLowerCase();
+        final String lowerCase = (!this.searching || TextUtils.isEmpty(this.query)) ? null : this.query.toLowerCase(Locale.ROOT);
         final IconPack iconPackFindPackById = ExteraConfig.getEditingIconPackId() != null ? IconManager.INSTANCE.findPackById(ExteraConfig.getEditingIconPackId()) : null;
-        Stream streamSorted = IconObserver.INSTANCE.getUsedIcons().stream().map(new Function() { // from class: com.exteragram.messenger.icons.ui.picker.IconPickerView$$ExternalSyntheticLambda7
+        Stream streamSorted = IconObserver.INSTANCE.getUsedIcons().stream().map(new Function() {
             @Override // java.util.function.Function
             public final Object apply(Object obj) {
-                return IconPickerView.this.lambda$fillItems$2(lowerCase, iconPackFindPackById, (Integer) obj);
+                return this.f$0.lambda$fillItems$2(lowerCase, iconPackFindPackById, (Integer) obj);
             }
-        }).filter(new Predicate() { // from class: com.exteragram.messenger.icons.ui.picker.IconPickerView$$ExternalSyntheticLambda8
+        }).filter(new Predicate() {
             @Override // java.util.function.Predicate
             public final boolean test(Object obj) {
                 return Objects.nonNull((UItem) obj);
             }
-        }).sorted(Comparator.comparing(new Function() { // from class: com.exteragram.messenger.icons.ui.picker.IconPickerView$$ExternalSyntheticLambda9
+        }).sorted(Comparator.comparing(new Function() {
             @Override // java.util.function.Function
             public final Object apply(Object obj) {
                 return ((UItem) obj).text.toString();
             }
         }));
         Objects.requireNonNull(arrayList);
-        streamSorted.forEach(new Consumer() { // from class: com.exteragram.messenger.icons.ui.picker.IconPickerView$$ExternalSyntheticLambda10
+        streamSorted.forEach(new Consumer() {
             @Override // java.util.function.Consumer
             public final void accept(Object obj) {
                 arrayList.add((UItem) obj);
@@ -398,11 +388,10 @@ public class IconPickerView extends FrameLayout implements NotificationCenter.No
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ UItem lambda$fillItems$2(String str, IconPack iconPack, Integer num) {
+    public UItem lambda$fillItems$2(String str, IconPack iconPack, Integer num) {
         try {
             String resourceEntryName = getResources().getResourceEntryName(num.intValue());
-            if ((str != null && !resourceEntryName.toLowerCase().contains(str)) || IconManager.INSTANCE.isBlacklisted(resourceEntryName)) {
+            if ((str != null && !resourceEntryName.toLowerCase(Locale.ROOT).contains(str)) || IconManager.INSTANCE.isBlacklisted(resourceEntryName)) {
                 return null;
             }
             UItem uItemAsIcon = IconPacksEditorActivity.EditorIconCell.Factory.asIcon(num.intValue(), resourceEntryName, iconPack);
@@ -525,12 +514,10 @@ public class IconPickerView extends FrameLayout implements NotificationCenter.No
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public float clampX(DisplayMetrics displayMetrics, float f) {
         return MathUtils.clamp(f, AndroidUtilities.dp(16.0f), displayMetrics.widthPixels - AndroidUtilities.dp(72.0f));
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public float clampY(DisplayMetrics displayMetrics, float f) {
         return MathUtils.clamp(f, this.systemTopInset + AndroidUtilities.dp(16.0f), (displayMetrics.heightPixels - this.systemBottomInset) - AndroidUtilities.dp(72.0f));
     }
@@ -552,7 +539,7 @@ public class IconPickerView extends FrameLayout implements NotificationCenter.No
         float f = this.mPrefs.getFloat("x", -1.0f);
         float f2 = this.mPrefs.getFloat("y", -1.0f);
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-        this.floatingButtonContainer.setTranslationX(clampX(displayMetrics, (f == -1.0f || f >= ((float) displayMetrics.widthPixels) / 2.0f) ? 2.1474836E9f : -2.1474836E9f));
+        this.floatingButtonContainer.setTranslationX(clampX(displayMetrics, (f == -1.0f || f >= ((float) displayMetrics.widthPixels) / 2.0f) ? 2.14748365E9f : -2.14748365E9f));
         FrameLayout frameLayout = this.floatingButtonContainer;
         if (f2 == -1.0f) {
             f2 = displayMetrics.heightPixels / 2.0f;
@@ -593,21 +580,20 @@ public class IconPickerView extends FrameLayout implements NotificationCenter.No
         final float f2 = layoutParams.leftMargin;
         final float translationX = this.floatingButtonContainer.getTranslationX() - f2;
         final float translationY = this.floatingButtonContainer.getTranslationY() - f;
-        new SpringAnimation(new FloatValueHolder(z ? 0.0f : 1000.0f)).setSpring(new SpringForce(1000.0f).setStiffness(900.0f).setDampingRatio(1.0f).setFinalPosition(z ? 1000.0f : 0.0f)).addUpdateListener(new DynamicAnimation.OnAnimationUpdateListener() { // from class: com.exteragram.messenger.icons.ui.picker.IconPickerView$$ExternalSyntheticLambda5
+        new SpringAnimation(new FloatValueHolder(z ? 0.0f : 1000.0f)).setSpring(new SpringForce(1000.0f).setStiffness(900.0f).setDampingRatio(1.0f).setFinalPosition(z ? 1000.0f : 0.0f)).addUpdateListener(new DynamicAnimation.OnAnimationUpdateListener() {
             @Override // androidx.dynamicanimation.animation.DynamicAnimation.OnAnimationUpdateListener
             public final void onAnimationUpdate(DynamicAnimation dynamicAnimation, float f3, float f4) {
-                IconPickerView.this.lambda$showIconList$4(translationX, translationY, f2, f, window, dynamicAnimation, f3, f4);
+                this.f$0.lambda$showIconList$4(translationX, translationY, f2, f, window, dynamicAnimation, f3, f4);
             }
-        }).addEndListener(new DynamicAnimation.OnAnimationEndListener() { // from class: com.exteragram.messenger.icons.ui.picker.IconPickerView$$ExternalSyntheticLambda6
+        }).addEndListener(new DynamicAnimation.OnAnimationEndListener() {
             @Override // androidx.dynamicanimation.animation.DynamicAnimation.OnAnimationEndListener
             public final void onAnimationEnd(DynamicAnimation dynamicAnimation, boolean z2, float f3, float f4) {
-                IconPickerView.this.lambda$showIconList$5(translationX, f2, translationY, f, z, dynamicAnimation, z2, f3, f4);
+                this.f$0.lambda$showIconList$5(translationX, f2, translationY, f, z, dynamicAnimation, z2, f3, f4);
             }
         }).start();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$showIconList$4(float f, float f2, float f3, float f4, Window window, DynamicAnimation dynamicAnimation, float f5, float f6) {
+    public void lambda$showIconList$4(float f, float f2, float f3, float f4, Window window, DynamicAnimation dynamicAnimation, float f5, float f6) {
         float f7 = f5 / 1000.0f;
         this.bigLayout.setAlpha(f7);
         this.bigLayout.setTranslationX(AndroidUtilities.lerp(f, 0.0f, f7));
@@ -627,8 +613,7 @@ public class IconPickerView extends FrameLayout implements NotificationCenter.No
         invalidate();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$showIconList$5(float f, float f2, float f3, float f4, boolean z, DynamicAnimation dynamicAnimation, boolean z2, float f5, float f6) {
+    public void lambda$showIconList$5(float f, float f2, float f3, float f4, boolean z, DynamicAnimation dynamicAnimation, boolean z2, float f5, float f6) {
         this.floatingButtonContainer.setTranslationX(f + f2);
         this.floatingButtonContainer.setTranslationY(f3 + f4);
         if (z) {
@@ -644,7 +629,7 @@ public class IconPickerView extends FrameLayout implements NotificationCenter.No
         this.fabYSpring.cancel();
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
         FrameLayout frameLayout = this.floatingButtonContainer;
-        frameLayout.setTranslationX(clampX(displayMetrics, frameLayout.getTranslationX() >= ((float) displayMetrics.widthPixels) / 2.0f ? 2.1474836E9f : -2.1474836E9f));
+        frameLayout.setTranslationX(clampX(displayMetrics, frameLayout.getTranslationX() >= ((float) displayMetrics.widthPixels) / 2.0f ? 2.14748365E9f : -2.14748365E9f));
         FrameLayout frameLayout2 = this.floatingButtonContainer;
         frameLayout2.setTranslationY(clampY(displayMetrics, frameLayout2.getTranslationY()));
         this.fabXSpring.getSpring().setFinalPosition(this.floatingButtonContainer.getTranslationX());
@@ -653,16 +638,15 @@ public class IconPickerView extends FrameLayout implements NotificationCenter.No
 
     public void showFab() {
         this.floatingButtonContainer.setVisibility(0);
-        new SpringAnimation(new FloatValueHolder(0.0f)).setSpring(new SpringForce(1000.0f).setStiffness(750.0f).setDampingRatio(0.75f)).addUpdateListener(new DynamicAnimation.OnAnimationUpdateListener() { // from class: com.exteragram.messenger.icons.ui.picker.IconPickerView$$ExternalSyntheticLambda0
+        new SpringAnimation(new FloatValueHolder(0.0f)).setSpring(new SpringForce(1000.0f).setStiffness(750.0f).setDampingRatio(0.75f)).addUpdateListener(new DynamicAnimation.OnAnimationUpdateListener() {
             @Override // androidx.dynamicanimation.animation.DynamicAnimation.OnAnimationUpdateListener
             public final void onAnimationUpdate(DynamicAnimation dynamicAnimation, float f, float f2) {
-                IconPickerView.this.lambda$showFab$6(dynamicAnimation, f, f2);
+                this.f$0.lambda$showFab$6(dynamicAnimation, f, f2);
             }
         }).start();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$showFab$6(DynamicAnimation dynamicAnimation, float f, float f2) {
+    public void lambda$showFab$6(DynamicAnimation dynamicAnimation, float f, float f2) {
         float f3 = f / 1000.0f;
         this.floatingButtonContainer.setPivotX(AndroidUtilities.dp(28.0f));
         this.floatingButtonContainer.setPivotY(AndroidUtilities.dp(28.0f));

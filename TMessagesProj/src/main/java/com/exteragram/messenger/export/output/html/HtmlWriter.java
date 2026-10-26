@@ -187,16 +187,15 @@ public class HtmlWriter extends AbstractWriter {
     }
 
     public static String WriteUserpicThumb(String str, String str2, final UserpicData userpicData) {
-        return (String) HtmlContext.WriteImageThumb(str, str2, new Function() { // from class: com.exteragram.messenger.export.output.html.HtmlWriter$$ExternalSyntheticLambda4
+        return (String) HtmlContext.WriteImageThumb(str, str2, new Function() {
             @Override // java.util.function.Function
             public final Object apply(Object obj) {
-                return HtmlWriter.m1080$r8$lambda$0DixWPzMjZ6lOOvAG9W5PMq7o(userpicData, (Dimension) obj);
+                return HtmlWriter.m1351$r8$lambda$0DixWPzMjZ6lOOvAG9W5PMq7o(userpicData, (Dimension) obj);
             }
         }, null, 0, "_thumb").first;
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$--0DixWPzMjZ6lOOvAG9W5PMq7o, reason: not valid java name */
-    public static /* synthetic */ Dimension m1080$r8$lambda$0DixWPzMjZ6lOOvAG9W5PMq7o(UserpicData userpicData, Dimension dimension) {
+    public static Dimension m1351$r8$lambda$0DixWPzMjZ6lOOvAG9W5PMq7o(UserpicData userpicData, Dimension dimension) {
         int i = userpicData.pixelSize * 2;
         return new Dimension(i, i);
     }
@@ -258,7 +257,7 @@ public class HtmlWriter extends AbstractWriter {
         boolean zIsEmpty = str.isEmpty();
         String str3 = _UrlKt.FRAGMENT_ENCODE_SET;
         userpicData.largeLink = zIsEmpty ? _UrlKt.FRAGMENT_ENCODE_SET : userpicsFilePath();
-        userpicData.imageLink = (String) HtmlContext.WriteImageThumb(this._settings.path, str, new Function() { // from class: com.exteragram.messenger.export.output.html.HtmlWriter$$ExternalSyntheticLambda1
+        userpicData.imageLink = (String) HtmlContext.WriteImageThumb(this._settings.path, str, new Function() {
             @Override // java.util.function.Function
             public final Object apply(Object obj) {
                 return HtmlWriter.$r8$lambda$LUfwZiBWR44LYKa4oSGSBHvO5Xg(userpicData, (Dimension) obj);
@@ -270,7 +269,7 @@ public class HtmlWriter extends AbstractWriter {
         sb.append(this._summary.pushDiv("pull_right userpic_wrap"));
         sb.append(this._summary.pushUserpic(userpicData));
         sb.append(this._summary.popTag());
-        pushRows("names", Arrays.asList(new Pair("First name", apiWrap$ContactInfo.firstName), new Pair("Last name", apiWrap$ContactInfo.lastName)), sb);
+        pushRows("names", java.util.Arrays.asList(new Object[]{new Pair("First name", apiWrap$ContactInfo.firstName), new Pair("Last name", apiWrap$ContactInfo.lastName)}), sb);
         if (!apiWrap$ContactInfo.phoneNumber.isEmpty()) {
             str3 = PhoneFormat.getInstance().format("+" + apiWrap$ContactInfo.phoneNumber);
         }
@@ -282,14 +281,14 @@ public class HtmlWriter extends AbstractWriter {
         } else {
             str2 = "@" + apiWrap$User.username;
         }
-        pushRows("info", Arrays.asList(pair, new Pair("Username", str2)), sb);
-        pushRows("bio", Arrays.asList(new Pair("Bio", apiWrap$ExportPersonalInfo.bio)), sb);
+        pushRows("info", java.util.Arrays.asList(new Object[]{pair, new Pair("Username", str2)}), sb);
+        pushRows("bio", java.util.Arrays.asList(new Object[]{new Pair("Bio", apiWrap$ExportPersonalInfo.bio)}), sb);
         sb.append(this._summary.popTag());
         this._summaryNeedDivider = true;
         return this._summary.writeBlock(String.valueOf(sb));
     }
 
-    public static /* synthetic */ Dimension $r8$lambda$LUfwZiBWR44LYKa4oSGSBHvO5Xg(UserpicData userpicData, Dimension dimension) {
+    public static Dimension $r8$lambda$LUfwZiBWR44LYKa4oSGSBHvO5Xg(UserpicData userpicData, Dimension dimension) {
         int i = userpicData.pixelSize * 2;
         return new Dimension(i, i);
     }
@@ -462,6 +461,7 @@ public class HtmlWriter extends AbstractWriter {
     public AbstractWriter.Result writeDialogsStart(ApiWrap$DialogsInfo apiWrap$DialogsInfo) {
         if (this._chats != null) {
             throw new IllegalStateException("chats already initialized!");
+            return null;
         }
         if (apiWrap$DialogsInfo.chats.isEmpty() && apiWrap$DialogsInfo.left.isEmpty()) {
             return AbstractWriter.Result.Success();
@@ -506,7 +506,7 @@ public class HtmlWriter extends AbstractWriter {
             this._haveSections = true;
             this._summaryNeedDivider = false;
         }
-        Collections.sort(this._savedSections, Comparator.comparing(new Function() { // from class: com.exteragram.messenger.export.output.html.HtmlWriter$$ExternalSyntheticLambda0
+        Collections.sort(this._savedSections, Comparator.comparing(new Function() {
             @Override // java.util.function.Function
             public final Object apply(Object obj) {
                 return Integer.valueOf(((HtmlWriter.SavedSection) obj).priority);
@@ -534,9 +534,29 @@ public class HtmlWriter extends AbstractWriter {
         	at jadx.core.dex.visitors.ConstructorVisitor.replaceInvoke(ConstructorVisitor.java:56)
         	at jadx.core.dex.visitors.ConstructorVisitor.visit(ConstructorVisitor.java:42)
         */
-    public String getTextFromAction(com.exteragram.messenger.export.api.ApiWrap$Message message, String peerName, boolean isChannel) {
-        return "";
-    }
+    public java.lang.String getTextFromAction(
+    /*  JADX ERROR: ConcurrentModificationException in pass: ConstructorVisitor
+        java.util.ConcurrentModificationException
+        	at java.base/java.util.ArrayList$Itr.checkForComodification(Unknown Source)
+        	at java.base/java.util.ArrayList$Itr.next(Unknown Source)
+        	at jadx.core.dex.visitors.ConstructorVisitor.insertPhiInsn(ConstructorVisitor.java:139)
+        	at jadx.core.dex.visitors.ConstructorVisitor.processInvoke(ConstructorVisitor.java:91)
+        	at jadx.core.dex.visitors.ConstructorVisitor.replaceInvoke(ConstructorVisitor.java:56)
+        */
+    /*  JADX ERROR: Method generation error
+        jadx.core.utils.exceptions.JadxRuntimeException: Code variable not set in r12v0 ??
+        	at jadx.core.dex.instructions.args.SSAVar.getCodeVar(SSAVar.java:236)
+        	at jadx.core.codegen.MethodGen.addMethodArguments(MethodGen.java:215)
+        	at jadx.core.codegen.MethodGen.addDefinition(MethodGen.java:150)
+        	at jadx.core.codegen.ClassGen.addMethodCode(ClassGen.java:415)
+        	at jadx.core.codegen.ClassGen.addMethod(ClassGen.java:345)
+        	at jadx.core.codegen.ClassGen.lambda$addInnerClsAndMethods$3(ClassGen.java:299)
+        	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(Unknown Source)
+        	at java.base/java.util.ArrayList.forEach(Unknown Source)
+        	at java.base/java.util.stream.SortedOps$RefSortingSink.end(Unknown Source)
+        	at java.base/java.util.stream.Sink$ChainedReference.end(Unknown Source)
+        */
+
     @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result writeDialogStart(ApiWrap$DialogInfo apiWrap$DialogInfo) {
         this._chat = fileWithRelativePath(apiWrap$DialogInfo.relativePath + messagesFile(0));
@@ -549,10 +569,6 @@ public class HtmlWriter extends AbstractWriter {
         return AbstractWriter.Result.Success();
     }
 
-    /* JADX WARN: Multi-variable type inference failed */
-    /* JADX WARN: Type inference failed for: r1v24 */
-    /* JADX WARN: Type inference failed for: r1v5 */
-    /* JADX WARN: Type inference failed for: r1v6, types: [int] */
     @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result writeDialogSlice(ApiWrap$MessagesSlice apiWrap$MessagesSlice) {
         int i;
@@ -599,16 +615,16 @@ public class HtmlWriter extends AbstractWriter {
                     this._chatFileEmpty = z;
                 }
                 int i6 = apiWrap$Message.date;
-                if (DataTypesUtils.DisplayDate(i6, messageInfo3 != null ? messageInfo3.date : 0)) {
+                if (DataTypesUtils.DisplayDate(i6, messageInfo3 != null ? messageInfo3.date : z)) {
                     HtmlContext htmlContext = this._chat;
                     int i7 = this._dateMessageId - 1;
                     this._dateMessageId = i7;
                     sb.append(htmlContext.pushServiceMessage(i7, this._dialog, this._settings.path, LocaleController.formatDate(i6), null));
                 }
-                Pair<MessageInfo, String> pairPushMessage = this._chat.pushMessage(apiWrap$Message, messageInfo3, this._dialog, this._settings.path, apiWrap$MessagesSlice.peers, this, "https://t.me/", new Utilities.Callback2Return() { // from class: com.exteragram.messenger.export.output.html.HtmlWriter$$ExternalSyntheticLambda2
+                Pair<MessageInfo, String> pairPushMessage = this._chat.pushMessage(apiWrap$Message, messageInfo3, this._dialog, this._settings.path, apiWrap$MessagesSlice.peers, this, "https://t.me/", new Utilities.Callback2Return() {
                     @Override // org.telegram.messenger.Utilities.Callback2Return
                     public final Object run(Object obj, Object obj2) {
-                        return HtmlWriter.this.wrapMessageLink(((Integer) obj).intValue(), (String) obj2);
+                        return this.f$0.wrapMessageLink(((Integer) obj).intValue(), (String) obj2);
                     }
                 });
                 messageInfo2 = (MessageInfo) pairPushMessage.first;
@@ -778,10 +794,9 @@ public class HtmlWriter extends AbstractWriter {
         return this._userpics.writeBlock(sb.toString());
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.export.output.html.HtmlWriter$2, reason: invalid class name */
-    public static /* synthetic */ class AnonymousClass2 {
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$DialogInfo$Type;
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$File$SkipReason;
+    public static class AnonymousClass2 {
+        static final int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$DialogInfo$Type;
+        static final int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$File$SkipReason;
 
         static {
             int[] iArr = new int[ApiWrap$File.SkipReason.values().length];
@@ -897,6 +912,7 @@ public class HtmlWriter extends AbstractWriter {
                         throw new IncompatibleClassChangeError();
                     }
                     throw new IllegalStateException("Skip reason while writing story path.");
+                    return null;
                 }
                 AndroidUtilities.formatFileSize(apiWrap$FileFile.size);
             }
@@ -906,10 +922,10 @@ public class HtmlWriter extends AbstractWriter {
             } else {
                 str = apiWrap$Story2.thumb().file.relativePath;
             }
-            apiWrap$StoryData.imageLink = (String) HtmlContext.WriteImageThumb(this._settings.path, str, new Function() { // from class: com.exteragram.messenger.export.output.html.HtmlWriter$$ExternalSyntheticLambda3
+            apiWrap$StoryData.imageLink = (String) HtmlContext.WriteImageThumb(this._settings.path, str, new Function() {
                 @Override // java.util.function.Function
                 public final Object apply(Object obj) {
-                    return HtmlWriter.m1081$r8$lambda$B8MGwMXHL_evNdsjLxRh5KBA((Dimension) obj);
+                    return HtmlWriter.m1352$r8$lambda$B8MGwMXHL_evNdsjLxRh5KBA((Dimension) obj);
                 }
             }, null, 0, null).first;
             int i3 = apiWrap$Story2.date;
@@ -923,8 +939,7 @@ public class HtmlWriter extends AbstractWriter {
         return this._stories.writeBlock(sb.toString());
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$B8MGw-MXHL_evNdsjLxR-h5-KBA, reason: not valid java name */
-    public static /* synthetic */ Dimension m1081$r8$lambda$B8MGwMXHL_evNdsjLxRh5KBA(Dimension dimension) {
+    public static Dimension m1352$r8$lambda$B8MGwMXHL_evNdsjLxRh5KBA(Dimension dimension) {
         return new Dimension(90, 160);
     }
 
@@ -1003,7 +1018,7 @@ public class HtmlWriter extends AbstractWriter {
         sb.append(htmlContextFileWithRelativePath.pushDiv("page_body list_page"));
         sb.append(htmlContextFileWithRelativePath.pushAbout("_environment.aboutFrequent", false));
         sb.append(htmlContextFileWithRelativePath.pushDiv("entry_list"));
-        Utilities.Callback2<ArrayList<ApiWrap$TopPeer>, String> callback2 = new Utilities.Callback2<ArrayList<ApiWrap$TopPeer>, String>() { // from class: com.exteragram.messenger.export.output.html.HtmlWriter.1
+        Utilities.Callback2<ArrayList<ApiWrap$TopPeer>, String> callback2 = new Utilities.Callback2<ArrayList<ApiWrap$TopPeer>, String>() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public void run(ArrayList<ApiWrap$TopPeer> arrayList, String str) {
                 String strName;
@@ -1127,9 +1142,8 @@ public class HtmlWriter extends AbstractWriter {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public String wrapMessageLink(final int i, String str) {
-        Optional<Integer> optionalFindFirst = this._lastMessageIdsPerFile.stream().filter(new Predicate() { // from class: com.exteragram.messenger.export.output.html.HtmlWriter$$ExternalSyntheticLambda5
+        Optional<Integer> optionalFindFirst = this._lastMessageIdsPerFile.stream().filter(new Predicate() {
             @Override // java.util.function.Predicate
             public final boolean test(Object obj) {
                 return HtmlWriter.$r8$lambda$SUVYRCCFgnq2nXdHrqF2pYunQwQ(i, (Integer) obj);
@@ -1141,7 +1155,7 @@ public class HtmlWriter extends AbstractWriter {
         return "<a href=\"" + messagesFile(optionalFindFirst.get().intValue() - this._lastMessageIdsPerFile.get(0).intValue()) + "#go_to_message" + i + "\">" + str + "</a>";
     }
 
-    public static /* synthetic */ boolean $r8$lambda$SUVYRCCFgnq2nXdHrqF2pYunQwQ(int i, Integer num) {
+    public static boolean $r8$lambda$SUVYRCCFgnq2nXdHrqF2pYunQwQ(int i, Integer num) {
         return i <= num.intValue();
     }
 

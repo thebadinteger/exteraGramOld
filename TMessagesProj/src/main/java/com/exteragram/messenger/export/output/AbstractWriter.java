@@ -60,8 +60,8 @@ public abstract class AbstractWriter {
 
     public abstract Result writeUserpicsStart(ApiWrap$UserpicsInfo apiWrap$UserpicsInfo);
 
-    public static /* synthetic */ class AnonymousClass1 {
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$export$output$AbstractWriter$Format;
+    public static class AnonymousClass1 {
+        static final int[] $SwitchMap$com$exteragram$messenger$export$output$AbstractWriter$Format;
 
         static {
             int[] iArr = new int[Format.values().length];

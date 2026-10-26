@@ -1,7 +1,6 @@
 package com.exteragram.messenger.utils.ui;
 
 import androidx.core.util.Pair;
-import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.TabIconsMode;
 import java.util.LinkedHashMap;
 import okhttp3.internal.url._UrlKt;
@@ -115,16 +114,16 @@ public abstract class FolderIcons {
         return AndroidUtilities.dp(24.0f);
     }
 
-    public static int getPadding() {
-        if (ExteraConfig.getTabIcons() == TabIconsMode.ICONS_AND_TITLES) {
+    public static int getPadding(TabIconsMode tabIconsMode) {
+        if (tabIconsMode == TabIconsMode.ICONS_AND_TITLES) {
             return AndroidUtilities.dp(4.0f);
         }
         return 0;
     }
 
-    public static int getTotalIconWidth() {
-        if (ExteraConfig.getTabIcons() != TabIconsMode.TITLES_ONLY) {
-            return getIconWidth() + getPadding();
+    public static int getTotalIconWidth(TabIconsMode tabIconsMode) {
+        if (tabIconsMode != TabIconsMode.TITLES_ONLY) {
+            return getIconWidth() + getPadding(tabIconsMode);
         }
         return 0;
     }

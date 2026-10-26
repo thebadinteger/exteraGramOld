@@ -14,6 +14,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
+import androidx.mediarouter.media.GlobalMediaRouter;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.preferences.components.CustomPreferenceCell;
 import com.exteragram.messenger.utils.chats.SwipeAction;
@@ -35,7 +36,6 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.MotionBackgroundDrawable;
 import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
 
-/* JADX INFO: loaded from: classes4.dex */
 public class SwipeActionsCell extends FrameLayout implements CustomPreferenceCell {
     private final List<SwipeAction> actions;
     private Drawable backgroundDrawable;
@@ -75,7 +75,7 @@ public class SwipeActionsCell extends FrameLayout implements CustomPreferenceCel
         tL_message.message = LocaleController.getString(R.string.SwipeActionsPreviewMessage);
         tL_message.date = ((int) (System.currentTimeMillis() / 1000)) - 3600;
         tL_message.dialog_id = 1L;
-        tL_message.flags = 259;
+        tL_message.flags = GlobalMediaRouter.CallbackHandler.MSG_ROUTE_CHANGED;
         TLRPC.TL_peerUser tL_peerUser = new TLRPC.TL_peerUser();
         tL_message.from_id = tL_peerUser;
         tL_peerUser.user_id = UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId();
@@ -88,7 +88,7 @@ public class SwipeActionsCell extends FrameLayout implements CustomPreferenceCel
         tL_message2.message = LocaleController.getString(R.string.SwipeActionsPreviewReply);
         tL_message2.date = tL_message.date;
         tL_message2.dialog_id = 1L;
-        tL_message2.flags = 259;
+        tL_message2.flags = GlobalMediaRouter.CallbackHandler.MSG_ROUTE_CHANGED;
         TLRPC.TL_peerUser tL_peerUser3 = new TLRPC.TL_peerUser();
         tL_message2.from_id = tL_peerUser3;
         tL_peerUser3.user_id = tL_message.from_id.user_id;
@@ -129,7 +129,6 @@ public class SwipeActionsCell extends FrameLayout implements CustomPreferenceCel
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void applyActions(List<SwipeAction> list) {
         String strQuickReactionEmoticon;
         this.actions.clear();
@@ -145,9 +144,8 @@ public class SwipeActionsCell extends FrameLayout implements CustomPreferenceCel
         restartCycle();
     }
 
-    /* JADX WARN: Code duplicated, block: B:15:0x0035  */
     private void restartCycle() {
-        int i = 0;
+        int i;
         ValueAnimator valueAnimator = this.cycle;
         if (valueAnimator != null) {
             valueAnimator.cancel();
@@ -169,18 +167,17 @@ public class SwipeActionsCell extends FrameLayout implements CustomPreferenceCel
         valueAnimatorOfFloat.setDuration(((long) (i2 + 2)) * 1100);
         this.cycle.setInterpolator(new LinearInterpolator());
         this.cycle.setRepeatCount(-1);
-        this.cycle.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() { // from class: com.exteragram.messenger.preferences.chats.components.SwipeActionsCell$$ExternalSyntheticLambda0
+        this.cycle.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override // android.animation.ValueAnimator.AnimatorUpdateListener
             public final void onAnimationUpdate(ValueAnimator valueAnimator2) {
-                SwipeActionsCell.this.lambda$restartCycle$0(i2, valueAnimator2);
+                this.f$0.lambda$restartCycle$0(i2, valueAnimator2);
             }
         });
         this.cycle.addListener(new AnonymousClass1());
         this.cycle.start();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$restartCycle$0(int i, ValueAnimator valueAnimator) {
+    public void lambda$restartCycle$0(int i, ValueAnimator valueAnimator) {
         int iMax;
         float fFloatValue = ((Float) valueAnimator.getAnimatedValue()).floatValue();
         float f = 1.0f / (i + 2);
@@ -202,7 +199,6 @@ public class SwipeActionsCell extends FrameLayout implements CustomPreferenceCel
         invalidate();
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.preferences.chats.components.SwipeActionsCell$1, reason: invalid class name */
     public class AnonymousClass1 extends AnimatorListenerAdapter {
         public AnonymousClass1() {
         }
@@ -214,10 +210,10 @@ public class SwipeActionsCell extends FrameLayout implements CustomPreferenceCel
             if (list != null) {
                 final List list2 = swipeActionsCell.pending;
                 SwipeActionsCell.this.pending = null;
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.preferences.chats.components.SwipeActionsCell$1$$ExternalSyntheticLambda0
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
-                        SwipeActionsCell.this.applyActions(list2);
+                        this.f$0.lambda$onAnimationRepeat$0(list2);
                     }
                 });
             } else {
@@ -227,8 +223,7 @@ public class SwipeActionsCell extends FrameLayout implements CustomPreferenceCel
             }
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$onAnimationRepeat$0(List list) {
+        public void lambda$onAnimationRepeat$0(List list) {
             SwipeActionsCell.this.applyActions(list);
         }
     }
@@ -322,7 +317,7 @@ public class SwipeActionsCell extends FrameLayout implements CustomPreferenceCel
     }
 
     @Override // com.exteragram.messenger.preferences.components.CustomPreferenceCell
-    public boolean equals(Object obj) {
+    public boolean isSameCell(Object obj) {
         if (this == obj) {
             return true;
         }

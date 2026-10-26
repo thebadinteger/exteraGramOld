@@ -48,7 +48,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Function;
 import okhttp3.internal.url._UrlKt;
-import org.scilab.forge.jlatexmath.TeXSymbolParser;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLog;
@@ -64,19 +63,10 @@ public class HtmlContext {
     private final ArrayList<ApiWrap$Tag> _tags = new ArrayList<>();
     private boolean _closed = false;
 
-    public static String repeat(String str, int count) {
-        if (str == null || count <= 0) return "";
-        StringBuilder sb = new StringBuilder(str.length() * count);
-        for (int i = 0; i < count; i++) {
-            sb.append(str);
-        }
-        return sb.toString();
-    }
-
     public HtmlContext(String str, String str2, OutputFile.Stats stats) {
         this._file = new OutputFile(str, stats);
         String strSubstring = str.substring(str2.length() + 1);
-        this._base = repeat("../", strSubstring.length() - strSubstring.replace("/", "").length());
+        this._base = com.exteragram.messenger.utils.RecordUtils.repeat("../", strSubstring.length() - strSubstring.replace("/", _UrlKt.FRAGMENT_ENCODE_SET).length());
         this._composedStart = composeStart();
     }
 
@@ -177,11 +167,12 @@ public class HtmlContext {
             FileLog.e(e);
             e.printStackTrace();
             throw new IllegalStateException(e);
+            return null;
         }
     }
 
     public static Function<Dimension, Dimension> CalculateThumbSize(final int i, final int i2, final int i3, final int i4, final boolean z) {
-        return new Function() { // from class: com.exteragram.messenger.export.output.html.HtmlContext$$ExternalSyntheticLambda4
+        return new Function() {
             @Override // java.util.function.Function
             public final Object apply(Object obj) {
                 return HtmlContext.$r8$lambda$IDS2iDiaoey4r44KFrBNEkJs1Sk(z, i, i2, i3, i4, (Dimension) obj);
@@ -189,7 +180,7 @@ public class HtmlContext {
         };
     }
 
-    public static /* synthetic */ Dimension $r8$lambda$IDS2iDiaoey4r44KFrBNEkJs1Sk(boolean z, int i, int i2, int i3, int i4, Dimension dimension) {
+    public static Dimension $r8$lambda$IDS2iDiaoey4r44KFrBNEkJs1Sk(boolean z, int i, int i2, int i3, int i4, Dimension dimension) {
         Dimension dimension2;
         int i5 = z ? 2 : 1;
         int width = dimension.getWidth() * i5;
@@ -240,7 +231,7 @@ public class HtmlContext {
         sb.append(popTag());
         sb.append(pushTag("meta", new Pair("name", "viewport"), new Pair("content", "width=device-width, initial-scale=1.0"), new Pair("empty", _UrlKt.FRAGMENT_ENCODE_SET)));
         sb.append(pushTag("link", new Pair("href", relativePath("css/style.css")), new Pair("rel", "stylesheet"), new Pair("empty", _UrlKt.FRAGMENT_ENCODE_SET)));
-        sb.append(pushTag("script", new Pair("src", relativePath("js/script.js")), new Pair(TeXSymbolParser.TYPE_ATTR, "text/javascript")));
+        sb.append(pushTag("script", new Pair("src", relativePath("js/script.js")), new Pair("type", "text/javascript")));
         sb.append(popTag());
         sb.append(popTag());
         sb.append(pushTag("body", new Pair("onload", "CheckLocation();")));
@@ -385,7 +376,7 @@ public class HtmlContext {
     }
 
     public String indent() {
-        return repeat(" ", this._tags.size());
+        return com.exteragram.messenger.utils.RecordUtils.repeat(" ", this._tags.size());
     }
 
     public String popTag() {
@@ -460,6 +451,7 @@ public class HtmlContext {
             String str2 = str;
             if (!writeBlock(str2).isSuccess()) {
                 throw new IllegalStateException("writeBlock : " + str2);
+                return null;
             }
         }
         return AbstractWriter.Result.Success();
@@ -469,6 +461,7 @@ public class HtmlContext {
         AbstractWriter.Result resultWriteBlock;
         if (this._closed) {
             throw new IllegalStateException("file is closed!");
+            return null;
         }
         boolean zIsEmpty = str.isEmpty();
         OutputFile outputFile = this._file;
@@ -575,7 +568,7 @@ public class HtmlContext {
         HtmlWriter.UserpicData userpicData;
         ApiWrap$Peer apiWrap$Peer;
         int iPeerColorIndex;
-        HtmlWriter.Photo photo = null;
+        HtmlWriter.Photo photo;
         HtmlWriter.Photo photo2;
         if (apiWrap$Message == null || apiWrap$DialogInfo == null) {
             return null;
@@ -777,8 +770,7 @@ public class HtmlContext {
             sb.append(pushDiv("reactions"));
             Iterator<ApiWrap$Reaction> it = apiWrap$Message.reactions.iterator();
             if (it.hasNext()) {
-                it.next();
-                throw null;
+                
             }
             sb.append(popTag());
         }
@@ -806,6 +798,7 @@ public class HtmlContext {
                 return pushVideoFileMedia(apiWrap$Document, str);
             }
             throw new RuntimeException("Non generic document in pushMedia.");
+            return null;
         }
         if (obj instanceof HtmlWriter.Photo) {
             return pushPhotoMedia((HtmlWriter.Photo) obj, str);
@@ -1134,16 +1127,16 @@ public class HtmlContext {
             sb.append(SerializeString("Anonymous poll"));
         }
         sb.append(popTag());
-        final Utilities.CallbackReturn callbackReturn = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.output.html.HtmlContext$$ExternalSyntheticLambda2
+        final Utilities.CallbackReturn callbackReturn = new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
-                return HtmlContext.m1078$r8$lambda$NQmNSWBFypYJJj_9YIdSy44Sh4((Integer) obj);
+                return HtmlContext.m1349$r8$lambda$NQmNSWBFypYJJj_9YIdSy44Sh4((Integer) obj);
             }
         };
-        Utilities.CallbackReturn callbackReturn2 = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.output.html.HtmlContext$$ExternalSyntheticLambda3
+        Utilities.CallbackReturn callbackReturn2 = new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
-                return HtmlContext.m1079$r8$lambda$pbHCCbDwwIyimhpdjqWjW9ppqA(callbackReturn, (ApiWrap$Poll.Answer) obj);
+                return HtmlContext.m1350$r8$lambda$pbHCCbDwwIyimhpdjqWjW9ppqA(callbackReturn, (ApiWrap$Poll.Answer) obj);
             }
         };
         ArrayList<ApiWrap$Poll.Answer> arrayList = apiWrap$Poll.answers;
@@ -1167,8 +1160,7 @@ public class HtmlContext {
         return sb.toString();
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$NQmNSWBFypYJJj_9YIdSy44-Sh4, reason: not valid java name */
-    public static /* synthetic */ String m1078$r8$lambda$NQmNSWBFypYJJj_9YIdSy44Sh4(Integer num) {
+    public static String m1349$r8$lambda$NQmNSWBFypYJJj_9YIdSy44Sh4(Integer num) {
         if (num.intValue() > 1) {
             return DataTypesUtils.NumberToString(num.intValue()) + " votes";
         }
@@ -1178,8 +1170,7 @@ public class HtmlContext {
         return "No votes";
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$pbHCCbDwwIyim-hpdjqWjW9ppqA, reason: not valid java name */
-    public static /* synthetic */ String m1079$r8$lambda$pbHCCbDwwIyimhpdjqWjW9ppqA(Utilities.CallbackReturn callbackReturn, ApiWrap$Poll.Answer answer) {
+    public static String m1350$r8$lambda$pbHCCbDwwIyimhpdjqWjW9ppqA(Utilities.CallbackReturn callbackReturn, ApiWrap$Poll.Answer answer) {
         if (answer.votes() == 0) {
             return _UrlKt.FRAGMENT_ENCODE_SET;
         }
@@ -1400,7 +1391,7 @@ public class HtmlContext {
         } else {
             str = _UrlKt.FRAGMENT_ENCODE_SET;
         }
-        sb.append(TextUtils.join(", ", arrayList));
+        sb.append(android.text.TextUtils.join(", ", arrayList));
         sb.append(str);
         sb.append(popTag());
         sb.append(pushDiv("section_body"));

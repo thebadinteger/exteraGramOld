@@ -66,15 +66,15 @@ public abstract class IconPickerController {
         IconObserver.INSTANCE.clear();
         final IconPickerView iconPickerView = pickerView;
         pickerView = null;
-        iconPickerView.dismiss(new Runnable() { 
+        iconPickerView.dismiss(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                IconPickerController.m1216$r8$lambda$OfRV3mAQKhYExDNLrcksaoqPBI(launchActivity, iconPickerView);
+                IconPickerController.m1507$r8$lambda$OfRV3mAQKhYExDNLrcksaoqPBI(launchActivity, iconPickerView);
             }
         });
     }
 
-    public static /* synthetic */ void m1216$r8$lambda$OfRV3mAQKhYExDNLrcksaoqPBI(LaunchActivity launchActivity, IconPickerView iconPickerView) {
+    public static void m1507$r8$lambda$OfRV3mAQKhYExDNLrcksaoqPBI(LaunchActivity launchActivity, IconPickerView iconPickerView) {
         FrameLayout mainContainerFrameLayout = launchActivity.getMainContainerFrameLayout();
         if (mainContainerFrameLayout != null) {
             mainContainerFrameLayout.removeView(iconPickerView);

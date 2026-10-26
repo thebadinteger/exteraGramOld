@@ -24,7 +24,6 @@ import org.telegram.messenger.FileLog;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.Theme;
 
-/* JADX INFO: loaded from: classes4.dex */
 public abstract class AppIconPreviewLoader {
     private static LruCache<String, Bitmap> cache;
     private static final Paint paint = new Paint(3);
@@ -38,7 +37,7 @@ public abstract class AppIconPreviewLoader {
 
     private static LruCache<String, Bitmap> getCache() {
         if (cache == null) {
-            cache = new LruCache<String, Bitmap>((int) Math.min(12582912L, Runtime.getRuntime().maxMemory() / 16)) { // from class: com.exteragram.messenger.appicons.AppIconPreviewLoader.1
+            cache = new LruCache<String, Bitmap>((int) Math.min(12582912L, Runtime.getRuntime().maxMemory() / 16)) {
                 @Override // android.util.LruCache
                 public int sizeOf(String str, Bitmap bitmap) {
                     return bitmap.getByteCount();
@@ -81,45 +80,95 @@ public abstract class AppIconPreviewLoader {
     }
 
     public static int getAccent(AppIcon appIcon) {
-        Integer numValueOf;
         int i = appIcon.color;
         if (i != 0) {
             return i;
         }
-        Integer num = accents.get(appIcon.id);
+        Map<String, Integer> map = accents;
+        Integer num = map.get(appIcon.id);
         if (num != null) {
             return num.intValue();
         }
         if (!appIcon.isBackgroundColor()) {
             return 0;
         }
+        int backgroundColor = getBackgroundColor(appIcon);
+        Integer numValueOf = Integer.valueOf(backgroundColor);
+        float[] fArr = new float[3];
+        ColorUtils.colorToHSL(backgroundColor, fArr);
+        if (isNeutral(fArr)) {
+            return 0;
+        }
+        map.put(appIcon.id, numValueOf);
+        return backgroundColor;
+    }
+
+    private static int getBackgroundColor(AppIcon appIcon) {
         try {
-            numValueOf = Integer.valueOf(ContextCompat.getColor(ApplicationLoader.applicationContext, appIcon.getBackground()));
+            return ContextCompat.getColor(ApplicationLoader.applicationContext, appIcon.getBackground());
         } catch (Throwable th) {
             FileLog.e(th);
-            numValueOf = 0;
+            return 0;
         }
-        accents.put(appIcon.id, numValueOf);
-        return numValueOf.intValue();
     }
 
     public static int getAccentTextColor(AppIcon appIcon, int i, Theme.ResourcesProvider resourcesProvider) {
-        float fMin;
         int accent = appIcon == null ? 0 : getAccent(appIcon);
         if (accent != 0) {
             float[] fArr = new float[3];
             ColorUtils.colorToHSL(accent, fArr);
             if (fArr[1] >= 0.15f) {
                 if (Theme.isCurrentThemeDark()) {
-                    fMin = Math.max(fArr[2], 0.72f);
-                } else {
-                    fMin = Math.min(fArr[2], 0.42f);
+                    fArr[2] = Math.max(fArr[2], 0.72f);
+                    return clampTone(fArr, 70.0f, 100.0f);
                 }
-                fArr[2] = fMin;
-                return ColorUtils.HSLToColor(fArr);
+                fArr[2] = Math.min(fArr[2], 0.42f);
+                return clampTone(fArr, 0.0f, 42.0f);
             }
         }
         return Theme.getColor(i, resourcesProvider);
+    }
+
+    public static int getAccentTint(AppIcon appIcon) {
+        int accent = appIcon == null ? 0 : getAccent(appIcon);
+        if (accent == 0) {
+            return 0;
+        }
+        float[] fArr = new float[3];
+        ColorUtils.colorToHSL(accent, fArr);
+        fArr[1] = Math.min(fArr[1], 0.6f);
+        if (Theme.isCurrentThemeDark()) {
+            fArr[2] = 0.22f;
+            return clampTone(fArr, 20.0f, 100.0f);
+        }
+        fArr[2] = 0.86f;
+        return clampTone(fArr, 0.0f, 88.0f);
+    }
+
+    private static int clampTone(float[] fArr, float f, float f2) {
+        double[] dArr = new double[3];
+        ColorUtils.colorToLAB(ColorUtils.HSLToColor(fArr), dArr);
+        double d = dArr[0];
+        double d2 = f;
+        if (d >= d2 && d <= f2) {
+            return ColorUtils.HSLToColor(fArr);
+        }
+        if (d >= d2) {
+            f = f2;
+        }
+        float f3 = 0.0f;
+        float f4 = 1.0f;
+        for (int i = 0; i < 16; i++) {
+            fArr[2] = (f3 + f4) / 2.0f;
+            ColorUtils.colorToLAB(ColorUtils.HSLToColor(fArr), dArr);
+            if (dArr[0] < f) {
+                f3 = fArr[2];
+            } else {
+                f4 = fArr[2];
+            }
+        }
+        fArr[2] = (f3 + f4) / 2.0f;
+        return ColorUtils.HSLToColor(fArr);
     }
 
     public static void load(final AppIcon appIcon, final int i, Callback callback) {
@@ -146,7 +195,7 @@ public abstract class AppIconPreviewLoader {
         arrayList.add(callback);
         map.put(strKey, arrayList);
         final boolean z = !accents.containsKey(appIcon.id) && getAccent(appIcon) == 0;
-        Utilities.globalQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.appicons.AppIconPreviewLoader$$ExternalSyntheticLambda0
+        Utilities.globalQueue.postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 AppIconPreviewLoader.$r8$lambda$xCNjtrhQGHVyqdjOo4Qfmhh5oYI(appIcon, i, z, strKey);
@@ -154,18 +203,22 @@ public abstract class AppIconPreviewLoader {
         });
     }
 
-    public static /* synthetic */ void $r8$lambda$xCNjtrhQGHVyqdjOo4Qfmhh5oYI(final AppIcon appIcon, final int i, boolean z, final String str) {
+    public static void $r8$lambda$xCNjtrhQGHVyqdjOo4Qfmhh5oYI(final AppIcon appIcon, final int i, boolean z, final String str) {
         final Bitmap bitmapRender = render(appIcon, i);
-        final int iExtractAccent = (bitmapRender == null || !z) ? 0 : extractAccent(bitmapRender);
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.appicons.AppIconPreviewLoader$$ExternalSyntheticLambda1
+        int iExtractAccent = 0;
+        if (bitmapRender != null && z) {
+            iExtractAccent = extractAccent(bitmapRender, appIcon.isBackgroundColor() ? getBackgroundColor(appIcon) : 0);
+        }
+        final int i2 = iExtractAccent;
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                AppIconPreviewLoader.$r8$lambda$5pAaOXpJhOh8Ffl7ErwtmWPqaac(bitmapRender, str, iExtractAccent, appIcon, i);
+                AppIconPreviewLoader.$r8$lambda$5pAaOXpJhOh8Ffl7ErwtmWPqaac(bitmapRender, str, i2, appIcon, i);
             }
         });
     }
 
-    public static /* synthetic */ void $r8$lambda$5pAaOXpJhOh8Ffl7ErwtmWPqaac(Bitmap bitmap, String str, int i, AppIcon appIcon, int i2) {
+    public static void $r8$lambda$5pAaOXpJhOh8Ffl7ErwtmWPqaac(Bitmap bitmap, String str, int i, AppIcon appIcon, int i2) {
         if (bitmap != null) {
             getCache().put(str, bitmap);
         }
@@ -206,10 +259,18 @@ public abstract class AppIconPreviewLoader {
         }
     }
 
-    /* JADX WARN: Code duplicated, block: B:18:0x00ac  */
-    private static int extractAccent(Bitmap bitmap) {
-        char c2;
-        char c3 = 1;
+    private static boolean isNeutral(float[] fArr) {
+        if (fArr[1] >= 0.15f) {
+            float f = fArr[2];
+            if (f >= 0.06f && f <= 0.94f) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static int extractAccent(Bitmap bitmap, int i) {
+        char c2 = 1;
         float width = (bitmap.getWidth() - 1) / 23.0f;
         float height = (bitmap.getHeight() - 1) / 23.0f;
         float[] fArr = new float[3];
@@ -217,56 +278,51 @@ public abstract class AppIconPreviewLoader {
         float[] fArr3 = new float[12];
         float[] fArr4 = new float[12];
         float[] fArr5 = new float[12];
-        int i = 0;
+        int i2 = 0;
         float f = 0.0f;
         float f2 = 0.0f;
         float f3 = 0.0f;
         while (true) {
-            c2 = c3;
-            if (i >= 24) {
+            if (i2 >= 24) {
                 break;
             }
-            int i2 = 0;
-            for (int i3 = 24; i2 < i3; i3 = 24) {
-                int pixel = bitmap.getPixel((int) (i * width), (int) (i2 * height));
-                if (Color.alpha(pixel) >= 200) {
+            char c3 = c2;
+            int i3 = 0;
+            for (int i4 = 24; i3 < i4; i4 = 24) {
+                int pixel = bitmap.getPixel((int) (i2 * width), (int) (i3 * height));
+                if (Color.alpha(pixel) >= 200 && pixel != i) {
                     ColorUtils.colorToHSL(pixel, fArr);
-                    if (fArr[c2] >= 0.15f) {
-                        float f4 = fArr[2];
-                        if (f4 < 0.06f || f4 > 0.94f) {
-                            f += 1.0f;
-                            f3 += fArr[2];
-                        } else {
-                            int iMin = Math.min(11, (int) ((fArr[0] / 360.0f) * 12.0f));
-                            float fAbs = fArr[c2] * (1.0f - Math.abs((fArr[2] * 2.0f) - 1.0f));
-                            fArr2[iMin] = fArr2[iMin] + fAbs;
-                            fArr3[iMin] = fArr3[iMin] + (fArr[0] * fAbs);
-                            fArr4[iMin] = fArr4[iMin] + (fArr[c2] * fAbs);
-                            fArr5[iMin] = fArr5[iMin] + (fArr[2] * fAbs);
-                            f2 += 1.0f;
-                        }
-                    } else {
+                    if (isNeutral(fArr)) {
                         f += 1.0f;
                         f3 += fArr[2];
+                    } else {
+                        int iMin = Math.min(11, (int) ((fArr[0] / 360.0f) * 12.0f));
+                        float fAbs = fArr[c3] * (1.0f - Math.abs((fArr[2] * 2.0f) - 1.0f));
+                        fArr2[iMin] = fArr2[iMin] + fAbs;
+                        fArr3[iMin] = fArr3[iMin] + (fArr[0] * fAbs);
+                        fArr4[iMin] = fArr4[iMin] + (fArr[c3] * fAbs);
+                        fArr5[iMin] = fArr5[iMin] + (fArr[2] * fAbs);
+                        f2 += 1.0f;
                     }
                 }
-                i2++;
+                i3++;
             }
-            i++;
-            c3 = c2;
+            i2++;
+            c2 = c3;
         }
-        int i4 = -1;
-        for (int i5 = 0; i5 < 12; i5++) {
-            if (i4 == -1 || fArr2[i5] > fArr2[i4]) {
-                i4 = i5;
+        char c4 = c2;
+        int i5 = -1;
+        for (int i6 = 0; i6 < 12; i6++) {
+            if (i5 == -1 || fArr2[i6] > fArr2[i5]) {
+                i5 = i6;
             }
         }
-        if (i4 != -1) {
-            float f5 = fArr2[i4];
-            if (f5 > 0.0f && f2 >= f * 0.15f) {
-                fArr[0] = fArr3[i4] / f5;
-                fArr[c2] = fArr4[i4] / fArr2[i4];
-                fArr[2] = fArr5[i4] / fArr2[i4];
+        if (i5 != -1) {
+            float f4 = fArr2[i5];
+            if (f4 > 0.0f && f2 >= 0.15f * f) {
+                fArr[0] = fArr3[i5] / f4;
+                fArr[c4] = fArr4[i5] / fArr2[i5];
+                fArr[2] = fArr5[i5] / fArr2[i5];
                 return ColorUtils.HSLToColor(fArr);
             }
         }
@@ -274,7 +330,7 @@ public abstract class AppIconPreviewLoader {
             return 0;
         }
         fArr[0] = 0.0f;
-        fArr[c2] = 0.0f;
+        fArr[c4] = 0.0f;
         fArr[2] = f3 / f;
         return ColorUtils.HSLToColor(fArr);
     }

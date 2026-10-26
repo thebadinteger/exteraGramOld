@@ -9,6 +9,8 @@ import com.exteragram.messenger.adblock.data.BlockResult;
 import com.exteragram.messenger.adblock.data.UrlCosmeticResources;
 import com.exteragram.messenger.adblock.interop.AdBlock;
 import com.google.android.gms.cast.MediaError;
+import j$.io.DesugarInputStream;
+import j$.io.InputStreamRetargetInterface;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,9 +19,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-/* JADX INFO: loaded from: classes4.dex */
 public abstract class AdBlockClient {
-    private static final IOException BLOCKED_EXCEPTION = new IOException("Blocked by filter") { // from class: com.exteragram.messenger.adblock.AdBlockClient.1
+    private static final IOException BLOCKED_EXCEPTION = new IOException("Blocked by filter") {
         @Override // java.lang.Throwable
         public synchronized Throwable fillInStackTrace() {
             return this;
@@ -187,7 +188,12 @@ public abstract class AdBlockClient {
         return null;
     }
 
-    public static class BlockedInputStream extends InputStream {
+    public static class BlockedInputStream extends InputStream implements InputStreamRetargetInterface {
+        @Override // java.io.InputStream, j$.io.InputStreamRetargetInterface
+        public long transferTo(OutputStream outputStream) {
+            return DesugarInputStream.transferTo(this, outputStream);
+        }
+
         private BlockedInputStream() {
         }
 

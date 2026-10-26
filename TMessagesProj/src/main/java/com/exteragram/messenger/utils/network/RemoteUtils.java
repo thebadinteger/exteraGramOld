@@ -3,7 +3,8 @@ package com.exteragram.messenger.utils.network;
 import android.content.SharedPreferences;
 import com.exteragram.messenger.utils.AppUtils;
 import com.exteragram.messenger.utils.chats.ChatUtils;
-import java.util.concurrent.TimeUnit;
+import com.google.android.gms.cast.MediaError;
+import j$.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -21,10 +22,26 @@ import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 
 public abstract class RemoteUtils {
-    private static final long CONFIG_REFRESH_INTERVAL = TimeUnit.MINUTES.toMillis(10);
-    private static final Object messagesRequestLock = new Object();
+    private static volatile long lastFailedFetchTime;
+    private static int messagesRequestGeneration;
+    private static Runnable messagesTimeoutRunnable;
     private static ArrayList<Utilities.Callback2<TLRPC.messages_Messages, TLRPC.TL_error>> pendingMessagesCallbacks;
     public static SharedPreferences sharedPreferences;
+    private static final long CONFIG_REFRESH_INTERVAL = Duration.ofMinutes(10).toMillis();
+    private static final long CONFIG_RETRY_INTERVAL = Duration.ofSeconds(30).toMillis();
+    private static final long MESSAGES_REQUEST_TIMEOUT = Duration.ofSeconds(60).toMillis();
+    private static final AtomicBoolean fetchInProgress = new AtomicBoolean();
+    private static final Object messagesRequestLock = new Object();
+
+    public static void m2171$r8$lambda$6r48Eh4Wsu_QezTRhT68nEzoPU() {
+    }
+
+    private static SharedPreferences getPrefs() {
+        if (sharedPreferences == null) {
+            initCached();
+        }
+        return sharedPreferences;
+    }
 
     public static void initCached() {
         if (sharedPreferences == null) {
@@ -38,46 +55,40 @@ public abstract class RemoteUtils {
         if (Math.abs(jCurrentTimeMillis - sharedPreferences.getLong("__last_fetch_attempt_time", 0L)) < CONFIG_REFRESH_INTERVAL) {
             return;
         }
-        sharedPreferences.edit().putLong("__last_fetch_attempt_time", jCurrentTimeMillis).apply();
-        loadConfig();
+        if (lastFailedFetchTime == 0 || Math.abs(jCurrentTimeMillis - lastFailedFetchTime) >= CONFIG_RETRY_INTERVAL) {
+            loadConfig();
+        }
     }
 
     public static void forceRefresh() {
         initCached();
-        sharedPreferences.edit().putLong("__last_fetch_attempt_time", System.currentTimeMillis()).apply();
+        lastFailedFetchTime = 0L;
         loadConfig();
     }
 
     private static void loadConfig() {
-        getMessages(new Utilities.Callback2<TLRPC.messages_Messages, TLRPC.TL_error>() {
-            @Override
-            public final void run(TLRPC.messages_Messages obj, TLRPC.TL_error obj2) {
-                RemoteUtils.$r8$lambda$LmfFRuJdEdEVAug9vbi59pl5km0(obj, obj2);
-            }
-        });
-    }
-
-    private static SharedPreferences getPrefs() {
-        if (sharedPreferences == null) {
-            initCached();
+        if (fetchInProgress.compareAndSet(false, true)) {
+            getMessages(new Utilities.Callback2() {
+                @Override // org.telegram.messenger.Utilities.Callback2
+                public final void run(Object obj, Object obj2) {
+                    RemoteUtils.$r8$lambda$LmfFRuJdEdEVAug9vbi59pl5km0((TLRPC.messages_Messages) obj, (TLRPC.TL_error) obj2);
+                }
+            });
         }
-        return sharedPreferences;
     }
 
     public static void $r8$lambda$LmfFRuJdEdEVAug9vbi59pl5km0(TLRPC.messages_Messages messages_messages, TLRPC.TL_error tL_error) {
+        fetchInProgress.set(false);
         if (tL_error != null || messages_messages == null) {
+            lastFailedFetchTime = System.currentTimeMillis();
             return;
         }
         HashSet hashSet = new HashSet();
-        ArrayList<TLRPC.Message> arrayList = messages_messages.messages;
-        int size = arrayList.size();
-        int i = 0;
-        while (i < size) {
-            TLRPC.Message message = arrayList.get(i);
-            i++;
-            TLRPC.Message message2 = message;
-            if ((message2 instanceof TLRPC.TL_message) && message2.message.startsWith("remote_config")) {
-                String[] strArrSplit = message2.message.split("\n");
+        boolean z = false;
+        for (int size = messages_messages.messages.size() - 1; size >= 0; size--) {
+            TLRPC.Message message = messages_messages.messages.get(size);
+            if ((message instanceof TLRPC.TL_message) && message.message.startsWith("remote_config")) {
+                String[] strArrSplit = message.message.split("\n");
                 if (strArrSplit.length > 1) {
                     for (String str : strArrSplit) {
                         String[] strArrSplit2 = str.split("=", 2);
@@ -91,8 +102,15 @@ public abstract class RemoteUtils {
                         }
                     }
                 }
+                z = true;
             }
         }
+        if (!z || hashSet.isEmpty()) {
+            lastFailedFetchTime = System.currentTimeMillis();
+            return;
+        }
+        lastFailedFetchTime = 0L;
+        sharedPreferences.edit().putLong("__last_fetch_attempt_time", System.currentTimeMillis()).apply();
         removeOldPreferences(hashSet);
     }
 
@@ -179,104 +197,116 @@ public abstract class RemoteUtils {
                     arrayList.add(callback2);
                     return;
                 }
+                final int i = messagesRequestGeneration + 1;
+                messagesRequestGeneration = i;
                 ArrayList<Utilities.Callback2<TLRPC.messages_Messages, TLRPC.TL_error>> arrayList2 = new ArrayList<>();
                 pendingMessagesCallbacks = arrayList2;
                 arrayList2.add(callback2);
-                final AccountInstance accountInstance = AccountInstance.getInstance(UserConfig.selectedAccount);
-                final TLRPC.TL_messages_getHistory tL_messages_getHistory = new TLRPC.TL_messages_getHistory();
-                tL_messages_getHistory.peer = accountInstance.getMessagesController().getInputPeer(-2227431611L);
-                tL_messages_getHistory.offset_id = 0;
-                tL_messages_getHistory.limit = 75;
-                final Runnable runnable = new Runnable() { 
+                Runnable runnable = new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
-                        accountInstance.getConnectionsManager().sendRequest(tL_messages_getHistory, new RequestDelegate() { 
+                        RemoteUtils.$r8$lambda$OnWrYNguU3DJfMISnu8tl4pwRVk(i);
+                    }
+                };
+                messagesTimeoutRunnable = runnable;
+                AndroidUtilities.runOnUIThread(runnable, MESSAGES_REQUEST_TIMEOUT);
+                if (ApplicationLoader.applicationHandler == null) {
+                    TLRPC.TL_error tL_error = new TLRPC.TL_error();
+                    tL_error.code = 503;
+                    tL_error.text = "APP_NOT_READY";
+                    deliverMessagesResult(i, null, tL_error);
+                    return;
+                }
+                final AccountInstance accountInstance = AccountInstance.getInstance(UserConfig.selectedAccount);
+                final TLRPC.TL_messages_getHistory tL_messages_getHistory = new TLRPC.TL_messages_getHistory();
+                tL_messages_getHistory.offset_id = 0;
+                tL_messages_getHistory.limit = 100;
+                final Runnable runnable2 = new Runnable() {
+                    @Override // java.lang.Runnable
+                    public final void run() {
+                        accountInstance.getConnectionsManager().sendRequest(tL_messages_getHistory, new RequestDelegate() {
                             @Override // org.telegram.tgnet.RequestDelegate
-                            public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
-                                RemoteUtils.$r8$lambda$V4VBJH1NEvfcBnItgWjxPBLnJKs(tLObject, tL_error);
+                            public final void run(TLObject tLObject, TLRPC.TL_error tL_error2) {
+                                RemoteUtils.m2175$r8$lambda$fbLQZhiW34Arj2DTfMUPETNMPM(i, tLObject, tL_error2);
                             }
                         });
                     }
                 };
-                if (tL_messages_getHistory.peer.access_hash != 0) {
-                    AndroidUtilities.runOnUIThread(runnable);
-                } else {
-                    ChatUtils.getInstance().resolveChannel("XS6GEcz5ZXMu82UvXQc", new Utilities.Callback() { 
-                        @Override 
-                        public final void run(Object obj) {
-                            RemoteUtils.m1510$r8$lambda$wpFmLdCTd4P2BQcJG8DkR6gPJ8(tL_messages_getHistory, runnable, (TLRPC.Chat) obj);
-                        }
-                    });
-                }
+                AndroidUtilities.runOnUIThread(new Runnable() {
+                    @Override // java.lang.Runnable
+                    public final void run() {
+                        RemoteUtils.$r8$lambda$UEIegV2IjuUzBjubE_kaeXJS8OE(tL_messages_getHistory, accountInstance, runnable2, i);
+                    }
+                });
             } catch (Throwable th) {
                 throw th;
             }
         }
     }
 
-    public static void $r8$lambda$eNTNmIzDWEebkWIkwoFUzANQvM8() {
+    public static void $r8$lambda$OnWrYNguU3DJfMISnu8tl4pwRVk(int i) {
+        TLRPC.TL_error tL_error = new TLRPC.TL_error();
+        tL_error.code = 408;
+        tL_error.text = "REQUEST_TIMEOUT";
+        deliverMessagesResult(i, null, tL_error);
     }
 
-    public static void $r8$lambda$V4VBJH1NEvfcBnItgWjxPBLnJKs(TLObject tLObject, TLRPC.TL_error tL_error) {
+    public static void m2175$r8$lambda$fbLQZhiW34Arj2DTfMUPETNMPM(int i, TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tL_error != null || tLObject == null) {
-            deliverMessagesResult(null, tL_error);
+            deliverMessagesResult(i, null, tL_error);
         } else {
-            deliverMessagesResult((TLRPC.messages_Messages) tLObject, null);
+            deliverMessagesResult(i, (TLRPC.messages_Messages) tLObject, null);
         }
     }
 
-    public static void m1510$r8$lambda$wpFmLdCTd4P2BQcJG8DkR6gPJ8(TLRPC.TL_messages_getHistory tL_messages_getHistory, Runnable runnable, TLRPC.Chat chat) {
-        if (chat != null && chat.id == -2227431611L) {
+    public static void $r8$lambda$UEIegV2IjuUzBjubE_kaeXJS8OE(final TLRPC.TL_messages_getHistory tL_messages_getHistory, AccountInstance accountInstance, final Runnable runnable, final int i) {
+        TLRPC.InputPeer inputPeer = accountInstance.getMessagesController().getInputPeer(-2227431611L);
+        tL_messages_getHistory.peer = inputPeer;
+        if (inputPeer.access_hash != 0) {
+            runnable.run();
+        } else {
+            ChatUtils.getInstance().resolveChannel("XS6GEcz5ZXMu82UvXQc", new Utilities.Callback() {
+                @Override // org.telegram.messenger.Utilities.Callback
+                public final void run(Object obj) {
+                    RemoteUtils.$r8$lambda$3SpRrpMm50vpRClqPPGUprUYYYw(tL_messages_getHistory, runnable, i, (TLRPC.Chat) obj);
+                }
+            });
+        }
+    }
+
+    public static void $r8$lambda$3SpRrpMm50vpRClqPPGUprUYYYw(TLRPC.TL_messages_getHistory tL_messages_getHistory, Runnable runnable, int i, TLRPC.Chat chat) {
+        if (chat != null && chat.id == 2227431611L) {
             TLRPC.TL_inputPeerChannel tL_inputPeerChannel = new TLRPC.TL_inputPeerChannel();
             tL_messages_getHistory.peer = tL_inputPeerChannel;
             tL_inputPeerChannel.channel_id = chat.id;
             tL_inputPeerChannel.access_hash = chat.access_hash;
-            AndroidUtilities.runOnUIThread(runnable);
+            runnable.run();
             return;
         }
         TLRPC.TL_error tL_error = new TLRPC.TL_error();
-        tL_error.code = 400;
+        tL_error.code = MediaError.DetailedErrorCode.MANIFEST_UNKNOWN;
         tL_error.text = "CHANNEL_RESOLVE_FAILED";
-        deliverMessagesResult(null, tL_error);
+        deliverMessagesResult(i, null, tL_error);
     }
 
-    public static void m1508$r8$lambda$UB_3HLxwoCbba6lUHVL1F5wfA(AtomicBoolean atomicBoolean, Utilities.Callback2 callback2) {
-        if (atomicBoolean.compareAndSet(false, true)) {
-            TLRPC.TL_error tL_error = new TLRPC.TL_error();
-            tL_error.code = 408;
-            tL_error.text = "REQUEST_TIMEOUT";
-            callback2.run(null, tL_error);
-        }
-    }
-
-    public static void m1509$r8$lambda$XRVIe9RERxrqY2e8aTEDV9B8B8(final AtomicBoolean atomicBoolean, AtomicInteger atomicInteger, AtomicInteger atomicInteger2, AccountInstance accountInstance, TLRPC.TL_messages_search tL_messages_search, final AtomicReference atomicReference, final Utilities.Callback2 callback2) {
-        if (atomicBoolean.get()) {
-            return;
-        }
-        atomicInteger.incrementAndGet();
-        atomicInteger2.set(accountInstance.getConnectionsManager().sendRequest(tL_messages_search, new RequestDelegate() { 
-            @Override // org.telegram.tgnet.RequestDelegate
-            public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
-                RemoteUtils.m1507$r8$lambda$DT1VPJLc_jQIEOnKaPDKhvhjOA(atomicBoolean, atomicReference, callback2, tLObject, tL_error);
-            }
-        }));
-    }
-
-    private static void deliverMessagesResult(TLRPC.messages_Messages messages_messages, TLRPC.TL_error tL_error) {
+    private static void deliverMessagesResult(int i, TLRPC.messages_Messages messages_messages, TLRPC.TL_error tL_error) {
         ArrayList<Utilities.Callback2<TLRPC.messages_Messages, TLRPC.TL_error>> arrayList;
         synchronized (messagesRequestLock) {
-            arrayList = pendingMessagesCallbacks;
-            pendingMessagesCallbacks = null;
-        }
-        if (arrayList == null) {
-            return;
-        }
-        int size = arrayList.size();
-        int i = 0;
-        while (i < size) {
-            Utilities.Callback2<TLRPC.messages_Messages, TLRPC.TL_error> callback2 = arrayList.get(i);
-            i++;
-            callback2.run(messages_messages, tL_error);
+            if (i == messagesRequestGeneration && (arrayList = pendingMessagesCallbacks) != null) {
+                Runnable runnable = messagesTimeoutRunnable;
+                pendingMessagesCallbacks = null;
+                messagesTimeoutRunnable = null;
+                if (runnable != null) {
+                    AndroidUtilities.cancelRunOnUIThread(runnable);
+                }
+                int size = arrayList.size();
+                int i2 = 0;
+                while (i2 < size) {
+                    Utilities.Callback2<TLRPC.messages_Messages, TLRPC.TL_error> callback2 = arrayList.get(i2);
+                    i2++;
+                    callback2.run(messages_messages, tL_error);
+                }
+            }
         }
     }
 
@@ -287,7 +317,6 @@ public abstract class RemoteUtils {
     public static void searchMessages(int i, String str, TLRPC.MessagesFilter messagesFilter, final Utilities.Callback2<TLRPC.messages_Messages, TLRPC.TL_error> callback2, final int i2) {
         final AccountInstance accountInstance = AccountInstance.getInstance(UserConfig.selectedAccount);
         final TLRPC.TL_messages_search tL_messages_search = new TLRPC.TL_messages_search();
-        tL_messages_search.peer = accountInstance.getMessagesController().getInputPeer(-2227431611L);
         tL_messages_search.q = str;
         tL_messages_search.offset_id = 0;
         tL_messages_search.limit = i;
@@ -295,44 +324,61 @@ public abstract class RemoteUtils {
         final AtomicBoolean atomicBoolean = new AtomicBoolean(false);
         final AtomicInteger atomicInteger = new AtomicInteger();
         final AtomicInteger atomicInteger2 = new AtomicInteger();
-        final AtomicReference atomicReference = new AtomicReference(new Runnable() { 
+        final AtomicReference atomicReference = new AtomicReference(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                RemoteUtils.$r8$lambda$eNTNmIzDWEebkWIkwoFUzANQvM8();
+                RemoteUtils.m2171$r8$lambda$6r48Eh4Wsu_QezTRhT68nEzoPU();
             }
         });
-        final Runnable runnable = new Runnable() { 
+        final Runnable runnable = new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                RemoteUtils.m1508$r8$lambda$UB_3HLxwoCbba6lUHVL1F5wfA(atomicBoolean, callback2);
+                RemoteUtils.m2170$r8$lambda$0p9UTAdmiW_DBagD4ppdMeLYUk(atomicBoolean, callback2);
             }
         };
-        final Runnable runnable2 = new Runnable() { 
+        final Runnable runnable2 = new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                RemoteUtils.m1509$r8$lambda$XRVIe9RERxrqY2e8aTEDV9B8B8(atomicBoolean, atomicInteger, atomicInteger2, accountInstance, tL_messages_search, atomicReference, callback2);
+                RemoteUtils.m2174$r8$lambda$Zys4bse1bgzGUgsT0MB9ycKDLM(atomicBoolean, atomicInteger, atomicInteger2, accountInstance, tL_messages_search, atomicReference, callback2);
             }
         };
-        atomicReference.set(new Runnable() { 
+        atomicReference.set(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                RemoteUtils.m1506$r8$lambda$DWE3IlXIJYUbvGajyIcIoAEsuk(atomicBoolean, accountInstance, atomicInteger2, atomicInteger, runnable2, atomicReference, i2, runnable);
+                RemoteUtils.$r8$lambda$4QYm8KFjMBfJJ4laGtinXysTpck(atomicBoolean, accountInstance, atomicInteger2, atomicInteger, runnable2, atomicReference, i2, runnable);
             }
         });
-        if (tL_messages_search.peer.access_hash != 0) {
-            AndroidUtilities.runOnUIThread(runnable2);
-            AndroidUtilities.runOnUIThread((Runnable) atomicReference.get(), i2);
-        } else {
-            ChatUtils.getInstance().resolveChannel("XS6GEcz5ZXMu82UvXQc", new Utilities.Callback() { 
-                @Override 
-                public final void run(Object obj) {
-                    RemoteUtils.$r8$lambda$AjHQ7MB3X57c7essAWT021npCFk(tL_messages_search, runnable2, atomicReference, i2, atomicBoolean, callback2, (TLRPC.Chat) obj);
-                }
-            });
+        AndroidUtilities.runOnUIThread(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                RemoteUtils.m2173$r8$lambda$Q2nxzL4QXDhawk8oMmFpxL7pOE(tL_messages_search, accountInstance, runnable2, atomicReference, i2, atomicBoolean, callback2);
+            }
+        });
+    }
+
+    public static void m2170$r8$lambda$0p9UTAdmiW_DBagD4ppdMeLYUk(AtomicBoolean atomicBoolean, Utilities.Callback2 callback2) {
+        if (atomicBoolean.compareAndSet(false, true)) {
+            TLRPC.TL_error tL_error = new TLRPC.TL_error();
+            tL_error.code = 408;
+            tL_error.text = "REQUEST_TIMEOUT";
+            callback2.run(null, tL_error);
         }
     }
 
-    public static void m1507$r8$lambda$DT1VPJLc_jQIEOnKaPDKhvhjOA(AtomicBoolean atomicBoolean, AtomicReference atomicReference, Utilities.Callback2 callback2, TLObject tLObject, TLRPC.TL_error tL_error) {
+    public static void m2174$r8$lambda$Zys4bse1bgzGUgsT0MB9ycKDLM(final AtomicBoolean atomicBoolean, AtomicInteger atomicInteger, AtomicInteger atomicInteger2, AccountInstance accountInstance, TLRPC.TL_messages_search tL_messages_search, final AtomicReference atomicReference, final Utilities.Callback2 callback2) {
+        if (atomicBoolean.get()) {
+            return;
+        }
+        atomicInteger.incrementAndGet();
+        atomicInteger2.set(accountInstance.getConnectionsManager().sendRequest(tL_messages_search, new RequestDelegate() {
+            @Override // org.telegram.tgnet.RequestDelegate
+            public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
+                RemoteUtils.$r8$lambda$VPbxsBgeVDZRlr6n6eb9kvQGVxM(atomicBoolean, atomicReference, callback2, tLObject, tL_error);
+            }
+        }));
+    }
+
+    public static void $r8$lambda$VPbxsBgeVDZRlr6n6eb9kvQGVxM(AtomicBoolean atomicBoolean, AtomicReference atomicReference, Utilities.Callback2 callback2, TLObject tLObject, TLRPC.TL_error tL_error) {
         if (atomicBoolean.compareAndSet(false, true)) {
             AndroidUtilities.cancelRunOnUIThread((Runnable) atomicReference.get());
             if (tL_error != null || tLObject == null) {
@@ -343,7 +389,7 @@ public abstract class RemoteUtils {
         }
     }
 
-    public static /* synthetic */ void m1506$r8$lambda$DWE3IlXIJYUbvGajyIcIoAEsuk(AtomicBoolean atomicBoolean, AccountInstance accountInstance, AtomicInteger atomicInteger, AtomicInteger atomicInteger2, Runnable runnable, AtomicReference atomicReference, int i, Runnable runnable2) {
+    public static void $r8$lambda$4QYm8KFjMBfJJ4laGtinXysTpck(AtomicBoolean atomicBoolean, AccountInstance accountInstance, AtomicInteger atomicInteger, AtomicInteger atomicInteger2, Runnable runnable, AtomicReference atomicReference, int i, Runnable runnable2) {
         if (atomicBoolean.get()) {
             return;
         }
@@ -356,19 +402,35 @@ public abstract class RemoteUtils {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$AjHQ7MB3X57c7essAWT021npCFk(TLRPC.TL_messages_search tL_messages_search, Runnable runnable, AtomicReference atomicReference, int i, AtomicBoolean atomicBoolean, Utilities.Callback2 callback2, TLRPC.Chat chat) {
-        if (chat != null && chat.id == -2227431611L) {
+    public static void m2173$r8$lambda$Q2nxzL4QXDhawk8oMmFpxL7pOE(final TLRPC.TL_messages_search tL_messages_search, AccountInstance accountInstance, final Runnable runnable, final AtomicReference atomicReference, final int i, final AtomicBoolean atomicBoolean, final Utilities.Callback2 callback2) {
+        TLRPC.InputPeer inputPeer = accountInstance.getMessagesController().getInputPeer(-2227431611L);
+        tL_messages_search.peer = inputPeer;
+        if (inputPeer.access_hash != 0) {
+            runnable.run();
+            AndroidUtilities.runOnUIThread((Runnable) atomicReference.get(), i);
+        } else {
+            ChatUtils.getInstance().resolveChannel("XS6GEcz5ZXMu82UvXQc", new Utilities.Callback() {
+                @Override // org.telegram.messenger.Utilities.Callback
+                public final void run(Object obj) {
+                    RemoteUtils.$r8$lambda$84O1WLvUC3qDyZTPzn_dgZu6QAQ(tL_messages_search, runnable, atomicReference, i, atomicBoolean, callback2, (TLRPC.Chat) obj);
+                }
+            });
+        }
+    }
+
+    public static void $r8$lambda$84O1WLvUC3qDyZTPzn_dgZu6QAQ(TLRPC.TL_messages_search tL_messages_search, Runnable runnable, AtomicReference atomicReference, int i, AtomicBoolean atomicBoolean, Utilities.Callback2 callback2, TLRPC.Chat chat) {
+        if (chat != null && chat.id == 2227431611L) {
             TLRPC.TL_inputPeerChannel tL_inputPeerChannel = new TLRPC.TL_inputPeerChannel();
             tL_messages_search.peer = tL_inputPeerChannel;
             tL_inputPeerChannel.channel_id = chat.id;
             tL_inputPeerChannel.access_hash = chat.access_hash;
-            AndroidUtilities.runOnUIThread(runnable);
+            runnable.run();
             AndroidUtilities.runOnUIThread((Runnable) atomicReference.get(), i);
             return;
         }
         if (atomicBoolean.compareAndSet(false, true)) {
             TLRPC.TL_error tL_error = new TLRPC.TL_error();
-            tL_error.code = 400;
+            tL_error.code = MediaError.DetailedErrorCode.MANIFEST_UNKNOWN;
             tL_error.text = "CHANNEL_RESOLVE_FAILED";
             callback2.run(null, tL_error);
         }
@@ -393,7 +455,6 @@ public abstract class RemoteUtils {
             return Integer.valueOf(i);
         } catch (Exception e) {
             AppUtils.log("Error getting int config value for key: " + str, e);
-            return Integer.valueOf(i);
         }
     }
 
@@ -419,7 +480,6 @@ public abstract class RemoteUtils {
             return Float.valueOf(f);
         } catch (Exception e) {
             AppUtils.log("Error getting value for key: " + str, e);
-            return Float.valueOf(f);
         }
     }
 

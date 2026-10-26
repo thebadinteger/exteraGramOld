@@ -2,10 +2,18 @@ package com.exteragram.messenger.plugins.ui.components;
 
 import android.app.Activity;
 import android.content.DialogInterface;
+import com.exteragram.messenger.plugins.PluginsConstants;
 import com.exteragram.messenger.utils.MarkdownUtils;
 import java.io.File;
+import java.io.FileInputStream;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import kotlin.Metadata;
+import kotlin.collections.ArraysKt;
+import kotlin.io.CloseableKt;
 import kotlin.io.FilesKt;
+import kotlin.jvm.JvmStatic;
 import kotlin.jvm.internal.SourceDebugExtension;
 import kotlin.text.Charsets;
 import kotlin.text.StringsKt;
@@ -23,17 +31,156 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.BulletinFactory;
 
-@Metadata(d1 = {"\u00004\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0010\b\n\u0002\b\u0002\n\u0002\u0010\u000b\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000e\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\bÆ\u0002\u0018\u00002\u00020\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J&\u0010\u0007\u001a\u00020\b2\b\u0010\t\u001a\u0004\u0018\u00010\n2\b\u0010\u000b\u001a\u0004\u0018\u00010\f2\n\b\u0002\u0010\r\u001a\u0004\u0018\u00010\u000eJ\u0018\u0010\u000f\u001a\u00020\u00102\u0006\u0010\u000b\u001a\u00020\f2\u0006\u0010\r\u001a\u00020\u000eH\u0002J\u001a\u0010\u0011\u001a\u00020\u000e2\u0006\u0010\u000b\u001a\u00020\f2\b\u0010\r\u001a\u0004\u0018\u00010\u000eH\u0002R\u000e\u0010\u0004\u001a\u00020\u0005X\u0082T¢\u0006\u0002\n\u0000R\u000e\u0010\u0006\u001a\u00020\u0005X\u0082T¢\u0006\u0002\n\u0000¨\u0006\u0012"}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/PluginFileViewer;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "MAX_FILE_SIZE", _UrlKt.FRAGMENT_ENCODE_SET, "MAX_BLOCK_LENGTH", "open", _UrlKt.FRAGMENT_ENCODE_SET, "fragment", "Lorg/telegram/ui/ActionBar/BaseFragment;", "file", "Ljava/io/File;", "fileName", _UrlKt.FRAGMENT_ENCODE_SET, "createMessageObject", "Lorg/telegram/messenger/MessageObject;", "normalizeFileName", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
-@SourceDebugExtension({"SMAP\nPluginFileViewer.kt\nKotlin\n*S Kotlin\n*F\n+ 1 PluginFileViewer.kt\ncom/exteragram/messenger/plugins/ui/components/PluginFileViewer\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n*L\n1#1,127:1\n1#2:128\n*E\n"})
+@Metadata(d1 = {"\u00008\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0010\b\n\u0002\b\u0003\n\u0002\u0010\u000b\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000e\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0002\bÆ\u0002\u0018\u00002\u00020\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\u0012\u0010\b\u001a\u00020\t2\b\u0010\n\u001a\u0004\u0018\u00010\u000bH\u0007J\u0010\u0010\f\u001a\u00020\t2\u0006\u0010\n\u001a\u00020\u000bH\u0002J(\u0010\r\u001a\u00020\t2\b\u0010\u000e\u001a\u0004\u0018\u00010\u000f2\b\u0010\n\u001a\u0004\u0018\u00010\u000b2\n\b\u0002\u0010\u0010\u001a\u0004\u0018\u00010\u0011H\u0007J\u0010\u0010\u0012\u001a\u00020\t2\u0006\u0010\n\u001a\u00020\u000bH\u0002J&\u0010\u0013\u001a\u00020\t2\b\u0010\u000e\u001a\u0004\u0018\u00010\u000f2\b\u0010\n\u001a\u0004\u0018\u00010\u000b2\n\b\u0002\u0010\u0010\u001a\u0004\u0018\u00010\u0011J\u0018\u0010\u0014\u001a\u00020\u00152\u0006\u0010\n\u001a\u00020\u000b2\u0006\u0010\u0010\u001a\u00020\u0011H\u0002J\u001a\u0010\u0016\u001a\u00020\u00112\u0006\u0010\n\u001a\u00020\u000b2\b\u0010\u0010\u001a\u0004\u0018\u00010\u0011H\u0002R\u000e\u0010\u0004\u001a\u00020\u0005X\u0082T¢\u0006\u0002\n\u0000R\u000e\u0010\u0006\u001a\u00020\u0005X\u0082T¢\u0006\u0002\n\u0000R\u000e\u0010\u0007\u001a\u00020\u0005X\u0082T¢\u0006\u0002\n\u0000¨\u0006\u0017"}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/PluginFileViewer;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "MAX_FILE_SIZE", _UrlKt.FRAGMENT_ENCODE_SET, "MAX_BLOCK_LENGTH", "SNIFF_LENGTH", "canOpen", _UrlKt.FRAGMENT_ENCODE_SET, "file", "Ljava/io/File;", "isText", "openExternally", "fragment", "Lorg/telegram/ui/ActionBar/BaseFragment;", "fileName", _UrlKt.FRAGMENT_ENCODE_SET, "isZip", "open", "createMessageObject", "Lorg/telegram/messenger/MessageObject;", "normalizeFileName", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+@SourceDebugExtension({"SMAP\nPluginFileViewer.kt\nKotlin\n*S Kotlin\n*F\n+ 1 PluginFileViewer.kt\ncom/exteragram/messenger/plugins/ui/components/PluginFileViewer\n+ 2 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n+ 3 fake.kt\nkotlin/jvm/internal/FakeKt\n*L\n1#1,198:1\n2792#2,3:199\n1#3:202\n*S KotlinDebug\n*F\n+ 1 PluginFileViewer.kt\ncom/exteragram/messenger/plugins/ui/components/PluginFileViewer\n*L\n49#1:199,3\n*E\n"})
 public final class PluginFileViewer {
     public static final PluginFileViewer INSTANCE = new PluginFileViewer();
     private static final int MAX_BLOCK_LENGTH = 8192;
     private static final int MAX_FILE_SIZE = 524288;
+    private static final int SNIFF_LENGTH = 8192;
 
     private PluginFileViewer() {
     }
 
-    public static /* synthetic */ boolean open$default(PluginFileViewer pluginFileViewer, BaseFragment baseFragment, File file, String str, int i, Object obj) {
+    @JvmStatic
+    public static final boolean canOpen(File file) {
+        if (file == null || !file.exists() || !file.isFile() || file.length() > 524288) {
+            return false;
+        }
+        return INSTANCE.isText(file);
+    }
+
+    private final boolean isText(File file) {
+        boolean z;
+        try {
+            FileInputStream fileInputStream = new FileInputStream(file);
+            try {
+                byte[] bArr = new byte[8192];
+                int i = fileInputStream.read(bArr);
+                if (i > 0) {
+                    List<Byte> listTake = ArraysKt.take(bArr, i);
+                    if (!(listTake instanceof Collection) || !listTake.isEmpty()) {
+                        Iterator<T> it = listTake.iterator();
+                        while (true) {
+                            if (it.hasNext()) {
+                                if (((Number) it.next()).byteValue() == 0) {
+                                    z = false;
+                                }
+                            }
+                        }
+                    }
+                    z = true;
+                } else {
+                    z = false;
+                }
+                CloseableKt.closeFinally(fileInputStream, null);
+                return z;
+            } catch (Throwable th) {
+                try {
+                    throw th;
+                } catch (Throwable th2) {
+                    CloseableKt.closeFinally(fileInputStream, th);
+                    throw th2;
+                }
+            }
+        } catch (Throwable th3) {
+            FileLog.e(th3);
+            return false;
+        }
+    }
+
+    public static boolean openExternally$default(BaseFragment baseFragment, File file, String str, int i, Object obj) {
+        if ((i & 4) != 0) {
+            str = null;
+        }
+        return openExternally(baseFragment, file, str);
+    }
+
+    @JvmStatic
+    public static final boolean openExternally(BaseFragment fragment, File file, String fileName) {
+        Activity parentActivity;
+        String str;
+        String str2;
+        if (fragment != null && (parentActivity = fragment.getParentActivity()) != null && file != null && file.exists() && file.isFile()) {
+            PluginFileViewer pluginFileViewer = INSTANCE;
+            boolean zIsZip = pluginFileViewer.isZip(file);
+            boolean z = !zIsZip && pluginFileViewer.isText(file);
+            if (fileName == null) {
+                fileName = file.getName();
+            } else {
+                if (StringsKt.isBlank(fileName)) {
+                    fileName = null;
+                }
+                if (fileName == null) {
+                    fileName = file.getName();
+                }
+            }
+            if (!StringsKt.contains$default((CharSequence) fileName, '.', false, 2, (Object) null)) {
+                if (zIsZip) {
+                    str2 = ".zip";
+                } else if (z) {
+                    str2 = ".txt";
+                } else {
+                    str2 = ".bin";
+                }
+                fileName = fileName + str2;
+            }
+            String str3 = fileName;
+            if (zIsZip) {
+                str = "application/zip";
+            } else if (z) {
+                str = "text/plain";
+            } else {
+                str = "application/octet-stream";
+            }
+            try {
+                return AndroidUtilities.openForView(file, str3, str, parentActivity, fragment.getResourceProvider(), false);
+            } catch (Throwable th) {
+                FileLog.e(th);
+                BulletinFactory.of(fragment).createSimpleBulletin(R.raw.error, LocaleController.getString(R.string.ErrorOccurred)).show();
+            }
+        }
+        return false;
+    }
+
+    private final boolean isZip(File file) {
+        boolean z;
+        byte b2;
+        try {
+            FileInputStream fileInputStream = new FileInputStream(file);
+            try {
+                byte[] bArr = new byte[4];
+                if (fileInputStream.read(bArr) != 4) {
+                    CloseableKt.closeFinally(fileInputStream, null);
+                    return false;
+                }
+                if (bArr[0] == 80) {
+                    z = true;
+                    if (bArr[1] != 75 || ((b2 = bArr[2]) != 3 && b2 != 5 && b2 != 7)) {
+                        z = false;
+                    }
+                } else {
+                    z = false;
+                }
+                CloseableKt.closeFinally(fileInputStream, null);
+                return z;
+            } catch (Throwable th) {
+                try {
+                    throw th;
+                } catch (Throwable th2) {
+                    CloseableKt.closeFinally(fileInputStream, th);
+                    throw th2;
+                }
+            }
+        } catch (Throwable th3) {
+            FileLog.e(th3);
+            return false;
+        }
+        FileLog.e(th3);
+        return false;
+    }
+
+    public static boolean open$default(PluginFileViewer pluginFileViewer, BaseFragment baseFragment, File file, String str, int i, Object obj) {
         if ((i & 4) != 0) {
             str = null;
         }
@@ -45,53 +192,50 @@ public final class PluginFileViewer {
         if (fragment == null || (parentActivity = fragment.getParentActivity()) == null || file == null || !file.exists() || !file.isFile()) {
             return false;
         }
-        if (file.length() > 524288) {
-            BulletinFactory.of(fragment).createSimpleBulletin(R.raw.error, LocaleController.getString(R.string.ImportFileTooLarge)).show();
-            return false;
+        if (!canOpen(file)) {
+            return openExternally(fragment, file, fileName);
         }
         final AlertDialog alertDialog = new AlertDialog(parentActivity, 3, fragment.getResourceProvider());
         alertDialog.setCanceledOnTouchOutside(false);
         final boolean[] zArr = {false};
-        alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() { // from class: com.exteragram.messenger.plugins.ui.components.PluginFileViewer$$ExternalSyntheticLambda0
+        alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override // android.content.DialogInterface.OnCancelListener
             public final void onCancel(DialogInterface dialogInterface) {
-                PluginFileViewer.m1360$r8$lambda$V5c36KhCJGXK1eWQobTq6ixb5g(zArr, dialogInterface);
+                PluginFileViewer.m1969$r8$lambda$vbpziXMO_HwI7YqbW1Hz2wiHAQ(zArr, dialogInterface);
             }
         });
         alertDialog.showDelayed(150L);
-        Utilities.globalQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.plugins.ui.components.PluginFileViewer$$ExternalSyntheticLambda1
+        Utilities.globalQueue.postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                PluginFileViewer.$r8$lambda$qqdbMSxrLs0kkr2wrRKExk_Q7bY(file, fileName, alertDialog, zArr, fragment);
+                PluginFileViewer.m1968$r8$lambda$vQwAKkakqkeP6_e0FaokhJKWvo(file, fileName, alertDialog, zArr, fragment);
             }
         });
         return true;
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$V5c36KhC-JGXK1eWQobTq6ixb5g, reason: not valid java name */
-    public static void m1360$r8$lambda$V5c36KhCJGXK1eWQobTq6ixb5g(boolean[] zArr, DialogInterface dialogInterface) {
+    public static void m1969$r8$lambda$vbpziXMO_HwI7YqbW1Hz2wiHAQ(boolean[] zArr, DialogInterface dialogInterface) {
         zArr[0] = true;
     }
 
-    public static void $r8$lambda$qqdbMSxrLs0kkr2wrRKExk_Q7bY(File file, String str, final AlertDialog alertDialog, final boolean[] zArr, final BaseFragment baseFragment) {
-        MessageObject messageObjectCreateMessageObject = null;
+    public static void m1968$r8$lambda$vQwAKkakqkeP6_e0FaokhJKWvo(File file, String str, final AlertDialog alertDialog, final boolean[] zArr, final BaseFragment baseFragment) {
+        final MessageObject messageObjectCreateMessageObject;
         try {
             PluginFileViewer pluginFileViewer = INSTANCE;
             messageObjectCreateMessageObject = pluginFileViewer.createMessageObject(file, pluginFileViewer.normalizeFileName(file, str));
         } catch (Throwable th) {
             FileLog.e(th);
+            messageObjectCreateMessageObject = null;
         }
-        final MessageObject finalMsg = messageObjectCreateMessageObject;
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.plugins.ui.components.PluginFileViewer$$ExternalSyntheticLambda2
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                PluginFileViewer.open$lambda$1$0(alertDialog, zArr, finalMsg, baseFragment);
+                PluginFileViewer.$r8$lambda$0xZUrpuuyQT7Lkt43HYs6kdYNiE(alertDialog, zArr, messageObjectCreateMessageObject, baseFragment);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public static final void open$lambda$1$0(AlertDialog alertDialog, boolean[] zArr, MessageObject messageObject, BaseFragment baseFragment) {
+    public static void $r8$lambda$0xZUrpuuyQT7Lkt43HYs6kdYNiE(AlertDialog alertDialog, boolean[] zArr, MessageObject messageObject, BaseFragment baseFragment) {
         try {
             alertDialog.dismiss();
         } catch (Throwable unused) {
@@ -111,7 +255,7 @@ public final class PluginFileViewer {
         TL_iv.TL_page tL_page = new TL_iv.TL_page();
         tL_page.local = file;
         tL_page.url = fileName;
-        MarkdownUtils.appendPreformattedBlocks(tL_page.blocks, text, "python", 8192);
+        MarkdownUtils.appendPreformattedBlocks(tL_page.blocks, text, PluginsConstants.PYTHON, 8192);
         TLRPC.TL_webPage tL_webPage = new TLRPC.TL_webPage();
         tL_webPage.id = file.getAbsolutePath().hashCode();
         tL_webPage.url = fileName;
@@ -137,7 +281,6 @@ public final class PluginFileViewer {
         return new MessageObject(UserConfig.selectedAccount, tL_message, false, true);
     }
 
-    /* JADX WARN: Code duplicated, block: B:8:0x000c  */
     private final String normalizeFileName(File file, String fileName) {
         if (fileName == null) {
             fileName = file.getName();
@@ -149,9 +292,9 @@ public final class PluginFileViewer {
                 fileName = file.getName();
             }
         }
-        if (StringsKt.endsWith(fileName, ".plugin", true)) {
+        if (StringsKt.contains$default((CharSequence) fileName, '.', false, 2, (Object) null)) {
             return fileName;
         }
-        return fileName + ".plugin";
+        return fileName + PluginsConstants.PLUGINS_EXT;
     }
 }

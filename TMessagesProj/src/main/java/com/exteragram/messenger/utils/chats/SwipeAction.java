@@ -8,7 +8,6 @@ import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.R;
 import org.telegram.tgnet.TLRPC;
 
-/* JADX INFO: loaded from: classes4.dex */
 public enum SwipeAction {
     REACTION(1, R.drawable.msg_reactions2, R.string.DoubleTapSetting, 1.0f),
     REPLY(2, R.drawable.menu_reply, R.string.Reply, 1.09f),

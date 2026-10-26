@@ -7,10 +7,12 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.PathInterpolator;
+import com.exteragram.messenger.ExteraConfig;
 import java.util.List;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.Utilities;
@@ -44,6 +46,14 @@ public final class PredictiveBackAnimationHelper {
 
     public int getPostCommitDuration() {
         return 375;
+    }
+
+    public static boolean isEnabled() {
+        return Build.VERSION.SDK_INT >= 34 && ExteraConfig.getPredictiveBackIntensity() > 0.0f;
+    }
+
+    public static float applyIntensity(float f) {
+        return Utilities.clamp01(f * Utilities.clamp(ExteraConfig.getPredictiveBackIntensity(), 2.0f, 0.0f));
     }
 
     public static Drawable getTransitionBackground(List<BaseFragment> list, BaseFragment baseFragment) {

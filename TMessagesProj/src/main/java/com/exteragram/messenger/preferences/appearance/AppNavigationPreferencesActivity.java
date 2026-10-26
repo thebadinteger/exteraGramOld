@@ -1,87 +1,194 @@
 package com.exteragram.messenger.preferences.appearance;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.view.View;
 import androidx.core.content.ContextCompat;
+import androidx.core.util.Consumer;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.MainMenuItem;
+import com.exteragram.messenger.TransitionAnimation;
 import com.exteragram.messenger.config.BottomNavigationBar;
+import com.exteragram.messenger.plugins.PluginsConstants;
 import com.exteragram.messenger.plugins.PluginsController;
 import com.exteragram.messenger.preferences.BasePreferencesActivity;
 import com.exteragram.messenger.preferences.components.AltSeekbar;
+import com.exteragram.messenger.utils.ExtensionsKt;
 import com.exteragram.messenger.utils.ui.PopupUtils;
-import com.google.android.exoplayer2.util.Consumer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.function.Predicate;
+import kotlin.Metadata;
+import kotlin.enums.EnumEntries;
+import kotlin.enums.EnumEntriesKt;
+import kotlin.jvm.functions.Function1;
+import kotlin.jvm.internal.DefaultConstructorMarker;
+import kotlin.jvm.internal.Intrinsics;
+import kotlin.jvm.internal.SourceDebugExtension;
+import kotlin.jvm.internal.StringCompanionObject;
+import kotlin.math.MathKt;
+import kotlin.ranges.RangesKt;
+import okhttp3.internal.url._UrlKt;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
+import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.UniversalRecyclerView;
 
-public class AppNavigationPreferencesActivity extends BasePreferencesActivity {
+@Metadata(d1 = {"\u0000~\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\u0010\b\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\u0011\n\u0002\u0010\r\n\u0002\b\u0004\n\u0002\u0010\u0002\n\u0002\b\u0002\n\u0002\u0010\u000e\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0000\n\u0002\u0010\u0007\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0012\n\u0002\u0018\u0002\n\u0002\b\u0007\u0018\u0000 @2\u00020\u0001:\u0003?@AB\u0007¢\u0006\u0004\b\u0002\u0010\u0003J\b\u0010\u0017\u001a\u00020\u0018H\u0014J\b\u0010\u0019\u001a\u00020\u0018H\u0002J\b\u0010\u001a\u001a\u00020\u001bH\u0016J\u0010\u0010\u001c\u001a\u00020\u001d2\u0006\u0010\u001e\u001a\u00020\u001fH\u0014J\u0010\u0010 \u001a\u00020!2\u0006\u0010\"\u001a\u00020#H\u0002J\u001e\u0010$\u001a\u00020\u00182\f\u0010%\u001a\b\u0012\u0004\u0012\u00020&0\u000f2\u0006\u0010'\u001a\u00020(H\u0014J<\u0010)\u001a\u00020\u00182\f\u0010%\u001a\b\u0012\u0004\u0012\u00020&0\u000f2\u0006\u0010'\u001a\u00020(2\u0006\u0010*\u001a\u00020\u001b2\f\u0010+\u001a\b\u0012\u0004\u0012\u00020\u00060\u000f2\u0006\u0010,\u001a\u00020!H\u0002J\u001c\u0010-\u001a\u0004\u0018\u00010&2\u0006\u0010.\u001a\u00020\u00062\b\u0010/\u001a\u0004\u0018\u00010\u0007H\u0002J\u001e\u00100\u001a\u00020\u00182\u0006\u00101\u001a\u00020\u00062\f\u00102\u001a\b\u0012\u0004\u0012\u00020&0\u000fH\u0002J0\u00103\u001a\u00020\u00182\u0006\u00104\u001a\u00020&2\u0006\u00105\u001a\u00020\u001d2\u0006\u00106\u001a\u00020\u00062\u0006\u00107\u001a\u00020#2\u0006\u00108\u001a\u00020#H\u0014J\b\u00109\u001a\u00020\u0018H\u0002J\b\u0010:\u001a\u00020;H\u0002J\u0012\u0010<\u001a\u00020\u00182\b\b\u0002\u0010=\u001a\u00020!H\u0002J\b\u0010>\u001a\u00020\u0018H\u0002R\u001a\u0010\u0004\u001a\u000e\u0012\u0004\u0012\u00020\u0006\u0012\u0004\u0012\u00020\u00070\u0005X\u0082\u0004¢\u0006\u0002\n\u0000R\u0010\u0010\b\u001a\u0004\u0018\u00010\tX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\n\u001a\u0004\u0018\u00010\u000bX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\f\u001a\u0004\u0018\u00010\rX\u0082\u000e¢\u0006\u0002\n\u0000R\u0014\u0010\u000e\u001a\b\u0012\u0004\u0012\u00020\u00060\u000fX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0010\u001a\u00020\u0006X\u0082\u000e¢\u0006\u0002\n\u0000R\u0016\u0010\u0011\u001a\b\u0012\u0004\u0012\u00020\u00130\u0012X\u0082.¢\u0006\u0004\n\u0002\u0010\u0014R\u0016\u0010\u0015\u001a\b\u0012\u0004\u0012\u00020\u00130\u0012X\u0082.¢\u0006\u0004\n\u0002\u0010\u0014R\u0016\u0010\u0016\u001a\b\u0012\u0004\u0012\u00020\u00130\u0012X\u0082.¢\u0006\u0004\n\u0002\u0010\u0014¨\u0006B"}, d2 = {"Lcom/exteragram/messenger/preferences/appearance/AppNavigationPreferencesActivity;", "Lcom/exteragram/messenger/preferences/BasePreferencesActivity;", "<init>", "()V", "itemDetails", "Ljava/util/HashMap;", _UrlKt.FRAGMENT_ENCODE_SET, "Lcom/exteragram/messenger/preferences/appearance/AppNavigationPreferencesActivity$ItemInfo;", "reorderIcon", "Landroid/graphics/drawable/Drawable;", "resetItem", "Lorg/telegram/ui/ActionBar/ActionBarMenuItem;", "predictiveBackSeekbar", "Lcom/exteragram/messenger/preferences/components/AltSeekbar;", "stableDividerIds", "Ljava/util/ArrayList;", "nextDividerId", "tabletModeOptions", _UrlKt.FRAGMENT_ENCODE_SET, _UrlKt.FRAGMENT_ENCODE_SET, "[Ljava/lang/CharSequence;", "bottomNavigationModes", "transitionAnimations", "initializeOptionStrings", _UrlKt.FRAGMENT_ENCODE_SET, "initItemDetails", "getTitle", _UrlKt.FRAGMENT_ENCODE_SET, "createView", "Landroid/view/View;", "context", "Landroid/content/Context;", "isPredictiveBackOff", _UrlKt.FRAGMENT_ENCODE_SET, "value", _UrlKt.FRAGMENT_ENCODE_SET, "fillItems", PluginsConstants.Settings.ITEMS, "Lorg/telegram/ui/Components/UItem;", "adapter", "Lorg/telegram/ui/Components/UniversalAdapter;", "addMenuSection", PluginsConstants.Settings.TYPE_HEADER, "ids", "mainSection", "createMenuItem", "id", "info", "updateConfigFromReorder", "sectionId", "uItems", "onClick", PluginsConstants.Settings.ITEM, PluginsConstants.Settings.VIEW, "position", "x", "y", "saveAndNotify", "refreshEditorList", "Lorg/telegram/ui/Components/UniversalRecyclerView;", "updateResetButtonVisibility", "animated", "resetToDefault", "AppNavigationItem", "Companion", "ItemInfo", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+@SourceDebugExtension({"SMAP\nAppNavigationPreferencesActivity.kt\nKotlin\n*S Kotlin\n*F\n+ 1 AppNavigationPreferencesActivity.kt\ncom/exteragram/messenger/preferences/appearance/AppNavigationPreferencesActivity\n+ 2 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n+ 3 fake.kt\nkotlin/jvm/internal/FakeKt\n+ 4 SharedPreferences.kt\nandroidx/core/content/SharedPreferencesKt\n*L\n1#1,441:1\n2792#2,3:442\n1#3:445\n41#4,12:446\n41#4,12:458\n*S KotlinDebug\n*F\n+ 1 AppNavigationPreferencesActivity.kt\ncom/exteragram/messenger/preferences/appearance/AppNavigationPreferencesActivity\n*L\n224#1:442,3\n309#1:446,12\n325#1:458,12\n*E\n"})
+public final class AppNavigationPreferencesActivity extends BasePreferencesActivity {
     private CharSequence[] bottomNavigationModes;
     private AltSeekbar predictiveBackSeekbar;
     private Drawable reorderIcon;
     private ActionBarMenuItem resetItem;
-    private CharSequence[] tabletMode;
+    private CharSequence[] tabletModeOptions;
+    private CharSequence[] transitionAnimations;
     private final HashMap<Integer, ItemInfo> itemDetails = new HashMap<>();
     private final ArrayList<Integer> stableDividerIds = new ArrayList<>();
     private int nextDividerId = -2000;
 
+    @Metadata(k = 3, mv = {2, 2, 0}, xi = 48)
+    public static final class WhenMappings {
+        public static final int[] $EnumSwitchMapping$0;
+
+        static {
+            int[] iArr = new int[AppNavigationItem.values().length];
+            try {
+                iArr[AppNavigationItem.DRAWER.ordinal()] = 1;
+            } catch (NoSuchFieldError unused) {
+            }
+            try {
+                iArr[AppNavigationItem.IMMERSIVE_ANIMATION.ordinal()] = 2;
+            } catch (NoSuchFieldError unused2) {
+            }
+            try {
+                iArr[AppNavigationItem.BOTTOM_NAVIGATION_BAR_MODE.ordinal()] = 3;
+            } catch (NoSuchFieldError unused3) {
+            }
+            try {
+                iArr[AppNavigationItem.HIDE_NAVIGATION_BAR_LABELS.ordinal()] = 4;
+            } catch (NoSuchFieldError unused4) {
+            }
+            try {
+                iArr[AppNavigationItem.TRANSITION_ANIMATION.ordinal()] = 5;
+            } catch (NoSuchFieldError unused5) {
+            }
+            try {
+                iArr[AppNavigationItem.TABLET_MODE.ordinal()] = 6;
+            } catch (NoSuchFieldError unused6) {
+            }
+            $EnumSwitchMapping$0 = iArr;
+        }
+    }
+
+    @Metadata(d1 = {"\u0000\u0014\n\u0002\u0018\u0002\n\u0002\u0010\u0010\n\u0002\b\n\n\u0002\u0010\b\n\u0002\b\u0004\b\u0086\u0081\u0002\u0018\u0000 \u000f2\b\u0012\u0004\u0012\u00020\u00000\u0001:\u0001\u000fB\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003R\u0011\u0010\u000b\u001a\u00020\f8F¢\u0006\u0006\u001a\u0004\b\r\u0010\u000ej\u0002\b\u0004j\u0002\b\u0005j\u0002\b\u0006j\u0002\b\u0007j\u0002\b\bj\u0002\b\tj\u0002\b\n¨\u0006\u0010"}, d2 = {"Lcom/exteragram/messenger/preferences/appearance/AppNavigationPreferencesActivity$AppNavigationItem;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "(Ljava/lang/String;I)V", "DRAWER", "IMMERSIVE_ANIMATION", "BOTTOM_NAVIGATION_BAR_MODE", "PREDICTIVE_BACK_ANIMATION", "TRANSITION_ANIMATION", "TABLET_MODE", "HIDE_NAVIGATION_BAR_LABELS", "id", _UrlKt.FRAGMENT_ENCODE_SET, "getId", "()I", "Companion", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
     public enum AppNavigationItem {
         DRAWER,
         IMMERSIVE_ANIMATION,
         BOTTOM_NAVIGATION_BAR_MODE,
         PREDICTIVE_BACK_ANIMATION,
-        SPRING_ANIMATIONS,
-        TABLET_MODE;
+        TRANSITION_ANIMATION,
+        TABLET_MODE,
+        HIDE_NAVIGATION_BAR_LABELS;
 
-        public int getId() {
-            return ordinal() + 150;
+        private static final EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
+
+        public static final Companion INSTANCE = new Companion(null);
+
+        public static EnumEntries<AppNavigationItem> getEntries() {
+            return $ENTRIES;
         }
 
-        public static AppNavigationItem fromId(int i) {
-            int i2 = i - 150;
-            if (i2 < 0 || i2 >= values().length) {
-                return null;
+        @Metadata(d1 = {"\u0000\u001a\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0010\b\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\b\u0086\u0003\u0018\u00002\u00020\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\u0010\u0010\u0006\u001a\u0004\u0018\u00010\u00072\u0006\u0010\b\u001a\u00020\u0005R\u000e\u0010\u0004\u001a\u00020\u0005X\u0082T¢\u0006\u0002\n\u0000¨\u0006\t"}, d2 = {"Lcom/exteragram/messenger/preferences/appearance/AppNavigationPreferencesActivity$AppNavigationItem$Companion;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "BASE_ID", _UrlKt.FRAGMENT_ENCODE_SET, "fromId", "Lcom/exteragram/messenger/preferences/appearance/AppNavigationPreferencesActivity$AppNavigationItem;", "id", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+        public static final class Companion {
+            public Companion(DefaultConstructorMarker defaultConstructorMarker) {
+                this();
             }
-            return values()[i2];
+
+            private Companion() {
+            }
+
+            public final AppNavigationItem fromId(int id) {
+                int i = id - 150;
+                if (i < 0 || i >= AppNavigationItem.getEntries().size()) {
+                    return null;
+                }
+                return AppNavigationItem.getEntries().get(i);
+            }
+        }
+
+        public final int getId() {
+            return ordinal() + 150;
         }
     }
 
-    public static class ItemInfo {
-        int iconRes;
-        CharSequence name;
+    @Metadata(d1 = {"\u0000&\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\u0010\r\n\u0000\n\u0002\u0010\b\n\u0002\b\u0003\n\u0002\u0010\u000e\n\u0002\b\u0005\n\u0002\u0010\u000b\n\u0002\b\b\b\u0082\b\u0018\u00002\u00020\u0001B\u0017\u0012\u0006\u0010\u0003\u001a\u00020\u0002\u0012\u0006\u0010\u0005\u001a\u00020\u0004¢\u0006\u0004\b\u0006\u0010\u0007J\u0010\u0010\t\u001a\u00020\bHÖ\u0001¢\u0006\u0004\b\t\u0010\nJ\u0010\u0010\u000b\u001a\u00020\u0004HÖ\u0001¢\u0006\u0004\b\u000b\u0010\fJ\u001a\u0010\u000f\u001a\u00020\u000e2\b\u0010\r\u001a\u0004\u0018\u00010\u0001HÖ\u0003¢\u0006\u0004\b\u000f\u0010\u0010R\u0017\u0010\u0003\u001a\u00020\u00028\u0006¢\u0006\f\n\u0004\b\u0003\u0010\u0011\u001a\u0004\b\u0012\u0010\u0013R\u0017\u0010\u0005\u001a\u00020\u00048\u0006¢\u0006\f\n\u0004\b\u0005\u0010\u0014\u001a\u0004\b\u0015\u0010\f¨\u0006\u0016"}, d2 = {"Lcom/exteragram/messenger/preferences/appearance/AppNavigationPreferencesActivity$ItemInfo;", _UrlKt.FRAGMENT_ENCODE_SET, _UrlKt.FRAGMENT_ENCODE_SET, "name", _UrlKt.FRAGMENT_ENCODE_SET, "iconRes", "<init>", "(Ljava/lang/CharSequence;I)V", _UrlKt.FRAGMENT_ENCODE_SET, "toString", "()Ljava/lang/String;", "hashCode", "()I", "other", _UrlKt.FRAGMENT_ENCODE_SET, "equals", "(Ljava/lang/Object;)Z", "Ljava/lang/CharSequence;", "getName", "()Ljava/lang/CharSequence;", "I", "getIconRes", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+    public static final /* data */ class ItemInfo {
+        private final int iconRes;
+        private final CharSequence name;
+
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof ItemInfo)) {
+                return false;
+            }
+            ItemInfo itemInfo = (ItemInfo) other;
+            return Intrinsics.areEqual(this.name, itemInfo.name) && this.iconRes == itemInfo.iconRes;
+        }
+
+        public int hashCode() {
+            return (this.name.hashCode() * 31) + Integer.hashCode(this.iconRes);
+        }
+
+        public String toString() {
+            CharSequence charSequence = this.name;
+            return "ItemInfo(name=" + ((Object) charSequence) + ", iconRes=" + this.iconRes + ")";
+        }
 
         public ItemInfo(CharSequence charSequence, int i) {
             this.name = charSequence;
             this.iconRes = i;
+        }
+
+        public final int getIconRes() {
+            return this.iconRes;
+        }
+
+        public final CharSequence getName() {
+            return this.name;
         }
     }
 
     @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
     public void initializeOptionStrings() {
         initItemDetails();
-        this.tabletMode = new CharSequence[]{LocaleController.getString(R.string.DistanceUnitsAutomatic), LocaleController.getString(R.string.PasswordOn), LocaleController.getString(R.string.PasswordOff)};
+        this.tabletModeOptions = new CharSequence[]{LocaleController.getString(R.string.DistanceUnitsAutomatic), LocaleController.getString(R.string.PasswordOn), LocaleController.getString(R.string.PasswordOff)};
         this.bottomNavigationModes = new CharSequence[]{LocaleController.getString(R.string.BottomNavigationModeShow), LocaleController.getString(R.string.BottomNavigationModeHide), LocaleController.getString(R.string.BottomNavigationModeFloating)};
+        this.transitionAnimations = new CharSequence[]{LocaleController.getString(R.string.Default), LocaleController.getString(R.string.TransitionAnimationAosp), LocaleController.getString(R.string.TransitionAnimationSpring)};
     }
 
-    private void initItemDetails() {
+    private final void initItemDetails() {
         this.itemDetails.put(Integer.valueOf(MainMenuItem.PROFILE.getId()), new ItemInfo(LocaleController.getString(R.string.MyProfile), R.drawable.left_status_profile));
         this.itemDetails.put(Integer.valueOf(MainMenuItem.ARCHIVE.getId()), new ItemInfo(LocaleController.getString(R.string.ArchivedChats), R.drawable.msg_archive));
         this.itemDetails.put(Integer.valueOf(MainMenuItem.BOTS.getId()), new ItemInfo(LocaleController.getString(R.string.FilterBots), R.drawable.msg_bot));
+        this.itemDetails.put(Integer.valueOf(MainMenuItem.WALLET.getId()), new ItemInfo(LocaleController.getString(R.string.WalletTitle), R.drawable.ic_gram));
         this.itemDetails.put(Integer.valueOf(MainMenuItem.NEW_GROUP.getId()), new ItemInfo(LocaleController.getString(R.string.NewGroup), R.drawable.msg_groups));
         this.itemDetails.put(Integer.valueOf(MainMenuItem.CONTACTS.getId()), new ItemInfo(LocaleController.getString(R.string.Contacts), R.drawable.msg_contacts));
         this.itemDetails.put(Integer.valueOf(MainMenuItem.NEW_CHANNEL.getId()), new ItemInfo(LocaleController.getString(R.string.NewChannel), R.drawable.msg_channel));
@@ -92,30 +199,33 @@ public class AppNavigationPreferencesActivity extends BasePreferencesActivity {
         this.itemDetails.put(Integer.valueOf(MainMenuItem.PLUGINS.getId()), new ItemInfo(LocaleController.getString(R.string.Plugins), R.drawable.msg_plugins));
         this.itemDetails.put(Integer.valueOf(MainMenuItem.BROWSER.getId()), new ItemInfo(LocaleController.getString(R.string.BrowserSettingsTitle), R.drawable.msg2_language));
         this.itemDetails.put(Integer.valueOf(MainMenuItem.QR.getId()), new ItemInfo(LocaleController.getString(R.string.AuthAnotherClient), R.drawable.msg_qrcode));
-        ExteraConfig.getMainMenuHiddenItems().removeIf(new Predicate() { // from class: com.exteragram.messenger.preferences.appearance.AppNavigationPreferencesActivity$$ExternalSyntheticLambda0
+        ArrayList<Integer> mainMenuHiddenItems = ExteraConfig.getMainMenuHiddenItems();
+        final Function1 function1 = new Function1() {
+            @Override // kotlin.jvm.functions.Function1
+            public final Object invoke(Object obj) {
+                return Boolean.valueOf(AppNavigationPreferencesActivity.$r8$lambda$abRkaPj59RSDKtqDhmMPduco8WY((Integer) obj));
+            }
+        };
+        mainMenuHiddenItems.removeIf(new Predicate() {
             @Override // java.util.function.Predicate
             public final boolean test(Object obj) {
-                return AppNavigationPreferencesActivity.$r8$lambda$Po3A4RwV39YnktoT4g7JvvXtYv0((Integer) obj);
+                return ((Boolean) function1.invoke(obj)).booleanValue();
             }
         });
         this.stableDividerIds.clear();
         this.nextDividerId = -2000;
-        ArrayList<Integer> mainMenuLayout = ExteraConfig.getMainMenuLayout();
-        int size = mainMenuLayout.size();
-        int i = 0;
-        while (i < size) {
-            Integer num = mainMenuLayout.get(i);
-            i++;
-            if (num.intValue() == MainMenuItem.DIVIDER.getId()) {
+        Iterator<Integer> it = ExteraConfig.getMainMenuLayout().iterator();
+        while (it.hasNext()) {
+            if (it.next().intValue() == MainMenuItem.DIVIDER.getId()) {
                 ArrayList<Integer> arrayList = this.stableDividerIds;
-                int i2 = this.nextDividerId;
-                this.nextDividerId = i2 - 1;
-                arrayList.add(Integer.valueOf(i2));
+                int i = this.nextDividerId;
+                this.nextDividerId = i - 1;
+                arrayList.add(Integer.valueOf(i));
             }
         }
     }
 
-    public static /* synthetic */ boolean $r8$lambda$Po3A4RwV39YnktoT4g7JvvXtYv0(Integer num) {
+    public static boolean $r8$lambda$abRkaPj59RSDKtqDhmMPduco8WY(Integer num) {
         return num.intValue() == MainMenuItem.DIVIDER.getId();
     }
 
@@ -125,17 +235,19 @@ public class AppNavigationPreferencesActivity extends BasePreferencesActivity {
     }
 
     @Override // com.exteragram.messenger.preferences.BasePreferencesActivity, org.telegram.ui.ActionBar.BaseFragment
-    public View createView(Context context) {
-        final AppNavigationPreferencesActivity appNavigationPreferencesActivity;
+    public View createView(final Context context) {
         View viewCreateView = super.createView(context);
         if (Build.VERSION.SDK_INT >= 34) {
-            appNavigationPreferencesActivity = this;
-            appNavigationPreferencesActivity.predictiveBackSeekbar = new AltSeekbar(context, new AltSeekbar.OnDrag() { // from class: com.exteragram.messenger.preferences.appearance.AppNavigationPreferencesActivity$$ExternalSyntheticLambda1
+            final AltSeekbar.OnDrag onDrag = new AltSeekbar.OnDrag() {
                 @Override // com.exteragram.messenger.preferences.components.AltSeekbar.OnDrag
                 public final void run(float f) {
-                    AppNavigationPreferencesActivity.this.lambda$createView$1(f);
+                    AppNavigationPreferencesActivity.$r8$lambda$9W76nbjQWdGOuv7NzhtLBfUwV48(this.f$0, f);
                 }
-            }, 0, 2, LocaleController.getString(R.string.PredictiveBackIntensity), LocaleController.getString(R.string.BlurOff), LocaleController.getString(R.string.PredictiveBackMax)) { // from class: com.exteragram.messenger.preferences.appearance.AppNavigationPreferencesActivity.1
+            };
+            final String string = LocaleController.getString(R.string.PredictiveBackIntensity);
+            final String string2 = LocaleController.getString(R.string.BlurOff);
+            final String string3 = LocaleController.getString(R.string.PredictiveBackMax);
+            AltSeekbar altSeekbar = new AltSeekbar(context, onDrag, string, string2, string3) {
                 @Override // com.exteragram.messenger.preferences.components.AltSeekbar
                 public boolean useExactEndpointHaptic() {
                     return true;
@@ -143,285 +255,330 @@ public class AppNavigationPreferencesActivity extends BasePreferencesActivity {
 
                 @Override // com.exteragram.messenger.preferences.components.AltSeekbar
                 public CharSequence getTextForHeader() {
-                    float fRound = Math.round(this.currentValue * 10.0f) / 10.0f;
-                    if (fRound <= 0.0f) {
-                        return this.leftTextView.getText().toString().toUpperCase();
+                    float fRoundToInt = MathKt.roundToInt(this.currentValue * 10.0f) / 10.0f;
+                    if (fRoundToInt <= 0.0f) {
+                        return this.leftTextView.getText().toString().toUpperCase(Locale.US);
                     }
-                    if (fRound >= 2.0f) {
-                        return this.rightTextView.getText().toString().toUpperCase();
+                    if (fRoundToInt >= 2.0f) {
+                        return this.rightTextView.getText().toString().toUpperCase(Locale.US);
                     }
-                    int i = (int) fRound;
-                    if (fRound == i) {
+                    int i = (int) fRoundToInt;
+                    if (fRoundToInt == i) {
                         return String.valueOf(i);
                     }
-                    return String.format(Locale.US, "%.1f", Float.valueOf(fRound));
+                    StringCompanionObject stringCompanionObject = StringCompanionObject.INSTANCE;
+                    return String.format(Locale.US, "%.1f", Arrays.copyOf(new Object[]{Float.valueOf(fRoundToInt)}, 1));
                 }
             };
-            float fMin = Math.min(ExteraConfig.getPredictiveBackIntensity(), 2.0f);
-            if (fMin != ExteraConfig.getPredictiveBackIntensity()) {
-                ExteraConfig.setPredictiveBackIntensity(fMin);
+            this.predictiveBackSeekbar = altSeekbar;
+            float fCoerceAtMost = RangesKt.coerceAtMost(ExteraConfig.getPredictiveBackIntensity(), 2.0f);
+            if (fCoerceAtMost != ExteraConfig.getPredictiveBackIntensity()) {
+                ExteraConfig.setPredictiveBackIntensity(fCoerceAtMost);
             }
-            appNavigationPreferencesActivity.predictiveBackSeekbar.setProgress(fMin);
-        } else {
-            appNavigationPreferencesActivity = this;
+            altSeekbar.setProgress(fCoerceAtMost);
         }
-        ActionBarMenuItem actionBarMenuItemAddItem = appNavigationPreferencesActivity.actionBar.createMenu().addItem(0, R.drawable.msg_reset);
-        appNavigationPreferencesActivity.resetItem = actionBarMenuItemAddItem;
+        ActionBarMenuItem actionBarMenuItemAddItem = this.actionBar.createMenu().addItem(0, R.drawable.msg_reset);
         actionBarMenuItemAddItem.setContentDescription(LocaleController.getString(R.string.Reset));
-        appNavigationPreferencesActivity.updateResetButtonVisibility();
-        appNavigationPreferencesActivity.resetItem.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.preferences.appearance.AppNavigationPreferencesActivity$$ExternalSyntheticLambda2
+        actionBarMenuItemAddItem.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                AppNavigationPreferencesActivity.this.lambda$createView$2(view);
+                this.f$0.resetToDefault();
             }
         });
-        UniversalRecyclerView universalRecyclerView = appNavigationPreferencesActivity.listView;
-        if (universalRecyclerView != null) {
-            universalRecyclerView.allowReorder(true);
-            appNavigationPreferencesActivity.listView.listenReorder(new Utilities.Callback2() { // from class: com.exteragram.messenger.preferences.appearance.AppNavigationPreferencesActivity$$ExternalSyntheticLambda3
-                @Override // org.telegram.messenger.Utilities.Callback2
-                public final void run(Object obj, Object obj2) {
-                    AppNavigationPreferencesActivity.this.updateConfigFromReorder(((Integer) obj).intValue(), (ArrayList) obj2);
-                }
-            });
-        }
+        this.resetItem = actionBarMenuItemAddItem;
+        updateResetButtonVisibility(false);
+        getListView$TMessagesProj().allowReorder(true);
+        getListView$TMessagesProj().listenReorder(new Utilities.Callback2() {
+            @Override // org.telegram.messenger.Utilities.Callback2
+            public final void run(Object obj, Object obj2) {
+                this.f$0.updateConfigFromReorder(((Integer) obj).intValue(), (ArrayList) obj2);
+            }
+        });
         return viewCreateView;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$createView$1(float f) {
-        boolean zIsPredictiveBackOff = isPredictiveBackOff(ExteraConfig.getPredictiveBackIntensity());
-        boolean zIsPredictiveBackOff2 = isPredictiveBackOff(f);
+    public static void $r8$lambda$9W76nbjQWdGOuv7NzhtLBfUwV48(AppNavigationPreferencesActivity appNavigationPreferencesActivity, float f) {
+        boolean zIsPredictiveBackOff = appNavigationPreferencesActivity.isPredictiveBackOff(ExteraConfig.getPredictiveBackIntensity());
+        boolean zIsPredictiveBackOff2 = appNavigationPreferencesActivity.isPredictiveBackOff(f);
         ExteraConfig.setPredictiveBackIntensity(f);
-        this.predictiveBackSeekbar.updateHeader(f);
+        AltSeekbar altSeekbar = appNavigationPreferencesActivity.predictiveBackSeekbar;
+        if (altSeekbar != null) {
+            altSeekbar.updateHeader(f);
+        }
         if (zIsPredictiveBackOff != zIsPredictiveBackOff2) {
-            showRestartBulletin();
+            appNavigationPreferencesActivity.showRestartBulletin();
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$createView$2(View view) {
-        resetToDefault();
-    }
-
-    private boolean isPredictiveBackOff(float f) {
-        return ((float) Math.round(f * 10.0f)) / 10.0f <= 0.0f;
+    private final boolean isPredictiveBackOff(float value) {
+        return ((float) MathKt.roundToInt(value * 10.0f)) / 10.0f <= 0.0f;
     }
 
     @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
-    public void fillItems(ArrayList<UItem> arrayList, UniversalAdapter universalAdapter) {
-        if (this.reorderIcon == null) {
-            this.reorderIcon = ContextCompat.getDrawable(getContext(), R.drawable.list_reorder);
+    public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
+        boolean z = Build.VERSION.SDK_INT >= 34 && this.predictiveBackSeekbar != null;
+        Drawable drawable = this.reorderIcon;
+        if (drawable == null) {
+            drawable = ContextCompat.getDrawable(getContext(), R.drawable.list_reorder);
         }
-        arrayList.add(UItem.asHeader(LocaleController.getString(R.string.General)));
-        arrayList.add(UItem.asButton(AppNavigationItem.TABLET_MODE.getId(), LocaleController.getString(R.string.TabletMode), this.tabletMode[ExteraConfig.getTabletMode()]).setSearchable(this).setLinkAlias("tabletMode", this));
-        arrayList.add(UItem.asButton(AppNavigationItem.BOTTOM_NAVIGATION_BAR_MODE.getId(), LocaleController.getString(R.string.BottomNavigationBarMode), this.bottomNavigationModes[BottomNavigationBar.getMode()]).setSearchable(this).setLinkAlias("bottomNavigationBarMode", this));
-        arrayList.add(UItem.asCheck(AppNavigationItem.SPRING_ANIMATIONS.getId(), LocaleController.getString(R.string.SpringAnimations)).setChecked(ExteraConfig.getSpringAnimations()).setSearchable(this).setLinkAlias("springAnimations", this));
-        arrayList.add(UItem.asShadow(LocaleController.getString(R.string.SpringAnimationsInfo)));
-        if (Build.VERSION.SDK_INT >= 34) {
-            arrayList.add(UItem.asCustom(AppNavigationItem.PREDICTIVE_BACK_ANIMATION.getId(), this.predictiveBackSeekbar).setLinkAlias("predictiveBackAnimation", this));
-            arrayList.add(UItem.asShadow(LocaleController.getString(R.string.PredictiveBackInfo)));
+        this.reorderIcon = drawable;
+        items.add(UItem.asHeader(LocaleController.getString(R.string.General)));
+        int id = AppNavigationItem.TABLET_MODE.getId();
+        String string = LocaleController.getString(R.string.TabletMode);
+        CharSequence[] charSequenceArr = this.tabletModeOptions;
+        if (charSequenceArr == null) {
+            charSequenceArr = null;
         }
-        arrayList.add(UItem.asHeader(LocaleController.getString(R.string.AppNavigation)));
-        arrayList.add(UItem.asCheck(AppNavigationItem.DRAWER.getId(), LocaleController.getString(R.string.NavigationDrawer)).setChecked(ExteraConfig.getNavigationDrawer()).setSearchable(this).setLinkAlias("navigationDrawer", this));
-        if (ExteraConfig.getNavigationDrawer()) {
-            arrayList.add(UItem.asCheck(AppNavigationItem.IMMERSIVE_ANIMATION.getId(), LocaleController.getString(R.string.NavigationDrawerImmersiveAnimation)).setChecked(ExteraConfig.getImmersiveDrawerAnimation()).setSearchable(this).setLinkAlias("immersiveDrawerAnimation", this));
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, id, (CharSequence) string, 0, charSequenceArr[ExteraConfig.getTabletMode()], (CharSequence) null, (Boolean) null, false, "tabletMode", false, false, (Boolean) null, 1908, (Object) null));
+        int id2 = AppNavigationItem.BOTTOM_NAVIGATION_BAR_MODE.getId();
+        String string2 = LocaleController.getString(R.string.BottomNavigationBarMode);
+        CharSequence[] charSequenceArr2 = this.bottomNavigationModes;
+        if (charSequenceArr2 == null) {
+            charSequenceArr2 = null;
         }
-        arrayList.add(UItem.asShadow(LocaleController.getString(R.string.NavigationDrawerInfo)));
-        addMenuSection(arrayList, universalAdapter, LocaleController.getString(R.string.MainMenuItems), ExteraConfig.getMainMenuLayout(), true);
-        arrayList.add(UItem.asShadow(LocaleController.getString(R.string.MainMenuItemsInfo)));
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, id2, (CharSequence) string2, 0, charSequenceArr2[BottomNavigationBar.getMode()], (CharSequence) null, (Boolean) null, false, "bottomNavigationBarMode", false, false, (Boolean) null, 1908, (Object) null));
+        ExtensionsKt.addIf(items, BottomNavigationBar.visible(), BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, AppNavigationItem.HIDE_NAVIGATION_BAR_LABELS.getId(), (CharSequence) LocaleController.getString(R.string.HideNavigationBarLabels), ExteraConfig.getHideNavigationBarLabels(), (CharSequence) null, 0, false, "hideNavigationBarLabels", false, 0, 440, (Object) null));
+        int id3 = AppNavigationItem.TRANSITION_ANIMATION.getId();
+        String string3 = LocaleController.getString(R.string.TransitionAnimation);
+        CharSequence[] charSequenceArr3 = this.transitionAnimations;
+        if (charSequenceArr3 == null) {
+            charSequenceArr3 = null;
+        }
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, id3, (CharSequence) string3, 0, charSequenceArr3[ExteraConfig.getTransitionAnimation().ordinal()], (CharSequence) null, (Boolean) null, false, "transitionAnimation", false, false, (Boolean) null, 1908, (Object) null));
+        items.add(UItem.asShadow(LocaleController.getString(R.string.TransitionAnimationInfo)));
+        ExtensionsKt.addIf(items, z, UItem.asCustom(AppNavigationItem.PREDICTIVE_BACK_ANIMATION.getId(), this.predictiveBackSeekbar).setLinkAlias("predictiveBackAnimation", this));
+        ExtensionsKt.addIf(items, z, UItem.asShadow(LocaleController.getString(R.string.PredictiveBackInfo)));
+        items.add(UItem.asHeader(LocaleController.getString(R.string.AppNavigation)));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, AppNavigationItem.DRAWER.getId(), (CharSequence) LocaleController.getString(R.string.NavigationDrawer), ExteraConfig.getNavigationDrawer(), (CharSequence) null, 0, false, "navigationDrawer", false, 0, 440, (Object) null));
+        ExtensionsKt.addIf(items, ExteraConfig.getNavigationDrawer(), BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, AppNavigationItem.IMMERSIVE_ANIMATION.getId(), (CharSequence) LocaleController.getString(R.string.NavigationDrawerImmersiveAnimation), ExteraConfig.getImmersiveDrawerAnimation(), (CharSequence) null, 0, false, "immersiveDrawerAnimation", false, 0, 440, (Object) null));
+        items.add(UItem.asShadow(LocaleController.getString(R.string.NavigationDrawerInfo)));
+        addMenuSection(items, adapter, LocaleController.getString(R.string.MainMenuItems), ExteraConfig.getMainMenuLayout(), true);
+        items.add(UItem.asShadow(LocaleController.getString(R.string.MainMenuItemsInfo)));
         if (ExteraConfig.getMainMenuHiddenItems().isEmpty()) {
             return;
         }
-        addMenuSection(arrayList, universalAdapter, LocaleController.getString(R.string.MainMenuHiddenItems), ExteraConfig.getMainMenuHiddenItems(), false);
-        arrayList.add(UItem.asShadow(null));
+        addMenuSection(items, adapter, LocaleController.getString(R.string.MainMenuHiddenItems), ExteraConfig.getMainMenuHiddenItems(), false);
+        items.add(UItem.asShadow(null));
     }
 
-    private void addMenuSection(ArrayList<UItem> arrayList, UniversalAdapter universalAdapter, String str, ArrayList<Integer> arrayList2, boolean z) {
-        universalAdapter.whiteSectionStart();
-        arrayList.add(UItem.asHeader(str));
-        universalAdapter.reorderSectionStart();
-        int size = arrayList2.size();
+    private final void addMenuSection(ArrayList<UItem> items, UniversalAdapter adapter, String header, ArrayList<Integer> ids, boolean mainSection) {
+        UItem uItemCreateMenuItem;
+        UItem uItemCreateMenuItem2;
+        ArrayList<TLRPC.TL_attachMenuBot> arrayList;
+        adapter.whiteSectionStart();
+        items.add(UItem.asHeader(header));
+        adapter.reorderSectionStart();
+        Iterator<Integer> it = ids.iterator();
         int i = 0;
-        int i2 = 0;
-        while (i2 < size) {
-            Integer num = arrayList2.get(i2);
-            i2++;
-            Integer num2 = num;
-            if (num2.intValue() != MainMenuItem.PLUGINS.getId() || PluginsController.isPluginEngineSupported()) {
-                int iIntValue = num2.intValue();
+        while (it.hasNext()) {
+            int iIntValue = it.next().intValue();
+            if (iIntValue != MainMenuItem.PLUGINS.getId() || PluginsController.INSTANCE.isPluginEngineSupported()) {
+                if (iIntValue == MainMenuItem.BOTS.getId()) {
+                    TLRPC.TL_attachMenuBots attachMenuBots = MediaDataController.getInstance(this.currentAccount).getAttachMenuBots();
+                    if (attachMenuBots != null && (arrayList = attachMenuBots.bots) != null && !arrayList.isEmpty()) {
+                        int size = arrayList.size();
+                        int i2 = 0;
+                        while (true) {
+                            if (i2 < size) {
+                                TLRPC.TL_attachMenuBot tL_attachMenuBot = arrayList.get(i2);
+                                i2++;
+                                if (tL_attachMenuBot.show_in_side_menu) {
+                                }
+                            }
+                        }
+                    }
+                }
                 MainMenuItem mainMenuItem = MainMenuItem.DIVIDER;
                 if (iIntValue == mainMenuItem.getId()) {
-                    if (z && i < this.stableDividerIds.size()) {
-                        arrayList.add(createMenuItem(this.stableDividerIds.get(i).intValue(), null));
-                    } else if (!z) {
-                        arrayList.add(createMenuItem(mainMenuItem.getId(), null));
+                    if (mainSection && i < this.stableDividerIds.size()) {
+                        UItem uItemCreateMenuItem3 = createMenuItem(this.stableDividerIds.get(i).intValue(), null);
+                        if (uItemCreateMenuItem3 != null) {
+                            items.add(uItemCreateMenuItem3);
+                        }
+                    } else if (!mainSection && (uItemCreateMenuItem = createMenuItem(mainMenuItem.getId(), null)) != null) {
+                        items.add(uItemCreateMenuItem);
                     }
                     i++;
                 } else {
-                    ItemInfo itemInfo = this.itemDetails.get(num2);
-                    if (itemInfo != null) {
-                        arrayList.add(createMenuItem(num2.intValue(), itemInfo));
+                    ItemInfo itemInfo = this.itemDetails.get(Integer.valueOf(iIntValue));
+                    if (itemInfo != null && (uItemCreateMenuItem2 = createMenuItem(iIntValue, itemInfo)) != null) {
+                        items.add(uItemCreateMenuItem2);
                     }
                 }
             }
         }
-        universalAdapter.reorderSectionEnd();
-        if (z) {
-            arrayList.add(UItem.asButton(-200, R.drawable.msg_add, LocaleController.getString(R.string.MainMenuAddDivider)).accent());
+        adapter.reorderSectionEnd();
+        if (mainSection) {
+            items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, -200, (CharSequence) LocaleController.getString(R.string.MainMenuAddDivider), R.drawable.msg_add, (CharSequence) null, (CharSequence) null, (Boolean) null, false, (String) null, false, true, (Boolean) null, 1464, (Object) null));
         }
-        universalAdapter.whiteSectionEnd();
+        adapter.whiteSectionEnd();
     }
 
-    private UItem createMenuItem(int i, ItemInfo itemInfo) {
-        UItem uItemAsButton;
-        if (i <= -2000 || i == MainMenuItem.DIVIDER.getId()) {
-            uItemAsButton = UItem.asButton(i, R.drawable.msg_block, LocaleController.getString(R.string.MainMenuDivider));
+    private final UItem createMenuItem(int id, ItemInfo info) {
+        UItem uItemUButton$TMessagesProj$default;
+        if (id <= -2000 || id == MainMenuItem.DIVIDER.getId()) {
+            uItemUButton$TMessagesProj$default = BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, id, (CharSequence) LocaleController.getString(R.string.MainMenuDivider), R.drawable.msg_block, (CharSequence) null, (CharSequence) null, (Boolean) null, false, (String) null, false, false, (Boolean) null, 1976, (Object) null);
         } else {
-            if (itemInfo == null) {
-                return null;
-            }
-            uItemAsButton = UItem.asButton(i, itemInfo.iconRes, itemInfo.name);
+            uItemUButton$TMessagesProj$default = info != null ? BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, id, info.getName(), info.getIconRes(), (CharSequence) null, (CharSequence) null, (Boolean) null, false, (String) null, false, false, (Boolean) null, 1976, (Object) null) : null;
         }
-        uItemAsButton.object2 = this.reorderIcon;
-        return uItemAsButton;
+        if (uItemUButton$TMessagesProj$default == null) {
+            return null;
+        }
+        uItemUButton$TMessagesProj$default.object2 = this.reorderIcon;
+        return uItemUButton$TMessagesProj$default;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public void updateConfigFromReorder(int i, ArrayList<UItem> arrayList) {
+    public final void updateConfigFromReorder(int sectionId, ArrayList<UItem> uItems) {
+        ArrayList arrayList = new ArrayList();
         ArrayList arrayList2 = new ArrayList();
-        ArrayList arrayList3 = new ArrayList();
-        int size = arrayList.size();
-        int i2 = 0;
-        while (i2 < size) {
-            UItem uItem = arrayList.get(i2);
-            i2++;
-            UItem uItem2 = uItem;
-            int i3 = uItem2.id;
-            if (i3 > -2000 && i3 != MainMenuItem.DIVIDER.getId()) {
-                arrayList2.add(Integer.valueOf(uItem2.id));
-            } else if (i == 0) {
-                arrayList2.add(Integer.valueOf(MainMenuItem.DIVIDER.getId()));
-                int i4 = uItem2.id;
-                if (i4 > -2000) {
-                    i4 = this.nextDividerId;
-                    this.nextDividerId = i4 - 1;
+        for (UItem uItem : uItems) {
+            int i = uItem.id;
+            if (i > -2000 && i != MainMenuItem.DIVIDER.getId()) {
+                arrayList.add(Integer.valueOf(uItem.id));
+            } else if (sectionId == 0) {
+                arrayList.add(Integer.valueOf(MainMenuItem.DIVIDER.getId()));
+                int i2 = uItem.id;
+                if (i2 > -2000) {
+                    i2 = this.nextDividerId;
+                    this.nextDividerId = i2 - 1;
                 }
-                arrayList3.add(Integer.valueOf(i4));
+                arrayList2.add(Integer.valueOf(i2));
             }
         }
-        if (i == 0) {
+        ArrayList<Integer> mainMenuLayout = sectionId == 0 ? ExteraConfig.getMainMenuLayout() : ExteraConfig.getMainMenuHiddenItems();
+        MainMenuItem mainMenuItem = MainMenuItem.BOTS;
+        int iIndexOf = mainMenuLayout.indexOf(Integer.valueOf(mainMenuItem.getId()));
+        if (iIndexOf >= 0 && !arrayList.contains(Integer.valueOf(mainMenuItem.getId()))) {
+            arrayList.add(RangesKt.coerceAtMost(iIndexOf, arrayList.size()), Integer.valueOf(mainMenuItem.getId()));
+        }
+        if (sectionId == 0) {
             this.stableDividerIds.clear();
-            this.stableDividerIds.addAll(arrayList3);
+            this.stableDividerIds.addAll(arrayList2);
             if (BottomNavigationBar.hidden()) {
-                Integer numValueOf = Integer.valueOf(MainMenuItem.SETTINGS.getId());
-                if (!arrayList2.contains(numValueOf)) {
-                    arrayList2.add(numValueOf);
+                int id = MainMenuItem.SETTINGS.getId();
+                if (!arrayList.contains(Integer.valueOf(id))) {
+                    arrayList.add(Integer.valueOf(id));
                 }
             }
             ExteraConfig.getMainMenuLayout().clear();
-            ExteraConfig.getMainMenuLayout().addAll(arrayList2);
-        } else if (i == 1) {
+            ExteraConfig.getMainMenuLayout().addAll(arrayList);
+        } else if (sectionId == 1) {
             if (BottomNavigationBar.hidden()) {
-                arrayList2.remove(Integer.valueOf(MainMenuItem.SETTINGS.getId()));
+                arrayList.remove(Integer.valueOf(MainMenuItem.SETTINGS.getId()));
             }
             ExteraConfig.getMainMenuHiddenItems().clear();
-            ExteraConfig.getMainMenuHiddenItems().addAll(arrayList2);
+            ExteraConfig.getMainMenuHiddenItems().addAll(arrayList);
         }
         saveAndNotify();
     }
 
     @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
-    public void onClick(UItem uItem, View view, int i, float f, float f2) {
-        UniversalAdapter universalAdapter;
-        int i2 = uItem.id;
-        AppNavigationItem appNavigationItemFromId = AppNavigationItem.fromId(i2);
-        int i3 = 0;
+    public void onClick(UItem item, View view, int position, float x, float y) {
+        int i = item.id;
+        AppNavigationItem appNavigationItemFromId = AppNavigationItem.INSTANCE.fromId(i);
+        int i2 = 0;
         if (appNavigationItemFromId != null) {
-            int i4 = AnonymousClass2.$SwitchMap$com$exteragram$messenger$preferences$appearance$AppNavigationPreferencesActivity$AppNavigationItem[appNavigationItemFromId.ordinal()];
-            if (i4 == 1) {
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.appearance.AppNavigationPreferencesActivity$$ExternalSyntheticLambda4
-                    @Override // com.google.android.exoplayer2.util.Consumer
-                    public final void accept(Object obj) {
-                        ExteraConfig.setNavigationDrawer(((Boolean) obj).booleanValue());
+            switch (WhenMappings.$EnumSwitchMapping$0[appNavigationItemFromId.ordinal()]) {
+                case 1:
+                    toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                        @Override // androidx.core.util.Consumer
+                        public final void accept(Object obj) {
+                            ExteraConfig.setNavigationDrawer(((Boolean) obj).booleanValue());
+                        }
+                    });
+                    getNotificationCenter().lambda$postNotificationNameOnUIThread$1(NotificationCenter.mainUserInfoChanged, new Object[0]);
+                    UniversalAdapter universalAdapter = getListView$TMessagesProj().adapter;
+                    if (universalAdapter != null) {
+                        universalAdapter.update(true);
                     }
-                });
-                getNotificationCenter().postNotificationNameOnUIThread(NotificationCenter.mainUserInfoChanged, new Object[0]);
-                UniversalRecyclerView universalRecyclerView = this.listView;
-                if (universalRecyclerView != null && (universalAdapter = universalRecyclerView.adapter) != null) {
-                    universalAdapter.update(true);
-                }
-                this.parentLayout.rebuildFragments(0);
-                return;
+                    this.parentLayout.rebuildFragments(0);
+                    break;
+                case 2:
+                    toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                        @Override // androidx.core.util.Consumer
+                        public final void accept(Object obj) {
+                            ExteraConfig.setImmersiveDrawerAnimation(((Boolean) obj).booleanValue());
+                        }
+                    });
+                    break;
+                case 3:
+                    CharSequence[] charSequenceArr = this.bottomNavigationModes;
+                    if (charSequenceArr == null) {
+                        charSequenceArr = null;
+                    }
+                    showListDialog(item, charSequenceArr, LocaleController.getString(R.string.BottomNavigationBarMode), BottomNavigationBar.getMode(), new PopupUtils.OnItemClickListener() {
+                        @Override // com.exteragram.messenger.utils.ui.PopupUtils.OnItemClickListener
+                        public final void onClick(int i3) {
+                            AppNavigationPreferencesActivity.m2014$r8$lambda$md96xMDRZQEa9nXWmqLnuQ5tL4(this.f$0, i3);
+                        }
+                    });
+                    break;
+                case 4:
+                    toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                        @Override // androidx.core.util.Consumer
+                        public final void accept(Object obj) {
+                            ExteraConfig.setHideNavigationBarLabels(((Boolean) obj).booleanValue());
+                        }
+                    });
+                    this.parentLayout.rebuildFragments(0);
+                    break;
+                case 5:
+                    CharSequence[] charSequenceArr2 = this.transitionAnimations;
+                    if (charSequenceArr2 == null) {
+                        charSequenceArr2 = null;
+                    }
+                    showListDialog(item, charSequenceArr2, LocaleController.getString(R.string.TransitionAnimation), ExteraConfig.getTransitionAnimation().ordinal(), new PopupUtils.OnItemClickListener() {
+                        @Override // com.exteragram.messenger.utils.ui.PopupUtils.OnItemClickListener
+                        public final void onClick(int i3) {
+                            AppNavigationPreferencesActivity.m2011$r8$lambda$8HF2DMc_dI7H6Vck6Ikr2FfKdg(i3);
+                        }
+                    });
+                    break;
+                case 6:
+                    CharSequence[] charSequenceArr3 = this.tabletModeOptions;
+                    showListDialog(item, charSequenceArr3 == null ? null : charSequenceArr3, LocaleController.getString(R.string.TabletMode), ExteraConfig.getTabletMode(), new PopupUtils.OnItemClickListener() {
+                        @Override // com.exteragram.messenger.utils.ui.PopupUtils.OnItemClickListener
+                        public final void onClick(int i3) {
+                            AppNavigationPreferencesActivity.m2012$r8$lambda$LqfbtKuEhjFueWQEBo2iDIehmA(this.f$0, i3);
+                        }
+                    });
+                    break;
             }
-            if (i4 == 2) {
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.appearance.AppNavigationPreferencesActivity$$ExternalSyntheticLambda5
-                    @Override // com.google.android.exoplayer2.util.Consumer
-                    public final void accept(Object obj) {
-                        ExteraConfig.setImmersiveDrawerAnimation(((Boolean) obj).booleanValue());
-                    }
-                });
-                return;
-            }
-            if (i4 == 3) {
-                showListDialog(uItem, this.bottomNavigationModes, LocaleController.getString(R.string.BottomNavigationBarMode), BottomNavigationBar.getMode(), new PopupUtils.OnItemClickListener() { // from class: com.exteragram.messenger.preferences.appearance.AppNavigationPreferencesActivity$$ExternalSyntheticLambda6
-                    @Override // com.exteragram.messenger.utils.ui.PopupUtils.OnItemClickListener
-                    public final void onClick(int i5) {
-                        AppNavigationPreferencesActivity.this.lambda$onClick$3(i5);
-                    }
-                });
-                return;
-            } else if (i4 == 4) {
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.appearance.AppNavigationPreferencesActivity$$ExternalSyntheticLambda7
-                    @Override // com.google.android.exoplayer2.util.Consumer
-                    public final void accept(Object obj) {
-                        AppNavigationPreferencesActivity.$r8$lambda$0tG8sy57nk6hiFfqvuWyUcYp4Cg((Boolean) obj);
-                    }
-                });
-                return;
-            } else {
-                if (i4 != 5) {
-                    return;
-                }
-                showListDialog(uItem, this.tabletMode, LocaleController.getString(R.string.TabletMode), ExteraConfig.getTabletMode(), new PopupUtils.OnItemClickListener() { // from class: com.exteragram.messenger.preferences.appearance.AppNavigationPreferencesActivity$$ExternalSyntheticLambda8
-                    @Override // com.exteragram.messenger.utils.ui.PopupUtils.OnItemClickListener
-                    public final void onClick(int i5) {
-                        AppNavigationPreferencesActivity.this.lambda$onClick$5(i5);
-                    }
-                });
-                return;
-            }
+            return;
         }
-        if (i2 == -200) {
+        if (i == -200) {
             ArrayList<Integer> arrayList = this.stableDividerIds;
-            int i5 = this.nextDividerId;
-            this.nextDividerId = i5 - 1;
-            arrayList.add(Integer.valueOf(i5));
+            int i3 = this.nextDividerId;
+            this.nextDividerId = i3 - 1;
+            arrayList.add(Integer.valueOf(i3));
             ExteraConfig.getMainMenuLayout().add(Integer.valueOf(MainMenuItem.DIVIDER.getId()));
             saveAndNotify();
             return;
         }
-        if (i2 <= -2000) {
-            int iIndexOf = this.stableDividerIds.indexOf(Integer.valueOf(i2));
+        if (i <= -2000) {
+            int iIndexOf = this.stableDividerIds.indexOf(Integer.valueOf(i));
             if (iIndexOf != -1) {
-                int i6 = 0;
+                int size = ExteraConfig.getMainMenuLayout().size();
+                int i4 = 0;
                 while (true) {
-                    if (i3 >= ExteraConfig.getMainMenuLayout().size()) {
-                        i3 = -1;
+                    if (i2 >= size) {
+                        i2 = -1;
                         break;
                     }
-                    if (ExteraConfig.getMainMenuLayout().get(i3).intValue() == MainMenuItem.DIVIDER.getId()) {
-                        if (i6 == iIndexOf) {
+                    Integer num = ExteraConfig.getMainMenuLayout().get(i2);
+                    int id = MainMenuItem.DIVIDER.getId();
+                    if (num != null && num.intValue() == id) {
+                        if (i4 == iIndexOf) {
                             break;
                         } else {
-                            i6++;
+                            i4++;
                         }
                     }
-                    i3++;
+                    i2++;
                 }
-                if (i3 != -1) {
+                if (i2 != -1) {
                     this.stableDividerIds.remove(iIndexOf);
-                    ExteraConfig.getMainMenuLayout().remove(i3);
+                    ExteraConfig.getMainMenuLayout().remove(i2);
                     saveAndNotify();
                     return;
                 }
@@ -430,138 +587,106 @@ public class AppNavigationPreferencesActivity extends BasePreferencesActivity {
             return;
         }
         MainMenuItem mainMenuItem = MainMenuItem.DIVIDER;
-        if (i2 == mainMenuItem.getId()) {
-            ExteraConfig.getMainMenuHiddenItems().remove(Integer.valueOf(i2));
+        if (i == mainMenuItem.getId()) {
+            ExteraConfig.getMainMenuHiddenItems().remove(Integer.valueOf(i));
             saveAndNotify();
             return;
         }
-        if (BottomNavigationBar.hidden() && i2 == MainMenuItem.SETTINGS.getId() && ExteraConfig.getMainMenuLayout().contains(Integer.valueOf(i2))) {
+        if (BottomNavigationBar.hidden() && i == MainMenuItem.SETTINGS.getId() && ExteraConfig.getMainMenuLayout().contains(Integer.valueOf(i))) {
             BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.MainMenuRemoveSettingsInfo)).show();
             return;
         }
-        if (ExteraConfig.getMainMenuLayout().contains(Integer.valueOf(i2))) {
-            ExteraConfig.getMainMenuLayout().remove(Integer.valueOf(i2));
-            if (i2 != mainMenuItem.getId() && !ExteraConfig.getMainMenuHiddenItems().contains(Integer.valueOf(i2))) {
-                ExteraConfig.getMainMenuHiddenItems().add(0, Integer.valueOf(i2));
+        if (ExteraConfig.getMainMenuLayout().contains(Integer.valueOf(i))) {
+            ExteraConfig.getMainMenuLayout().remove(Integer.valueOf(i));
+            if (i != mainMenuItem.getId() && !ExteraConfig.getMainMenuHiddenItems().contains(Integer.valueOf(i))) {
+                ExteraConfig.getMainMenuHiddenItems().add(0, Integer.valueOf(i));
             }
-        } else if (ExteraConfig.getMainMenuHiddenItems().contains(Integer.valueOf(i2))) {
-            ExteraConfig.getMainMenuHiddenItems().remove(Integer.valueOf(i2));
-            ExteraConfig.getMainMenuLayout().add(Integer.valueOf(i2));
+        } else if (ExteraConfig.getMainMenuHiddenItems().contains(Integer.valueOf(i))) {
+            ExteraConfig.getMainMenuHiddenItems().remove(Integer.valueOf(i));
+            ExteraConfig.getMainMenuLayout().add(Integer.valueOf(i));
         }
         saveAndNotify();
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.preferences.appearance.AppNavigationPreferencesActivity$2, reason: invalid class name */
-    public static /* synthetic */ class AnonymousClass2 {
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$preferences$appearance$AppNavigationPreferencesActivity$AppNavigationItem;
-
-        static {
-            int[] iArr = new int[AppNavigationItem.values().length];
-            $SwitchMap$com$exteragram$messenger$preferences$appearance$AppNavigationPreferencesActivity$AppNavigationItem = iArr;
-            try {
-                iArr[AppNavigationItem.DRAWER.ordinal()] = 1;
-            } catch (NoSuchFieldError unused) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$appearance$AppNavigationPreferencesActivity$AppNavigationItem[AppNavigationItem.IMMERSIVE_ANIMATION.ordinal()] = 2;
-            } catch (NoSuchFieldError unused2) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$appearance$AppNavigationPreferencesActivity$AppNavigationItem[AppNavigationItem.BOTTOM_NAVIGATION_BAR_MODE.ordinal()] = 3;
-            } catch (NoSuchFieldError unused3) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$appearance$AppNavigationPreferencesActivity$AppNavigationItem[AppNavigationItem.SPRING_ANIMATIONS.ordinal()] = 4;
-            } catch (NoSuchFieldError unused4) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$appearance$AppNavigationPreferencesActivity$AppNavigationItem[AppNavigationItem.TABLET_MODE.ordinal()] = 5;
-            } catch (NoSuchFieldError unused5) {
-            }
-        }
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$onClick$3(int i) {
-        ExteraConfig.getPreferences().edit().putInt("bottomNavigationBarMode", i).apply();
+    public static void m2014$r8$lambda$md96xMDRZQEa9nXWmqLnuQ5tL4(AppNavigationPreferencesActivity appNavigationPreferencesActivity, int i) {
+        SharedPreferences.Editor editorEdit = ExteraConfig.getPreferences().edit();
+        editorEdit.putInt("bottomNavigationBarMode", i);
+        editorEdit.apply();
         BottomNavigationBar.setMode(i);
         ExteraConfig.ensureSettingsVisibility();
-        getNotificationCenter().postNotificationNameOnUIThread(NotificationCenter.mainUserInfoChanged, new Object[0]);
-        refreshEditorList();
-        updateResetButtonVisibility();
-        this.parentLayout.rebuildFragments(0);
+        appNavigationPreferencesActivity.getNotificationCenter().lambda$postNotificationNameOnUIThread$1(NotificationCenter.mainUserInfoChanged, new Object[0]);
+        appNavigationPreferencesActivity.refreshEditorList();
+        updateResetButtonVisibility$default(appNavigationPreferencesActivity, false, 1, null);
+        appNavigationPreferencesActivity.parentLayout.rebuildFragments(0);
     }
 
-    public static /* synthetic */ void $r8$lambda$0tG8sy57nk6hiFfqvuWyUcYp4Cg(Boolean bool) {
-        ExteraConfig.setSpringAnimations(bool.booleanValue());
-        if (bool.booleanValue()) {
-            MessagesController.getGlobalMainSettings().edit().putBoolean("view_animations", true).apply();
+    public static void m2011$r8$lambda$8HF2DMc_dI7H6Vck6Ikr2FfKdg(int i) {
+        ExteraConfig.setTransitionAnimation(TransitionAnimation.getEntries().get(i));
+        if (ExteraConfig.getTransitionAnimation() != TransitionAnimation.DEFAULT) {
+            SharedPreferences.Editor editorEdit = MessagesController.getGlobalMainSettings().edit();
+            editorEdit.putBoolean("view_animations", true);
+            editorEdit.apply();
             SharedConfig.setAnimationsEnabled(true);
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$onClick$5(int i) {
+    public static void m2012$r8$lambda$LqfbtKuEhjFueWQEBo2iDIehmA(AppNavigationPreferencesActivity appNavigationPreferencesActivity, int i) {
         ExteraConfig.setTabletMode(i);
-        showRestartBulletin();
+        appNavigationPreferencesActivity.showRestartBulletin();
     }
 
-    private void saveAndNotify() {
+    private final void saveAndNotify() {
         ExteraConfig.saveMainMenuLayout();
-        getNotificationCenter().postNotificationNameOnUIThread(NotificationCenter.mainUserInfoChanged, new Object[0]);
+        getNotificationCenter().lambda$postNotificationNameOnUIThread$1(NotificationCenter.mainUserInfoChanged, new Object[0]);
         refreshEditorList();
-        updateResetButtonVisibility();
+        updateResetButtonVisibility$default(this, false, 1, null);
     }
 
-    private void refreshEditorList() {
-        UniversalRecyclerView universalRecyclerView = this.listView;
-        if (universalRecyclerView == null || universalRecyclerView.adapter == null) {
-            return;
+    private final UniversalRecyclerView refreshEditorList() {
+        UniversalRecyclerView listView$TMessagesProj = getListView$TMessagesProj();
+        listView$TMessagesProj.hideSelector(false);
+        listView$TMessagesProj.cancelClickRunnables(false);
+        listView$TMessagesProj.adapter.update(true);
+        return listView$TMessagesProj;
+    }
+
+    public static void updateResetButtonVisibility$default(AppNavigationPreferencesActivity appNavigationPreferencesActivity, boolean z, int i, Object obj) {
+        if ((i & 1) != 0) {
+            z = true;
         }
-        universalRecyclerView.hideSelector(false);
-        this.listView.cancelClickRunnables(false);
-        this.listView.adapter.update(true);
+        appNavigationPreferencesActivity.updateResetButtonVisibility(z);
     }
 
-    private void updateResetButtonVisibility() {
+    private final void updateResetButtonVisibility(boolean animated) {
         if (this.resetItem == null) {
             return;
         }
-        boolean zEquals = ExteraConfig.getMainMenuLayout().equals(ExteraConfig.getDefaultMainMenuLayout());
-        if (!zEquals && this.resetItem.getVisibility() == 8) {
-            AndroidUtilities.updateViewVisibilityAnimated(this.resetItem, true, 0.5f, true);
-        } else if (zEquals && this.resetItem.getVisibility() == 0) {
-            AndroidUtilities.updateViewVisibilityAnimated(this.resetItem, false, 0.5f, true);
-        }
+        AndroidUtilities.updateViewVisibilityAnimated(this.resetItem, !Intrinsics.areEqual(ExteraConfig.getMainMenuLayout(), ExteraConfig.getDefaultMainMenuLayout()), 0.5f, animated);
     }
 
-    private void resetToDefault() {
+    public final void resetToDefault() {
         ExteraConfig.getMainMenuLayout().clear();
         ExteraConfig.getMainMenuLayout().addAll(ExteraConfig.getDefaultMainMenuLayout());
         ExteraConfig.getMainMenuHiddenItems().clear();
         for (MainMenuItem mainMenuItem : MainMenuItem.getEntries()) {
-            if (mainMenuItem != MainMenuItem.DIVIDER && !ExteraConfig.getMainMenuLayout().contains(Integer.valueOf(mainMenuItem.getId())) && (mainMenuItem != MainMenuItem.PLUGINS || PluginsController.isPluginEngineSupported())) {
+            if (mainMenuItem != MainMenuItem.DIVIDER && !ExteraConfig.getMainMenuLayout().contains(Integer.valueOf(mainMenuItem.getId())) && (mainMenuItem != MainMenuItem.PLUGINS || PluginsController.INSTANCE.isPluginEngineSupported())) {
                 ExteraConfig.getMainMenuHiddenItems().add(Integer.valueOf(mainMenuItem.getId()));
             }
         }
         this.stableDividerIds.clear();
         this.nextDividerId = -2000;
-        ArrayList<Integer> mainMenuLayout = ExteraConfig.getMainMenuLayout();
-        int size = mainMenuLayout.size();
-        int i = 0;
-        while (i < size) {
-            Integer num = mainMenuLayout.get(i);
-            i++;
-            if (num.intValue() == MainMenuItem.DIVIDER.getId()) {
+        Iterator<Integer> it = ExteraConfig.getMainMenuLayout().iterator();
+        while (it.hasNext()) {
+            if (it.next().intValue() == MainMenuItem.DIVIDER.getId()) {
                 ArrayList<Integer> arrayList = this.stableDividerIds;
-                int i2 = this.nextDividerId;
-                this.nextDividerId = i2 - 1;
-                arrayList.add(Integer.valueOf(i2));
+                int i = this.nextDividerId;
+                this.nextDividerId = i - 1;
+                arrayList.add(Integer.valueOf(i));
             }
         }
         ExteraConfig.saveMainMenuLayout();
-        getNotificationCenter().postNotificationNameOnUIThread(NotificationCenter.mainUserInfoChanged, new Object[0]);
+        getNotificationCenter().lambda$postNotificationNameOnUIThread$1(NotificationCenter.mainUserInfoChanged, new Object[0]);
         refreshEditorList();
-        updateResetButtonVisibility();
+        updateResetButtonVisibility$default(this, false, 1, null);
     }
 }

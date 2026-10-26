@@ -8,6 +8,8 @@
 
 package org.telegram.ui.ActionBar;
 
+import com.exteragram.messenger.security.SensitiveRequestConfirmation;
+
 import static org.telegram.messenger.AndroidUtilities.dp;
 
 import android.animation.Animator;
@@ -1550,6 +1552,7 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
             onCreateInternal();
         } else {
             super.show();
+            SensitiveRequestConfirmation.onDialogShown(this);
         }
         setShowing(true);
         if (focusable) {

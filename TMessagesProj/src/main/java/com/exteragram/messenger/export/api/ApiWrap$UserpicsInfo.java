@@ -1,16 +1,16 @@
 package com.exteragram.messenger.export.api;
 
-import com.exteragram.messenger.utils.RecordTag;
+import com.android.tools.r8.RecordTag;
 import org.telegram.messenger.NotificationBadge;
 
 public final class ApiWrap$UserpicsInfo extends RecordTag {
     private final int count;
 
-    private /* synthetic */ boolean $record$equals(Object obj) {
+    private boolean $record$equals(Object obj) {
         return (obj instanceof ApiWrap$UserpicsInfo) && this.count == ((ApiWrap$UserpicsInfo) obj).count;
     }
 
-    private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+    private Object[] $record$getFieldsAsObjects() {
         return new Object[]{Integer.valueOf(this.count)};
     }
 
@@ -27,7 +27,7 @@ public final class ApiWrap$UserpicsInfo extends RecordTag {
     }
 
     public final int hashCode() {
-        return java.util.Objects.hash(this.count);
+        return ApiWrap$java.util.Objects.hash(this.count);
     }
 
     public final String toString() {

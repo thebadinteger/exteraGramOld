@@ -8,6 +8,7 @@ import com.exteragram.messenger.utils.network.RemoteUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Set;
 import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
@@ -22,6 +23,7 @@ public final class FeedAdController {
     private static final FeedAdController[] instances = new FeedAdController[16];
     private static final Object[] locks = new Object[16];
     public final int currentAccount;
+    private boolean lastLoadFailed;
     private long lastLoadTime;
     private boolean loading;
     private int rotationIndex;
@@ -123,13 +125,15 @@ public final class FeedAdController {
     }
 
     public void ensureLoaded(Runnable runnable) {
-        if (!this.loading && this.lastLoadTime != 0 && SystemClock.elapsedRealtime() - this.lastLoadTime < 1800000) {
-            recomputeEligible();
-            if (runnable != null) {
-                runnable.run();
+        if (!this.loading && this.lastLoadTime != 0) {
+            if (SystemClock.elapsedRealtime() - this.lastLoadTime < (this.lastLoadFailed ? 60000L : 1800000L)) {
+                recomputeEligible();
+                if (runnable != null) {
+                    runnable.run();
+                    return;
+                }
                 return;
             }
-            return;
         }
         if (runnable != null) {
             this.pendingLoadCallbacks.add(runnable);
@@ -138,19 +142,20 @@ public final class FeedAdController {
             return;
         }
         this.loading = true;
-        fetchHistory(new Utilities.Callback2() { // from class: com.exteragram.messenger.feed.ads.FeedAdController$$ExternalSyntheticLambda0
+        fetchHistory(new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
-                FeedAdController.this.lambda$ensureLoaded$0((TLRPC.messages_Messages) obj, (TLRPC.TL_error) obj2);
+                this.f$0.lambda$ensureLoaded$0((TLRPC.messages_Messages) obj, (TLRPC.TL_error) obj2);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$ensureLoaded$0(TLRPC.messages_Messages messages_messages, TLRPC.TL_error tL_error) {
+    public void lambda$ensureLoaded$0(TLRPC.messages_Messages messages_messages, TLRPC.TL_error tL_error) {
         this.loading = false;
         this.lastLoadTime = SystemClock.elapsedRealtime();
-        if (tL_error == null && messages_messages != null) {
+        boolean z = tL_error != null || messages_messages == null;
+        this.lastLoadFailed = z;
+        if (!z) {
             ArrayList<FeedAd> arrayList = FeedAdParser.parse(messages_messages);
             this.allAds.clear();
             this.allAds.addAll(arrayList);
@@ -216,7 +221,7 @@ public final class FeedAdController {
     }
 
     private static boolean contains(Set<String> set, String str) {
-        return str != null && set.contains(str.toLowerCase());
+        return str != null && set.contains(str.toLowerCase(Locale.ROOT));
     }
 
     private void fetchHistory(final Utilities.Callback2<TLRPC.messages_Messages, TLRPC.TL_error> callback2) {
@@ -225,16 +230,16 @@ public final class FeedAdController {
         tL_messages_getHistory.peer = accountInstance.getMessagesController().getInputPeer(-3514621311L);
         tL_messages_getHistory.offset_id = 0;
         tL_messages_getHistory.limit = 75;
-        final Runnable runnable = new Runnable() { // from class: com.exteragram.messenger.feed.ads.FeedAdController$$ExternalSyntheticLambda1
+        final Runnable runnable = new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                accountInstance.getConnectionsManager().sendRequest(tL_messages_getHistory, new RequestDelegate() { // from class: com.exteragram.messenger.feed.ads.FeedAdController$$ExternalSyntheticLambda3
+                accountInstance.getConnectionsManager().sendRequest(tL_messages_getHistory, new RequestDelegate() {
                     @Override // org.telegram.tgnet.RequestDelegate
                     public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
-                        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.feed.ads.FeedAdController$$ExternalSyntheticLambda4
+                        AndroidUtilities.runOnUIThread(new Runnable() {
                             @Override // java.lang.Runnable
                             public final void run() {
-                                FeedAdController.m1163$r8$lambda$suri1kpT0eJ8sN4FqCkAUB1c0c(tL_error, tLObject, callback2);
+                                FeedAdController.m1436$r8$lambda$suri1kpT0eJ8sN4FqCkAUB1c0c(tL_error, tLObject, callback2);
                             }
                         });
                     }
@@ -245,7 +250,7 @@ public final class FeedAdController {
         if (inputPeer != null && inputPeer.access_hash != 0) {
             runnable.run();
         } else {
-            ChatUtils.getInstance(this.currentAccount).resolveChannel("exteraFeedAds", new Utilities.Callback() { // from class: com.exteragram.messenger.feed.ads.FeedAdController$$ExternalSyntheticLambda2
+            ChatUtils.getInstance(this.currentAccount).resolveChannel("exteraFeedAds", new Utilities.Callback() {
                 @Override // org.telegram.messenger.Utilities.Callback
                 public final void run(Object obj) {
                     FeedAdController.$r8$lambda$F74A0h3yQjwWcCURFdXXPBFC7aY(tL_messages_getHistory, runnable, callback2, (TLRPC.Chat) obj);
@@ -254,8 +259,7 @@ public final class FeedAdController {
         }
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$suri1kp-T0eJ8sN4FqCkAUB1c0c, reason: not valid java name */
-    public static /* synthetic */ void m1163$r8$lambda$suri1kpT0eJ8sN4FqCkAUB1c0c(TLRPC.TL_error tL_error, TLObject tLObject, Utilities.Callback2 callback2) {
+    public static void m1436$r8$lambda$suri1kpT0eJ8sN4FqCkAUB1c0c(TLRPC.TL_error tL_error, TLObject tLObject, Utilities.Callback2 callback2) {
         if (tL_error != null || !(tLObject instanceof TLRPC.messages_Messages)) {
             callback2.run(null, tL_error);
         } else {
@@ -263,7 +267,7 @@ public final class FeedAdController {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$F74A0h3yQjwWcCURFdXXPBFC7aY(TLRPC.TL_messages_getHistory tL_messages_getHistory, Runnable runnable, Utilities.Callback2 callback2, TLRPC.Chat chat) {
+    public static void $r8$lambda$F74A0h3yQjwWcCURFdXXPBFC7aY(TLRPC.TL_messages_getHistory tL_messages_getHistory, Runnable runnable, Utilities.Callback2 callback2, TLRPC.Chat chat) {
         if (chat != null && chat.id == 3514621311L) {
             TLRPC.TL_inputPeerChannel tL_inputPeerChannel = new TLRPC.TL_inputPeerChannel();
             tL_inputPeerChannel.channel_id = chat.id;

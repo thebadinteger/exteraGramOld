@@ -18,7 +18,7 @@ public final /* data */ class NowPlayingDTO {
     private final String songUrl;
     private final String trackName;
 
-    public static /* synthetic */ NowPlayingDTO copy$default(NowPlayingDTO nowPlayingDTO, String str, List list, String str2, String str3, String str4, String str5, boolean z, String str6, String str7, Long l, int i, Object obj) {
+    public static NowPlayingDTO copy$default(NowPlayingDTO nowPlayingDTO, String str, List list, String str2, String str3, String str4, String str5, boolean z, String str6, String str7, Long l, int i, Object obj) {
         if ((i & 1) != 0) {
             str = nowPlayingDTO.trackName;
         }
@@ -58,11 +58,11 @@ public final /* data */ class NowPlayingDTO {
         return nowPlayingDTO.copy(str, list, str2, str3, str10, str11, z2, str9, str8, l2);
     }
 
-    public final String component1() {
+    public final String getTrackName() {
         return this.trackName;
     }
 
-    public final Long component10() {
+    public final Long getDuration() {
         return this.duration;
     }
 
@@ -70,31 +70,31 @@ public final /* data */ class NowPlayingDTO {
         return this.artists;
     }
 
-    public final String component3() {
+    public final String getAlbumName() {
         return this.albumName;
     }
 
-    public final String component4() {
+    public final String getCoverUrl() {
         return this.coverUrl;
     }
 
-    public final String component5() {
+    public final String getPreviewUrl() {
         return this.previewUrl;
     }
 
-    public final String component6() {
+    public final String getSongUrl() {
         return this.songUrl;
     }
 
-    public final boolean component7() {
+    public final boolean getIsPlaying() {
         return this.isPlaying;
     }
 
-    public final String component8() {
+    public final String getDeviceName() {
         return this.deviceName;
     }
 
-    public final String component9() {
+    public final String getPlatform() {
         return this.platform;
     }
 
@@ -134,7 +134,7 @@ public final /* data */ class NowPlayingDTO {
     }
 
     public String toString() {
-        return "NowPlayingDTO(trackName=" + this.trackName + ", artists=" + this.artists + ", albumName=" + this.albumName + ", coverUrl=" + this.coverUrl + ", previewUrl=" + this.previewUrl + ", songUrl=" + this.songUrl + ", isPlaying=" + this.isPlaying + ", deviceName=" + this.deviceName + ", platform=" + this.platform + ", duration=" + this.duration + ')';
+        return "NowPlayingDTO(trackName=" + this.trackName + ", artists=" + this.artists + ", albumName=" + this.albumName + ", coverUrl=" + this.coverUrl + ", previewUrl=" + this.previewUrl + ", songUrl=" + this.songUrl + ", isPlaying=" + this.isPlaying + ", deviceName=" + this.deviceName + ", platform=" + this.platform + ", duration=" + this.duration + ")";
     }
 
     public NowPlayingDTO(String str, List<String> list, String str2, String str3, String str4, String str5, boolean z, String str6, String str7, Long l) {

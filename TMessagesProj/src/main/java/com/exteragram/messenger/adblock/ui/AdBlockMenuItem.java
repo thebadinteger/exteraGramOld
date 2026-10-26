@@ -24,7 +24,6 @@ import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.Switch;
 
-/* JADX INFO: loaded from: classes4.dex */
 @SuppressLint({"ViewConstructor"})
 public class AdBlockMenuItem extends ActionBarMenuSubItem {
     private static final int[] BLOCKED_COUNT_SAMPLES = {991, 992, 999};
@@ -51,7 +50,7 @@ public class AdBlockMenuItem extends ActionBarMenuSubItem {
 
     private AdBlockMenuItem(Context context, WebAdBlocker webAdBlocker, ItemOptions itemOptions) {
         super(context, false, false, (Theme.ResourcesProvider) null);
-        this.updateRunnable = new Runnable() { // from class: com.exteragram.messenger.adblock.ui.AdBlockMenuItem.1
+        this.updateRunnable = new Runnable() {
             @Override // java.lang.Runnable
             public void run() {
                 if (AdBlockMenuItem.this.toggled) {
@@ -78,8 +77,17 @@ public class AdBlockMenuItem extends ActionBarMenuSubItem {
             r4.setScaleY(0.85f);
         }
         addView(r4, LayoutHelper.createFrame(44, 28, (LocaleController.isRTL ? 3 : 5) | 16));
-        setOnClickListener(view -> toggle());
+        setOnClickListener(new View.OnClickListener() {
+            @Override // android.view.View.OnClickListener
+            public final void onClick(View view) {
+                this.f$0.lambda$new$0(view);
+            }
+        });
         update();
+    }
+
+    public void lambda$new$0(View view) {
+        toggle();
     }
 
     private void alignSwitch() {
@@ -140,7 +148,6 @@ public class AdBlockMenuItem extends ActionBarMenuSubItem {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void update() {
         String string;
         if (!ExteraConfig.getEnableAdBlock()) {
@@ -167,7 +174,7 @@ public class AdBlockMenuItem extends ActionBarMenuSubItem {
         if (!enableAdBlock) {
             final WebAdBlocker webAdBlocker = this.adBlocker;
             Objects.requireNonNull(webAdBlocker);
-            AdBlockManager.setEnabled(true, new Runnable() { // from class: com.exteragram.messenger.adblock.ui.AdBlockMenuItem$$ExternalSyntheticLambda1
+            AdBlockManager.setEnabled(true, new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
                     webAdBlocker.reload();

@@ -13,6 +13,7 @@ import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import com.exteragram.messenger.pillstack.core.PillStackConfig;
 import org.telegram.messenger.LocaleController;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.CubicBezierInterpolator;
@@ -46,7 +47,7 @@ public abstract class BasePill extends FrameLayout {
 
     public abstract void updateColors();
 
-    public /* synthetic */ void lambda$new$0() {
+    public void lambda$new$0() {
         onUpdateData(false);
         scheduleNextUpdate();
     }
@@ -55,10 +56,10 @@ public abstract class BasePill extends FrameLayout {
         super(context);
         this.rectF = new RectF();
         this.stackVisible = true;
-        this.autoRefreshRunnable = new Runnable() { 
+        this.autoRefreshRunnable = new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                BasePill.this.lambda$new$0();
+                this.f$0.lambda$new$0();
             }
         };
         this.resourcesProvider = resourcesProvider;
@@ -89,20 +90,24 @@ public abstract class BasePill extends FrameLayout {
     @Override // android.view.ViewGroup, android.view.View
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
-        if (this.stackVisible) {
-            long refreshInterval = getRefreshInterval();
-            if (refreshInterval > 0) {
-                long jElapsedRealtime = SystemClock.elapsedRealtime();
-                long jLongValue = globalLastUpdateTimes.get(getPillId(), 0L).longValue();
-                if (jLongValue != 0) {
-                    long j = jElapsedRealtime - jLongValue;
-                    if (j < refreshInterval) {
-                        postDelayed(this.autoRefreshRunnable, refreshInterval - j);
-                        return;
-                    }
+        long refreshInterval = getRefreshInterval();
+        if (refreshInterval <= 0) {
+            return;
+        }
+        if (PillStackConfig.checkAndClearPendingUpdate(getPillId())) {
+            onUpdateData(true);
+            scheduleNextUpdate();
+        } else if (this.stackVisible) {
+            long jElapsedRealtime = SystemClock.elapsedRealtime();
+            long jLongValue = globalLastUpdateTimes.get(getPillId(), 0L).longValue();
+            if (jLongValue != 0) {
+                long j = jElapsedRealtime - jLongValue;
+                if (j < refreshInterval) {
+                    postDelayed(this.autoRefreshRunnable, refreshInterval - j);
+                    return;
                 }
-                this.autoRefreshRunnable.run();
             }
+            this.autoRefreshRunnable.run();
         }
     }
 
@@ -117,14 +122,17 @@ public abstract class BasePill extends FrameLayout {
             return;
         }
         this.stackVisible = z;
-        if (!z) {
-            removeCallbacks(this.autoRefreshRunnable);
-        } else if (getRefreshInterval() > 0) {
+        if (z) {
+            if (getRefreshInterval() <= 0 || !isAttachedToWindow()) {
+                return;
+            }
             if (isRefreshDue()) {
                 onUpdateData(false);
             }
             scheduleNextUpdate();
+            return;
         }
+        removeCallbacks(this.autoRefreshRunnable);
     }
 
     public void markDataUpdated() {
@@ -169,7 +177,7 @@ public abstract class BasePill extends FrameLayout {
     public void updateLoadingColors() {
         if (this.loadingDrawable != null) {
             int color = Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, this.resourcesProvider);
-            this.loadingDrawable.setColors(Theme.multAlpha(color, 0.05f), Theme.multAlpha(color, 0.15f));
+            this.loadingDrawable.setColors(Theme.multAlpha(color, 0.05f), Theme.multAlpha(color, 0.15f), Theme.multAlpha(color, 0.1f), Theme.multAlpha(color, 0.25f));
         }
     }
 
@@ -192,6 +200,11 @@ public abstract class BasePill extends FrameLayout {
                     view = this;
                 }
                 this.rectF.set(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
+                LoadingDrawable loadingDrawable2 = this.loadingDrawable;
+                if (loadingDrawable2.stroke) {
+                    float strokeWidth = loadingDrawable2.strokePaint.getStrokeWidth() / 2.0f;
+                    this.rectF.inset(strokeWidth, strokeWidth);
+                }
                 this.loadingDrawable.setBounds(this.rectF);
                 this.loadingDrawable.draw(canvas);
                 invalidate();

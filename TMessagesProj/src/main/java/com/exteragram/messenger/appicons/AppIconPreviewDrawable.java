@@ -13,11 +13,11 @@ import android.graphics.drawable.Drawable;
 import com.exteragram.messenger.preferences.utils.IconShapeHelper;
 import org.telegram.messenger.AndroidUtilities;
 
-/* JADX INFO: loaded from: classes4.dex */
 public class AppIconPreviewDrawable extends Drawable implements AppIconPreviewLoader.Callback {
     private Bitmap bitmap;
     private final AppIcon icon;
     private final Path path;
+    private Runnable previewReadyListener;
     private BitmapShader shader;
     private final int size;
     private final Paint paint = new Paint(3);
@@ -47,12 +47,20 @@ public class AppIconPreviewDrawable extends Drawable implements AppIconPreviewLo
         }
     }
 
+    public void setOnPreviewReady(Runnable runnable) {
+        this.previewReadyListener = runnable;
+    }
+
     @Override // com.exteragram.messenger.appicons.AppIconPreviewLoader.Callback
     public void onPreviewReady(AppIcon appIcon, int i, Bitmap bitmap) {
         if (this.icon == appIcon && this.size == i) {
             this.bitmap = bitmap;
             this.shader = null;
             invalidateSelf();
+            Runnable runnable = this.previewReadyListener;
+            if (runnable != null) {
+                runnable.run();
+            }
         }
     }
 

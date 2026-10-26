@@ -16,7 +16,7 @@ public enum ServiceEmoji {
     TELEGRAM(5325674462522144646L);
 
     private final long documentId;
-    private static final /* synthetic */ EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
+    private static final EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
 
     public static final Companion INSTANCE = new Companion(null);
 
@@ -35,7 +35,7 @@ public enum ServiceEmoji {
     @Metadata(d1 = {"\u0000\u0018\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000e\n\u0000\b\u0086\u0003\u0018\u00002\u00020\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\u0010\u0010\u0004\u001a\u00020\u00052\b\u0010\u0006\u001a\u0004\u0018\u00010\u0007¨\u0006\b"}, d2 = {"Lcom/exteragram/messenger/nowplaying/ServiceEmoji$Companion;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "fromString", "Lcom/exteragram/messenger/nowplaying/ServiceEmoji;", "name", _UrlKt.FRAGMENT_ENCODE_SET, "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
     @SourceDebugExtension({"SMAP\nServiceEmoji.kt\nKotlin\n*S Kotlin\n*F\n+ 1 ServiceEmoji.kt\ncom/exteragram/messenger/nowplaying/ServiceEmoji$Companion\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n*L\n1#1,14:1\n1#2:15\n*E\n"})
     public static final class Companion {
-        public /* synthetic */ Companion(DefaultConstructorMarker defaultConstructorMarker) {
+        public Companion(DefaultConstructorMarker defaultConstructorMarker) {
             this();
         }
 

@@ -32,7 +32,7 @@ public class DialogsView extends BasePreferencesActivity {
         return true;
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
     public String getTitle() {
         return "Dialogs";
     }
@@ -58,7 +58,7 @@ public class DialogsView extends BasePreferencesActivity {
         }
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
     public void fillItems(ArrayList<UItem> arrayList, UniversalAdapter universalAdapter) {
         arrayList.add(UItem.asHeader("Dialogs"));
         ArrayList<ParsedDialogObject> arrayList2 = this.dialogObjects;
@@ -76,7 +76,7 @@ public class DialogsView extends BasePreferencesActivity {
         }
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
     public void onClick(UItem uItem, View view, int i, float f, float f2) {
         int length = DialogsItem.values().length + 1;
         int i2 = uItem.id;

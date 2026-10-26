@@ -11,7 +11,6 @@ import android.util.Pair;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.utils.network.RemoteUtils;
 import com.exteragram.messenger.utils.system.SystemUtils;
-import com.google.android.exoplayer2.util.Consumer;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
@@ -31,6 +30,7 @@ import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaController;
+import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
@@ -47,6 +47,7 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.ChannelAdminLogActivity;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.ColoredImageSpan;
+import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
 import org.telegram.ui.Components.TranscribeButton;
 import org.telegram.ui.Components.VideoPlayer;
 import org.telegram.ui.ProfileActivity;
@@ -114,6 +115,100 @@ public class ChatUtils {
         return (messageObject == null || (message = messageObject.messageOwner) == null || !hasRestrictionReason(message.restriction_reason, "terms")) ? false : true;
     }
 
+    public static boolean applyChannelPostContent(TLRPC.Message message, TLRPC.Message message2) {
+        TLRPC.MessageFwdHeader messageFwdHeader;
+        if (message == null || message2 == null || (messageFwdHeader = message.fwd_from) == null || messageFwdHeader.saved_from_msg_id != message2.id || !MessageObject.peersEqual(messageFwdHeader.saved_from_peer, message2.peer_id)) {
+            return false;
+        }
+        boolean z = reactionsChanged(message.reactions, message2.reactions) || !TextUtils.equals(message.message, message2.message) || message.edit_date != message2.edit_date || message.edit_hide != message2.edit_hide || mediaChanged(message.media, message2.media) || entitiesChanged(message.entities, message2.entities);
+        message.reactions = message2.reactions;
+        message.message = message2.message;
+        TLRPC.MessageMedia messageMedia = message2.media;
+        message.media = messageMedia;
+        ArrayList<TLRPC.MessageEntity> arrayList = message2.entities;
+        message.entities = arrayList;
+        message.edit_date = message2.edit_date;
+        message.edit_hide = message2.edit_hide;
+        message.flags = (message.flags & (-1081985)) | (messageMedia != null ? 512 : 0) | ((arrayList == null || arrayList.isEmpty()) ? 0 : 128) | (message.edit_date != 0 ? 32768 : 0) | (message.reactions != null ? 1048576 : 0);
+        return z;
+    }
+
+    private static boolean reactionsChanged(TLRPC.MessageReactions messageReactions, TLRPC.MessageReactions messageReactions2) {
+        if (messageReactions == messageReactions2) {
+            return false;
+        }
+        if (messageReactions == null || messageReactions2 == null) {
+            return true;
+        }
+        ArrayList<TLRPC.ReactionCount> arrayList = messageReactions.results;
+        int size = arrayList == null ? 0 : arrayList.size();
+        ArrayList<TLRPC.ReactionCount> arrayList2 = messageReactions2.results;
+        if (size != (arrayList2 == null ? 0 : arrayList2.size())) {
+            return true;
+        }
+        for (int i = 0; i < size; i++) {
+            TLRPC.ReactionCount reactionCount = messageReactions.results.get(i);
+            TLRPC.ReactionCount reactionCount2 = messageReactions2.results.get(i);
+            if (reactionCount == null || reactionCount2 == null) {
+                if (reactionCount != reactionCount2) {
+                    return true;
+                }
+            } else if (reactionCount.count != reactionCount2.count || reactionCount.chosen_order != reactionCount2.chosen_order || !ReactionsLayoutInBubble.equalsTLReaction(reactionCount.reaction, reactionCount2.reaction)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean mediaChanged(TLRPC.MessageMedia messageMedia, TLRPC.MessageMedia messageMedia2) {
+        if (messageMedia == messageMedia2) {
+            return false;
+        }
+        return messageMedia == null || messageMedia2 == null || messageMedia.getClass() != messageMedia2.getClass() || mediaIdentity(messageMedia) != mediaIdentity(messageMedia2);
+    }
+
+    private static long mediaIdentity(TLRPC.MessageMedia messageMedia) {
+        TLRPC.Photo photo = messageMedia.photo;
+        if (photo != null) {
+            return photo.id;
+        }
+        TLRPC.Document document = messageMedia.document;
+        if (document != null) {
+            return document.id;
+        }
+        TLRPC.WebPage webPage = messageMedia.webpage;
+        if (webPage != null) {
+            return webPage.id;
+        }
+        TLRPC.TL_game tL_game = messageMedia.game;
+        if (tL_game != null) {
+            return tL_game.id;
+        }
+        return messageMedia.id;
+    }
+
+    private static boolean entitiesChanged(ArrayList<TLRPC.MessageEntity> arrayList, ArrayList<TLRPC.MessageEntity> arrayList2) {
+        if (arrayList == arrayList2) {
+            return false;
+        }
+        int size = arrayList == null ? 0 : arrayList.size();
+        if (size != (arrayList2 == null ? 0 : arrayList2.size())) {
+            return true;
+        }
+        for (int i = 0; i < size; i++) {
+            TLRPC.MessageEntity messageEntity = arrayList.get(i);
+            TLRPC.MessageEntity messageEntity2 = arrayList2.get(i);
+            if (messageEntity == null || messageEntity2 == null) {
+                if (messageEntity != messageEntity2) {
+                    return true;
+                }
+            } else if (messageEntity.getClass() != messageEntity2.getClass() || messageEntity.offset != messageEntity2.offset || messageEntity.length != messageEntity2.length || !TextUtils.equals(messageEntity.url, messageEntity2.url)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static ChatUtils getInstance() {
         return getInstance(UserConfig.selectedAccount);
     }
@@ -166,7 +261,6 @@ public class ChatUtils {
         return file.exists() && file.isFile();
     }
 
-    /* JADX WARN: Code duplicated, block: B:27:0x006e  */
     public CharSequence getMessageText(MessageObject messageObject, MessageObject.GroupedMessages groupedMessages) {
         CharSequence messageCaption;
         int i = messageObject.type;
@@ -436,7 +530,7 @@ public class ChatUtils {
             callback.run(user);
             return null;
         }
-        return searchUser(l.longValue(), true, true, new Utilities.Callback() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda6
+        return searchUser(l.longValue(), true, true, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
                 ChatUtils.$r8$lambda$SnURkTGvnoWYMEQczLy0p2l__h0(callback, (TLRPC.User) obj);
@@ -444,12 +538,42 @@ public class ChatUtils {
         }, callback2);
     }
 
-    public static /* synthetic */ void $r8$lambda$SnURkTGvnoWYMEQczLy0p2l__h0(Utilities.Callback callback, TLRPC.User user) {
+    public static void $r8$lambda$SnURkTGvnoWYMEQczLy0p2l__h0(Utilities.Callback callback, TLRPC.User user) {
         if (user != null && user.access_hash != 0) {
             callback.run(user);
         } else {
             callback.run(null);
         }
+    }
+
+    public void refreshStickerSet(TLRPC.StickerSet stickerSet, final Utilities.Callback<TLRPC.TL_messages_stickerSet> callback) {
+        TLRPC.TL_messages_getStickerSet tL_messages_getStickerSet = new TLRPC.TL_messages_getStickerSet();
+        tL_messages_getStickerSet.stickerset = MediaDataController.getInputStickerSet(stickerSet);
+        getConnectionsManager().sendRequest(tL_messages_getStickerSet, new RequestDelegate() {
+            @Override // org.telegram.tgnet.RequestDelegate
+            public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
+                this.f$0.lambda$refreshStickerSet$2(callback, tLObject, tL_error);
+            }
+        });
+    }
+
+    public void lambda$refreshStickerSet$2(final Utilities.Callback callback, final TLObject tLObject, TLRPC.TL_error tL_error) {
+        AndroidUtilities.runOnUIThread(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.lambda$refreshStickerSet$1(tLObject, callback);
+            }
+        });
+    }
+
+    public void lambda$refreshStickerSet$1(TLObject tLObject, Utilities.Callback callback) {
+        if (tLObject instanceof TLRPC.TL_messages_stickerSet) {
+            TLRPC.TL_messages_stickerSet tL_messages_stickerSet = (TLRPC.TL_messages_stickerSet) tLObject;
+            MediaDataController.getInstance(this.selectedAccount).putStickerSet(tL_messages_stickerSet);
+            callback.run(tL_messages_stickerSet);
+            return;
+        }
+        callback.run(null);
     }
 
     public void sendBotRequest(final String str, final boolean z, final Utilities.Callback<String> callback) {
@@ -459,29 +583,28 @@ public class ChatUtils {
         String str2 = (String) apiBotInfo.second;
         TLRPC.User user = getMessagesController().getUser(l);
         if (user != null) {
-            sendInlineBotRequest(user, str, z, new Utilities.Callback() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda13
+            sendInlineBotRequest(user, str, z, new Utilities.Callback() {
                 @Override // org.telegram.messenger.Utilities.Callback
                 public final void run(Object obj) {
-                    ChatUtils.this.lambda$sendBotRequest$2((TLRPC.messages_BotResults) obj, callback);
+                    this.f$0.lambda$sendBotRequest$3(callback, (TLRPC.messages_BotResults) obj);
                 }
             });
         } else {
-            resolveUser(str2, jLongValue, new Utilities.Callback() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda14
+            resolveUser(str2, jLongValue, new Utilities.Callback() {
                 @Override // org.telegram.messenger.Utilities.Callback
                 public final void run(Object obj) {
-                    ChatUtils.this.lambda$sendBotRequest$3(str, z, callback, (TLRPC.User) obj);
+                    this.f$0.lambda$sendBotRequest$5(str, z, callback, (TLRPC.User) obj);
                 }
             });
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$sendBotRequest$3(String str, boolean z, final Utilities.Callback callback, TLRPC.User user) {
+    public void lambda$sendBotRequest$5(String str, boolean z, final Utilities.Callback callback, TLRPC.User user) {
         if (user != null) {
-            sendInlineBotRequest(user, str, z, new Utilities.Callback() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda18
+            sendInlineBotRequest(user, str, z, new Utilities.Callback() {
                 @Override // org.telegram.messenger.Utilities.Callback
                 public final void run(Object obj) {
-                    ChatUtils.this.lambda$sendBotRequest$2((TLRPC.messages_BotResults) obj, callback);
+                    this.f$0.lambda$sendBotRequest$4(callback, (TLRPC.messages_BotResults) obj);
                 }
             });
         } else {
@@ -489,9 +612,7 @@ public class ChatUtils {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    /* JADX INFO: renamed from: processBotResponse, reason: merged with bridge method [inline-methods] and merged with bridge method [inline-methods] */
-    public void lambda$sendBotRequest$2(TLRPC.messages_BotResults messages_botresults, Utilities.Callback<String> callback) {
+    public void lambda$sendBotRequest$4(TLRPC.messages_BotResults messages_botresults, Utilities.Callback<String> callback) {
         TLRPC.BotInlineMessage botInlineMessage;
         String str;
         if (messages_botresults != null && !messages_botresults.results.isEmpty() && (botInlineMessage = messages_botresults.results.get(0).send_message) != null && (str = botInlineMessage.message) != null) {
@@ -511,10 +632,10 @@ public class ChatUtils {
             return null;
         }
         final String str2 = "bot_inline_query_" + user.id + "_" + str;
-        RequestDelegate requestDelegate = new RequestDelegate() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda15
+        RequestDelegate requestDelegate = new RequestDelegate() {
             @Override // org.telegram.tgnet.RequestDelegate
             public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
-                ChatUtils.this.lambda$sendInlineBotRequest$5(z, user, str, callback, callback2, str2, tLObject, tL_error);
+                this.f$0.lambda$sendInlineBotRequest$7(z, user, str, callback, callback2, str2, tLObject, tL_error);
             }
         };
         if (z) {
@@ -527,26 +648,24 @@ public class ChatUtils {
         tL_messages_getInlineBotResults.offset = _UrlKt.FRAGMENT_ENCODE_SET;
         tL_messages_getInlineBotResults.peer = new TLRPC.TL_inputPeerEmpty();
         final int iSendRequest = getConnectionsManager().sendRequest(tL_messages_getInlineBotResults, requestDelegate, 2);
-        return new Runnable() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda16
+        return new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                ChatUtils.this.lambda$sendInlineBotRequest$6(iSendRequest);
+                this.f$0.lambda$sendInlineBotRequest$8(iSendRequest);
             }
         };
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$sendInlineBotRequest$5(final boolean z, final TLRPC.User user, final String str, final Utilities.Callback callback, final Utilities.Callback callback2, final String str2, final TLObject tLObject, TLRPC.TL_error tL_error) {
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda17
+    public void lambda$sendInlineBotRequest$7(final boolean z, final TLRPC.User user, final String str, final Utilities.Callback callback, final Utilities.Callback callback2, final String str2, final TLObject tLObject, TLRPC.TL_error tL_error) {
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                ChatUtils.this.lambda$sendInlineBotRequest$4(z, tLObject, user, str, callback, callback2, str2);
+                this.f$0.lambda$sendInlineBotRequest$6(z, tLObject, user, str, callback, callback2, str2);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$sendInlineBotRequest$4(boolean z, TLObject tLObject, TLRPC.User user, String str, Utilities.Callback callback, Utilities.Callback callback2, String str2) {
+    public void lambda$sendInlineBotRequest$6(boolean z, TLObject tLObject, TLRPC.User user, String str, Utilities.Callback callback, Utilities.Callback callback2, String str2) {
         if (z && (!(tLObject instanceof TLRPC.messages_BotResults) || ((TLRPC.messages_BotResults) tLObject).results.isEmpty())) {
             Runnable runnableSendInlineBotRequest = sendInlineBotRequest(user, str, false, callback);
             if (callback2 != null) {
@@ -566,8 +685,7 @@ public class ChatUtils {
         callback.run(null);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$sendInlineBotRequest$6(int i) {
+    public void lambda$sendInlineBotRequest$8(int i) {
         getConnectionsManager().cancelRequest(i, false);
     }
 
@@ -595,18 +713,18 @@ public class ChatUtils {
         long jLongValue = l.longValue();
         TLRPC.User user = getMessagesController().getUser(l);
         if (user != null) {
-            return sendInlineBotRequest(user, String.valueOf(j), z2, new Utilities.Callback() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda11
+            return sendInlineBotRequest(user, String.valueOf(j), z2, new Utilities.Callback() {
                 @Override // org.telegram.messenger.Utilities.Callback
                 public final void run(Object obj) {
-                    ChatUtils.this.lambda$searchUser$9(callback, (TLRPC.messages_BotResults) obj);
+                    this.f$0.lambda$searchUser$11(callback, (TLRPC.messages_BotResults) obj);
                 }
             }, callback2);
         }
         if (z) {
-            return resolveUser((String) botInfo.second, jLongValue, new Utilities.Callback() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda10
+            return resolveUser((String) botInfo.second, jLongValue, new Utilities.Callback() {
                 @Override // org.telegram.messenger.Utilities.Callback
                 public final void run(Object obj) {
-                    ChatUtils.this.lambda$searchUser$7(j, callback, (TLRPC.User) obj);
+                    this.f$0.lambda$searchUser$9(j, callback, (TLRPC.User) obj);
                 }
             });
         }
@@ -614,13 +732,11 @@ public class ChatUtils {
         return null;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$searchUser$7(long j, Utilities.Callback callback, TLRPC.User user) {
+    public void lambda$searchUser$9(long j, Utilities.Callback callback, TLRPC.User user) {
         searchUser(j, false, false, callback);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$searchUser$9(final Utilities.Callback callback, TLRPC.messages_BotResults messages_botresults) {
+    public void lambda$searchUser$11(final Utilities.Callback callback, TLRPC.messages_BotResults messages_botresults) {
         if (messages_botresults == null || messages_botresults.results.isEmpty()) {
             callback.run(null);
             return;
@@ -652,10 +768,10 @@ public class ChatUtils {
         }
         String str2 = tL_user.username;
         if (str2 != null) {
-            resolveUser(str2, j, new Utilities.Callback() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda19
+            resolveUser(str2, j, new Utilities.Callback() {
                 @Override // org.telegram.messenger.Utilities.Callback
                 public final void run(Object obj) {
-                    ChatUtils.$r8$lambda$IHPqvvWO8wXH5WHQMQapqKdSicE(callback, tL_user, (TLRPC.User) obj);
+                    ChatUtils.$r8$lambda$hYPZVE2oBY1FOoLoyEtoSZQ36dk(callback, tL_user, (TLRPC.User) obj);
                 }
             });
         } else {
@@ -663,7 +779,7 @@ public class ChatUtils {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$IHPqvvWO8wXH5WHQMQapqKdSicE(Utilities.Callback callback, TLRPC.TL_user tL_user, TLRPC.User user) {
+    public static void $r8$lambda$hYPZVE2oBY1FOoLoyEtoSZQ36dk(Utilities.Callback callback, TLRPC.TL_user tL_user, TLRPC.User user) {
         if (user != null) {
             callback.run(user);
         } else {
@@ -673,16 +789,15 @@ public class ChatUtils {
     }
 
     public Runnable resolveUser(String str, final long j, final Utilities.Callback<TLRPC.User> callback) {
-        return getMessagesController().getUserNameResolver().resolve(str, new Consumer() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda12
-            @Override // com.google.android.exoplayer2.util.Consumer
-            public final void accept(Object obj) {
-                ChatUtils.this.lambda$resolveUser$10(j, callback, (Long) obj);
+        return getMessagesController().getUserNameResolver().resolve(str, new Utilities.Callback() {
+            @Override // org.telegram.messenger.Utilities.Callback
+            public final void run(Object obj) {
+                this.f$0.lambda$resolveUser$12(j, callback, (Long) obj);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$resolveUser$10(long j, Utilities.Callback callback, Long l) {
+    public void lambda$resolveUser$12(long j, Utilities.Callback callback, Long l) {
         if (l != null && l.longValue() > 0 && l.longValue() == j) {
             callback.run(getMessagesController().getUser(Long.valueOf(j)));
         } else {
@@ -713,17 +828,17 @@ public class ChatUtils {
         long jLongValue = l.longValue();
         TLRPC.User user = getMessagesController().getUser(l);
         if (user != null) {
-            sendInlineBotRequest(user, String.valueOf(j), z2, new Utilities.Callback() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda4
+            sendInlineBotRequest(user, String.valueOf(j), z2, new Utilities.Callback() {
                 @Override // org.telegram.messenger.Utilities.Callback
                 public final void run(Object obj) {
-                    ChatUtils.this.lambda$searchChat$13(callback, (TLRPC.messages_BotResults) obj);
+                    this.f$0.lambda$searchChat$15(callback, (TLRPC.messages_BotResults) obj);
                 }
             });
         } else if (z) {
-            resolveUser((String) botInfo.second, jLongValue, new Utilities.Callback() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda3
+            resolveUser((String) botInfo.second, jLongValue, new Utilities.Callback() {
                 @Override // org.telegram.messenger.Utilities.Callback
                 public final void run(Object obj) {
-                    ChatUtils.this.lambda$searchChat$11(j, callback, (TLRPC.User) obj);
+                    this.f$0.lambda$searchChat$13(j, callback, (TLRPC.User) obj);
                 }
             });
         } else {
@@ -731,13 +846,11 @@ public class ChatUtils {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$searchChat$11(long j, Utilities.Callback callback, TLRPC.User user) {
+    public void lambda$searchChat$13(long j, Utilities.Callback callback, TLRPC.User user) {
         searchChat(j, false, false, callback);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$searchChat$13(final Utilities.Callback callback, TLRPC.messages_BotResults messages_botresults) {
+    public void lambda$searchChat$15(final Utilities.Callback callback, TLRPC.messages_BotResults messages_botresults) {
         if (messages_botresults == null || messages_botresults.results.isEmpty()) {
             callback.run(null);
             return;
@@ -776,10 +889,10 @@ public class ChatUtils {
         }
         String str2 = tL_channel.username;
         if (str2 != null) {
-            resolveChannel(str2, new Utilities.Callback() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda9
+            resolveChannel(str2, new Utilities.Callback() {
                 @Override // org.telegram.messenger.Utilities.Callback
                 public final void run(Object obj) {
-                    callback.run((TLRPC.Chat) (obj != null ? obj : tL_channel));
+                    callback.run((TLRPC.Chat) java.util.Objects.requireNonNullElse((TLRPC.Chat) obj, tL_channel));
                 }
             });
         } else {
@@ -882,23 +995,22 @@ public class ChatUtils {
     }
 
     public void saveStickerToGallery(final Activity activity, final String str, final boolean z, final Utilities.Callback<Uri> callback) {
-        utilsQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda1
+        utilsQueue.postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                ChatUtils.m1491$r8$lambda$_mrT6MZLhXrk8326k5kImfX_3Q(str, z, activity, callback);
+                ChatUtils.$r8$lambda$TToaZf4KzHPJ5jfvu9l1MOFMVRY(str, z, activity, callback);
             }
         });
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$_mrT6MZLhXrk8326k5kImfX-_3Q, reason: not valid java name */
-    public static /* synthetic */ void m1491$r8$lambda$_mrT6MZLhXrk8326k5kImfX_3Q(final String str, boolean z, final Activity activity, final Utilities.Callback callback) {
+    public static void $r8$lambda$TToaZf4KzHPJ5jfvu9l1MOFMVRY(final String str, boolean z, final Activity activity, final Utilities.Callback callback) {
         if (TextUtils.isEmpty(str)) {
             return;
         }
         try {
             FileLog.e(str);
             if (z) {
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda7
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
                         MediaController.saveFile(str, activity, 1, null, null, callback);
@@ -912,7 +1024,7 @@ public class ChatUtils {
                 FileOutputStream fileOutputStream = new FileOutputStream(file);
                 bitmapDecodeFile.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
                 fileOutputStream.close();
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda8
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
                         MediaController.saveFile(file.toString(), activity, 0, null, null, callback);
@@ -929,13 +1041,13 @@ public class ChatUtils {
         if (TextUtils.isEmpty(gifPath)) {
             return;
         }
-        utilsQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda0
+        utilsQueue.postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda5
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
-                        MediaController.saveFile(gifPath, activity, 1, null, null, callback);
+                        MediaController.saveFile(str, activity, 1, null, null, callback);
                     }
                 });
             }
@@ -964,16 +1076,15 @@ public class ChatUtils {
     }
 
     public void resolveChannel(String str, final Utilities.Callback<TLRPC.Chat> callback) {
-        getMessagesController().getUserNameResolver().resolve(str, new Consumer() { // from class: com.exteragram.messenger.utils.chats.ChatUtils$$ExternalSyntheticLambda2
-            @Override // com.google.android.exoplayer2.util.Consumer
-            public final void accept(Object obj) {
-                ChatUtils.this.lambda$resolveChannel$19(callback, (Long) obj);
+        getMessagesController().getUserNameResolver().resolve(str, new Utilities.Callback() {
+            @Override // org.telegram.messenger.Utilities.Callback
+            public final void run(Object obj) {
+                this.f$0.lambda$resolveChannel$21(callback, (Long) obj);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$resolveChannel$19(Utilities.Callback callback, Long l) {
+    public void lambda$resolveChannel$21(Utilities.Callback callback, Long l) {
         if (l != null && l.longValue() < 0) {
             callback.run(getMessagesController().getChat(Long.valueOf(-l.longValue())));
         } else {
@@ -991,22 +1102,6 @@ public class ChatUtils {
 
     public void setLikeDialog(long j) {
         ExteraConfig.getEditor().putLong("channelToSave" + this.selectedAccount, j).apply();
-    }
-
-    private boolean isPhoneStartsWith(String str) {
-        TLRPC.User currentUser = UserConfig.getInstance(this.selectedAccount).getCurrentUser();
-        if (currentUser == null || TextUtils.isEmpty(currentUser.phone)) {
-            return false;
-        }
-        return currentUser.phone.startsWith(str);
-    }
-
-    public boolean isRussianUser() {
-        return isPhoneStartsWith("7");
-    }
-
-    public boolean isFragmentUser() {
-        return isPhoneStartsWith("888");
     }
 
     public boolean shouldAddTimestamp(MessageObject messageObject, CharSequence charSequence) {

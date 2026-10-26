@@ -25,7 +25,6 @@ import org.json.JSONObject;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.DispatchQueue;
 
-/* JADX INFO: loaded from: classes.dex */
 public class SubscriptionsManager {
     private static SubscriptionsManager instance;
     private static final Pattern redirectPattern = Pattern.compile("!\\s*Redirect:\\s*(\\S+)");
@@ -50,10 +49,15 @@ public class SubscriptionsManager {
     }
 
     public void update(final String[] strArr, final Runnable runnable) {
-        this.queue.postRunnable(() -> updateInternal(strArr, runnable));
+        this.queue.postRunnable(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.lambda$update$0(strArr, runnable);
+            }
+        });
     }
 
-    private void updateInternal(String[] strArr, Runnable runnable) {
+    public void lambda$update$0(String[] strArr, Runnable runnable) {
         LinkedHashSet linkedHashSet = new LinkedHashSet();
         long jCurrentTimeMillis = System.currentTimeMillis();
         for (FilterMetadata filterMetadata : getSubscriptions()) {
@@ -129,28 +133,11 @@ public class SubscriptionsManager {
         return arrayList;
     }
 
-    /* JADX WARN: Undo finally extract visitor
-    java.lang.NullPointerException: Cannot invoke "Object.hashCode()" because "this.second" is null
-    	at jadx.core.utils.Pair.hashCode(Pair.java:35)
-    	at java.base/java.util.HashMap.hash(Unknown Source)
-    	at java.base/java.util.HashMap.getNode(Unknown Source)
-    	at java.base/java.util.HashMap.containsKey(Unknown Source)
-    	at jadx.core.dex.visitors.finaly.traverser.state.TraverserGlobalCommonState.hasBlocksBeenCached(TraverserGlobalCommonState.java:35)
-    	at jadx.core.dex.visitors.finaly.traverser.handlers.MergePathActivePathTraverserHandler.handle(MergePathActivePathTraverserHandler.java:174)
-    	at jadx.core.dex.visitors.finaly.traverser.handlers.AbstractActivePathTraverserHandler.process(AbstractActivePathTraverserHandler.java:19)
-    	at jadx.core.dex.visitors.finaly.traverser.TraverserController.processHandlerImplementations(TraverserController.java:43)
-    	at jadx.core.dex.visitors.finaly.traverser.TraverserController.advance(TraverserController.java:156)
-    	at jadx.core.dex.visitors.finaly.traverser.TraverserController.process(TraverserController.java:79)
-    	at jadx.core.dex.visitors.finaly.MarkFinallyVisitor.findCommonInsns(MarkFinallyVisitor.java:404)
-    	at jadx.core.dex.visitors.finaly.MarkFinallyVisitor.extractFinally(MarkFinallyVisitor.java:284)
-    	at jadx.core.dex.visitors.finaly.MarkFinallyVisitor.processTryBlock(MarkFinallyVisitor.java:202)
-    	at jadx.core.dex.visitors.finaly.MarkFinallyVisitor.visit(MarkFinallyVisitor.java:135)
-     */
     private boolean fetchSubscription(String str, int i) {
         try {
             Response responseExecute = this.client.newCall(new Request.Builder().url(str).header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15").build()).execute();
             try {
-                if (responseExecute.isSuccessful()) {
+                if (responseExecute.getIsSuccessful()) {
                     String strString = responseExecute.body().string();
                     String strExtractRedirect = extractRedirect(strString);
                     if (strExtractRedirect != null) {
@@ -302,11 +289,10 @@ public class SubscriptionsManager {
             this.expires = j;
         }
 
-        public static FilterMetadata fromJson(JSONObject jSONObject) throws JSONException {
+        public static FilterMetadata fromJson(JSONObject jSONObject) {
             return new FilterMetadata(jSONObject.getString("url"), jSONObject.getString("title"), jSONObject.getString("homepage"), jSONObject.getInt("rulesCount"), jSONObject.getLong("expires"));
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
         public JSONObject toJson() throws JSONException {
             JSONObject jSONObject = new JSONObject();
             jSONObject.put("url", this.url);

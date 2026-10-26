@@ -12,19 +12,52 @@ import android.text.TextUtils;
 import androidx.core.graphics.PathParser;
 import com.exteragram.messenger.ExteraConfig;
 import kotlin.Metadata;
+import kotlin.jvm.internal.SourceDebugExtension;
 import okhttp3.internal.url._UrlKt;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLog;
 
-@Metadata(d1 = {"\u0000>\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0010\u000e\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\u0007\n\u0002\b\u0006\n\u0002\u0010\u0002\n\u0002\b\u0004\bÇ\u0002\u0018\u00002\u00020\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J \u0010\u000f\u001a\u00020\u00072\u0006\u0010\u0010\u001a\u00020\u00112\u0006\u0010\u0012\u001a\u00020\u00112\b\b\u0002\u0010\u0013\u001a\u00020\u0011J\"\u0010\u0014\u001a\u00020\u00072\b\u0010\u0015\u001a\u0004\u0018\u00010\u00072\u0006\u0010\u0010\u001a\u00020\u00112\u0006\u0010\u0012\u001a\u00020\u0011H\u0002J\b\u0010\u0016\u001a\u00020\u0007H\u0002J\b\u0010\u0017\u001a\u00020\u0018H\u0003J\u0018\u0010\u0019\u001a\u00020\t2\u0006\u0010\u0015\u001a\u00020\u00072\u0006\u0010\u001a\u001a\u00020\fH\u0002J\u0018\u0010\u001b\u001a\u00020\t2\u0006\u0010\u0015\u001a\u00020\u00072\u0006\u0010\u001a\u001a\u00020\fH\u0002R\u000e\u0010\u0004\u001a\u00020\u0005X\u0082T¢\u0006\u0002\n\u0000R\u0010\u0010\u0006\u001a\u0004\u0018\u00010\u0007X\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\b\u001a\u00020\tX\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\n\u001a\u00020\tX\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\u000b\u001a\u00020\fX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\r\u001a\u00020\u000eX\u0082\u0004¢\u0006\u0002\n\u0000¨\u0006\u001c"}, d2 = {"Lcom/exteragram/messenger/preferences/utils/IconShapeHelper;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "DEFAULT_CIRCLE_PATH", _UrlKt.FRAGMENT_ENCODE_SET, "cachedSystemPath", "Landroid/graphics/Path;", "isSystemPathSquare", _UrlKt.FRAGMENT_ENCODE_SET, "cacheInitialized", "scratchRect", "Landroid/graphics/RectF;", "scratchMatrix", "Landroid/graphics/Matrix;", "getFinalIconShapePath", "width", _UrlKt.FRAGMENT_ENCODE_SET, "height", "cornerRadius", "resizePath", "path", "getDefaultPath", "initSystemPathCache", _UrlKt.FRAGMENT_ENCODE_SET, "calculateIfShouldUseRoundedRect", "bounds", "hasSharpCorners", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+@Metadata(d1 = {"\u00006\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0007\n\u0002\b\u0006\n\u0002\u0010\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0002\b\r\n\u0002\u0018\u0002\n\u0002\b\u0003\bÆ\u0002\u0018\u00002\u00020\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J)\u0010\t\u001a\u00020\u00042\b\u0010\u0005\u001a\u0004\u0018\u00010\u00042\u0006\u0010\u0007\u001a\u00020\u00062\u0006\u0010\b\u001a\u00020\u0006H\u0002¢\u0006\u0004\b\t\u0010\nJ\u000f\u0010\u000b\u001a\u00020\u0004H\u0002¢\u0006\u0004\b\u000b\u0010\fJ\u000f\u0010\u000e\u001a\u00020\rH\u0003¢\u0006\u0004\b\u000e\u0010\u0003J\u001f\u0010\u0012\u001a\u00020\u00112\u0006\u0010\u0005\u001a\u00020\u00042\u0006\u0010\u0010\u001a\u00020\u000fH\u0002¢\u0006\u0004\b\u0012\u0010\u0013J\u001f\u0010\u0014\u001a\u00020\u00112\u0006\u0010\u0005\u001a\u00020\u00042\u0006\u0010\u0010\u001a\u00020\u000fH\u0002¢\u0006\u0004\b\u0014\u0010\u0013J'\u0010\u0016\u001a\u00020\u00042\u0006\u0010\u0007\u001a\u00020\u00062\u0006\u0010\b\u001a\u00020\u00062\b\b\u0002\u0010\u0015\u001a\u00020\u0006¢\u0006\u0004\b\u0016\u0010\u0017R\u0018\u0010\u0018\u001a\u0004\u0018\u00010\u00048\u0002@\u0002X\u0082\u000e¢\u0006\u0006\n\u0004\b\u0018\u0010\u0019R\u0016\u0010\u001a\u001a\u00020\u00118\u0002@\u0002X\u0082\u000e¢\u0006\u0006\n\u0004\b\u001a\u0010\u001bR\u0016\u0010\u001c\u001a\u00020\u00118\u0002@\u0002X\u0082\u000e¢\u0006\u0006\n\u0004\b\u001c\u0010\u001bR\u0014\u0010\u001d\u001a\u00020\u000f8\u0002X\u0082\u0004¢\u0006\u0006\n\u0004\b\u001d\u0010\u001eR\u0014\u0010 \u001a\u00020\u001f8\u0002X\u0082\u0004¢\u0006\u0006\n\u0004\b \u0010!¨\u0006\""}, d2 = {"Lcom/exteragram/messenger/preferences/utils/IconShapeHelper;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "Landroid/graphics/Path;", "path", _UrlKt.FRAGMENT_ENCODE_SET, "width", "height", "resizePath", "(Landroid/graphics/Path;FF)Landroid/graphics/Path;", "getDefaultPath", "()Landroid/graphics/Path;", _UrlKt.FRAGMENT_ENCODE_SET, "initSystemPathCache", "Landroid/graphics/RectF;", "bounds", _UrlKt.FRAGMENT_ENCODE_SET, "calculateIfShouldUseRoundedRect", "(Landroid/graphics/Path;Landroid/graphics/RectF;)Z", "hasSharpCorners", "cornerRadius", "getFinalIconShapePath", "(FFF)Landroid/graphics/Path;", "cachedSystemPath", "Landroid/graphics/Path;", "isSystemPathSquare", "Z", "cacheInitialized", "scratchRect", "Landroid/graphics/RectF;", "Landroid/graphics/Matrix;", "scratchMatrix", "Landroid/graphics/Matrix;", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+@SourceDebugExtension({"SMAP\nIconShapeUtils.kt\nKotlin\n*S Kotlin\n*F\n+ 1 IconShapeUtils.kt\ncom/exteragram/messenger/preferences/utils/IconShapeHelper\n+ 2 ColorDrawable.kt\nandroidx/core/graphics/drawable/ColorDrawableKt\n*L\n1#1,181:1\n27#2:182\n*S KotlinDebug\n*F\n+ 1 IconShapeUtils.kt\ncom/exteragram/messenger/preferences/utils/IconShapeHelper\n*L\n101#1:182\n*E\n"})
 public final class IconShapeHelper {
     private static boolean cacheInitialized;
     private static Path cachedSystemPath;
     private static boolean isSystemPathSquare;
-    private static final String DEFAULT_CIRCLE_PATH = "M50,0A50,50,0,0,1,50,100A50,50,0,0,1,50,0";
     public static final IconShapeHelper INSTANCE = new IconShapeHelper();
     private static final RectF scratchRect = new RectF();
     private static final Matrix scratchMatrix = new Matrix();
+
+    private final void initSystemPathCache() {
+        Resources system;
+        int identifier;
+        try {
+            ColorDrawable colorDrawable = new ColorDrawable(0);
+            ((android.graphics.drawable.AdaptiveIconDrawable) ()).getIconMask();
+            Path iconMask = ((android.graphics.drawable.AdaptiveIconDrawable) (colorDrawable, colorDrawable)).getIconMask();
+            Path path = (iconMask == null || iconMask.isEmpty()) ? null : new Path(iconMask);
+            if (path == null && (identifier = (system = Resources.getSystem()).getIdentifier("config_icon_mask", "string", "android")) != 0) {
+                String string = system.getString(identifier);
+                if (!TextUtils.isEmpty(string)) {
+                    path = PathParser.createPathFromPathData(string);
+                }
+            }
+            if (path != null && !path.isEmpty()) {
+                cachedSystemPath = path;
+                RectF rectF = new RectF();
+                path.computeBounds(rectF, true);
+                isSystemPathSquare = calculateIfShouldUseRoundedRect(path, rectF);
+            } else {
+                cachedSystemPath = null;
+                isSystemPathSquare = false;
+            }
+        } catch (Exception e) {
+            FileLog.e(e);
+            cachedSystemPath = null;
+            isSystemPathSquare = false;
+        } finally {
+            cacheInitialized = true;
+        }
+    }
 
     private IconShapeHelper() {
     }
@@ -67,42 +100,7 @@ public final class IconShapeHelper {
     }
 
     private final Path getDefaultPath() {
-        Path pathCreatePathFromPathData = PathParser.createPathFromPathData("M50,0A50,50,0,0,1,50,100A50,50,0,0,1,50,0");
-        return pathCreatePathFromPathData;
-    }
-
-    private final void initSystemPathCache() {
-        Resources system;
-        int identifier;
-        try {
-            ColorDrawable colorDrawable = new ColorDrawable(0);
-            Path iconMask = null;
-            if (android.os.Build.VERSION.SDK_INT >= 26) {
-                iconMask = new android.graphics.drawable.AdaptiveIconDrawable(colorDrawable, colorDrawable).getIconMask();
-            }
-            Path path = (iconMask == null || iconMask.isEmpty()) ? null : new Path(iconMask);
-            if (path == null && (identifier = (system = Resources.getSystem()).getIdentifier("config_icon_mask", "string", "android")) != 0) {
-                String string = system.getString(identifier);
-                if (!TextUtils.isEmpty(string)) {
-                    path = PathParser.createPathFromPathData(string);
-                }
-            }
-            if (path != null && !path.isEmpty()) {
-                cachedSystemPath = path;
-                RectF rectF = new RectF();
-                path.computeBounds(rectF, true);
-                isSystemPathSquare = calculateIfShouldUseRoundedRect(path, rectF);
-            } else {
-                cachedSystemPath = null;
-                isSystemPathSquare = false;
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-            cachedSystemPath = null;
-            isSystemPathSquare = false;
-        } finally {
-            cacheInitialized = true;
-        }
+        return PathParser.createPathFromPathData("M50,0A50,50,0,0,1,50,100A50,50,0,0,1,50,0");
     }
 
     private final boolean calculateIfShouldUseRoundedRect(Path path, RectF bounds) {

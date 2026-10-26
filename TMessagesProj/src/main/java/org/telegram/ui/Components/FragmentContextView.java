@@ -8,6 +8,10 @@
 
 package org.telegram.ui.Components;
 
+import com.exteragram.messenger.ExteraConfig;
+import com.exteragram.messenger.player.PlayerLauncher;
+import com.exteragram.messenger.player.mini.MiniPlayerUiHelper;
+
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.AndroidUtilities.dpf2;
 import static org.telegram.messenger.AndroidUtilities.lerp;
@@ -144,6 +148,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     private RLottieImageView muteButton;
     private RLottieDrawable muteDrawable;
     private ImageView closeButton;
+    private MiniPlayerUiHelper miniPlayer;
     private ActionBarMenuItem playbackSpeedButton;
     private SpeedIconDrawable speedIcon;
     private ActionBarMenuSlider.SpeedSlider speedSlider;
@@ -322,7 +327,8 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
 
             @Override
             protected void dispatchDraw(Canvas canvas) {
-                super.dispatchDraw(canvas);
+                int beginSwipeDraw = (currentStyle == STYLE_AUDIO_PLAYER && miniPlayer != null) ? miniPlayer.beginSwipeDraw(canvas) : -1;
+        super.dispatchDraw(canvas);
                 if (currentStyle == STYLE_INACTIVE_GROUP_CALL && notifyButtonEnabled) {
                     int width = (int) Math.ceil(notifyText.getCurrentWidth()) + dp(24);
                     if (width != gradientWidth) {
@@ -764,9 +770,9 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                     if (messageObject.isMusic()) {
                         final Activity activity = AndroidUtilities.findActivity(getContext());
                         if (activity instanceof LaunchActivity) {
-                            new AudioPlayerAlert(activity, resourcesProvider).show();
+                            PlayerLauncher.create(activity, resourcesProvider).show();
                         } else if (AndroidUtilities.isContextSafe(LaunchActivity.instance)) {
-                            new AudioPlayerAlert(LaunchActivity.instance, resourcesProvider).show();
+                            PlayerLauncher.create(LaunchActivity.instance, resourcesProvider).show();
                         }
                     } else {
                         long dialogId = 0;
@@ -996,7 +1002,17 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
         speedSlider.setSpeed(currentPlaybackSpeed, animated);
     }
 
+    
+    private void applyMiniPlayerAccent() {
+        if (this.speedIcon == null || !MiniPlayerUiHelper.isActive(this.miniPlayer)) {
+            return;
+        }
+        this.speedIcon.setColor(this.miniPlayer.getSpeedColor(MediaController.getInstance().getPlaybackSpeed(this.isMusic)));
+        this.speedIcon.invalidateSelf();
+    }
+
     public void updateColors() {
+        applyMiniPlayerAccent();
         float currentPlaybackSpeed = MediaController.getInstance().getPlaybackSpeed(isMusic);
         final int color = getThemedColor(!equals(currentPlaybackSpeed, 1.0f) ? Theme.key_featuredStickers_addButtonPressed : Theme.key_inappPlayerClose);
         if (speedIcon != null) {
@@ -1175,6 +1191,11 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             }
         }
         currentStyle = style;
+        if (this.miniPlayer == null && style == STYLE_AUDIO_PLAYER && ExteraConfig.getNewPlayerStyle()) {
+            this.miniPlayer = new MiniPlayerUiHelper(this, this.resourcesProvider);
+            this.miniPlayer.setOnColorsChanged(this::applyMiniPlayerAccent);
+        }
+
         frameLayout.setWillNotDraw(currentStyle != STYLE_INACTIVE_GROUP_CALL);
         if (style != STYLE_INACTIVE_GROUP_CALL) {
             notifyButtonEnabled = false;
@@ -1506,6 +1527,9 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, AndroidUtilities.dp2(getStyleHeight() + (isInsideBubble ? 0 : 2)));
+        if (currentStyle == STYLE_AUDIO_PLAYER && miniPlayer != null && miniPlayer.getSwipeShrink() > 0) {
+            setMeasuredDimension(getMeasuredWidth(), Math.max(0, getMeasuredHeight() - miniPlayer.getSwipeShrink()));
+        }
     }
 
     @Override
@@ -2005,6 +2029,9 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 TypefaceSpan span = new TypefaceSpan(AndroidUtilities.bold(), 0, getThemedColor(Theme.key_inappPlayerPerformer));
                 stringBuilder.setSpan(span, 0, messageObject.getMusicAuthor().length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
                 titleTextView.setText(stringBuilder, !create && wasVisible && isMusic);
+            if (miniPlayer != null) {
+                miniPlayer.bind(messageObject, !create && wasVisible);
+            }
             }
         }
     }
@@ -2679,7 +2706,9 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
 
         if (currentStyle == STYLE_AUDIO_PLAYER) {
             MessageObject playingMessageObject = MediaController.getInstance().getPlayingMessageObject();
-            if (playingMessageObject != null) {
+            if (miniPlayer != null) {
+                miniPlayer.drawProgress(canvas, playingMessageObject);
+            } else if (playingMessageObject != null) {
                 final float left = -dpf2(1);
                 final float right = getMeasuredWidth() + dpf2(1);
                 final float p = lerp(left, right, playingMessageObject.audioProgress);
@@ -2693,6 +2722,9 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
 
         if (clipped) {
             canvas.restore();
+        }
+        if (beginSwipeDraw >= 0) {
+            canvas.restoreToCount(beginSwipeDraw);
         }
         wasDraw = true;
     }
@@ -2931,4 +2963,21 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             }
         }
     }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        if (currentStyle == STYLE_AUDIO_PLAYER && miniPlayer != null && miniPlayer.onInterceptSwipe(ev)) {
+            return true;
+        }
+        return super.onInterceptTouchEvent(ev);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        if (currentStyle == STYLE_AUDIO_PLAYER && miniPlayer != null && miniPlayer.onSwipeTouchEvent(ev, super::onTouchEvent)) {
+            return true;
+        }
+        return super.onTouchEvent(ev);
+    }
+
 }

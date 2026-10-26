@@ -77,10 +77,10 @@ public class DrawerHeaderView extends FrameLayout {
         this.avatarView = backupImageView;
         backupImageView.setRoundRadius(ExteraConfig.getAvatarCorners(72.0f));
         addView(backupImageView, LayoutHelper.createFrame(72, 72.0f, 51, 16.0f, 16.0f, 0.0f, 0.0f));
-        backupImageView.setOnClickListener(new View.OnClickListener() { 
+        backupImageView.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                DrawerHeaderView.this.lambda$new$0(view);
+                this.f$0.lambda$new$0(view);
             }
         });
         FrameLayout frameLayout = new FrameLayout(context);
@@ -88,8 +88,7 @@ public class DrawerHeaderView extends FrameLayout {
         ScaleStateListAnimator.apply(frameLayout);
         frameLayout.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(18.0f), getThemeToggleBackgroundColor()));
         addView(frameLayout, LayoutHelper.createFrame(36, 36.0f, 53, 0.0f, 16.0f, 16.0f, 0.0f));
-        int i = R.raw.sun;
-        RLottieDrawable rLottieDrawable = new RLottieDrawable(i, String.valueOf(i), AndroidUtilities.dp(24.0f), AndroidUtilities.dp(24.0f), true, null);
+        RLottieDrawable rLottieDrawable = new RLottieDrawable(R.raw.sun, AndroidUtilities.dp(24.0f), AndroidUtilities.dp(24.0f), true, null);
         this.sunDrawable = rLottieDrawable;
         rLottieDrawable.setPlayInDirectionOfCustomEndFrame(true);
         RLottieImageView rLottieImageView = new RLottieImageView(context);
@@ -99,16 +98,16 @@ public class DrawerHeaderView extends FrameLayout {
         rLottieImageView.setScaleType(scaleType);
         frameLayout.addView(rLottieImageView, LayoutHelper.createFrame(24, 24, 17));
         setThemeToggleStaticState(Theme.isCurrentThemeDark());
-        frameLayout.setOnClickListener(new View.OnClickListener() { 
+        frameLayout.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                DrawerHeaderView.this.lambda$new$1(view);
+                this.f$0.lambda$new$1(view);
             }
         });
-        frameLayout.setOnLongClickListener(new View.OnLongClickListener() { 
+        frameLayout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override // android.view.View.OnLongClickListener
             public final boolean onLongClick(View view) {
-                return DrawerHeaderView.this.lambda$new$2(view);
+                return this.f$0.lambda$new$2(view);
             }
         });
         updateThemeToggleColors();
@@ -117,10 +116,10 @@ public class DrawerHeaderView extends FrameLayout {
         ScaleStateListAnimator.apply(frameLayout2);
         frameLayout2.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(18.0f), getThemeToggleBackgroundColor()));
         addView(frameLayout2, LayoutHelper.createFrame(-2, 36.0f, 53, 0.0f, 16.0f, 60.0f, 0.0f));
-        frameLayout2.setOnClickListener(new View.OnClickListener() { 
+        frameLayout2.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                DrawerHeaderView.this.lambda$new$3(view);
+                this.f$0.lambda$new$3(view);
             }
         });
         LinearLayout linearLayout = new LinearLayout(context);
@@ -143,10 +142,10 @@ public class DrawerHeaderView extends FrameLayout {
         linearLayout.addView(animatedTextView, LayoutHelper.createLinear(-2, -2, 16));
         FrameLayout frameLayout3 = new FrameLayout(context);
         addView(frameLayout3, LayoutHelper.createFrame(-1, 50.0f, 51, 0.0f, 100.0f, 0.0f, 0.0f));
-        frameLayout3.setOnClickListener(new View.OnClickListener() { 
+        frameLayout3.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                DrawerHeaderView.this.lambda$new$4(view);
+                this.f$0.lambda$new$4(view);
             }
         });
         SimpleTextView simpleTextView = new SimpleTextView(context);
@@ -166,23 +165,23 @@ public class DrawerHeaderView extends FrameLayout {
         this.exteraBadgeDrawable = swapAnimatedEmojiDrawable2;
         simpleTextView.setRightDrawable(swapAnimatedEmojiDrawable);
         simpleTextView.setRightDrawable2(swapAnimatedEmojiDrawable2);
-        simpleTextView.setRightDrawableOnClick(new View.OnClickListener() { 
+        simpleTextView.setRightDrawableOnClick(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                DrawerHeaderView.this.lambda$new$5(view);
+                this.f$0.lambda$new$5(view);
             }
         });
-        simpleTextView.setRightDrawable2OnClick(new View.OnClickListener() { 
+        simpleTextView.setRightDrawable2OnClick(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                DrawerHeaderView.this.lambda$new$6(view);
+                this.f$0.lambda$new$6(view);
             }
         });
         SimpleTextView simpleTextView2 = new SimpleTextView(context);
         this.subtitleView = simpleTextView2;
         simpleTextView2.setTextSize(12);
-        int i2 = COLOR_KEY_SUBTITLE;
-        simpleTextView2.setTextColor(Theme.getColor(i2));
+        int i = COLOR_KEY_SUBTITLE;
+        simpleTextView2.setTextColor(Theme.getColor(i));
         simpleTextView2.setMaxLines(1);
         simpleTextView2.setClickable(false);
         frameLayout3.addView(simpleTextView2, LayoutHelper.createFrame(-2, -2.0f, 51, 16.0f, 26.0f, 64.0f, 0.0f));
@@ -190,18 +189,18 @@ public class DrawerHeaderView extends FrameLayout {
         this.chevronView = imageView2;
         imageView2.setImageResource(R.drawable.msg_expand);
         imageView2.setScaleType(scaleType);
-        imageView2.setColorFilter(createColorFilter(i2));
+        imageView2.setColorFilter(createColorFilter(i));
         frameLayout3.addView(imageView2, LayoutHelper.createFrame(24, 24.0f, 21, 0.0f, 0.0f, 22.0f, 0.0f));
     }
 
-    public /* synthetic */ void lambda$new$0(View view) {
+    public void lambda$new$0(View view) {
         Runnable runnable = this.onNavigateToProfile;
         if (runnable != null) {
             runnable.run();
         }
     }
 
-    public /* synthetic */ void lambda$new$1(View view) {
+    public void lambda$new$1(View view) {
         resetThemeTogglePressAnimation();
         Runnable runnable = this.onThemeToggle;
         if (runnable != null) {
@@ -209,7 +208,7 @@ public class DrawerHeaderView extends FrameLayout {
         }
     }
 
-    public /* synthetic */ boolean lambda$new$2(View view) {
+    public boolean lambda$new$2(View view) {
         Runnable runnable = this.onThemeToggleLongClick;
         if (runnable == null) {
             return false;
@@ -218,28 +217,28 @@ public class DrawerHeaderView extends FrameLayout {
         return true;
     }
 
-    public /* synthetic */ void lambda$new$3(View view) {
+    public void lambda$new$3(View view) {
         Runnable runnable = this.onProxyClick;
         if (runnable != null) {
             runnable.run();
         }
     }
 
-    public /* synthetic */ void lambda$new$4(View view) {
+    public void lambda$new$4(View view) {
         Runnable runnable = this.onChevronClick;
         if (runnable != null) {
             runnable.run();
         }
     }
 
-    public /* synthetic */ void lambda$new$5(View view) {
+    public void lambda$new$5(View view) {
         Runnable runnable = this.onStatusClick;
         if (runnable != null) {
             runnable.run();
         }
     }
 
-    public /* synthetic */ void lambda$new$6(View view) {
+    public void lambda$new$6(View view) {
         Runnable runnable = this.onBadgeClick;
         if (runnable != null) {
             runnable.run();
@@ -353,7 +352,6 @@ public class DrawerHeaderView extends FrameLayout {
             i = 0;
         } else {
             jClamp = 0;
-            i = 0;
         }
         if (i != this.lastProxyState) {
             TransitionManager.beginDelayedTransition(this, new ChangeBounds().setDuration(150L));
@@ -467,10 +465,10 @@ public class DrawerHeaderView extends FrameLayout {
     private void applyThemeToggleColors(RLottieDrawable rLottieDrawable, int i) {
         rLottieDrawable.setColorFilter(new PorterDuffColorFilter(i, PorterDuff.Mode.SRC_IN));
         rLottieDrawable.beginApplyLayerColors();
-        rLottieDrawable.setLayerColor("Sunny.**", i);
-        rLottieDrawable.setLayerColor("Path 6.**", i);
-        rLottieDrawable.setLayerColor("Path.**", i);
-        rLottieDrawable.setLayerColor("Path 5.**", i);
+        rLottieDrawable.setLayerColor("Sunny", i);
+        rLottieDrawable.setLayerColor("Path 6", i);
+        rLottieDrawable.setLayerColor("Path", i);
+        rLottieDrawable.setLayerColor("Path 5", i);
         rLottieDrawable.commitApplyLayerColors();
     }
 

@@ -13,7 +13,6 @@
     <string name="Preferences">Налады exteraGram</string>
     <!-- Main Menu -->
     <string name="Links">Спасылкі</string>
-    <string name="AboutExteraDescription">Эксперыментальны кліент Telegram, заснаваны на афіцыйным зыходным кодзе!</string>
     <string name="Crowdin">Пераклад</string>
     <string name="Website">Вэб-сайт</string>
     <string name="Categories">Катэгорыі</string>
@@ -45,23 +44,7 @@
     <string name="WeatherPillTopInfo">Налады віджэта надвор\'я для чаркі.</string>
     <string name="PillStackInfiniteScrolling">Бясконцая пракрутка</string>
     <string name="CryptoPillTargetCurrency">Мэтавая валюта</string>
-    <string name="CryptoCurrencyUsd">Долар ЗША</string>
-    <string name="CryptoCurrencyEur">Еўра</string>
-    <string name="CryptoCurrencyRub">Расійскі рубель</string>
-    <string name="CryptoCurrencyGbp">Брытанскі фунт</string>
-    <string name="CryptoCurrencyKzt">Казахстанскі тэнге</string>
-    <string name="CryptoCurrencyTry">Турэцкая ліра</string>
-    <string name="CryptoCurrencyUah">Украінская грыўня</string>
-    <string name="CryptoCurrencyPln">Польскі злоты</string>
-    <string name="CryptoCurrencyAed">Дырхам ААЭ</string>
-    <string name="CryptoCurrencyCny">Кітайскі юань</string>
-    <string name="CryptoCurrencyJpy">Японская іена</string>
-    <string name="CryptoCurrencyByn">Беларускі рубель</string>
-    <string name="CryptoCurrencyIls">Новы ізраільскі шэкель</string>
-    <string name="CryptoCurrencyCzk">Чэшская крона</string>
-    <string name="CryptoCurrencyInr">Індыйская рупія</string>
     <!-- Proxy -->
-    <string name="ProxyDoNotUseWithVPN">Не выкарыстоўваць з VPN</string>
     <string name="ProxyDisableOn">Адключыць проксі</string>
     <string name="ProxyDisableNever">Ніколі</string>
     <string name="ProxyDisableAlways">Заўсёды</string>
@@ -73,9 +56,6 @@
     <string name="CopyIpAddress">Скапіяваць IP-адрас</string>
     <string name="IpInfoUnavailable">Не атрымалася загрузіць інфармацыю пра IP-адрас.</string>
     <string name="IpInfoCountry">Краіна</string>
-    <string name="IpInfoRegion">Рэгіён</string>
-    <string name="IpInfoCity">Горад</string>
-    <string name="IpInfoIsp">ISP</string>
     <string name="IpInfoOrganization">Арганізацыя</string>
     <string name="IpInfoDomain">Дамен</string>
     <string name="IpInfoTimezone">Часавы пояс</string>
@@ -100,11 +80,6 @@
     <string name="UploadSpeedBoost">Павелічэнне хуткасці адпраўкі</string>
     <string name="Ultra">Ультра</string>
     <string name="SpeedBoostInfo">Ультра ўзмацненне можа выклікаць праблемы са загрузкай файлаў і трансляцыяй відэа пры павольным падключэнні да Інтэрнэту.</string>
-    <!-- Maps -->
-    <string name="Maps">Карты</string>
-    <string name="TermsOfUseYandexMaps">Карыстаючыся Яндэкс-картамі, вы згаджаецеся з <![CDATA[<a href="https://yandex.ru/legal/maps_termsofuse/">ўмовамі карыстання</a>]]>.</string>
-    <string name="UseYandexMaps">Выкарыстоўваць Яндэкс Карты</string>
-    <string name="InstallYandexMaps">Устанавіць Яндэкс Карты?</string>
     <!-- Storage -->
     <string name="StorageSettings">Сховішча</string>
     <string name="CustomSavePath">Карыстальніцкая тэчка захавання</string>
@@ -325,7 +300,6 @@
     <string name="AIError">Памылка сервера</string>
     <string name="AIErrorInfo">Просім вас трошкі пачакаць і паўтарыць запыт.</string>
     <!-- Chat Actions -->
-    <string name="DoubleTap">Двайны дотык</string>
     <string name="DoubleTapIncoming">Уваходныя паведамленні</string>
     <string name="DoubleTapOutgoing">Выходныя паведамленні</string>
     <string name="DoubleTapInfo">Для некаторых дзеянняў патрабуюцца правы адміністратара ў чаце або канале.</string>
@@ -390,7 +364,6 @@
     <string name="AlwaysSendInHD">Заўсёды адпраўляць у HD-якасці</string>
     <string name="HideCameraTile">Схаваць плітку імгненнай камеры</string>
     <string name="HideCameraTileInfo">Плітка камеры будзе заменена плаваючай кнопкай. Націсканне на яе запускае камеру Telegram; утрымліваючы яго, запускае сістэмную камеру.</string>
-    <string name="ShortStandardQuality">SD</string>
     <!-- Playback -->
     <string name="DoubleTapSeekDuration">Падвойны націск для пошуку</string>
     <string name="PreferOriginalQuality">Аддаваць перавагу арыгінальнай якасці</string>
@@ -465,7 +438,6 @@
     <string name="PluginNotEnabled">Уключыце **сістэму плагінаў**, каб устанавіць **%1$s**.</string>
     <string name="PluginInstalled">**%1$s** устаноўлены паспяхова.</string>
     <string name="PluginUpdated">**%1$s** паспяхова абноўлены.</string>
-    <string name="PluginInstalledButFailedToEnable">**%1$s** усталяваны, але падчас уключэння адбылася памылка.</string>
     <string name="PluginEnableError">Не атрымалася ўключыць **%1$s**.</string>
     <string name="PluginDisableError">Не атрымалася адключыць **%1$s**.</string>
     <string name="PluginInstallError">Не атрымалася ўсталяваць **%1$s**.</string>
@@ -541,7 +513,6 @@
     <!-- Login & QR -->
     <string name="LoginQrTitle">Уваход па QR-коду</string>
     <string name="LoginQrSubtitle">Выкарыстоўвайце іншую прыладу, каб адсканаваць гэты QR-код.</string>
-    <string name="SelectNumber">Выберыце нумар тэлефона</string>
     <string name="WifiConnect">Падключэнне</string>
     <string name="WifiDisabled">Wi-Fi адключаны.</string>
     <string name="WifiFailed">Не ўдалося падключыцца да Wi-Fi. Паспрабуйце зноў.</string>

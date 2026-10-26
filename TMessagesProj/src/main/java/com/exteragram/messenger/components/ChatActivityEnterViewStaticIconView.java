@@ -102,7 +102,7 @@ public class ChatActivityEnterViewStaticIconView extends FrameLayout {
             ObjectAnimator objectAnimatorOfFloat2 = ObjectAnimator.ofFloat(this.buttonViews[0], (Property<ImageView, Float>) property2, 0.1f);
             Property property3 = View.ALPHA;
             animatorSet3.playTogether(objectAnimatorOfFloat, objectAnimatorOfFloat2, ObjectAnimator.ofFloat(this.buttonViews[0], (Property<ImageView, Float>) property3, 0.0f), ObjectAnimator.ofFloat(this.buttonViews[1], (Property<ImageView, Float>) property, 1.0f), ObjectAnimator.ofFloat(this.buttonViews[1], (Property<ImageView, Float>) property2, 1.0f), ObjectAnimator.ofFloat(this.buttonViews[1], (Property<ImageView, Float>) property3, 1.0f));
-            this.buttonsAnimation.addListener(new AnimatorListenerAdapter() { 
+            this.buttonsAnimation.addListener(new AnimatorListenerAdapter() {
                 @Override // android.animation.AnimatorListenerAdapter, android.animation.Animator.AnimatorListener
                 public void onAnimationEnd(Animator animator) {
                     if (animator.equals(ChatActivityEnterViewStaticIconView.this.buttonsAnimation)) {
@@ -131,8 +131,8 @@ public class ChatActivityEnterViewStaticIconView extends FrameLayout {
         }
     }
 
-    public static /* synthetic */ class AnonymousClass2 {
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$components$ChatActivityEnterViewStaticIconView$State;
+    public static class AnonymousClass2 {
+        static final int[] $SwitchMap$com$exteragram$messenger$components$ChatActivityEnterViewStaticIconView$State;
 
         static {
             int[] iArr = new int[State.values().length];

@@ -24,15 +24,14 @@ public final class ApiBadgeSource {
     private final ConcurrentHashMap<Long, BadgeInfo> cache = new ConcurrentHashMap<>();
     private final ProfileDao profileDao;
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.badges.source.ApiBadgeSource$loadToCache$1, reason: invalid class name */
     @Metadata(k = 3, mv = {2, 2, 0}, xi = 48)
-    @DebugMetadata(c = "com.exteragram.messenger.badges.source.ApiBadgeSource", f = "ApiBadgeSource.kt", i = {}, l = {38}, m = "loadToCache", n = {}, s = {}, v = 1)
-    public final class AnonymousClass1 extends ContinuationImpl {
+    @DebugMetadata(c = "com.exteragram.messenger.badges.source.ApiBadgeSource", f = "ApiBadgeSource.kt", i = {}, l = {38}, m = "loadToCache", n = {}, s = {})
+    public static final class AnonymousClass1 extends ContinuationImpl {
         int label;
-        /* synthetic */ Object result;
+        Object result;
 
-        public AnonymousClass1(Continuation continuation) {
-            super((Continuation) continuation);
+        public AnonymousClass1(Continuation<? super AnonymousClass1> continuation) {
+            super(continuation);
         }
 
         @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
@@ -72,23 +71,22 @@ public final class ApiBadgeSource {
     public final Object updateLocalBadge(long j, final BadgeDTO badgeDTO, Continuation<? super Unit> continuation) {
         ConcurrentHashMap<Long, BadgeInfo> concurrentHashMap = this.cache;
         Long lBoxLong = Boxing.boxLong(j);
-        final Function2 function2 = new Function2() { // from class: com.exteragram.messenger.badges.source.ApiBadgeSource$$ExternalSyntheticLambda0
+        final Function2 function2 = new Function2() {
             @Override // kotlin.jvm.functions.Function2
             public final Object invoke(Object obj, Object obj2) {
                 return BadgeInfo.copy$default((BadgeInfo) obj2, badgeDTO, null, false, 6, null);
             }
         };
-        concurrentHashMap.computeIfPresent(lBoxLong, new BiFunction() { // from class: com.exteragram.messenger.badges.source.ApiBadgeSource$$ExternalSyntheticLambda1
+        concurrentHashMap.computeIfPresent(lBoxLong, new BiFunction() {
             @Override // java.util.function.BiFunction
             public final Object apply(Object obj, Object obj2) {
                 return ApiBadgeSource.$r8$lambda$k56Kf1gLoZpo2cEpNa8MMgWDGfI(function2, obj, obj2);
             }
         });
-        Object objUpdateBadge = this.profileDao.updateBadge(j, badgeDTO, (Continuation) continuation);
+        Object objUpdateBadge = this.profileDao.updateBadge(j, badgeDTO, continuation);
         return objUpdateBadge == IntrinsicsKt.getCOROUTINE_SUSPENDED() ? objUpdateBadge : Unit.INSTANCE;
     }
 
-    /* JADX WARN: Code duplicated, block: B:7:0x0013  */
     public final Object loadToCache(Continuation<? super Unit> continuation) {
         AnonymousClass1 anonymousClass1;
         if (continuation instanceof AnonymousClass1) {
@@ -116,10 +114,11 @@ public final class ApiBadgeSource {
         } else {
             if (i2 != 1) {
                 throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+                return null;
             }
             ResultKt.throwOnFailure(all);
         }
-        for (ProfileDTO profileDTO : (List<ProfileDTO>) all) {
+        for (ProfileDTO profileDTO : (List) all) {
             this.cache.put(Boxing.boxLong(profileDTO.getId()), new BadgeInfo(profileDTO.getBadge(), profileDTO.getStatus(), Intrinsics.areEqual(profileDTO.getCanChangeBadge(), Boxing.boxBoolean(true))));
         }
         return Unit.INSTANCE;

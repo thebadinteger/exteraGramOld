@@ -107,7 +107,7 @@ public final class NowPlayingController {
         Object L$3;
         Object L$4;
         int label;
-        /* synthetic */ Object result;
+         Object result;
 
         public AnonymousClass1(Continuation<?> continuation) {
             super((Continuation) continuation);
@@ -127,7 +127,7 @@ public final class NowPlayingController {
     public static final class C01541 extends ContinuationImpl {
         long J$0;
         int label;
-        /* synthetic */ Object result;
+         Object result;
 
         public C01541(Continuation<? super C01541> continuation) {
             super((Continuation) continuation);
@@ -151,7 +151,7 @@ public final class NowPlayingController {
         Object L$3;
         Object L$4;
         int label;
-        /* synthetic */ Object result;
+         Object result;
 
         public C01551(Continuation<? super C01551> continuation) {
             super((Continuation) continuation);
@@ -195,12 +195,12 @@ public final class NowPlayingController {
     @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
     @DebugMetadata(c = "com.exteragram.messenger.nowplaying.NowPlayingController$getCurrentPlayingTrack$1", f = "NowPlayingController.kt", i = {0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2}, l = {106, 112, 115}, m = "invokeSuspend", n = {"$this$launch", "liveTrackDeferred", "savedTrackDeferred", "startTime", "$this$launch", "liveTrackDeferred", "savedTrackDeferred", "liveTrack", "startTime", "$this$launch", "liveTrackDeferred", "savedTrackDeferred", "liveTrack", "finalTrack", "startTime"}, s = {"L$0", "L$1", "L$2", "J$0", "L$0", "L$1", "L$2", "L$3", "J$0", "L$0", "L$1", "L$2", "L$3", "L$4", "J$0"}, v = 1)
     public static final class C01521 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
-        final /* synthetic */ BiConsumer<NowPlayingDTO, Long> $callback;
-        final /* synthetic */ boolean $checkApi;
-        final /* synthetic */ TLRPC.Document $savedMusic;
-        final /* synthetic */ long $userId;
+        final  BiConsumer<NowPlayingDTO, Long> $callback;
+        final  boolean $checkApi;
+        final  TLRPC.Document $savedMusic;
+        final  long $userId;
         long J$0;
-        private /* synthetic */ Object L$0;
+        private  Object L$0;
         Object L$1;
         Object L$2;
         Object L$3;
@@ -318,9 +318,9 @@ public final class NowPlayingController {
         @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
         @DebugMetadata(c = "com.exteragram.messenger.nowplaying.NowPlayingController$getCurrentPlayingTrack$1$1", f = "NowPlayingController.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {}, v = 1)
         public static final class C00211 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
-            final /* synthetic */ BiConsumer<NowPlayingDTO, Long> $callback;
-            final /* synthetic */ NowPlayingDTO $finalTrack;
-            final /* synthetic */ long $startTime;
+            final  BiConsumer<NowPlayingDTO, Long> $callback;
+            final  NowPlayingDTO $finalTrack;
+            final  long $startTime;
             int label;
 
             /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
@@ -526,7 +526,7 @@ public final class NowPlayingController {
     @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
     @DebugMetadata(c = "com.exteragram.messenger.nowplaying.NowPlayingController$getNowPlayingInfo$1", f = "NowPlayingController.kt", i = {}, l = {212}, m = "invokeSuspend", n = {}, s = {}, v = 1)
     public static final class C01531 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
-        final /* synthetic */ Consumer<NowPlayingInfoDTO> $callback;
+        final  Consumer<NowPlayingInfoDTO> $callback;
         int label;
 
         /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
@@ -573,7 +573,7 @@ public final class NowPlayingController {
         BuildersKt.launch(scope, EmptyCoroutineContext.INSTANCE, CoroutineStart.DEFAULT, new C01531(callback, null));
     }
 
-    public static /* synthetic */ void updateNowPlayingInfo$default(NowPlayingInfoDTO nowPlayingInfoDTO, boolean z, Consumer consumer, int i, Object obj) {
+    public static  void updateNowPlayingInfo$default(NowPlayingInfoDTO nowPlayingInfoDTO, boolean z, Consumer consumer, int i, Object obj) {
         if ((i & 2) != 0) {
             z = true;
         }
@@ -584,9 +584,9 @@ public final class NowPlayingController {
     @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
     @DebugMetadata(c = "com.exteragram.messenger.nowplaying.NowPlayingController$updateNowPlayingInfo$1", f = "NowPlayingController.kt", i = {}, l = {229}, m = "invokeSuspend", n = {}, s = {}, v = 1)
     public static final class C01561 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
-        final /* synthetic */ boolean $cache;
-        final /* synthetic */ Consumer<Boolean> $callback;
-        final /* synthetic */ NowPlayingInfoDTO $newNowPlaying;
+        final  boolean $cache;
+        final  Consumer<Boolean> $callback;
+        final  NowPlayingInfoDTO $newNowPlaying;
         int label;
 
         /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
@@ -690,7 +690,7 @@ public final class NowPlayingController {
     @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u0004\u0018\u00010\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", "Lcom/exteragram/messenger/api/dto/NowPlayingInfoDTO;", "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
     @DebugMetadata(c = "com.exteragram.messenger.nowplaying.NowPlayingController$fetchProfileNowPlayingInfo$2", f = "NowPlayingController.kt", i = {1, 1}, l = {237, 243}, m = "invokeSuspend", n = {"response", "profile"}, s = {"L$0", "L$1"}, v = 1)
     public static final class AnonymousClass2 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super NowPlayingInfoDTO>, Object> {
-        final /* synthetic */ long $userId;
+        final  long $userId;
         Object L$0;
         Object L$1;
         int label;
@@ -767,8 +767,8 @@ public final class NowPlayingController {
     @DebugMetadata(c = "com.exteragram.messenger.nowplaying.NowPlayingController$updateNowPlayingInfoInternal$2", f = "NowPlayingController.kt", i = {0, 0, 1, 1}, l = {380, 270}, m = "invokeSuspend", n = {"query", "$i$f$suspendCancellableCoroutine", "query", "message"}, s = {"L$0", "I$0", "L$0", "L$1"}, v = 1)
     @SourceDebugExtension({"SMAP\nNowPlayingController.kt\nKotlin\n*S Kotlin\n*F\n+ 1 NowPlayingController.kt\ncom/exteragram/messenger/nowplaying/NowPlayingController$updateNowPlayingInfoInternal$2\n+ 2 CancellableContinuation.kt\nkotlinx/coroutines/CancellableContinuationKt\n*L\n1#1,379:1\n426#2,11:380\n*S KotlinDebug\n*F\n+ 1 NowPlayingController.kt\ncom/exteragram/messenger/nowplaying/NowPlayingController$updateNowPlayingInfoInternal$2\n*L\n263#1:380,11\n*E\n"})
     public static final class C01572 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Boolean>, Object> {
-        final /* synthetic */ boolean $cache;
-        final /* synthetic */ NowPlayingInfoDTO $newNowPlaying;
+        final  boolean $cache;
+        final  NowPlayingInfoDTO $newNowPlaying;
         int I$0;
         Object L$0;
         Object L$1;
@@ -866,7 +866,7 @@ public final class NowPlayingController {
         public static final Companion INSTANCE = new Companion(null);
 
         @JvmField
-        public static final Lazy[] $childSerializers = {null, LazyKt.lazy(LazyThreadSafetyMode.PUBLICATION, new Function0() { // from class: com.exteragram.messenger.nowplaying.NowPlayingController$ItunesSearchResponse$$ExternalSyntheticLambda0
+        public static final Lazy[] $childSerializers = {null, LazyKt.lazy(LazyThreadSafetyMode.PUBLICATION, new Function0() {
             @Override // kotlin.jvm.functions.Function0
             public final Object invoke() {
                 return NowPlayingController.ItunesSearchResponse._childSerializers$_anonymous_();
@@ -874,7 +874,7 @@ public final class NowPlayingController {
         })};
 
         /* JADX INFO: Access modifiers changed from: private */
-        public static final /* synthetic */ KSerializer _childSerializers$_anonymous_() {
+        public static final  KSerializer _childSerializers$_anonymous_() {
             return new ArrayListSerializer(NowPlayingController$ItunesTrack$$serializer.INSTANCE);
         }
 
@@ -899,7 +899,7 @@ public final class NowPlayingController {
 
         @Metadata(d1 = {"\u0000\u0016\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\b\u0086\u0003\u0018\u00002\u00020\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\f\u0010\u0004\u001a\b\u0012\u0004\u0012\u00020\u00060\u0005¨\u0006\u0007"}, d2 = {"Lcom/exteragram/messenger/nowplaying/NowPlayingController$ItunesSearchResponse$Companion;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "serializer", "Lkotlinx/serialization/KSerializer;", "Lcom/exteragram/messenger/nowplaying/NowPlayingController$ItunesSearchResponse;", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
         public static final class Companion {
-            public /* synthetic */ Companion(DefaultConstructorMarker defaultConstructorMarker) {
+            public  Companion(DefaultConstructorMarker defaultConstructorMarker) {
                 this();
             }
 
@@ -911,7 +911,7 @@ public final class NowPlayingController {
             }
         }
 
-        public /* synthetic */ ItunesSearchResponse(int i, int i2, List list, SerializationConstructorMarker serializationConstructorMarker) {
+        public  ItunesSearchResponse(int i, int i2, List list, SerializationConstructorMarker serializationConstructorMarker) {
             if (3 != (i & 3)) {
                 PluginExceptionsKt.throwMissingFieldException(i, 3, NowPlayingController$ItunesSearchResponse$$serializer.INSTANCE.getDescriptor());
             }
@@ -920,7 +920,7 @@ public final class NowPlayingController {
         }
 
         @JvmStatic
-        public static final /* synthetic */ void write$Self$TMessagesProj(ItunesSearchResponse self, CompositeEncoder output, SerialDescriptor serialDesc) {
+        public static final  void write$Self$TMessagesProj(ItunesSearchResponse self, CompositeEncoder output, SerialDescriptor serialDesc) {
             Lazy<KSerializer<Object>>[] lazyArr = $childSerializers;
             output.encodeIntElement(serialDesc, 0, self.resultCount);
             output.encodeSerializableElement(serialDesc, 1, lazyArr[1].getValue(), self.results);
@@ -975,7 +975,7 @@ public final class NowPlayingController {
 
         @Metadata(d1 = {"\u0000\u0016\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\b\u0086\u0003\u0018\u00002\u00020\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\f\u0010\u0004\u001a\b\u0012\u0004\u0012\u00020\u00060\u0005¨\u0006\u0007"}, d2 = {"Lcom/exteragram/messenger/nowplaying/NowPlayingController$ItunesTrack$Companion;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "serializer", "Lkotlinx/serialization/KSerializer;", "Lcom/exteragram/messenger/nowplaying/NowPlayingController$ItunesTrack;", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
         public static final class Companion {
-            public /* synthetic */ Companion(DefaultConstructorMarker defaultConstructorMarker) {
+            public  Companion(DefaultConstructorMarker defaultConstructorMarker) {
                 this();
             }
 
@@ -987,7 +987,7 @@ public final class NowPlayingController {
             }
         }
 
-        public /* synthetic */ ItunesTrack(int i, String str, String str2, String str3, String str4, String str5, Long l, SerializationConstructorMarker serializationConstructorMarker) {
+        public  ItunesTrack(int i, String str, String str2, String str3, String str4, String str5, Long l, SerializationConstructorMarker serializationConstructorMarker) {
             if ((i & 1) == 0) {
                 this.trackName = null;
             } else {
@@ -1021,7 +1021,7 @@ public final class NowPlayingController {
         }
 
         @JvmStatic
-        public static final /* synthetic */ void write$Self$TMessagesProj(ItunesTrack self, CompositeEncoder output, SerialDescriptor serialDesc) {
+        public static final  void write$Self$TMessagesProj(ItunesTrack self, CompositeEncoder output, SerialDescriptor serialDesc) {
             if (output.shouldEncodeElementDefault(serialDesc, 0) || self.trackName != null) {
                 output.encodeNullableSerializableElement(serialDesc, 0, StringSerializer.INSTANCE, self.trackName);
             }
@@ -1190,7 +1190,7 @@ public final class NowPlayingController {
         cancellableContinuationImpl.initCancellability();
         cancellableContinuationImpl.invokeOnCancellation(new Function1<Throwable, Unit>() { // from class: com.exteragram.messenger.nowplaying.NowPlayingController$await$2$1
             @Override // kotlin.jvm.functions.Function1
-            public /* bridge */ /* synthetic */ Unit invoke(Throwable th) {
+            public /* bridge */  Unit invoke(Throwable th) {
                 invoke2(th);
                 return Unit.INSTANCE;
             }

@@ -8,6 +8,8 @@
 
 package org.telegram.ui;
 
+import com.exteragram.messenger.player.PlayerLauncher;
+
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.api.ApiController;
 import com.exteragram.messenger.api.db.ExteraDatabase;
@@ -3915,7 +3917,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     MediaController.getInstance().getPlaylist().clear();
                     MediaController.getInstance().getPlaylist().addAll(savedMusicList.list);
                     if (!sameList) MediaController.getInstance().playMessage(savedMusicList.list.get(0));
-                    showDialog(new AudioPlayerAlert(getContext(), getResourceProvider()));
+                    showDialog(PlayerLauncher.create(getContext(), getResourceProvider()));
                 }
             });
 
@@ -17191,7 +17193,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         if (!z) {
             MediaController.getInstance().playMessage(this.savedMusicList.list.get(0));
         }
-        showDialog(new AudioPlayerAlert(getContext(), getResourceProvider()));
+        showDialog(PlayerLauncher.create(getContext(), getResourceProvider()));
     }
 
 }

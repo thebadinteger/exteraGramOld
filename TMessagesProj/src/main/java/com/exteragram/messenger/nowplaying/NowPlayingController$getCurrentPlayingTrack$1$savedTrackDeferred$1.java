@@ -13,24 +13,24 @@ import kotlinx.coroutines.CoroutineScope;
 import org.telegram.tgnet.TLRPC;
 
 @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u0004\u0018\u00010\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", "Lcom/exteragram/messenger/api/dto/NowPlayingDTO;", "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
-@DebugMetadata(c = "com.exteragram.messenger.nowplaying.NowPlayingController$getCurrentPlayingTrack$1$savedTrackDeferred$1", f = "NowPlayingController.kt", i = {}, l = {103}, m = "invokeSuspend", n = {}, s = {}, v = 1)
+@DebugMetadata(c = "com.exteragram.messenger.nowplaying.NowPlayingController$getCurrentPlayingTrack$1$savedTrackDeferred$1", f = "NowPlayingController.kt", i = {}, l = {102}, m = "invokeSuspend", n = {}, s = {})
 public final class NowPlayingController$getCurrentPlayingTrack$1$savedTrackDeferred$1 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super NowPlayingDTO>, Object> {
-    final /* synthetic */ TLRPC.Document $savedMusic;
+    final TLRPC.Document $savedMusic;
     int label;
 
     public NowPlayingController$getCurrentPlayingTrack$1$savedTrackDeferred$1(TLRPC.Document document, Continuation<? super NowPlayingController$getCurrentPlayingTrack$1$savedTrackDeferred$1> continuation) {
-        super(2, (Continuation) continuation);
+        super(2, continuation);
         this.$savedMusic = document;
     }
 
     @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
     public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
-        return (Continuation) new NowPlayingController$getCurrentPlayingTrack$1$savedTrackDeferred$1(this.$savedMusic, (Continuation) continuation);
+        return new NowPlayingController$getCurrentPlayingTrack$1$savedTrackDeferred$1(this.$savedMusic, continuation);
     }
 
     @Override // kotlin.jvm.functions.Function2
     public final Object invoke(CoroutineScope coroutineScope, Continuation<? super NowPlayingDTO> continuation) {
-        return ((NowPlayingController$getCurrentPlayingTrack$1$savedTrackDeferred$1) (Object) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+        return ((NowPlayingController$getCurrentPlayingTrack$1$savedTrackDeferred$1) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
     }
 
     @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
@@ -43,6 +43,7 @@ public final class NowPlayingController$getCurrentPlayingTrack$1$savedTrackDefer
                 return obj;
             }
             throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+            return null;
         }
         ResultKt.throwOnFailure(obj);
         NowPlayingController nowPlayingController = NowPlayingController.INSTANCE;

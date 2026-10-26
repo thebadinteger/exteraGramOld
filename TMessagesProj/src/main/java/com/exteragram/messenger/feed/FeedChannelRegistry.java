@@ -17,11 +17,10 @@ public class FeedChannelRegistry implements NotificationCenter.NotificationCente
     private boolean rebuildScheduled;
     private final HashSet<Long> channelIds = new HashSet<>();
     private final ArrayList<Listener> listeners = new ArrayList<>();
-    private final Runnable rebuildRunnable = new Runnable() { 
+    private final Runnable rebuildRunnable = new Runnable() {
         @Override // java.lang.Runnable
         public final void run() {
-            FeedChannelRegistry.this.rebuildScheduled = false;
-            FeedChannelRegistry.this.rebuild(true);
+            this.f$0.lambda$new$0();
         }
     };
 
@@ -33,16 +32,6 @@ public class FeedChannelRegistry implements NotificationCenter.NotificationCente
         for (int i = 0; i < 16; i++) {
             locks[i] = new Object();
         }
-    }
-
-    private FeedChannelRegistry(final int i) {
-        this.currentAccount = i;
-        AndroidUtilities.runOnUIThread(new Runnable() {
-            @Override
-            public void run() {
-                NotificationCenter.getInstance(i).addObserver(FeedChannelRegistry.this, NotificationCenter.dialogsNeedReload);
-            }
-        });
     }
 
     public static FeedChannelRegistry getInstance(int i) {
@@ -66,6 +55,25 @@ public class FeedChannelRegistry implements NotificationCenter.NotificationCente
         return feedChannelRegistry;
     }
 
+    public void lambda$new$0() {
+        this.rebuildScheduled = false;
+        rebuild(true);
+    }
+
+    private FeedChannelRegistry(final int i) {
+        this.currentAccount = i;
+        AndroidUtilities.runOnUIThread(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.lambda$new$1(i);
+            }
+        });
+    }
+
+    public void lambda$new$1(int i) {
+        NotificationCenter.getInstance(i).addObserver(this, NotificationCenter.dialogsNeedReload);
+    }
+
     public void addListener(Listener listener) {
         ensureBuilt();
         if (this.listeners.contains(listener)) {
@@ -82,7 +90,7 @@ public class FeedChannelRegistry implements NotificationCenter.NotificationCente
         rebuild(false);
     }
 
-    @Override 
+    @Override // org.telegram.messenger.NotificationCenter.NotificationCenterDelegate
     public void didReceivedNotification(int i, int i2, Object... objArr) {
         if (i == NotificationCenter.dialogsNeedReload) {
             ensureBuilt();

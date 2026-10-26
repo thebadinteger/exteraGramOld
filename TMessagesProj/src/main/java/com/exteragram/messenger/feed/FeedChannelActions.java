@@ -24,24 +24,14 @@ public abstract class FeedChannelActions {
         }
         ItemOptions itemOptionsMakeOptions = ItemOptions.makeOptions(chatActivity, chatMessageCell);
         boolean z = chat.broadcast;
-        itemOptionsMakeOptions.add(z ? R.drawable.msg_channel : R.drawable.msg_discussion, LocaleController.getString(z ? R.string.OpenChannel2 : R.string.OpenGroup2), runnable).add(R.drawable.menu_hide_gift, LocaleController.getString(R.string.FeedHideChannel), new Runnable() { 
+        itemOptionsMakeOptions.add(z ? R.drawable.msg_channel : R.drawable.msg_discussion, LocaleController.getString(z ? R.string.OpenChannel2 : R.string.OpenGroup2), runnable).add(R.drawable.menu_hide_gift, LocaleController.getString(R.string.FeedHideChannel), new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                final long dialogId = -chat.id;
-                final int currentAccount = chatActivity.getCurrentAccount();
-                FeedConfig.getInstance(currentAccount).setExcluded(dialogId, true);
-                FeedController.getInstance(currentAccount).markConfigApplied();
-                FeedController.getInstance(currentAccount).getStore().setHidden(dialogId, true);
-                org.telegram.ui.Components.BulletinFactory.of(chatActivity).createUndoBulletin(org.telegram.messenger.AndroidUtilities.replaceTags(LocaleController.formatString(R.string.FeedChannelHidden, chat.title)), new Runnable() {
-                    @Override
-                    public void run() {
-                        FeedConfig.getInstance(currentAccount).setExcluded(dialogId, false);
-                        FeedController.getInstance(currentAccount).markConfigApplied();
-                        FeedController.getInstance(currentAccount).getStore().setHidden(dialogId, false);
-                    }
-                }, null).show();
+                ChatActivity chatActivity2 = chatActivity;
+                TLRPC.Chat chat2 = chat;
+                chatActivity2.hideFeedChannelWithUndo(-chat2.id, chat2.title);
             }
-        }).addIf(canLeave(chat), R.drawable.msg_leave, (CharSequence) LocaleController.getString(chat.broadcast ? R.string.LeaveChannelMenu : R.string.LeaveMegaMenu), true, new Runnable() { 
+        }).addIf(canLeave(chat), R.drawable.msg_leave, (CharSequence) LocaleController.getString(chat.broadcast ? R.string.LeaveChannelMenu : R.string.LeaveMegaMenu), true, new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 FeedChannelActions.leaveChannel(chatActivity, chat, runnable2, consumer);
@@ -53,15 +43,15 @@ public abstract class FeedChannelActions {
         if (baseFragment == null || chat == null || baseFragment.getParentActivity() == null) {
             return;
         }
-        AlertsCreator.createClearOrDeleteDialogAlert(baseFragment, false, chat, null, false, true, false, false, new MessagesStorage.BooleanCallback() { 
-            @Override 
+        AlertsCreator.createClearOrDeleteDialogAlert(baseFragment, false, chat, null, false, true, false, false, new MessagesStorage.BooleanCallback() {
+            @Override // org.telegram.messenger.MessagesStorage.BooleanCallback
             public final void run(boolean z) {
-                FeedChannelActions.m1147$r8$lambda$93MDwBmj6nCXiUj2TGXsm0wccI(chat, baseFragment, consumer, runnable, z);
+                FeedChannelActions.m1420$r8$lambda$93MDwBmj6nCXiUj2TGXsm0wccI(chat, baseFragment, consumer, runnable, z);
             }
         });
     }
 
-    public static /* synthetic */ void m1147$r8$lambda$93MDwBmj6nCXiUj2TGXsm0wccI(TLRPC.Chat chat, BaseFragment baseFragment, Consumer consumer, Runnable runnable, boolean z) {
+    public static void m1420$r8$lambda$93MDwBmj6nCXiUj2TGXsm0wccI(TLRPC.Chat chat, BaseFragment baseFragment, Consumer consumer, Runnable runnable, boolean z) {
         long j = -chat.id;
         if (ChatObject.isNotInChat(chat)) {
             baseFragment.getMessagesController().deleteDialog(j, 0, z);

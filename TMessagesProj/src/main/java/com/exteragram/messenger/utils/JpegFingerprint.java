@@ -11,7 +11,6 @@ import kotlin.text.Typography;
 import okhttp3.internal.url._UrlKt;
 import org.telegram.messenger.FileLog;
 
-/* JADX INFO: loaded from: classes4.dex */
 public class JpegFingerprint {
     public int components;
     public boolean exif;
@@ -67,6 +66,8 @@ public class JpegFingerprint {
                                 int i6 = bufferedInputStream.read();
                                 if (i5 < 0 || i6 < 0 || (i2 = (i = (i5 << 8) | i6) - 2) < 0) {
                                     break;
+                                    break;
+                                    break;
                                 }
                                 i3 += i;
                                 if (sb.length() > 0) {
@@ -106,6 +107,8 @@ public class JpegFingerprint {
                             }
                         } else {
                             break;
+                            break;
+                            break;
                         }
                     }
                     jpegFingerprint.markerOrder = sb.toString();
@@ -128,9 +131,9 @@ public class JpegFingerprint {
         }
     }
 
-    /* JADX WARN: Multi-variable type inference failed */
     private void readSegment(int i, byte[] bArr) {
         int i2 = 0;
+        z = false;
         boolean z = false;
         if (i == 224) {
             if (bArr.length < 14 || !startsWith(bArr, "JFIF")) {
@@ -162,7 +165,7 @@ public class JpegFingerprint {
             while (i2 < bArr.length) {
                 byte b2 = bArr[i2];
                 int i3 = (b2 & 240) >> 4;
-                int z2 = b2 & 15;
+                boolean z2 = b2 & 15;
                 int i4 = i2 + 1;
                 int i5 = (i3 == 0 ? 64 : 128) + i4;
                 if (i5 > bArr.length) {
@@ -226,6 +229,8 @@ public class JpegFingerprint {
                     int i7 = readInt(bArr, i5 + 8);
                     if (i6 < i || i7 < 12 || (i2 = i6 + i7) > bArr.length) {
                         break;
+                        break;
+                        break;
                     }
                     byte b2 = bArr[i6];
                     if (b2 != 100) {
@@ -235,6 +240,8 @@ public class JpegFingerprint {
                         int i8 = readInt(bArr, i6 + 20);
                         int i9 = readInt(bArr, i6 + 24) + i6;
                         if (i8 <= 0 || i9 < i6 || i9 + i8 > i2) {
+                            break;
+                            break;
                             break;
                         }
                         return new String(bArr, i9, i8, StandardCharsets.UTF_16BE);

@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.widget.TextView;
-import com.exteragram.messenger.utils.RecordTag;
+import com.android.tools.r8.RecordTag;
 import java.io.File;
 import java.util.Locale;
 import java.util.Objects;
@@ -32,7 +32,7 @@ public abstract class VideoSubtitlesHelper {
         private final String mimeType;
         private final String path;
 
-        private /* synthetic */ boolean $record$equals(Object obj) {
+        private boolean $record$equals(Object obj) {
             if (!(obj instanceof SubtitleState)) {
                 return false;
             }
@@ -40,7 +40,7 @@ public abstract class VideoSubtitlesHelper {
             return Objects.equals(this.path, subtitleState.path) && Objects.equals(this.mimeType, subtitleState.mimeType) && Objects.equals(this.label, subtitleState.label);
         }
 
-        private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+        private Object[] $record$getFieldsAsObjects() {
             return new Object[]{this.path, this.mimeType, this.label};
         }
 
@@ -55,7 +55,7 @@ public abstract class VideoSubtitlesHelper {
         }
 
         public final int hashCode() {
-            return java.util.Objects.hash(this.path, this.mimeType, this.label);
+            return VideoSubtitlesHelper$java.util.Objects.hash(this.path, this.mimeType, this.label);
         }
 
         public String mimeType() {
@@ -96,7 +96,7 @@ public abstract class VideoSubtitlesHelper {
         private final LoadError error;
         private final SubtitleState subtitleState;
 
-        private /* synthetic */ boolean $record$equals(Object obj) {
+        private boolean $record$equals(Object obj) {
             if (!(obj instanceof SubtitleLoadResult)) {
                 return false;
             }
@@ -104,7 +104,7 @@ public abstract class VideoSubtitlesHelper {
             return Objects.equals(this.subtitleState, subtitleLoadResult.subtitleState) && Objects.equals(this.error, subtitleLoadResult.error);
         }
 
-        private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+        private Object[] $record$getFieldsAsObjects() {
             return new Object[]{this.subtitleState, this.error};
         }
 
@@ -122,7 +122,7 @@ public abstract class VideoSubtitlesHelper {
         }
 
         public final int hashCode() {
-            return java.util.Objects.hash(this.subtitleState, this.error);
+            return Client$java.util.Objects.hash(this.subtitleState, this.error);
         }
 
         public SubtitleState subtitleState() {
@@ -188,7 +188,7 @@ public abstract class VideoSubtitlesHelper {
 
     public static SubtitleLoadResult loadFromUri(Uri uri) {
         String path;
-        String strCopyFileToCache = null;
+        String strCopyFileToCache;
         if (uri == null) {
             return new SubtitleLoadResult(null, LoadError.LOAD_FAILED);
         }

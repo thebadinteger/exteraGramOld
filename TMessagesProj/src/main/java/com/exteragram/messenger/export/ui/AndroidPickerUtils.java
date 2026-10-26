@@ -2,14 +2,13 @@ package com.exteragram.messenger.export.ui;
 
 import android.content.ContentUris;
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import java.io.File;
 import okhttp3.internal.url._UrlKt;
-import org.telegram.messenger.FileLog;
+import org.telegram.messenger.AndroidUtilities;
 import org.webrtc.MediaStreamTrack;
 
 public abstract class AndroidPickerUtils {
@@ -17,7 +16,7 @@ public abstract class AndroidPickerUtils {
         Long lValueOf;
         Uri uri2 = null;
         if (DocumentsContract.isDocumentUri(context, uri)) {
-            boolean zIsExternalStorageDocument = isExternalStorageDocument(uri);
+            boolean zIsExternalStorageDocument = AndroidUtilities.isExternalStorageDocument(uri);
             String str = _UrlKt.FRAGMENT_ENCODE_SET;
             if (zIsExternalStorageDocument) {
                 String documentId = DocumentsContract.getDocumentId(uri);
@@ -57,7 +56,7 @@ public abstract class AndroidPickerUtils {
                 return "/storage/".concat(str);
             }
             try {
-                if (isDownloadsDocument(uri)) {
+                if (AndroidUtilities.isDownloadsDocument(uri)) {
                     try {
                         String documentId2 = DocumentsContract.getDocumentId(uri);
                         if (documentId2.startsWith("raw:")) {
@@ -76,9 +75,9 @@ public abstract class AndroidPickerUtils {
                     } catch (NumberFormatException unused) {
                         lValueOf = Long.valueOf(ContentUris.parseId(uri));
                     }
-                    return getDataColumn(context, ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), lValueOf.longValue()), null, null);
+                    return AndroidUtilities.getDataColumn(context, ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), lValueOf.longValue()), null, null);
                 }
-                if (isMediaDocument(uri)) {
+                if (AndroidUtilities.isMediaDocument(uri)) {
                     String[] strArrSplit2 = DocumentsContract.getDocumentId(uri).split(":");
                     String str4 = strArrSplit2[0];
                     if ("image".equals(str4)) {
@@ -88,7 +87,7 @@ public abstract class AndroidPickerUtils {
                     } else if (MediaStreamTrack.AUDIO_TRACK_KIND.equals(str4)) {
                         uri2 = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
                     }
-                    return getDataColumn(context, uri2, "_id=?", new String[]{strArrSplit2[1]});
+                    return AndroidUtilities.getDataColumn(context, uri2, "_id=?", new String[]{strArrSplit2[1]});
                 }
                 if ("file".equalsIgnoreCase(uri.getScheme())) {
                     return uri.getPath();
@@ -98,28 +97,5 @@ public abstract class AndroidPickerUtils {
             }
         }
         return null;
-    }
-
-    public static String getDataColumn(Context context, Uri uri, String str, String[] strArr) {
-        try (Cursor cursor = context.getContentResolver().query(uri, new String[]{"_data"}, str, strArr, null)) {
-            if (cursor != null && cursor.moveToFirst()) {
-                return cursor.getString(cursor.getColumnIndexOrThrow("_data"));
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-        return null;
-    }
-
-    public static boolean isExternalStorageDocument(Uri uri) {
-        return "com.android.externalstorage.documents".equals(uri.getAuthority());
-    }
-
-    public static boolean isDownloadsDocument(Uri uri) {
-        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
-    }
-
-    public static boolean isMediaDocument(Uri uri) {
-        return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
 }

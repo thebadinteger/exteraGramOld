@@ -10,7 +10,6 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 
-/* JADX INFO: loaded from: classes4.dex */
 public abstract class WindowTransitionAnimationHelper {
     public static float getDuration() {
         float f;
@@ -49,7 +48,7 @@ public abstract class WindowTransitionAnimationHelper {
 
     public static final class WindowEdgeExtension {
         private boolean captured;
-        private final RenderNode node = new RenderNode("windowEdgeExtension");
+        private final RenderNode node = new android.graphics.RenderNode("windowEdgeExtension");
 
         public boolean isCaptured() {
             return this.captured;
@@ -79,7 +78,7 @@ public abstract class WindowTransitionAnimationHelper {
         }
 
         public void draw(Canvas canvas, float f, float f2, float f3) {
-            if (!this.captured || f2 <= 0.0f || f3 <= 0.0f || !(canvas instanceof RecordingCanvas)) {
+            if (!this.captured || f2 <= 0.0f || f3 <= 0.0f || !((canvas) instanceof android.graphics.RecordingCanvas)) {
                 return;
             }
             this.node.setScaleX(f2 / 1.0f);

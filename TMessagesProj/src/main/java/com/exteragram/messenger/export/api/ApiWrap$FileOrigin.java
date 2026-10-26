@@ -1,7 +1,6 @@
 package com.exteragram.messenger.export.api;
 
-import com.exteragram.messenger.utils.RecordTag;
-import com.exteragram.messenger.ai.network.Client$ImagePayload$$ExternalSyntheticRecord1;
+import com.android.tools.r8.RecordTag;
 import java.util.Objects;
 import org.telegram.tgnet.TLRPC;
 
@@ -12,7 +11,7 @@ public final class ApiWrap$FileOrigin extends RecordTag {
     private final int split;
     private final int storyId;
 
-    private /* synthetic */ boolean $record$equals(Object obj) {
+    private boolean $record$equals(Object obj) {
         if (!(obj instanceof ApiWrap$FileOrigin)) {
             return false;
         }
@@ -20,7 +19,7 @@ public final class ApiWrap$FileOrigin extends RecordTag {
         return this.split == apiWrap$FileOrigin.split && this.messageId == apiWrap$FileOrigin.messageId && this.storyId == apiWrap$FileOrigin.storyId && this.customEmojiId == apiWrap$FileOrigin.customEmojiId && Objects.equals(this.peer, apiWrap$FileOrigin.peer);
     }
 
-    private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+    private Object[] $record$getFieldsAsObjects() {
         return new Object[]{Integer.valueOf(this.split), this.peer, Integer.valueOf(this.messageId), Integer.valueOf(this.storyId), Long.valueOf(this.customEmojiId)};
     }
 
@@ -37,7 +36,7 @@ public final class ApiWrap$FileOrigin extends RecordTag {
     }
 
     public final int hashCode() {
-        return Objects.hash(this.split, this.peer, this.messageId, this.storyId, this.customEmojiId);
+        return ApiWrap$java.util.Objects.hash(this.split, this.messageId, this.storyId, this.customEmojiId, this.peer);
     }
 
     public int messageId() {
@@ -57,7 +56,7 @@ public final class ApiWrap$FileOrigin extends RecordTag {
     }
 
     public final String toString() {
-        return "ApiWrap$FileOrigin[split=" + this.split + ", peer=" + this.peer + ", messageId=" + this.messageId + ", storyId=" + this.storyId + ", customEmojiId=" + this.customEmojiId + "]";
+        return com.exteragram.messenger.utils.RecordUtils.recordToString($record$getFieldsAsObjects(), ApiWrap$FileOrigin.class, "split;peer;messageId;storyId;customEmojiId");
     }
 
     public ApiWrap$FileOrigin() {

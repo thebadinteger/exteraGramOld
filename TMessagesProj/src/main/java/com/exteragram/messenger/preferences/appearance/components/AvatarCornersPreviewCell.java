@@ -15,7 +15,6 @@ import com.exteragram.messenger.preferences.components.AltSeekbar;
 import com.exteragram.messenger.preferences.components.CustomPreferenceCell;
 import com.exteragram.messenger.preferences.components.PreviewBackgroundDrawable;
 import com.exteragram.messenger.preferences.components.PreviewColors;
-import com.google.android.exoplayer2.util.Consumer;
 import java.util.ArrayList;
 import java.util.Objects;
 import org.telegram.messenger.AndroidUtilities;
@@ -24,6 +23,7 @@ import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.DialogCell;
@@ -67,7 +67,7 @@ public class AvatarCornersPreviewCell extends FrameLayout implements CustomPrefe
         setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
         int i2 = UserConfig.selectedAccount;
         final MessagesController messagesController = MessagesController.getInstance(i2);
-        FrameLayout frameLayout = new FrameLayout(context) { 
+        FrameLayout frameLayout = new FrameLayout(context) {
             @Override // android.view.ViewGroup, android.view.View
             public void dispatchDraw(Canvas canvas) {
                 super.dispatchDraw(canvas);
@@ -85,7 +85,7 @@ public class AvatarCornersPreviewCell extends FrameLayout implements CustomPrefe
         Mode mode2 = Mode.REAL;
         if (mode == mode2) {
             ScaleStateListAnimator.apply(frameLayout, 0.03f, 1.5f);
-            frameLayout.setOnClickListener(new View.OnClickListener() { 
+            frameLayout.setOnClickListener(new View.OnClickListener() {
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
                     messagesController.openByUserName("exteraGram", baseFragment, 1);
@@ -94,10 +94,10 @@ public class AvatarCornersPreviewCell extends FrameLayout implements CustomPrefe
         }
         frameLayout.setWillNotDraw(false);
         frameLayout.setBackground(new PreviewBackgroundDrawable());
-        AltSeekbar altSeekbar = new AltSeekbar(context, new AltSeekbar.OnDrag() { 
-            @Override 
+        AltSeekbar altSeekbar = new AltSeekbar(context, new AltSeekbar.OnDrag() {
+            @Override // com.exteragram.messenger.preferences.components.AltSeekbar.OnDrag
             public final void run(float f) {
-                AvatarCornersPreviewCell.this.lambda$new$1(baseFragment, f);
+                this.f$0.lambda$new$1(baseFragment, f);
             }
         }, 0, 28, LocaleController.getString(R.string.AvatarCorners), LocaleController.getString(R.string.AvatarCornersLeft), LocaleController.getString(R.string.AvatarCornersRight));
         this.seekBar = altSeekbar;
@@ -138,28 +138,28 @@ public class AvatarCornersPreviewCell extends FrameLayout implements CustomPrefe
         this.dialogCell = dialogCell;
         dialogCell.isForChannelSubscriberCell = true;
         dialogCell.setDialogCellDelegate(new DialogCell.DialogCellDelegate() {
-            @Override
+            @Override // org.telegram.ui.Cells.DialogCell.DialogCellDelegate
             public boolean canClickButtonInside() {
                 return false;
             }
 
-            @Override
+            @Override // org.telegram.ui.Cells.DialogCell.DialogCellDelegate
             public void onButtonClicked(DialogCell dialogCell2) {
             }
 
-            @Override
+            @Override // org.telegram.ui.Cells.DialogCell.DialogCellDelegate
             public void onButtonLongPress(DialogCell dialogCell2) {
             }
 
-            @Override
+            @Override // org.telegram.ui.Cells.DialogCell.DialogCellDelegate
             public void openHiddenStories() {
             }
 
-            @Override
+            @Override // org.telegram.ui.Cells.DialogCell.DialogCellDelegate
             public void openStory(DialogCell dialogCell2, Runnable runnable) {
             }
 
-            @Override
+            @Override // org.telegram.ui.Cells.DialogCell.DialogCellDelegate
             public void showChatPreview(DialogCell dialogCell2) {
             }
         });
@@ -172,10 +172,10 @@ public class AvatarCornersPreviewCell extends FrameLayout implements CustomPrefe
         }
         this.loadingChannel = true;
         this.loadingMessages = true;
-        messagesController.getUserNameResolver().resolve("exteraGram", new Consumer() {
-            @Override
-            public final void accept(Object obj) {
-                AvatarCornersPreviewCell.this.lambda$initRealMode$2((Long) obj);
+        messagesController.getUserNameResolver().resolve("exteraGram", new Utilities.Callback() {
+            @Override // org.telegram.messenger.Utilities.Callback
+            public final void run(Object obj) {
+                this.f$0.lambda$initRealMode$2((Long) obj);
             }
         });
     }
@@ -288,15 +288,15 @@ public class AvatarCornersPreviewCell extends FrameLayout implements CustomPrefe
         this.currentDialogId = j;
         this.messagesLoadingAlpha.set(1.0f, true);
         this.fetcher.fetch(j, 0);
-        this.fetcher.subscribe(new Runnable() { 
+        this.fetcher.subscribe(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                AvatarCornersPreviewCell.this.lambda$setDialogId$3(j, z);
+                this.f$0.lambda$setDialogId$3(j, z);
             }
         });
     }
 
-    public /* synthetic */ void lambda$setDialogId$3(long j, boolean z) {
+    public void lambda$setDialogId$3(long j, boolean z) {
         if (this.dialogCell != null && this.currentDialogId == j) {
             ArrayList<MessageObject> arrayList = this.fetcher.messageObjects;
             if (arrayList == null || arrayList.isEmpty()) {
@@ -356,8 +356,8 @@ public class AvatarCornersPreviewCell extends FrameLayout implements CustomPrefe
         }
     }
 
-    @Override 
-    public boolean equals(Object obj) {
+    @Override // com.exteragram.messenger.preferences.components.CustomPreferenceCell
+    public boolean isSameCell(Object obj) {
         if (this == obj) {
             return true;
         }

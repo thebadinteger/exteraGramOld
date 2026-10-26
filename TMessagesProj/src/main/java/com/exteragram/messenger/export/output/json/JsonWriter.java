@@ -25,7 +25,6 @@ import com.exteragram.messenger.export.output.OutputFile;
 import com.exteragram.messenger.export.output.html.HtmlWriter;
 import java.util.ArrayList;
 import okhttp3.internal.url._UrlKt;
-import org.scilab.forge.jlatexmath.TeXSymbolParser;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.TLRPC;
@@ -52,12 +51,12 @@ public class JsonWriter extends AbstractWriter {
         return (str == null || str.isEmpty()) ? "null" : JsonContext.SerializeString(str);
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public String mainFilePath() {
         return this._settings.path + "/result.json";
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result start(ExportSettings exportSettings, OutputFile.Stats stats) {
         this._settings = exportSettings;
         this._stats = stats;
@@ -70,7 +69,7 @@ public class JsonWriter extends AbstractWriter {
         return this._summary.writeBlock(pushNesting(Boolean.TRUE, this._summary) + prepareObjectItemStart("about", this._summary) + JsonContext.SerializeString("Here is the data you requested. Remember: Telegram is ad free, it doesn't use your data for ad targeting and doesn't sell it to others. Telegram only keeps the information it needs to function as a secure and feature-rich cloud service.\\n\\nCheck out Settings > Privacy & Security on Telegram's mobile apps for the relevant settings."));
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result writePersonal(ApiWrap$ExportPersonalInfo apiWrap$ExportPersonalInfo) {
         ApiWrap$ContactInfo apiWrap$ContactInfo = apiWrap$ExportPersonalInfo.user.info;
         JsonContext jsonContext = this._summary;
@@ -80,7 +79,7 @@ public class JsonWriter extends AbstractWriter {
         return jsonContext.writeBlock(sb.toString());
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result writeDialogsStart(ApiWrap$DialogsInfo apiWrap$DialogsInfo) {
         StringBuilder sb = new StringBuilder(prepareArrayItemStart(this._summary));
         JsonContext jsonContext = this._summary;
@@ -120,7 +119,7 @@ public class JsonWriter extends AbstractWriter {
         return this._summary.writeBlock(sb.toString());
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result writeDialogStart(ApiWrap$DialogInfo apiWrap$DialogInfo) {
         String str;
         this._chatSummary = new JsonContext(fileWithRelativePath(apiWrap$DialogInfo.relativePath + "info.json"));
@@ -181,12 +180,12 @@ public class JsonWriter extends AbstractWriter {
         if (type != ApiWrap$DialogInfo.Type.Self && type != ApiWrap$DialogInfo.Type.Replies && type != ApiWrap$DialogInfo.Type.VerifyCodes) {
             sb.append(prepareObjectItemStart("name", this._chatSummary) + StringAllowNull(apiWrap$DialogInfo.name));
         }
-        sb.append(prepareObjectItemStart(TeXSymbolParser.TYPE_ATTR, this._chatSummary) + StringAllowNull(str));
+        sb.append(prepareObjectItemStart("type", this._chatSummary) + StringAllowNull(str));
         sb.append(prepareObjectItemStart("id", this._chatSummary) + apiWrap$DialogInfo.peerId);
         return this._chatSummary.writeBlock(sb.toString());
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result writeDialogSlice(ApiWrap$MessagesSlice apiWrap$MessagesSlice) {
         int i = this._messagesCount;
         int i2 = i > 0 ? (i - 1) / 100 : 0;
@@ -209,18 +208,18 @@ public class JsonWriter extends AbstractWriter {
         return AbstractWriter.Result.Success();
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result writeDialogEnd() {
         this._chatSummary.writeBlock(prepareObjectItemStart("msgsCount", this._chatSummary) + this._messagesCount);
         return this._chatSummary.writeBlock(popNesting(this._chatSummary));
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result writeDialogsEnd() {
         return AbstractWriter.Result.Success();
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result writeSessionsList(ApiWrap$SessionsList apiWrap$SessionsList) {
         this._sessions = new JsonContext(fileWithRelativePath("sessions.json"));
         AbstractWriter.Result resultWriteSessions = writeSessions(apiWrap$SessionsList);
@@ -231,12 +230,12 @@ public class JsonWriter extends AbstractWriter {
         return !resultWriteWebSessions.isSuccess() ? resultWriteWebSessions : AbstractWriter.Result.Success();
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result writeUserpicsStart(ApiWrap$UserpicsInfo apiWrap$UserpicsInfo) {
         return this._summary.writeBlock(prepareObjectItemStart("profile_pictures", this._summary) + pushNesting(Boolean.FALSE, this._summary));
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result writeUserpicsSlice(ArrayList<HtmlWriter.Photo> arrayList) {
         String str;
         StringBuilder sb = new StringBuilder();
@@ -260,6 +259,7 @@ public class JsonWriter extends AbstractWriter {
                         throw new IncompatibleClassChangeError();
                     }
                     throw new IllegalStateException("Skip reason while writing photo path.");
+                    return null;
                 }
                 str = apiWrap$File.relativePath;
             }
@@ -271,9 +271,9 @@ public class JsonWriter extends AbstractWriter {
         return this._summary.writeBlock(sb.toString());
     }
 
-    public static /* synthetic */ class AnonymousClass2 {
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$DialogInfo$Type;
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$File$SkipReason;
+    public static class AnonymousClass2 {
+        static final int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$DialogInfo$Type;
+        static final int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$File$SkipReason;
 
         static {
             int[] iArr = new int[ApiWrap$File.SkipReason.values().length];
@@ -347,19 +347,19 @@ public class JsonWriter extends AbstractWriter {
         }
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result writeUserpicsEnd() {
         JsonContext jsonContext = this._summary;
         return jsonContext.writeBlock(popNesting(jsonContext));
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result writeStoriesStart(int i) {
         String strPrepareObjectItemStart = prepareObjectItemStart("stories", this._stories);
         return this._stories.writeBlock(strPrepareObjectItemStart + pushNesting(Boolean.FALSE, this._stories));
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result writeStoriesSlice(ApiWrap$StoriesSlice apiWrap$StoriesSlice) {
         String str;
         if (apiWrap$StoriesSlice.list.isEmpty()) {
@@ -387,6 +387,7 @@ public class JsonWriter extends AbstractWriter {
                         throw new IncompatibleClassChangeError();
                     }
                     throw new IllegalStateException("date limited skip reason while writing story path");
+                    return null;
                 }
                 str = apiWrap$FileFile.relativePath;
             }
@@ -404,12 +405,12 @@ public class JsonWriter extends AbstractWriter {
         return this._stories.writeBlock(sb.toString());
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result writeStoriesEnd() {
         return this._stories.writeBlock(popNesting(this._stories));
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result writeContactsList(ApiWrap$ContactsList apiWrap$ContactsList) {
         AbstractWriter.Result resultWriteSavedContacts = writeSavedContacts(apiWrap$ContactsList);
         if (!resultWriteSavedContacts.isSuccess()) {
@@ -419,7 +420,7 @@ public class JsonWriter extends AbstractWriter {
         return !resultWriteFrequentContacts.isSuccess() ? resultWriteFrequentContacts : AbstractWriter.Result.Success();
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result writeOtherData(ApiWrap$File apiWrap$File) {
         OutputFile outputFileFileWithRelativePath = fileWithRelativePath(apiWrap$File.relativePath);
         String fileContent = FileManager.readFileContent(outputFileFileWithRelativePath._file);
@@ -505,8 +506,8 @@ public class JsonWriter extends AbstractWriter {
         sb.append(JsonContext.SerializeString("_environment.aboutFrequent"));
         sb.append(prepareObjectItemStart("list", this._contacts));
         sb.append(pushNesting(Boolean.FALSE, this._contacts));
-        Utilities.Callback2<ArrayList<ApiWrap$TopPeer>, String> callback2 = new Utilities.Callback2<ArrayList<ApiWrap$TopPeer>, String>() { 
-            @Override 
+        Utilities.Callback2<ArrayList<ApiWrap$TopPeer>, String> callback2 = new Utilities.Callback2<ArrayList<ApiWrap$TopPeer>, String>() {
+            @Override // org.telegram.messenger.Utilities.Callback2
             public void run(ArrayList<ApiWrap$TopPeer> arrayList, String str) {
                 String str2;
                 int size = arrayList.size();
@@ -538,7 +539,7 @@ public class JsonWriter extends AbstractWriter {
                     StringBuilder sb2 = sb;
                     JsonWriter jsonWriter = JsonWriter.this;
                     sb2.append(jsonWriter.prepareArrayItemStart(jsonWriter._contacts));
-                    sb.append(JsonContext.SerializeObject(JsonWriter.this._contacts, new Pair("id", String.valueOf(apiWrap$TopPeer2.peer.id())), new Pair("category", JsonContext.SerializeString(str)), new Pair(TeXSymbolParser.TYPE_ATTR, JsonContext.SerializeString(str2)), new Pair("name", JsonWriter.StringAllowNull(apiWrap$TopPeer2.peer.name())), new Pair("rating", String.valueOf(apiWrap$TopPeer2.rating))));
+                    sb.append(JsonContext.SerializeObject(JsonWriter.this._contacts, new Pair("id", String.valueOf(apiWrap$TopPeer2.peer.id())), new Pair("category", JsonContext.SerializeString(str)), new Pair("type", JsonContext.SerializeString(str2)), new Pair("name", JsonWriter.StringAllowNull(apiWrap$TopPeer2.peer.name())), new Pair("rating", String.valueOf(apiWrap$TopPeer2.rating))));
                 }
             }
         };
@@ -554,7 +555,7 @@ public class JsonWriter extends AbstractWriter {
         return AbstractWriter.Result.Success();
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.export.output.AbstractWriter
     public AbstractWriter.Result finish() {
         if (this._settings.onlySinglePeer()) {
             return AbstractWriter.Result.Success();

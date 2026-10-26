@@ -1,6 +1,6 @@
 package com.exteragram.messenger.export.api;
 
-import com.exteragram.messenger.utils.RecordTag;
+import com.android.tools.r8.RecordTag;
 import java.util.Objects;
 
 public final class ApiWrap$WebSession extends RecordTag {
@@ -13,7 +13,7 @@ public final class ApiWrap$WebSession extends RecordTag {
     private final String platform;
     private final String region;
 
-    private /* synthetic */ boolean $record$equals(Object obj) {
+    private boolean $record$equals(Object obj) {
         if (!(obj instanceof ApiWrap$WebSession)) {
             return false;
         }
@@ -21,7 +21,7 @@ public final class ApiWrap$WebSession extends RecordTag {
         return this.created == apiWrap$WebSession.created && this.lastActive == apiWrap$WebSession.lastActive && Objects.equals(this.botUsername, apiWrap$WebSession.botUsername) && Objects.equals(this.domain, apiWrap$WebSession.domain) && Objects.equals(this.browser, apiWrap$WebSession.browser) && Objects.equals(this.platform, apiWrap$WebSession.platform) && Objects.equals(this.ip, apiWrap$WebSession.ip) && Objects.equals(this.region, apiWrap$WebSession.region);
     }
 
-    private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+    private Object[] $record$getFieldsAsObjects() {
         return new Object[]{this.botUsername, this.domain, this.browser, this.platform, Integer.valueOf(this.created), Integer.valueOf(this.lastActive), this.ip, this.region};
     }
 
@@ -57,7 +57,7 @@ public final class ApiWrap$WebSession extends RecordTag {
     }
 
     public final int hashCode() {
-        return java.util.Objects.hash(this.created, this.lastActive, this.botUsername, this.domain, this.browser, this.platform, this.ip, this.region);
+        return ApiWrap$java.util.Objects.hash(this.created, this.lastActive, this.botUsername, this.domain, this.browser, this.platform, this.ip, this.region);
     }
 
     public String ip() {

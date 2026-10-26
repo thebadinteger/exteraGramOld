@@ -11,7 +11,7 @@ public enum CameraType {
     CAMERA_2,
     CAMERA_X;
 
-    private static final /* synthetic */ EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
+    private static final EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
 
     public static EnumEntries<CameraType> getEntries() {
         return $ENTRIES;

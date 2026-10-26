@@ -4,6 +4,7 @@ import android.text.TextUtils;
 import java.nio.charset.StandardCharsets;
 import kotlin.UByte;
 import okhttp3.internal.url._UrlKt;
+import org.telegram.messenger.FileLog;
 
 public abstract class InvisibleEncryptor {
     private static String toStr(int i) {
@@ -34,7 +35,7 @@ public abstract class InvisibleEncryptor {
             }
             return "\u2001\u2002" + android.text.TextUtils.join("\u2000", strArr);
         } catch (Exception e) {
-            e.printStackTrace();
+            FileLog.e(e);
             return str;
         }
     }
@@ -49,7 +50,7 @@ public abstract class InvisibleEncryptor {
             }
             return new String(bArr, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            e.printStackTrace();
+            FileLog.e(e);
             return str;
         }
     }

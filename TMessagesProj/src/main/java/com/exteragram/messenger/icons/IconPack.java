@@ -20,7 +20,7 @@ public final /* data */ class IconPack {
     private final SparseIntArray preinstalledMap;
     private final String version;
 
-    public static /* synthetic */ IconPack copy$default(IconPack iconPack, String str, String str2, String str3, String str4, Map map, SparseIntArray sparseIntArray, File file, int i, Object obj) {
+    public static IconPack copy$default(IconPack iconPack, String str, String str2, String str3, String str4, Map map, SparseIntArray sparseIntArray, File file, int i, Object obj) {
         if ((i & 1) != 0) {
             str = iconPack.id;
         }
@@ -73,7 +73,7 @@ public final /* data */ class IconPack {
     }
 
     public String toString() {
-        return "IconPack(id=" + this.id + ", name=" + this.name + ", author=" + this.author + ", version=" + this.version + ", icons=" + this.icons + ", preinstalledMap=" + this.preinstalledMap + ", location=" + this.location + ')';
+        return "IconPack(id=" + this.id + ", name=" + this.name + ", author=" + this.author + ", version=" + this.version + ", icons=" + this.icons + ", preinstalledMap=" + this.preinstalledMap + ", location=" + this.location + ")";
     }
 
     public IconPack(String str, String str2, String str3, String str4, Map<String, String> map, SparseIntArray sparseIntArray, File file) {
@@ -98,7 +98,7 @@ public final /* data */ class IconPack {
         return this.author;
     }
 
-    public /* synthetic */ IconPack(String str, String str2, String str3, String str4, Map map, SparseIntArray sparseIntArray, File file, int i, DefaultConstructorMarker defaultConstructorMarker) {
+    public IconPack(String str, String str2, String str3, String str4, Map map, SparseIntArray sparseIntArray, File file, int i, DefaultConstructorMarker defaultConstructorMarker) {
         this(str, str2, str3, (i & 8) != 0 ? "1.0" : str4, (i & 16) != 0 ? MapsKt.emptyMap() : map, (i & 32) != 0 ? null : sparseIntArray, (i & 64) != 0 ? null : file);
     }
 
@@ -119,6 +119,6 @@ public final /* data */ class IconPack {
     }
 
     public final boolean isBase() {
-        return this.id != null && this.id.startsWith("base.");
+        return StringsKt.startsWith$default(this.id, "base.", false, 2, (Object) null);
     }
 }

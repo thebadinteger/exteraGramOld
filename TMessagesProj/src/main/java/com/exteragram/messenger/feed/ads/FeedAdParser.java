@@ -3,6 +3,7 @@ package com.exteragram.messenger.feed.ads;
 import android.text.TextUtils;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import org.telegram.messenger.FileLog;
 import org.telegram.tgnet.TLRPC;
@@ -160,7 +161,7 @@ abstract class FeedAdParser {
     private static Set<String> parseLocales(String str) {
         HashSet hashSet = new HashSet();
         for (String str2 : str.split(",")) {
-            String lowerCase = str2.trim().toLowerCase();
+            String lowerCase = str2.trim().toLowerCase(Locale.ROOT);
             if (!lowerCase.isEmpty()) {
                 hashSet.add(lowerCase);
             }

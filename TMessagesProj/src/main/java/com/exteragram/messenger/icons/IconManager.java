@@ -12,26 +12,25 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.Build;
-import android.text.TextUtils;
+import android.os.SystemClock;
+import android.util.LongSparseArray;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 import androidx.collection.LruCache;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.graphics.drawable.IconCompat;
-import androidx.activity.result.PickVisualMediaRequestKt;
-import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.p002activity.result.PickVisualMediaRequestKt;
+import androidx.p002activity.result.contract.ActivityResultContracts$PickVisualMedia;
 import com.caverock.androidsvg.SVG;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.IconPackType;
-import com.exteragram.messenger.export.output.FileManager;
 import com.exteragram.messenger.icons.ui.components.InstallIconPackBottomSheet;
 import com.exteragram.messenger.icons.ui.components.ReplaceIconBottomSheet;
 import com.exteragram.messenger.icons.ui.picker.IconPickerController;
-import com.exteragram.messenger.utils.chats.ChatUtils;
+import com.exteragram.messenger.plugins.PluginsConstants;
 import com.sun.jna.Callback;
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.UUID;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -39,6 +38,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import kotlin.Metadata;
 import kotlin.Result;
 import kotlin.ResultKt;
@@ -47,8 +48,6 @@ import kotlin.collections.CollectionsKt;
 import kotlin.collections.MapsKt;
 import kotlin.collections.SetsKt;
 import kotlin.coroutines.Continuation;
-import kotlin.coroutines.EmptyCoroutineContext;
-import kotlinx.coroutines.CoroutineStart;
 import kotlin.coroutines.intrinsics.IntrinsicsKt;
 import kotlin.coroutines.jvm.internal.Boxing;
 import kotlin.coroutines.jvm.internal.DebugMetadata;
@@ -57,7 +56,6 @@ import kotlin.coroutines.jvm.internal.SuspendLambda;
 import kotlin.enums.EnumEntries;
 import kotlin.enums.EnumEntriesKt;
 import kotlin.io.CloseableKt;
-import kotlin.io.FilesKt;
 import kotlin.jvm.JvmOverloads;
 import kotlin.jvm.JvmStatic;
 import kotlin.jvm.functions.Function1;
@@ -67,6 +65,7 @@ import kotlin.jvm.internal.SourceDebugExtension;
 import kotlin.sequences.SequencesKt;
 import kotlin.text.StringsKt;
 import kotlinx.coroutines.BuildersKt;
+import kotlinx.coroutines.BuildersKt__Builders_commonKt;
 import kotlinx.coroutines.CoroutineDispatcher;
 import kotlinx.coroutines.CoroutineScope;
 import kotlinx.coroutines.CoroutineScopeKt;
@@ -76,8 +75,6 @@ import kotlinx.coroutines.MainCoroutineDispatcher;
 import kotlinx.coroutines.SupervisorKt;
 import okhttp3.internal.url._UrlKt;
 import org.simplifiles.SimpliFiles;
-import org.simplifiles.files.OverwritePolicy;
-import org.simplifiles.files.SimpliDirectory;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
@@ -85,41 +82,98 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.INavigationLayout;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.LaunchActivity;
 
-@Metadata(d1 = {"\u0000\u008c\u0002\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0002\n\u0002\u0010\b\n\u0002\b\u0002\n\u0002\u0010\t\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000e\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0010\u0002\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0002\b\u0002\n\u0002\u0010 \n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0007\n\u0002\u0018\u0002\n\u0002\b\u001c\n\u0002\u0018\u0002\n\u0002\b\b\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\"\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\t\n\u0002\b\u0003\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0002\b\u0005*\u0004\u0091\u0001\u0094\u0001\bÆ\u0002\u0018\u00002\u00020\u0001:\u0004¤\u0001¥\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\u001f\u0010\b\u001a\u00020\u00072\u0006\u0010\u0005\u001a\u00020\u00042\u0006\u0010\u0006\u001a\u00020\u0004H\u0002¢\u0006\u0004\b\b\u0010\tJ/\u0010\u000f\u001a\u00020\u000e2\u0006\u0010\u000b\u001a\u00020\n2\u0006\u0010\r\u001a\u00020\f2\u0006\u0010\u0005\u001a\u00020\u00042\u0006\u0010\u0006\u001a\u00020\u0004H\u0002¢\u0006\u0004\b\u000f\u0010\u0010J\u001f\u0010\u0013\u001a\u00020\u00122\u0006\u0010\u0011\u001a\u00020\f2\u0006\u0010\u0005\u001a\u00020\u0004H\u0002¢\u0006\u0004\b\u0013\u0010\u0014J?\u0010\u001a\u001a\u00020\u00192\u0006\u0010\u0015\u001a\u00020\u00072\u0006\u0010\u0016\u001a\u00020\f2\u0006\u0010\u000b\u001a\u00020\n2\u0006\u0010\u0005\u001a\u00020\u00042\u0006\u0010\u0006\u001a\u00020\u00042\u0006\u0010\u0018\u001a\u00020\u0017H\u0002¢\u0006\u0004\b\u001a\u0010\u001bJ\u001d\u0010\u001e\u001a\u00020\u00192\f\u0010\u001d\u001a\b\u0012\u0004\u0012\u00020\n0\u001cH\u0002¢\u0006\u0004\b\u001e\u0010\u001fJ\u000f\u0010 \u001a\u00020\u0012H\u0002¢\u0006\u0004\b \u0010\u0003J%\u0010#\u001a\u00020\"2\u0006\u0010\u0015\u001a\u00020\u00072\f\u0010!\u001a\b\u0012\u0004\u0012\u00020\n0\u001cH\u0002¢\u0006\u0004\b#\u0010$J!\u0010'\u001a\u0004\u0018\u00010&2\u0006\u0010\u000b\u001a\u00020\n2\u0006\u0010%\u001a\u00020\fH\u0002¢\u0006\u0004\b'\u0010(J\u0017\u0010)\u001a\u00020\u00122\u0006\u0010\u0015\u001a\u00020\u0007H\u0002¢\u0006\u0004\b)\u0010*JM\u00100\u001a\u0004\u0018\u00010\u00172\u0006\u0010\u000b\u001a\u00020\n2\u0006\u0010\u0005\u001a\u00020\u00042\u0006\u0010\u0006\u001a\u00020\u00042\f\u0010-\u001a\b\u0018\u00010+R\u00020,2\n\b\u0002\u0010.\u001a\u0004\u0018\u00010\f2\b\b\u0002\u0010/\u001a\u00020\u0019H\u0002¢\u0006\u0004\b0\u00101J\u000f\u00103\u001a\u000202H\u0007¢\u0006\u0004\b3\u00104J\u000f\u00106\u001a\u000205H\u0007¢\u0006\u0004\b6\u00107J\u0017\u0010:\u001a\u00020\f2\u0006\u00109\u001a\u000208H\u0002¢\u0006\u0004\b:\u0010;J\u001f\u0010>\u001a\u00020\u00122\u0006\u0010=\u001a\u00020<2\u0006\u00109\u001a\u000208H\u0002¢\u0006\u0004\b>\u0010?J\u0015\u0010A\u001a\u00020\u00192\u0006\u0010@\u001a\u00020\f¢\u0006\u0004\bA\u0010BJ\r\u0010C\u001a\u00020\u0012¢\u0006\u0004\bC\u0010\u0003J-\u0010E\u001a\u0004\u0018\u00010D2\u0006\u0010\u0005\u001a\u00020\u00042\u0006\u0010\u0006\u001a\u00020\u00042\f\u0010-\u001a\b\u0018\u00010+R\u00020,¢\u0006\u0004\bE\u0010FJ\u001f\u0010G\u001a\u0004\u0018\u00010D2\u0006\u0010\u000b\u001a\u00020\n2\u0006\u0010\u0005\u001a\u00020\u0004¢\u0006\u0004\bG\u0010HJ5\u0010K\u001a\u0004\u0018\u00010\u00172\u0006\u0010I\u001a\u00020\f2\u0006\u0010J\u001a\u00020\u00042\u0006\u0010\u0006\u001a\u00020\u00042\f\u0010-\u001a\b\u0018\u00010+R\u00020,¢\u0006\u0004\bK\u0010LJ/\u0010O\u001a\u00020\u00122\u0006\u0010\u0011\u001a\u00020\f2\u0006\u0010\u0005\u001a\u00020\u00042\u0006\u0010M\u001a\u00020&2\b\u0010N\u001a\u0004\u0018\u00010\f¢\u0006\u0004\bO\u0010PJ\u001d\u0010Q\u001a\u00020\u00122\u0006\u0010\u0011\u001a\u00020\f2\u0006\u0010\u0005\u001a\u00020\u0004¢\u0006\u0004\bQ\u0010\u0014J\u0015\u0010R\u001a\u00020\u00042\u0006\u0010\u0005\u001a\u00020\u0004¢\u0006\u0004\bR\u0010SJ\u0017\u0010U\u001a\u00020\u00122\b\b\u0002\u0010T\u001a\u00020\u0019¢\u0006\u0004\bU\u0010VJ\u0017\u0010W\u001a\u00020\u00122\b\u0010\u0011\u001a\u0004\u0018\u00010\f¢\u0006\u0004\bW\u0010XJ\u0017\u0010Y\u001a\u0004\u0018\u00010\n2\u0006\u0010\u0011\u001a\u00020\f¢\u0006\u0004\bY\u0010ZJ\u0017\u0010[\u001a\u0004\u0018\u00010&2\u0006\u0010\u0011\u001a\u00020\f¢\u0006\u0004\b[\u0010\\J\u0015\u0010^\u001a\u00020\u00192\u0006\u0010]\u001a\u00020\n¢\u0006\u0004\b^\u0010_J\u0015\u0010`\u001a\u00020\u00122\u0006\u0010\u0011\u001a\u00020\f¢\u0006\u0004\b`\u0010XJ\u0017\u0010c\u001a\u00020\u00192\b\u0010b\u001a\u0004\u0018\u00010a¢\u0006\u0004\bc\u0010dJ\u001d\u0010e\u001a\u00020\u00122\u0006\u0010=\u001a\u00020<2\u0006\u0010b\u001a\u00020a¢\u0006\u0004\be\u0010fJ\u001d\u0010e\u001a\u00020\u00122\u0006\u0010=\u001a\u00020<2\u0006\u0010I\u001a\u00020\f¢\u0006\u0004\be\u0010gJ'\u0010l\u001a\u00020\u00192\u0006\u0010h\u001a\u00020\u00042\u0006\u0010i\u001a\u00020\u00042\b\u0010k\u001a\u0004\u0018\u00010j¢\u0006\u0004\bl\u0010mJ3\u0010t\u001a\u00020\u00122\u0006\u0010o\u001a\u00020n2\u0006\u0010p\u001a\u00020\u00192\u0014\u0010s\u001a\u0010\u0012\u0006\u0012\u0004\u0018\u00010r\u0012\u0004\u0012\u00020\u00120q¢\u0006\u0004\bt\u0010uJ+\u0010x\u001a\u00020\u00122\u0006\u0010w\u001a\u00020v2\u0006\u0010\u0005\u001a\u00020\u00042\n\b\u0002\u0010]\u001a\u0004\u0018\u00010\nH\u0007¢\u0006\u0004\bx\u0010yJ\u0015\u0010|\u001a\u00020\u00192\u0006\u0010{\u001a\u00020z¢\u0006\u0004\b|\u0010}R\u0015\u0010\u007f\u001a\u00020~8\u0002X\u0082\u0004¢\u0006\u0007\n\u0005\b\u007f\u0010\u0080\u0001R\u0018\u0010\u0082\u0001\u001a\u00030\u0081\u00018\u0002X\u0082\u0004¢\u0006\b\n\u0006\b\u0082\u0001\u0010\u0083\u0001R\u001e\u0010\u0085\u0001\u001a\t\u0012\u0004\u0012\u00020\f0\u0084\u00018\u0002X\u0082\u0004¢\u0006\b\n\u0006\b\u0085\u0001\u0010\u0086\u0001R)\u0010\u0088\u0001\u001a\u000f\u0012\u0004\u0012\u00020\f\u0012\u0004\u0012\u00020\u00040\u0087\u00018\u0006¢\u0006\u0010\n\u0006\b\u0088\u0001\u0010\u0089\u0001\u001a\u0006\b\u008a\u0001\u0010\u008b\u0001R)\u0010\u008c\u0001\u001a\u000f\u0012\u0004\u0012\u00020\u0004\u0012\u0004\u0012\u00020\f0\u0087\u00018\u0006¢\u0006\u0010\n\u0006\b\u008c\u0001\u0010\u0089\u0001\u001a\u0006\b\u008d\u0001\u0010\u008b\u0001R\u0017\u0010\u008e\u0001\u001a\u00020\u00048\u0002X\u0082\u0004¢\u0006\b\n\u0006\b\u008e\u0001\u0010\u008f\u0001R\u0017\u0010\u0090\u0001\u001a\u00020\u00048\u0002X\u0082\u0004¢\u0006\b\n\u0006\b\u0090\u0001\u0010\u008f\u0001R\u001a\u0010\u0092\u0001\u001a\u00030\u0091\u00018\u0002@\u0002X\u0082\u000e¢\u0006\b\n\u0006\b\u0092\u0001\u0010\u0093\u0001R\u001a\u0010\u0095\u0001\u001a\u00030\u0094\u00018\u0002@\u0002X\u0082\u000e¢\u0006\b\n\u0006\b\u0095\u0001\u0010\u0096\u0001R\u001e\u0010\u0098\u0001\u001a\t\u0012\u0004\u0012\u00020\n0\u0097\u00018\u0002X\u0082\u0004¢\u0006\b\n\u0006\b\u0098\u0001\u0010\u0099\u0001R$\u0010\u009a\u0001\u001a\u000f\u0012\u0004\u0012\u00020\f\u0012\u0004\u0012\u00020\n0\u0087\u00018\u0002X\u0082\u0004¢\u0006\b\n\u0006\b\u009a\u0001\u0010\u0089\u0001R\u001c\u0010\u009c\u0001\u001a\u0005\u0018\u00010\u009b\u00018\u0002@\u0002X\u0082\u000e¢\u0006\b\n\u0006\b\u009c\u0001\u0010\u009d\u0001R\u001c\u0010\u009e\u0001\u001a\u0005\u0018\u00010\u009b\u00018\u0002@\u0002X\u0082\u000e¢\u0006\b\n\u0006\b\u009e\u0001\u0010\u009d\u0001R\u0019\u0010\u009f\u0001\u001a\u00020\u00078\u0002@\u0002X\u0082\u000e¢\u0006\b\n\u0006\b\u009f\u0001\u0010 \u0001R,\u0010¢\u0001\u001a\u0017\u0012\u0012\u0012\u0010\u0012\u0006\u0012\u0004\u0018\u00010r\u0012\u0004\u0012\u00020\u00120q0¡\u00018\u0002X\u0082\u0004¢\u0006\b\n\u0006\b¢\u0001\u0010£\u0001¨\u0006¦\u0001"}, d2 = {"Lcom/exteragram/messenger/icons/IconManager;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", _UrlKt.FRAGMENT_ENCODE_SET, "resId", "density", _UrlKt.FRAGMENT_ENCODE_SET, "resolvedCacheKey", "(II)J", "Lcom/exteragram/messenger/icons/IconPack;", "pack", _UrlKt.FRAGMENT_ENCODE_SET, "fileName", "Lcom/exteragram/messenger/icons/IconManager$SourceCacheKey;", "sourceCacheKey", "(Lcom/exteragram/messenger/icons/IconPack;Ljava/lang/String;II)Lcom/exteragram/messenger/icons/IconManager$SourceCacheKey;", "packId", _UrlKt.FRAGMENT_ENCODE_SET, "invalidateIconCaches", "(Ljava/lang/String;I)V", "generation", "resourceName", "Landroid/graphics/Bitmap;", "bitmap", _UrlKt.FRAGMENT_ENCODE_SET, "publishBitmap", "(JLjava/lang/String;Lcom/exteragram/messenger/icons/IconPack;IILandroid/graphics/Bitmap;)Z", _UrlKt.FRAGMENT_ENCODE_SET, "packs", "syncInstalledCustomPacks", "(Ljava/util/List;)Z", "rebuildOwnerMap", "newActivePacks", "Lcom/exteragram/messenger/icons/IconManager$ActivePacksUpdate;", "updateActivePacks", "(JLjava/util/List;)Lcom/exteragram/messenger/icons/IconManager$ActivePacksUpdate;", "iconFileName", "Ljava/io/File;", "resolvePackIconFile", "(Lcom/exteragram/messenger/icons/IconPack;Ljava/lang/String;)Ljava/io/File;", "launchPrewarm", "(J)V", "Landroid/content/res/Resources$Theme;", "Landroid/content/res/Resources;", "theme", "knownResourceName", "cacheResult", "getPackIconBitmap", "(Lcom/exteragram/messenger/icons/IconPack;IILandroid/content/res/Resources$Theme;Ljava/lang/String;Z)Landroid/graphics/Bitmap;", "Landroidx/core/graphics/drawable/IconCompat;", "getNotificationIcon", "()Landroidx/core/graphics/drawable/IconCompat;", "Landroid/graphics/drawable/Icon;", "getNotificationSystemIcon", "()Landroid/graphics/drawable/Icon;", "Lcom/exteragram/messenger/icons/IconPackStorageError;", "", "iconPackErrorText", "(Lcom/exteragram/messenger/icons/IconPackStorageError;)Ljava/lang/String;", "Lorg/telegram/ui/ActionBar/BaseFragment;", "baseFragment", "showIconPackError", "(Lorg/telegram/ui/ActionBar/BaseFragment;Lcom/exteragram/messenger/icons/IconPackStorageError;)V", "name", "isBlacklisted", "(Ljava/lang/String;)Z", "prefetchCustomPacks", "Landroid/graphics/drawable/Drawable;", "getDrawable", "(IILandroid/content/res/Resources$Theme;)Landroid/graphics/drawable/Drawable;", "getPackIconDrawable", "(Lcom/exteragram/messenger/icons/IconPack;I)Landroid/graphics/drawable/Drawable;", "path", "originalResId", "createBitmapFromFile", "(Ljava/lang/String;IILandroid/content/res/Resources$Theme;)Landroid/graphics/Bitmap;", "tempFile", "originalName", "saveCustomIcon", "(Ljava/lang/String;ILjava/io/File;Ljava/lang/String;)V", "resetCustomIcon", "getIcon", "(I)I", "update", "initialize", "(Z)V", "setActiveCustomPack", "(Ljava/lang/String;)V", "findPackById", "(Ljava/lang/String;)Lcom/exteragram/messenger/icons/IconPack;", "bundlePackBlocking", "(Ljava/lang/String;)Ljava/io/File;", "iconPack", "saveIconPackMetadata", "(Lcom/exteragram/messenger/icons/IconPack;)Z", "deletePack", "Lorg/telegram/messenger/MessageObject;", "messageObject", "isIconPack", "(Lorg/telegram/messenger/MessageObject;)Z", "handleIconPack", "(Lorg/telegram/ui/ActionBar/BaseFragment;Lorg/telegram/messenger/MessageObject;)V", "(Lorg/telegram/ui/ActionBar/BaseFragment;Ljava/lang/String;)V", "requestCode", "resultCode", "Landroid/content/Intent;", "data", "onActivityResult", "(IILandroid/content/Intent;)Z", "Landroid/app/Activity;", "activity", "selectFromFiles", "Lkotlin/Function1;", "Landroid/net/Uri;", Callback.METHOD_NAME, "startIconPicker", "(Landroid/app/Activity;ZLkotlin/jvm/functions/Function1;)V", "Landroid/content/Context;", "context", "showReplaceAlert", "(Landroid/content/Context;ILcom/exteragram/messenger/icons/IconPack;)V", "Lcom/exteragram/messenger/IconPackType;", "basePackType", "isBasePackOnly", "(Lcom/exteragram/messenger/IconPackType;)Z", "Lkotlinx/coroutines/CoroutineScope;", "scope", "Lkotlinx/coroutines/CoroutineScope;", "Lkotlinx/coroutines/CoroutineDispatcher;", "mutationDispatcher", "Lkotlinx/coroutines/CoroutineDispatcher;", _UrlKt.FRAGMENT_ENCODE_SET, "blacklistedIcons", "Ljava/util/Set;", "Ljava/util/concurrent/ConcurrentHashMap;", "systemIcons", "Ljava/util/concurrent/ConcurrentHashMap;", "getSystemIcons", "()Ljava/util/concurrent/ConcurrentHashMap;", "systemNames", "getSystemNames", "maxMemory", "I", "cacheSize", "com/exteragram/messenger/icons/IconManager$resolvedCache$1", "resolvedCache", "Lcom/exteragram/messenger/icons/IconManager$resolvedCache$1;", "com/exteragram/messenger/icons/IconManager$sourceCache$1", "sourceCache", "Lcom/exteragram/messenger/icons/IconManager$sourceCache$1;", "Ljava/util/concurrent/CopyOnWriteArrayList;", "activePacks", "Ljava/util/concurrent/CopyOnWriteArrayList;", "iconOwnerMap", "Lkotlinx/coroutines/Job;", "initializationJob", "Lkotlinx/coroutines/Job;", "prewarmJob", "initializationGeneration", "J", "Landroid/util/SparseArray;", "resultCallbacks", "Landroid/util/SparseArray;", "SourceCacheKey", "ActivePacksUpdate", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
-@SourceDebugExtension({"SMAP\nIconManager.kt\nKotlin\n*S Kotlin\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager\n+ 2 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n+ 3 BitmapDrawable.kt\nandroidx/core/graphics/drawable/BitmapDrawableKt\n+ 4 fake.kt\nkotlin/jvm/internal/FakeKt\n+ 5 Bitmap.kt\nandroidx/core/graphics/BitmapKt\n+ 6 _Sequences.kt\nkotlin/sequences/SequencesKt___SequencesKt\n*L\n1#1,853:1\n777#2:854\n873#2,2:855\n1915#2,2:857\n777#2:859\n873#2,2:860\n1915#2,2:862\n296#2,2:880\n296#2,2:882\n2792#2,3:884\n27#3:864\n27#3:865\n27#3:866\n27#3:867\n1#4:868\n83#5,6:869\n71#5:875\n184#6,2:876\n184#6,2:878\n*S KotlinDebug\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager\n*L\n166#1:854\n166#1:855,2\n167#1:857,2\n169#1:859\n169#1:860,2\n170#1:862,2\n840#1:880,2\n842#1:882,2\n850#1:884,3\n282#1:864\n297#1:865\n306#1:866\n311#1:867\n364#1:869,6\n400#1:875\n539#1:876,2\n567#1:878,2\n*E\n"})
+@Metadata(d1 = {"\u0000®\u0002\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0002\n\u0002\u0010\b\n\u0002\b\u0002\n\u0002\u0010\t\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000e\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0010\u0002\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0002\b\u0002\n\u0002\u0010 \n\u0002\b\u0006\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0006\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\n\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0007\n\u0002\u0018\u0002\n\u0002\b\u0007\n\u0002\u0018\u0002\n\u0002\b \n\u0002\u0018\u0002\n\u0002\b\u0007\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0010\"\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0007\n\u0002\u0018\u0002\n\u0002\b\u0007*\u0002©\u0001\bÆ\u0002\u0018\u00002\u00020\u0001:\bÂ\u0001Ã\u0001Ä\u0001Å\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\u001f\u0010\b\u001a\u00020\u00072\u0006\u0010\u0005\u001a\u00020\u00042\u0006\u0010\u0006\u001a\u00020\u0004H\u0002¢\u0006\u0004\b\b\u0010\tJ/\u0010\u000f\u001a\u00020\u000e2\u0006\u0010\u000b\u001a\u00020\n2\u0006\u0010\r\u001a\u00020\f2\u0006\u0010\u0005\u001a\u00020\u00042\u0006\u0010\u0006\u001a\u00020\u0004H\u0002¢\u0006\u0004\b\u000f\u0010\u0010J\u001f\u0010\u0013\u001a\u00020\u00122\u0006\u0010\u0011\u001a\u00020\f2\u0006\u0010\u0005\u001a\u00020\u0004H\u0002¢\u0006\u0004\b\u0013\u0010\u0014J?\u0010\u001a\u001a\u00020\u00192\u0006\u0010\u0015\u001a\u00020\u00072\u0006\u0010\u0016\u001a\u00020\f2\u0006\u0010\u000b\u001a\u00020\n2\u0006\u0010\u0005\u001a\u00020\u00042\u0006\u0010\u0006\u001a\u00020\u00042\u0006\u0010\u0018\u001a\u00020\u0017H\u0002¢\u0006\u0004\b\u001a\u0010\u001bJ\u001d\u0010\u001e\u001a\u00020\u00192\f\u0010\u001d\u001a\b\u0012\u0004\u0012\u00020\n0\u001cH\u0002¢\u0006\u0004\b\u001e\u0010\u001fJ\u000f\u0010 \u001a\u00020\u0012H\u0002¢\u0006\u0004\b \u0010\u0003J\u000f\u0010!\u001a\u00020\u0012H\u0002¢\u0006\u0004\b!\u0010\u0003J%\u0010$\u001a\u00020#2\u0006\u0010\u0015\u001a\u00020\u00072\f\u0010\"\u001a\b\u0012\u0004\u0012\u00020\n0\u001cH\u0002¢\u0006\u0004\b$\u0010%J!\u0010(\u001a\u0004\u0018\u00010'2\u0006\u0010\u000b\u001a\u00020\n2\u0006\u0010&\u001a\u00020\fH\u0002¢\u0006\u0004\b(\u0010)J\u0017\u0010*\u001a\u00020\u00122\u0006\u0010\u0015\u001a\u00020\u0007H\u0002¢\u0006\u0004\b*\u0010+J)\u0010,\u001a\u0004\u0018\u00010\u00172\u0006\u0010\u000b\u001a\u00020\n2\u0006\u0010\u0005\u001a\u00020\u00042\u0006\u0010\u0006\u001a\u00020\u0004H\u0002¢\u0006\u0004\b,\u0010-JM\u00103\u001a\u0004\u0018\u00010\u00172\u0006\u0010\u000b\u001a\u00020\n2\u0006\u0010\u0005\u001a\u00020\u00042\u0006\u0010\u0006\u001a\u00020\u00042\f\u00100\u001a\b\u0018\u00010.R\u00020/2\n\b\u0002\u00101\u001a\u0004\u0018\u00010\f2\b\b\u0002\u00102\u001a\u00020\u0019H\u0002¢\u0006\u0004\b3\u00104J1\u00108\u001a\u0004\u0018\u00010\u00172\u0006\u00105\u001a\u00020\f2\u0006\u00106\u001a\u00020\u00042\u0006\u00107\u001a\u00020\u00042\u0006\u0010\u0006\u001a\u00020\u0004H\u0002¢\u0006\u0004\b8\u00109J\u000f\u0010;\u001a\u00020:H\u0007¢\u0006\u0004\b;\u0010<J\u000f\u0010>\u001a\u00020=H\u0007¢\u0006\u0004\b>\u0010?J\u0017\u0010B\u001a\u00020\f2\u0006\u0010A\u001a\u00020@H\u0002¢\u0006\u0004\bB\u0010CJ\u001f\u0010F\u001a\u00020\u00122\u0006\u0010E\u001a\u00020D2\u0006\u0010A\u001a\u00020@H\u0002¢\u0006\u0004\bF\u0010GJ\u0015\u0010I\u001a\u00020\u00192\u0006\u0010H\u001a\u00020\f¢\u0006\u0004\bI\u0010JJ\r\u0010K\u001a\u00020\u0012¢\u0006\u0004\bK\u0010\u0003J-\u0010M\u001a\u0004\u0018\u00010L2\u0006\u0010\u0005\u001a\u00020\u00042\u0006\u0010\u0006\u001a\u00020\u00042\f\u00100\u001a\b\u0018\u00010.R\u00020/¢\u0006\u0004\bM\u0010NJ\u0017\u0010O\u001a\u0004\u0018\u00010L2\u0006\u0010\u0005\u001a\u00020\u0004¢\u0006\u0004\bO\u0010PJ\u001f\u0010Q\u001a\u0004\u0018\u00010L2\u0006\u0010\u000b\u001a\u00020\n2\u0006\u0010\u0005\u001a\u00020\u0004¢\u0006\u0004\bQ\u0010RJ\u001f\u0010S\u001a\u0004\u0018\u00010L2\u0006\u0010\u000b\u001a\u00020\n2\u0006\u0010\u0005\u001a\u00020\u0004¢\u0006\u0004\bS\u0010RJ+\u0010V\u001a\u00020\u00122\u0006\u0010\u000b\u001a\u00020\n2\u0006\u0010\u0005\u001a\u00020\u00042\f\u0010U\u001a\b\u0012\u0004\u0012\u00020L0T¢\u0006\u0004\bV\u0010WJ#\u0010X\u001a\u00020\u00122\u0006\u0010\u0005\u001a\u00020\u00042\f\u0010U\u001a\b\u0012\u0004\u0012\u00020L0T¢\u0006\u0004\bX\u0010YJ+\u0010[\u001a\u00020\u00122\u0006\u0010\u0005\u001a\u00020\u00042\u0006\u0010Z\u001a\u00020\u00042\f\u0010U\u001a\b\u0012\u0004\u0012\u00020L0T¢\u0006\u0004\b[\u0010\\J5\u0010^\u001a\u0004\u0018\u00010\u00172\u0006\u00105\u001a\u00020\f2\u0006\u0010]\u001a\u00020\u00042\u0006\u0010\u0006\u001a\u00020\u00042\f\u00100\u001a\b\u0018\u00010.R\u00020/¢\u0006\u0004\b^\u0010_J/\u0010b\u001a\u00020\u00122\u0006\u0010\u0011\u001a\u00020\f2\u0006\u0010\u0005\u001a\u00020\u00042\u0006\u0010`\u001a\u00020'2\b\u0010a\u001a\u0004\u0018\u00010\f¢\u0006\u0004\bb\u0010cJ\u001d\u0010d\u001a\u00020\u00122\u0006\u0010\u0011\u001a\u00020\f2\u0006\u0010\u0005\u001a\u00020\u0004¢\u0006\u0004\bd\u0010\u0014J\u0015\u0010e\u001a\u00020\u00042\u0006\u0010\u0005\u001a\u00020\u0004¢\u0006\u0004\be\u0010fJ\u0017\u0010h\u001a\u00020\u00122\b\b\u0002\u0010g\u001a\u00020\u0019¢\u0006\u0004\bh\u0010iJ\r\u0010j\u001a\u00020\u0012¢\u0006\u0004\bj\u0010\u0003J\u0017\u0010k\u001a\u00020\u00122\b\u0010\u0011\u001a\u0004\u0018\u00010\f¢\u0006\u0004\bk\u0010lJ\u0017\u0010m\u001a\u0004\u0018\u00010\n2\u0006\u0010\u0011\u001a\u00020\f¢\u0006\u0004\bm\u0010nJ\u0017\u0010o\u001a\u0004\u0018\u00010'2\u0006\u0010\u0011\u001a\u00020\f¢\u0006\u0004\bo\u0010pJ\u0015\u0010r\u001a\u00020\u00192\u0006\u0010q\u001a\u00020\n¢\u0006\u0004\br\u0010sJ\u0015\u0010t\u001a\u00020\u00122\u0006\u0010\u0011\u001a\u00020\f¢\u0006\u0004\bt\u0010lJ\u001f\u0010w\u001a\u00020\u00192\u0006\u00105\u001a\u00020\f2\b\u0010v\u001a\u0004\u0018\u00010u¢\u0006\u0004\bw\u0010xJ\u001d\u0010y\u001a\u00020\u00122\u0006\u0010E\u001a\u00020D2\u0006\u00105\u001a\u00020\f¢\u0006\u0004\by\u0010zJ(\u0010\u007f\u001a\u00020\u00192\u0006\u0010{\u001a\u00020\u00042\u0006\u0010|\u001a\u00020\u00042\b\u0010~\u001a\u0004\u0018\u00010}¢\u0006\u0005\b\u007f\u0010\u0080\u0001J;\u0010\u0086\u0001\u001a\u00020\u00122\b\u0010\u0082\u0001\u001a\u00030\u0081\u00012\u0007\u0010\u0083\u0001\u001a\u00020\u00192\u0016\u0010U\u001a\u0012\u0012\u0007\u0012\u0005\u0018\u00010\u0085\u0001\u0012\u0004\u0012\u00020\u00120\u0084\u0001¢\u0006\u0006\b\u0086\u0001\u0010\u0087\u0001J0\u0010\u008a\u0001\u001a\u00020\u00122\b\u0010\u0089\u0001\u001a\u00030\u0088\u00012\u0006\u0010\u0005\u001a\u00020\u00042\n\b\u0002\u0010q\u001a\u0004\u0018\u00010\nH\u0007¢\u0006\u0006\b\u008a\u0001\u0010\u008b\u0001J\u001a\u0010\u008e\u0001\u001a\u00020\u00192\b\u0010\u008d\u0001\u001a\u00030\u008c\u0001¢\u0006\u0006\b\u008e\u0001\u0010\u008f\u0001R\u0018\u0010\u0091\u0001\u001a\u00030\u0090\u00018\u0002X\u0082\u0004¢\u0006\b\n\u0006\b\u0091\u0001\u0010\u0092\u0001R\u0018\u0010\u0094\u0001\u001a\u00030\u0093\u00018\u0002X\u0082\u0004¢\u0006\b\n\u0006\b\u0094\u0001\u0010\u0095\u0001R\u0018\u0010\u0096\u0001\u001a\u00030\u0093\u00018\u0002X\u0082\u0004¢\u0006\b\n\u0006\b\u0096\u0001\u0010\u0095\u0001R\u0018\u0010\u0097\u0001\u001a\u00030\u0093\u00018\u0002X\u0082\u0004¢\u0006\b\n\u0006\b\u0097\u0001\u0010\u0095\u0001R\u001e\u0010\u0099\u0001\u001a\t\u0012\u0004\u0012\u00020\f0\u0098\u00018\u0002X\u0082\u0004¢\u0006\b\n\u0006\b\u0099\u0001\u0010\u009a\u0001R)\u0010\u009c\u0001\u001a\u000f\u0012\u0004\u0012\u00020\f\u0012\u0004\u0012\u00020\u00040\u009b\u00018\u0006¢\u0006\u0010\n\u0006\b\u009c\u0001\u0010\u009d\u0001\u001a\u0006\b\u009e\u0001\u0010\u009f\u0001R\u001c\u0010¡\u0001\u001a\u0005\u0018\u00010 \u00018\u0002@\u0002X\u0082\u000e¢\u0006\b\n\u0006\b¡\u0001\u0010¢\u0001R\u0017\u0010£\u0001\u001a\u00020\u00048\u0002X\u0082\u0004¢\u0006\b\n\u0006\b£\u0001\u0010¤\u0001R\u0017\u0010¥\u0001\u001a\u00020\u00048\u0002X\u0082\u0004¢\u0006\b\n\u0006\b¥\u0001\u0010¤\u0001R\u0018\u0010§\u0001\u001a\u00030¦\u00018\u0002X\u0082\u0004¢\u0006\b\n\u0006\b§\u0001\u0010¨\u0001R\u0018\u0010ª\u0001\u001a\u00030©\u00018\u0002X\u0082\u0004¢\u0006\b\n\u0006\bª\u0001\u0010«\u0001R\u001e\u0010\u00ad\u0001\u001a\t\u0012\u0004\u0012\u00020\n0¬\u00018\u0002X\u0082\u0004¢\u0006\b\n\u0006\b\u00ad\u0001\u0010®\u0001R$\u0010¯\u0001\u001a\u000f\u0012\u0004\u0012\u00020\f\u0012\u0004\u0012\u00020\n0\u009b\u00018\u0002X\u0082\u0004¢\u0006\b\n\u0006\b¯\u0001\u0010\u009d\u0001R\u001c\u0010±\u0001\u001a\u0005\u0018\u00010°\u00018\u0002@\u0002X\u0082\u000e¢\u0006\b\n\u0006\b±\u0001\u0010²\u0001R\u001c\u0010´\u0001\u001a\u0005\u0018\u00010³\u00018\u0002@\u0002X\u0082\u000e¢\u0006\b\n\u0006\b´\u0001\u0010µ\u0001R\u001c\u0010¶\u0001\u001a\u0005\u0018\u00010³\u00018\u0002@\u0002X\u0082\u000e¢\u0006\b\n\u0006\b¶\u0001\u0010µ\u0001R\u0018\u0010¸\u0001\u001a\u00030·\u00018\u0002X\u0082\u0004¢\u0006\b\n\u0006\b¸\u0001\u0010¹\u0001R\u0019\u0010º\u0001\u001a\u00020\u00198\u0002@\u0002X\u0082\u000e¢\u0006\b\n\u0006\bº\u0001\u0010»\u0001R\u0019\u0010¼\u0001\u001a\u00020\u00198\u0002@\u0002X\u0082\u000e¢\u0006\b\n\u0006\b¼\u0001\u0010»\u0001R\u0019\u0010½\u0001\u001a\u00020\u00078\u0002@\u0002X\u0082\u000e¢\u0006\b\n\u0006\b½\u0001\u0010¾\u0001R.\u0010À\u0001\u001a\u0019\u0012\u0014\u0012\u0012\u0012\u0007\u0012\u0005\u0018\u00010\u0085\u0001\u0012\u0004\u0012\u00020\u00120\u0084\u00010¿\u00018\u0002X\u0082\u0004¢\u0006\b\n\u0006\bÀ\u0001\u0010Á\u0001¨\u0006Æ\u0001"}, d2 = {"Lcom/exteragram/messenger/icons/IconManager;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", _UrlKt.FRAGMENT_ENCODE_SET, "resId", "density", _UrlKt.FRAGMENT_ENCODE_SET, "resolvedCacheKey", "(II)J", "Lcom/exteragram/messenger/icons/IconPack;", "pack", _UrlKt.FRAGMENT_ENCODE_SET, "fileName", "Lcom/exteragram/messenger/icons/IconManager$SourceCacheKey;", "sourceCacheKey", "(Lcom/exteragram/messenger/icons/IconPack;Ljava/lang/String;II)Lcom/exteragram/messenger/icons/IconManager$SourceCacheKey;", "packId", _UrlKt.FRAGMENT_ENCODE_SET, "invalidateIconCaches", "(Ljava/lang/String;I)V", "generation", "resourceName", "Landroid/graphics/Bitmap;", "bitmap", _UrlKt.FRAGMENT_ENCODE_SET, "publishBitmap", "(JLjava/lang/String;Lcom/exteragram/messenger/icons/IconPack;IILandroid/graphics/Bitmap;)Z", _UrlKt.FRAGMENT_ENCODE_SET, "packs", "syncInstalledCustomPacks", "(Ljava/util/List;)Z", "rebuildOwnerMap", "rebuildBasePreinstalledMap", "newActivePacks", "Lcom/exteragram/messenger/icons/IconManager$ActivePacksUpdate;", "updateActivePacks", "(JLjava/util/List;)Lcom/exteragram/messenger/icons/IconManager$ActivePacksUpdate;", "iconFileName", "Ljava/io/File;", "resolvePackIconFile", "(Lcom/exteragram/messenger/icons/IconPack;Ljava/lang/String;)Ljava/io/File;", "launchPrewarm", "(J)V", "cachedPackIconBitmap", "(Lcom/exteragram/messenger/icons/IconPack;II)Landroid/graphics/Bitmap;", "Landroid/content/res/Resources$Theme;", "Landroid/content/res/Resources;", "theme", "knownResourceName", "cacheResult", "getPackIconBitmap", "(Lcom/exteragram/messenger/icons/IconPack;IILandroid/content/res/Resources$Theme;Ljava/lang/String;Z)Landroid/graphics/Bitmap;", "path", "targetW", "targetH", "decodeIconFile", "(Ljava/lang/String;III)Landroid/graphics/Bitmap;", "Landroidx/core/graphics/drawable/IconCompat;", "getNotificationIcon", "()Landroidx/core/graphics/drawable/IconCompat;", "Landroid/graphics/drawable/Icon;", "getNotificationSystemIcon", "()Landroid/graphics/drawable/Icon;", "Lcom/exteragram/messenger/icons/IconPackStorageError;", "error", "iconPackErrorText", "(Lcom/exteragram/messenger/icons/IconPackStorageError;)Ljava/lang/String;", "Lorg/telegram/ui/ActionBar/BaseFragment;", "baseFragment", "showIconPackError", "(Lorg/telegram/ui/ActionBar/BaseFragment;Lcom/exteragram/messenger/icons/IconPackStorageError;)V", "name", "isBlacklisted", "(Ljava/lang/String;)Z", "prefetchCustomPacks", "Landroid/graphics/drawable/Drawable;", "getDrawable", "(IILandroid/content/res/Resources$Theme;)Landroid/graphics/drawable/Drawable;", "getCachedDrawable", "(I)Landroid/graphics/drawable/Drawable;", "getPackIconDrawable", "(Lcom/exteragram/messenger/icons/IconPack;I)Landroid/graphics/drawable/Drawable;", "getCachedPackIconDrawable", "Lorg/telegram/messenger/Utilities$Callback;", Callback.METHOD_NAME, "requestPackIconDrawable", "(Lcom/exteragram/messenger/icons/IconPack;ILorg/telegram/messenger/Utilities$Callback;)V", "requestDrawable", "(ILorg/telegram/messenger/Utilities$Callback;)V", "sizePx", "requestDrawableForSize", "(IILorg/telegram/messenger/Utilities$Callback;)V", "originalResId", "createBitmapFromFile", "(Ljava/lang/String;IILandroid/content/res/Resources$Theme;)Landroid/graphics/Bitmap;", "tempFile", "originalName", "saveCustomIcon", "(Ljava/lang/String;ILjava/io/File;Ljava/lang/String;)V", "resetCustomIcon", "getIcon", "(I)I", PluginsConstants.UPDATE, "initialize", "(Z)V", "awaitInitialization", "setActiveCustomPack", "(Ljava/lang/String;)V", "findPackById", "(Ljava/lang/String;)Lcom/exteragram/messenger/icons/IconPack;", "bundlePackBlocking", "(Ljava/lang/String;)Ljava/io/File;", "iconPack", "saveIconPackMetadata", "(Lcom/exteragram/messenger/icons/IconPack;)Z", "deletePack", "Lorg/telegram/messenger/MessageObject;", "messageObject", "isIconPack", "(Ljava/lang/String;Lorg/telegram/messenger/MessageObject;)Z", "handleIconPack", "(Lorg/telegram/ui/ActionBar/BaseFragment;Ljava/lang/String;)V", "requestCode", "resultCode", "Landroid/content/Intent;", "data", "onActivityResult", "(IILandroid/content/Intent;)Z", "Landroid/app/Activity;", "activity", "selectFromFiles", "Lkotlin/Function1;", "Landroid/net/Uri;", "startIconPicker", "(Landroid/app/Activity;ZLkotlin/jvm/functions/Function1;)V", "Landroid/content/Context;", "context", "showReplaceAlert", "(Landroid/content/Context;ILcom/exteragram/messenger/icons/IconPack;)V", "Lcom/exteragram/messenger/IconPackType;", "basePackType", "isBasePackOnly", "(Lcom/exteragram/messenger/IconPackType;)Z", "Lkotlinx/coroutines/CoroutineScope;", "scope", "Lkotlinx/coroutines/CoroutineScope;", "Lkotlinx/coroutines/CoroutineDispatcher;", "mutationDispatcher", "Lkotlinx/coroutines/CoroutineDispatcher;", "decodeDispatcher", "prewarmDispatcher", _UrlKt.FRAGMENT_ENCODE_SET, "blacklistedIcons", "Ljava/util/Set;", "Ljava/util/concurrent/ConcurrentHashMap;", "systemIcons", "Ljava/util/concurrent/ConcurrentHashMap;", "getSystemIcons", "()Ljava/util/concurrent/ConcurrentHashMap;", "Lcom/exteragram/messenger/icons/IconManager$IntStringMap;", "systemNames", "Lcom/exteragram/messenger/icons/IconManager$IntStringMap;", "maxMemory", "I", "cacheSize", "Lcom/exteragram/messenger/icons/IconManager$ResolvedIndex;", "resolvedCache", "Lcom/exteragram/messenger/icons/IconManager$ResolvedIndex;", "com/exteragram/messenger/icons/IconManager$sourceCache$1", "sourceCache", "Lcom/exteragram/messenger/icons/IconManager$sourceCache$1;", "Ljava/util/concurrent/CopyOnWriteArrayList;", "activePacks", "Ljava/util/concurrent/CopyOnWriteArrayList;", "iconOwnerMap", "Landroid/util/SparseIntArray;", "basePreinstalledMap", "Landroid/util/SparseIntArray;", "Lkotlinx/coroutines/Job;", "initializationJob", "Lkotlinx/coroutines/Job;", "prewarmJob", "Ljava/util/concurrent/CountDownLatch;", "initialPacksLoaded", "Ljava/util/concurrent/CountDownLatch;", "activePacksPublished", "Z", "initializationTimedOut", "initializationGeneration", "J", "Landroid/util/SparseArray;", "resultCallbacks", "Landroid/util/SparseArray;", "IntStringMap", "SourceCacheKey", "ResolvedIndex", "ActivePacksUpdate", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+@SourceDebugExtension({"SMAP\nIconManager.kt\nKotlin\n*S Kotlin\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager\n+ 2 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n+ 3 SparseIntArray.kt\nandroidx/core/util/SparseIntArrayKt\n+ 4 fake.kt\nkotlin/jvm/internal/FakeKt\n+ 5 BitmapDrawable.kt\nandroidx/core/graphics/drawable/BitmapDrawableKt\n+ 6 Bitmap.kt\nandroidx/core/graphics/BitmapKt\n+ 7 _Sequences.kt\nkotlin/sequences/SequencesKt___SequencesKt\n*L\n1#1,1083:1\n777#2:1084\n873#2,2:1085\n1915#2,2:1087\n296#2,2:1109\n296#2,2:1111\n2792#2,3:1113\n25#3:1089\n56#3:1090\n1#4:1091\n27#5:1092\n27#5:1093\n27#5:1094\n27#5:1095\n27#5:1096\n27#5:1097\n83#6,6:1098\n71#6:1104\n184#7,2:1105\n184#7,2:1107\n*S KotlinDebug\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager\n*L\n284#1:1084\n284#1:1085,2\n285#1:1087,2\n1070#1:1109,2\n1072#1:1111,2\n1080#1:1113,3\n354#1:1089\n361#1:1090\n421#1:1092\n436#1:1093\n447#1:1094\n452#1:1095\n463#1:1096\n469#1:1097\n572#1:1098,6\n609#1:1104\n746#1:1105,2\n774#1:1107,2\n*E\n"})
 public final class IconManager {
     public static final IconManager INSTANCE;
     private static final CopyOnWriteArrayList<IconPack> activePacks;
+    private static boolean activePacksPublished;
+    private static volatile SparseIntArray basePreinstalledMap;
     private static final Set<String> blacklistedIcons;
     private static final int cacheSize;
+    private static final CoroutineDispatcher decodeDispatcher;
     private static final ConcurrentHashMap<String, IconPack> iconOwnerMap;
+    private static final CountDownLatch initialPacksLoaded;
     private static volatile long initializationGeneration;
     private static Job initializationJob;
+    private static volatile boolean initializationTimedOut;
     private static final int maxMemory;
     private static final CoroutineDispatcher mutationDispatcher;
+    private static final CoroutineDispatcher prewarmDispatcher;
     private static Job prewarmJob;
-    private static LruCache<Long, Bitmap> resolvedCache;
+    private static final ResolvedIndex resolvedCache;
     private static final SparseArray<Function1<Uri, Unit>> resultCallbacks;
     private static final CoroutineScope scope;
-    private static LruCache<SourceCacheKey, Bitmap> sourceCache;
+    private static final IconManager$sourceCache$1 sourceCache;
     private static final ConcurrentHashMap<String, Integer> systemIcons;
-    private static final ConcurrentHashMap<Integer, String> systemNames;
+    private static volatile IntStringMap systemNames;
 
-    @Metadata(d1 = {"\u0000\f\n\u0002\u0018\u0002\n\u0002\u0010\u0010\n\u0002\b\u0006\b\u0082\u0081\u0002\u0018\u00002\b\u0012\u0004\u0012\u00020\u00000\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003j\u0002\b\u0004j\u0002\b\u0005j\u0002\b\u0006¨\u0006\u0007"}, d2 = {"Lcom/exteragram/messenger/icons/IconManager$ActivePacksUpdate;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "(Ljava/lang/String;I)V", "STALE", "UNCHANGED", "CHANGED", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+    @Metadata(d1 = {"\u0000\f\n\u0002\u0018\u0002\n\u0002\u0010\u0010\n\u0002\b\u0007\b\u0082\u0081\u0002\u0018\u00002\b\u0012\u0004\u0012\u00020\u00000\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003j\u0002\b\u0004j\u0002\b\u0005j\u0002\b\u0006j\u0002\b\u0007¨\u0006\b"}, d2 = {"Lcom/exteragram/messenger/icons/IconManager$ActivePacksUpdate;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "(Ljava/lang/String;I)V", "STALE", "UNCHANGED", "CHANGED", "INITIAL", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
     public enum ActivePacksUpdate {
         STALE,
         UNCHANGED,
-        CHANGED;
+        CHANGED,
+        INITIAL;
 
-        private static final /* synthetic */ EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
+        private static final EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
     }
 
+    @Metadata(k = 3, mv = {2, 2, 0}, xi = 48)
+    public static final class WhenMappings {
+        public static final int[] $EnumSwitchMapping$0;
+
+        static {
+            int[] iArr = new int[IconPackStorageError.values().length];
+            try {
+                iArr[IconPackStorageError.INVALID_ARCHIVE.ordinal()] = 1;
+            } catch (NoSuchFieldError unused) {
+            }
+            try {
+                iArr[IconPackStorageError.MISSING_METADATA.ordinal()] = 2;
+            } catch (NoSuchFieldError unused2) {
+            }
+            try {
+                iArr[IconPackStorageError.METADATA_TOO_LARGE.ordinal()] = 3;
+            } catch (NoSuchFieldError unused3) {
+            }
+            try {
+                iArr[IconPackStorageError.INVALID_METADATA.ordinal()] = 4;
+            } catch (NoSuchFieldError unused4) {
+            }
+            try {
+                iArr[IconPackStorageError.TOO_MANY_FILES.ordinal()] = 5;
+            } catch (NoSuchFieldError unused5) {
+            }
+            try {
+                iArr[IconPackStorageError.ARCHIVE_TOO_LARGE.ordinal()] = 6;
+            } catch (NoSuchFieldError unused6) {
+            }
+            try {
+                iArr[IconPackStorageError.FILE_TOO_LARGE.ordinal()] = 7;
+            } catch (NoSuchFieldError unused7) {
+            }
+            try {
+                iArr[IconPackStorageError.COMPRESSION_RATIO_TOO_HIGH.ordinal()] = 8;
+            } catch (NoSuchFieldError unused8) {
+            }
+            try {
+                iArr[IconPackStorageError.STORAGE_ERROR.ordinal()] = 9;
+            } catch (NoSuchFieldError unused9) {
+            }
+            try {
+                iArr[IconPackStorageError.UNKNOWN.ordinal()] = 10;
+            } catch (NoSuchFieldError unused10) {
+            }
+            $EnumSwitchMapping$0 = iArr;
+        }
+    }
 
     private final long resolvedCacheKey(int resId, int density) {
         return (((long) resId) << 32) | (((long) density) & 4294967295L);
@@ -127,39 +181,27 @@ public final class IconManager {
 
     @JvmOverloads
     public final void showReplaceAlert(Context context, int i) {
-        showReplaceAlert(context, i, null);
+        showReplaceAlert$default(this, context, i, null, 4, null);
     }
 
     private IconManager() {
     }
 
-    /* JADX WARN: Type inference failed for: r4v2, types: [com.exteragram.messenger.icons.IconManager$sourceCache$1] */
-    /* JADX WARN: Type inference failed for: r6v1, types: [com.exteragram.messenger.icons.IconManager$resolvedCache$1] */
     static {
         IconManager iconManager = new IconManager();
         INSTANCE = iconManager;
-        scope = CoroutineScopeKt.CoroutineScope(Dispatchers.getIO().plus(SupervisorKt.SupervisorJob(null)));
-        mutationDispatcher = Dispatchers.getIO().limitedParallelism(1);
-        blacklistedIcons = SetsKt.setOf(new String[]{"blockpanel", "vd_flip", "system", "smiles_popup", "camera_btn", "cancel_big", "chats_archive_box", "chats_archive_arrow", "chats_archive_muted", "chats_archive_pin", "chats_widget_preview", "circle_big", "clone", "contacts_widget_preview", "equals", "etg_splash", "ev_minus", "ev_plus", "fast_scroll_empty", "filled_chatlink_large", "field_carret_empty", "finalize", "dice", "dino_pic", "circle", "widgets_light_badgebg", "greydivider", "greydivider_bottom", "greydivider_top", "groups_limit1", "ic_ab_new", "ic_ab_reply_2", "ic_chatlist_add_2", "ic_foreground", "ic_foreground_monet", "ic_player", "ic_reply_icon", "icon_background_clip", "icon_background_clip_round", "icon_plane", "icplaceholder", "large_ads_info", "large_away", "large_greeting", "large_log_actions", "large_monetize", "large_quickreplies", "list_selector_ex", "livepin", "load_big", "location_empty", "login_arrow1", "login_phone1", "logo_middle", "map_pin3", "map_pin_photo", "msg_media_gallery", "music_empty", "no_passport", "no_password", "nophotos", "notify", "paint_elliptical_brush", "paint_neon_brush", "paint_radial_brush", "phone_activate", "photo_placeholder_in", "photo_tooltip2", "photoview_placeholder", "screencast_big", "screencast_big_remix", "screencast_solar", "scrollbar_vertical_thumb", "scrollbar_vertical_thumb_inset", "places_btn", "newmsg_divider", "ic_launcher_dr", "smiles_info", "sms_bubble", "sms_devices", "stats_tooltip", "sticker", "story_camera", "theme_preview_image", "ton", "transparent", "venue_tooltip", "wait", "videopreview"});
+        scope = CoroutineScopeKt.CoroutineScope(Dispatchers.getIO().plus(SupervisorKt.SupervisorJob$default(null, 1, null)));
+        mutationDispatcher = CoroutineDispatcher.limitedParallelism$default(Dispatchers.getIO(), 1, null, 2, null);
+        decodeDispatcher = CoroutineDispatcher.limitedParallelism$default(Dispatchers.getIO(), 2, null, 2, null);
+        prewarmDispatcher = CoroutineDispatcher.limitedParallelism$default(Dispatchers.getIO(), 1, null, 2, null);
+        blacklistedIcons = SetsKt.setOf((Object[]) new String[]{"system", "smiles_popup", "camera_btn", "cancel_big", "chats_archive_box", "chats_archive_arrow", "chats_archive_muted", "chats_archive_pin", "chats_widget_preview", "circle_big", "contacts_widget_preview", "etg_splash", "ev_minus", "ev_plus", "filled_chatlink_large", "field_carret_empty", "dino_pic", "circle", "widgets_light_badgebg", "greydivider", "greydivider_bottom", "greydivider_top", "groups_limit1", "ic_ab_new", "ic_foreground", "ic_foreground_monet", "ic_foreground_solid", "ic_player", "ic_reply_icon", "icon_background_clip", "icon_background_clip_round", "icon_plane", "icplaceholder", "large_ads_info", "large_away", "large_greeting", "large_log_actions", "large_monetize", "large_quickreplies", "list_selector_ex", "livepin", "load_big", "location_empty", "login_arrow1", "login_phone1", "logo_middle", "map_pin", "map_pin2", "map_pin3", "map_pin_circle", "map_pin_cone2", "map_pin_photo", "msg_media_gallery", "music_empty", "no_passport", "no_password", "nophotos", "nophotos3", "paint_elliptical_brush", "paint_neon_brush", "paint_radial_brush", "phone_activate", "photo_placeholder_in", "photo_tooltip2", "photoview_placeholder", "screencast_big", "scrollbar_vertical_thumb", "scrollbar_vertical_thumb_inset", "newmsg_divider", "ic_launcher_dr", "smiles_info", "sms_bubble", "sms_devices", "stats_tooltip", "sticker", "story_camera", "theme_preview_image", "transparent", "venue_tooltip", "videopreview", "bluecounter", "photobadge", "photos_rounded", "calendar_date", "menu_copy", "redcircle", "tooltip_arrow", "tooltip_arrow_up", "newyear", "cards_chat", "community_cards", "ic_call_notification_answer", "ic_call_notification_decline", "shortcut_compose", "shortcut_user", "slide_dot_big", "slide_dot_small", "cocoon_logo", "cocoon_text", "telegram_logo", "telegram_logo_2", "mastercard_icon", "ton_icon", "diamond"});
         systemIcons = new ConcurrentHashMap<>();
-        systemNames = new ConcurrentHashMap<>();
         int iMaxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
         maxMemory = iMaxMemory;
-        int iMax = Math.max(1024, iMaxMemory / 8);
+        final int iMax = Math.max(1024, iMaxMemory / 8);
         cacheSize = iMax;
-        final int i = iMax / 2;
-        resolvedCache = new LruCache<Long, Bitmap>(i) { // from class: com.exteragram.messenger.icons.IconManager$resolvedCache$1
-            @Override // androidx.collection.LruCache
-            public /* bridge */ /* synthetic */ int sizeOf(Long l, Bitmap bitmap) {
-                return sizeOf(l.longValue(), bitmap);
-            }
-
-            public int sizeOf(long key, Bitmap value) {
-                return value.getByteCount() / 1024;
-            }
-        };
-        final int i2 = iMax / 2;
-        sourceCache = new LruCache<SourceCacheKey, Bitmap>(i2) { // from class: com.exteragram.messenger.icons.IconManager$sourceCache$1
+        resolvedCache = new ResolvedIndex(2048);
+        sourceCache = new LruCache<SourceCacheKey, Bitmap>(iMax) {
             @Override // androidx.collection.LruCache
             public int sizeOf(IconManager.SourceCacheKey key, Bitmap value) {
                 return value.getByteCount() / 1024;
@@ -167,23 +209,98 @@ public final class IconManager {
         };
         activePacks = new CopyOnWriteArrayList<>();
         iconOwnerMap = new ConcurrentHashMap<>();
-        iconManager.initialize(false);
+        initialPacksLoaded = new CountDownLatch(1);
+        initialize$default(iconManager, false, 1, null);
         resultCallbacks = new SparseArray<>();
     }
 
     public final boolean isBlacklisted(String name) {
-        if (name == null) {
-            return false;
+        return blacklistedIcons.contains(name) || StringsKt.contains$default((CharSequence) name, (CharSequence) "avd", false, 2, (Object) null) || StringsKt.endsWith$default(name, "_solar", false, 2, (Object) null) || StringsKt.endsWith$default(name, "_remix", false, 2, (Object) null) || StringsKt.contains$default((CharSequence) name, (CharSequence) "$", false, 2, (Object) null) || StringsKt.contains$default((CharSequence) name, (CharSequence) "animationpin", false, 2, (Object) null) || StringsKt.contains$default((CharSequence) name, (CharSequence) "googlepay", false, 2, (Object) null) || StringsKt.contains$default((CharSequence) name, (CharSequence) "shadow", false, 2, (Object) null) || StringsKt.startsWith$default(name, "ic_monochrome", false, 2, (Object) null) || StringsKt.startsWith$default(name, "nocover", false, 2, (Object) null) || StringsKt.startsWith$default(name, "gradient_", false, 2, (Object) null) || StringsKt.startsWith$default(name, "stickers_back_", false, 2, (Object) null) || StringsKt.startsWith$default(name, "media_doc_", false, 2, (Object) null) || StringsKt.startsWith$default(name, "loading_animation", false, 2, (Object) null) || StringsKt.startsWith$default(name, "intro_", false, 2, (Object) null) || StringsKt.startsWith$default(name, "minibubble_", false, 2, (Object) null) || StringsKt.startsWith$default(name, "book_", false, 2, (Object) null) || StringsKt.startsWith$default(name, "call_", false, 2, (Object) null) || StringsKt.startsWith$default(name, "dice", false, 2, (Object) null) || StringsKt.startsWith$default(name, "msg_other_new_filled", false, 2, (Object) null) || StringsKt.startsWith$default(name, "profile_level", false, 2, (Object) null) || StringsKt.startsWith$default(name, "widget_", false, 2, (Object) null) || StringsKt.startsWith$default(name, "zoom_slide", false, 2, (Object) null) || StringsKt.startsWith$default(name, "zoom_round", false, 2, (Object) null) || StringsKt.startsWith$default(name, "popup_fixed_alert", false, 2, (Object) null) || StringsKt.startsWith$default(name, "search_dark", false, 2, (Object) null) || StringsKt.startsWith$default(name, "bar_selector", false, 2, (Object) null);
+    }
+
+    @Metadata(d1 = {"\u0000,\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\b\n\u0002\b\u0003\n\u0002\u0010\u0015\n\u0000\n\u0002\u0010\u0011\n\u0002\u0010\u000e\n\u0002\b\u0005\n\u0002\u0010\u0002\n\u0002\b\b\b\u0002\u0018\u0000 \u00172\u00020\u0001:\u0001\u0017B\u000f\u0012\u0006\u0010\u0002\u001a\u00020\u0003¢\u0006\u0004\b\u0004\u0010\u0005J\u0010\u0010\u000f\u001a\u00020\u00102\u0006\u0010\u0011\u001a\u00020\u0003H\u0002J\u0010\u0010\u0012\u001a\u0004\u0018\u00010\n2\u0006\u0010\u0013\u001a\u00020\u0003J\u0016\u0010\u0014\u001a\u00020\u00102\u0006\u0010\u0013\u001a\u00020\u00032\u0006\u0010\u0015\u001a\u00020\nJ\b\u0010\u0016\u001a\u00020\u0010H\u0002R\u000e\u0010\u0006\u001a\u00020\u0007X\u0082\u000e¢\u0006\u0002\n\u0000R\u0018\u0010\b\u001a\n\u0012\u0006\u0012\u0004\u0018\u00010\n0\tX\u0082\u000e¢\u0006\u0004\n\u0002\u0010\u000bR\u000e\u0010\f\u001a\u00020\u0003X\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\r\u001a\u00020\u0003X\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\u000e\u001a\u00020\u0003X\u0082\u000e¢\u0006\u0002\n\u0000¨\u0006\u0018"}, d2 = {"Lcom/exteragram/messenger/icons/IconManager$IntStringMap;", _UrlKt.FRAGMENT_ENCODE_SET, "expected", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "(I)V", "keys", _UrlKt.FRAGMENT_ENCODE_SET, "values", _UrlKt.FRAGMENT_ENCODE_SET, _UrlKt.FRAGMENT_ENCODE_SET, "[Ljava/lang/String;", PluginsConstants.Settings.MASK, "shift", "size", "allocate", _UrlKt.FRAGMENT_ENCODE_SET, "capacity", "get", PluginsConstants.Settings.KEY, "put", "value", "grow", "Companion", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+    public static final class IntStringMap {
+        private int mask;
+        private int shift;
+        private int size;
+        private int[] keys = new int[0];
+        private String[] values = new String[0];
+
+        public IntStringMap(int i) {
+            int i2 = 4;
+            while (i2 < i * 2) {
+                i2 <<= 1;
+            }
+            allocate(i2);
         }
-        return blacklistedIcons.contains(name) || name.contains("avd") || name.endsWith("_solar") || name.endsWith("_remix") || name.contains("$") || name.contains("animationpin") || name.contains("googlepay") || name.contains("shadow") || name.startsWith("ic_monochrome") || name.startsWith("nocover") || name.startsWith("gradient_") || name.startsWith("stickers_back_") || name.startsWith("media_doc_") || name.startsWith("loading_animation") || name.startsWith("intro_") || name.startsWith("minibubble_") || name.startsWith("book_") || name.startsWith("call_") || name.startsWith("groupsintro") || name.startsWith("profile_level") || name.startsWith("widget_") || name.startsWith("zoom_slide") || name.startsWith("zoom_round") || name.startsWith("popup_fixed_alert") || name.startsWith("search_dark") || name.startsWith("bar_selector");
+
+        private final void allocate(int capacity) {
+            this.keys = new int[capacity];
+            this.values = new String[capacity];
+            this.mask = capacity - 1;
+            this.shift = 32 - Integer.numberOfTrailingZeros(capacity);
+        }
+
+        public final String get(int key) {
+            if (key == 0) {
+                return null;
+            }
+            int i = ((-1640531527) * key) >>> this.shift;
+            while (true) {
+                int i2 = this.keys[i];
+                if (i2 == key) {
+                    return this.values[i];
+                }
+                if (i2 == 0) {
+                    return null;
+                }
+                i = (i + 1) & this.mask;
+            }
+        }
+
+        public final void put(int key, String value) {
+            if (key == 0) {
+                return;
+            }
+            if ((this.size + 1) * 2 > this.keys.length) {
+                grow();
+            }
+            int i = ((-1640531527) * key) >>> this.shift;
+            while (true) {
+                int[] iArr = this.keys;
+                int i2 = iArr[i];
+                if (i2 == 0) {
+                    iArr[i] = key;
+                    this.values[i] = value;
+                    this.size++;
+                    return;
+                } else {
+                    if (i2 == key) {
+                        this.values[i] = value;
+                        return;
+                    }
+                    i = (i + 1) & this.mask;
+                }
+            }
+        }
+
+        private final void grow() {
+            int[] iArr = this.keys;
+            String[] strArr = this.values;
+            allocate(iArr.length << 1);
+            this.size = 0;
+            int length = iArr.length;
+            for (int i = 0; i < length; i++) {
+                int i2 = iArr[i];
+                if (i2 != 0) {
+                    put(i2, strArr[i]);
+                }
+            }
+        }
     }
 
     public final ConcurrentHashMap<String, Integer> getSystemIcons() {
         return systemIcons;
-    }
-
-    public final ConcurrentHashMap<Integer, String> getSystemNames() {
-        return systemNames;
     }
 
     @Metadata(d1 = {"\u0000&\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\u0010\t\n\u0000\n\u0002\u0010\u000e\n\u0002\b\u0003\n\u0002\u0010\b\n\u0002\b\t\n\u0002\u0010\u000b\n\u0002\b\r\b\u0082\b\u0018\u00002\u00020\u0001B9\u0012\u0006\u0010\u0003\u001a\u00020\u0002\u0012\u0006\u0010\u0005\u001a\u00020\u0004\u0012\b\u0010\u0006\u001a\u0004\u0018\u00010\u0004\u0012\u0006\u0010\u0007\u001a\u00020\u0004\u0012\u0006\u0010\t\u001a\u00020\b\u0012\u0006\u0010\n\u001a\u00020\b¢\u0006\u0004\b\u000b\u0010\fJ\u0010\u0010\r\u001a\u00020\u0004HÖ\u0001¢\u0006\u0004\b\r\u0010\u000eJ\u0010\u0010\u000f\u001a\u00020\bHÖ\u0001¢\u0006\u0004\b\u000f\u0010\u0010J\u001a\u0010\u0013\u001a\u00020\u00122\b\u0010\u0011\u001a\u0004\u0018\u00010\u0001HÖ\u0003¢\u0006\u0004\b\u0013\u0010\u0014R\u0017\u0010\u0003\u001a\u00020\u00028\u0006¢\u0006\f\n\u0004\b\u0003\u0010\u0015\u001a\u0004\b\u0016\u0010\u0017R\u0017\u0010\u0005\u001a\u00020\u00048\u0006¢\u0006\f\n\u0004\b\u0005\u0010\u0018\u001a\u0004\b\u0019\u0010\u000eR\u0019\u0010\u0006\u001a\u0004\u0018\u00010\u00048\u0006¢\u0006\f\n\u0004\b\u0006\u0010\u0018\u001a\u0004\b\u001a\u0010\u000eR\u0017\u0010\u0007\u001a\u00020\u00048\u0006¢\u0006\f\n\u0004\b\u0007\u0010\u0018\u001a\u0004\b\u001b\u0010\u000eR\u0017\u0010\t\u001a\u00020\b8\u0006¢\u0006\f\n\u0004\b\t\u0010\u001c\u001a\u0004\b\u001d\u0010\u0010R\u0017\u0010\n\u001a\u00020\b8\u0006¢\u0006\f\n\u0004\b\n\u0010\u001c\u001a\u0004\b\u001e\u0010\u0010¨\u0006\u001f"}, d2 = {"Lcom/exteragram/messenger/icons/IconManager$SourceCacheKey;", _UrlKt.FRAGMENT_ENCODE_SET, _UrlKt.FRAGMENT_ENCODE_SET, "generation", _UrlKt.FRAGMENT_ENCODE_SET, "packId", "location", "fileName", _UrlKt.FRAGMENT_ENCODE_SET, "resId", "density", "<init>", "(JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V", "toString", "()Ljava/lang/String;", "hashCode", "()I", "other", _UrlKt.FRAGMENT_ENCODE_SET, "equals", "(Ljava/lang/Object;)Z", "J", "getGeneration", "()J", "Ljava/lang/String;", "getPackId", "getLocation", "getFileName", "I", "getResId", "getDensity", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
@@ -213,7 +330,7 @@ public final class IconManager {
         }
 
         public String toString() {
-            return "SourceCacheKey(generation=" + this.generation + ", packId=" + this.packId + ", location=" + this.location + ", fileName=" + this.fileName + ", resId=" + this.resId + ", density=" + this.density + ')';
+            return "SourceCacheKey(generation=" + this.generation + ", packId=" + this.packId + ", location=" + this.location + ", fileName=" + this.fileName + ", resId=" + this.resId + ", density=" + this.density + ")";
         }
 
         public SourceCacheKey(long j, String str, String str2, String str3, int i, int i2) {
@@ -234,6 +351,48 @@ public final class IconManager {
         }
     }
 
+    @Metadata(d1 = {"\u0000,\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\b\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\t\n\u0000\n\u0002\u0010\u0002\n\u0002\b\u0005\b\u0002\u0018\u00002\u00020\u0001B\u000f\u0012\u0006\u0010\u0002\u001a\u00020\u0003¢\u0006\u0004\b\u0004\u0010\u0005J\u0010\u0010\t\u001a\u0004\u0018\u00010\b2\u0006\u0010\n\u001a\u00020\u000bJ\u0016\u0010\f\u001a\u00020\r2\u0006\u0010\n\u001a\u00020\u000b2\u0006\u0010\u000e\u001a\u00020\bJ\u0006\u0010\u000f\u001a\u00020\rJ\u000e\u0010\u0010\u001a\u00020\r2\u0006\u0010\u0011\u001a\u00020\u0003R\u000e\u0010\u0002\u001a\u00020\u0003X\u0082\u0004¢\u0006\u0002\n\u0000R\u0014\u0010\u0006\u001a\b\u0012\u0004\u0012\u00020\b0\u0007X\u0082\u0004¢\u0006\u0002\n\u0000¨\u0006\u0012"}, d2 = {"Lcom/exteragram/messenger/icons/IconManager$ResolvedIndex;", _UrlKt.FRAGMENT_ENCODE_SET, "capacity", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "(I)V", "entries", "Landroid/util/LongSparseArray;", "Lcom/exteragram/messenger/icons/IconManager$SourceCacheKey;", "get", PluginsConstants.Settings.KEY, _UrlKt.FRAGMENT_ENCODE_SET, "put", _UrlKt.FRAGMENT_ENCODE_SET, "value", "clear", "removeByResId", "resId", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+    @SourceDebugExtension({"SMAP\nIconManager.kt\nKotlin\n*S Kotlin\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$ResolvedIndex\n+ 2 LongSparseArray.kt\nandroidx/core/util/LongSparseArrayKt\n*L\n1#1,1083:1\n25#2:1084\n25#2:1085\n*S KotlinDebug\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$ResolvedIndex\n*L\n235#1:1084\n246#1:1085\n*E\n"})
+    public static final class ResolvedIndex {
+        private final int capacity;
+        private final LongSparseArray<SourceCacheKey> entries = new LongSparseArray<>();
+
+        public ResolvedIndex(int i) {
+            this.capacity = i;
+        }
+
+        public final synchronized SourceCacheKey get(long key) {
+            return this.entries.get(key);
+        }
+
+        public final synchronized void put(long key, SourceCacheKey value) {
+            try {
+                if (this.entries.size() >= this.capacity) {
+                    this.entries.clear();
+                }
+                this.entries.put(key, value);
+            } catch (Throwable th) {
+                throw th;
+            }
+        }
+
+        public final synchronized void clear() {
+            this.entries.clear();
+        }
+
+        public final synchronized void removeByResId(int resId) {
+            int size = this.entries.size();
+            while (true) {
+                size--;
+                if (-1 < size) {
+                    if (((int) (this.entries.keyAt(size) >> 32)) == resId) {
+                        this.entries.removeAt(size);
+                    }
+                }
+            }
+        }
+    }
+
     private final SourceCacheKey sourceCacheKey(IconPack pack, String fileName, int resId, int density) {
         long j = initializationGeneration;
         String id = pack.getId();
@@ -241,71 +400,56 @@ public final class IconManager {
         return new SourceCacheKey(j, id, location != null ? location.getAbsolutePath() : null, fileName, resId, density);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final void invalidateIconCaches(String packId, int resId) {
-        Set<Long> setKeySet = resolvedCache.snapshot().keySet();
+        resolvedCache.removeByResId(resId);
+        Set<SourceCacheKey> setKeySet = sourceCache.snapshot().keySet();
         ArrayList arrayList = new ArrayList();
         for (Object obj : setKeySet) {
-            if (((int) (((Number) obj).longValue() >> 32)) == resId) {
+            SourceCacheKey sourceCacheKey = (SourceCacheKey) obj;
+            if (Intrinsics.areEqual(sourceCacheKey.getPackId(), packId) && sourceCacheKey.getResId() == resId) {
                 arrayList.add(obj);
             }
         }
         int size = arrayList.size();
         int i = 0;
-        int i2 = 0;
-        while (i2 < size) {
-            Object obj2 = arrayList.get(i2);
-            i2++;
-            resolvedCache.remove(Long.valueOf(((Number) obj2).longValue()));
-        }
-        Set<SourceCacheKey> setKeySet2 = sourceCache.snapshot().keySet();
-        ArrayList arrayList2 = new ArrayList();
-        for (Object obj3 : setKeySet2) {
-            SourceCacheKey sourceCacheKey = (SourceCacheKey) obj3;
-            if (Intrinsics.areEqual(sourceCacheKey.getPackId(), packId) && sourceCacheKey.getResId() == resId) {
-                arrayList2.add(obj3);
-            }
-        }
-        int size2 = arrayList2.size();
-        while (i < size2) {
-            Object obj4 = arrayList2.get(i);
+        while (i < size) {
+            Object obj2 = arrayList.get(i);
             i++;
-            sourceCache.remove((SourceCacheKey) obj4);
+            sourceCache.remove((SourceCacheKey) obj2);
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final synchronized boolean publishBitmap(long generation, String resourceName, IconPack pack, int resId, int density, Bitmap bitmap) {
         if (generation == initializationGeneration && Intrinsics.areEqual(iconOwnerMap.get(resourceName), pack)) {
             String str = pack.getIcons().get(resourceName);
             if (str == null) {
                 return false;
             }
-            sourceCache.put(sourceCacheKey(pack, str, resId, density), bitmap);
-            resolvedCache.put(Long.valueOf(resolvedCacheKey(resId, density)), bitmap);
+            SourceCacheKey sourceCacheKey = sourceCacheKey(pack, str, resId, density);
+            sourceCache.put(sourceCacheKey, bitmap);
+            resolvedCache.put(resolvedCacheKey(resId, density), sourceCacheKey);
             return true;
         }
         return false;
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.icons.IconManager$prefetchCustomPacks$1, reason: invalid class name and case insensitive filesystem */
     @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
-    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$prefetchCustomPacks$1", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {}, v = 1)
-    public static final class C01461 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
+    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$prefetchCustomPacks$1", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {})
+    public static final class C01481 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
         int label;
 
-        public C01461(Continuation continuation) {
+        public C01481(Continuation<? super C01481> continuation) {
             super(2, continuation);
         }
 
         @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
         public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
-            return (Continuation) new C01461(continuation);
+            return new C01481(continuation);
         }
 
         @Override // kotlin.jvm.functions.Function2
         public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
-            return ((C01461) (Object) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+            return ((C01481) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
         }
 
         @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
@@ -317,14 +461,14 @@ public final class IconManager {
                 return Unit.INSTANCE;
             }
             throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+            return null;
         }
     }
 
     public final void prefetchCustomPacks() {
-        BuildersKt.launch(scope, EmptyCoroutineContext.INSTANCE, CoroutineStart.DEFAULT, new C01461(null));
+        BuildersKt__Builders_commonKt.launch$default(scope, null, null, new C01481(null), 3, null);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final synchronized boolean syncInstalledCustomPacks(List<IconPack> packs) {
         boolean z;
         try {
@@ -346,48 +490,69 @@ public final class IconManager {
         return z;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final void rebuildOwnerMap() {
         iconOwnerMap.clear();
         int size = activePacks.size() - 1;
-        if (size < 0) {
-            return;
-        }
-        while (true) {
-            int i = size - 1;
-            IconPack iconPack = activePacks.get(size);
-            if (!iconPack.isBase()) {
-                Iterator<String> it = iconPack.getIcons().keySet().iterator();
-                while (it.hasNext()) {
-                    iconOwnerMap.put(it.next(), iconPack);
+        if (size >= 0) {
+            while (true) {
+                int i = size - 1;
+                IconPack iconPack = activePacks.get(size);
+                if (!iconPack.isBase()) {
+                    Iterator<String> it = iconPack.getIcons().keySet().iterator();
+                    while (it.hasNext()) {
+                        iconOwnerMap.put(it.next(), iconPack);
+                    }
+                }
+                if (i < 0) {
+                    break;
+                } else {
+                    size = i;
                 }
             }
-            if (i < 0) {
-                return;
-            } else {
-                size = i;
-            }
         }
+        rebuildBasePreinstalledMap();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
+    private final void rebuildBasePreinstalledMap() {
+        SparseIntArray sparseIntArray = new SparseIntArray();
+        int size = activePacks.size();
+        for (int i = 0; i < size; i++) {
+            IconPack iconPack = activePacks.get(i);
+            SparseIntArray preinstalledMap = iconPack.getPreinstalledMap();
+            if (preinstalledMap != null && iconPack.isBase()) {
+                int size2 = preinstalledMap.size();
+                for (int i2 = 0; i2 < size2; i2++) {
+                    int iKeyAt = preinstalledMap.keyAt(i2);
+                    if (sparseIntArray.indexOfKey(iKeyAt) < 0) {
+                        sparseIntArray.put(iKeyAt, preinstalledMap.valueAt(i2));
+                    }
+                }
+            }
+        }
+        if (sparseIntArray.size() == 0) {
+            sparseIntArray = null;
+        }
+        basePreinstalledMap = sparseIntArray;
+    }
+
     public final synchronized ActivePacksUpdate updateActivePacks(long generation, List<IconPack> newActivePacks) {
         if (generation != initializationGeneration) {
             return ActivePacksUpdate.STALE;
         }
-        CopyOnWriteArrayList<IconPack> copyOnWriteArrayList = activePacks;
-        if (Intrinsics.areEqual(copyOnWriteArrayList, newActivePacks)) {
+        boolean z = activePacksPublished;
+        activePacksPublished = true;
+        if (z && Intrinsics.areEqual(activePacks, newActivePacks)) {
             return ActivePacksUpdate.UNCHANGED;
         }
+        CopyOnWriteArrayList<IconPack> copyOnWriteArrayList = activePacks;
         copyOnWriteArrayList.clear();
         copyOnWriteArrayList.addAll(newActivePacks);
         rebuildOwnerMap();
-        resolvedCache.evictAll();
+        resolvedCache.clear();
         sourceCache.evictAll();
-        return ActivePacksUpdate.CHANGED;
+        return !z ? ActivePacksUpdate.INITIAL : ActivePacksUpdate.CHANGED;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final File resolvePackIconFile(IconPack pack, String iconFileName) {
         File location = pack.getLocation();
         if (location == null) {
@@ -401,7 +566,6 @@ public final class IconManager {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final synchronized void launchPrewarm(long generation) {
         try {
             if (generation != initializationGeneration) {
@@ -409,38 +573,36 @@ public final class IconManager {
             }
             Job job = prewarmJob;
             if (job != null) {
-                job.cancel(null);
+                Job.cancel$default(job, null, 1, null);
             }
-            prewarmJob = BuildersKt.launch(scope, EmptyCoroutineContext.INSTANCE, CoroutineStart.DEFAULT, new C01451(generation, null));
+            prewarmJob = BuildersKt__Builders_commonKt.launch$default(scope, prewarmDispatcher, null, new C01471(generation, null), 2, null);
         } catch (Throwable th) {
             throw th;
         }
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.icons.IconManager$launchPrewarm$1, reason: invalid class name and case insensitive filesystem */
     @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
-    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$launchPrewarm$1", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {}, v = 1)
-    public static final class C01451 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
-        final /* synthetic */ long $generation;
-        private /* synthetic */ Object L$0;
+    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$launchPrewarm$1", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {})
+    public static final class C01471 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
+        final long $generation;
+        private Object L$0;
         int label;
 
-        /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
-        public C01451(long j, Continuation continuation) {
+        public C01471(long j, Continuation<? super C01471> continuation) {
             super(2, continuation);
             this.$generation = j;
         }
 
         @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
         public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
-            C01451 c01451 = new C01451(this.$generation, continuation);
-            c01451.L$0 = obj;
-            return (Continuation) c01451;
+            C01471 c01471 = new C01471(this.$generation, continuation);
+            c01471.L$0 = obj;
+            return c01471;
         }
 
         @Override // kotlin.jvm.functions.Function2
         public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
-            return ((C01451) (Object) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+            return ((C01471) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
         }
 
         @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
@@ -449,9 +611,11 @@ public final class IconManager {
             IntrinsicsKt.getCOROUTINE_SUSPENDED();
             if (this.label != 0) {
                 throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+                return null;
             }
             ResultKt.throwOnFailure(obj);
             int i = AndroidUtilities.displayMetrics.densityDpi;
+            long jElapsedRealtime = SystemClock.elapsedRealtime() + 150;
             int i2 = 0;
             for (Map.Entry entry : IconManager.iconOwnerMap.entrySet()) {
                 String str = (String) entry.getKey();
@@ -459,28 +623,27 @@ public final class IconManager {
                 if (!CoroutineScopeKt.isActive(coroutineScope) || this.$generation != IconManager.initializationGeneration) {
                     return Unit.INSTANCE;
                 }
-                int i3 = i2;
                 IconManager iconManager = IconManager.INSTANCE;
                 Integer num = iconManager.getSystemIcons().get(str);
                 if (num != null) {
                     int iIntValue = num.intValue();
-                    int i4 = i3 + 1;
-                    if (i3 < 512) {
-                        Bitmap packIconBitmap = iconManager.getPackIconBitmap(iconPack, iIntValue, i, null, str, false);
-                        if (packIconBitmap != null) {
-                            if (CoroutineScopeKt.isActive(coroutineScope) && this.$generation == IconManager.initializationGeneration) {
-                                int i5 = i;
-                                iconManager.publishBitmap(this.$generation, str, iconPack, iIntValue, i5, packIconBitmap);
-                                i = i5;
-                            } else {
-                                return Unit.INSTANCE;
-                            }
-                        }
-                        i2 = i4;
-                    } else {
+                    int i3 = i2 + 1;
+                    if (i2 >= 256) {
                         return Unit.INSTANCE;
                     }
-                } else {
+                    if (SystemClock.elapsedRealtime() >= jElapsedRealtime) {
+                        return Unit.INSTANCE;
+                    }
+                    Bitmap packIconBitmap = iconManager.getPackIconBitmap(iconPack, iIntValue, i, null, str, false);
+                    if (packIconBitmap != null) {
+                        if (CoroutineScopeKt.isActive(coroutineScope) && this.$generation == IconManager.initializationGeneration) {
+                            int i4 = i;
+                            iconManager.publishBitmap(this.$generation, str, iconPack, iIntValue, i4, packIconBitmap);
+                            i = i4;
+                        } else {
+                            return Unit.INSTANCE;
+                        }
+                    }
                     i2 = i3;
                 }
             }
@@ -489,44 +652,412 @@ public final class IconManager {
     }
 
     public final Drawable getDrawable(int resId, int density, Resources.Theme theme) {
+        String str;
+        IconPack iconPack;
+        long j;
+        Bitmap packIconBitmap;
+        ConcurrentHashMap<String, IconPack> concurrentHashMap = iconOwnerMap;
+        if (concurrentHashMap.isEmpty()) {
+            return null;
+        }
         if (density == 0) {
             density = AndroidUtilities.displayMetrics.densityDpi;
         }
         int i = density;
-        Bitmap bitmap = resolvedCache.get(Long.valueOf(resolvedCacheKey(resId, i)));
+        SourceCacheKey sourceCacheKey = resolvedCache.get(resolvedCacheKey(resId, i));
+        Bitmap bitmap = sourceCacheKey != null ? sourceCache.get(sourceCacheKey) : null;
         if (bitmap != null) {
             return new BitmapDrawable(ApplicationLoader.applicationContext.getResources(), bitmap);
         }
-        String resourceEntryName = systemNames.get(Integer.valueOf(resId));
-        if (resourceEntryName == null) {
+        IntStringMap intStringMap = systemNames;
+        if (intStringMap == null || (resourceEntryName = intStringMap.get(resId)) == null) {
             try {
-                resourceEntryName = ApplicationLoader.applicationContext.getResources().getResourceEntryName(resId);
+                String resourceEntryName = ApplicationLoader.applicationContext.getResources().getResourceEntryName(resId);
+                str = resourceEntryName;
+                iconPack = concurrentHashMap.get(str);
+                if (iconPack != null) {
+                    j = initializationGeneration;
+                    packIconBitmap = getPackIconBitmap(iconPack, resId, i, theme, str, false);
+                    if (packIconBitmap != null) {
+                        publishBitmap(j, str, iconPack, resId, i, packIconBitmap);
+                        return new BitmapDrawable(ApplicationLoader.applicationContext.getResources(), packIconBitmap);
+                    }
+                }
             } catch (Exception unused) {
-                return null;
             }
-        }
-        String str = resourceEntryName;
-        IconPack iconPack = iconOwnerMap.get(str);
-        if (iconPack != null) {
-            long j = initializationGeneration;
-            Bitmap packIconBitmap = getPackIconBitmap(iconPack, resId, i, theme, str, false);
-            if (packIconBitmap != null) {
-                publishBitmap(j, str, iconPack, resId, i, packIconBitmap);
-                return new BitmapDrawable(ApplicationLoader.applicationContext.getResources(), packIconBitmap);
+        } else {
+            str = resourceEntryName;
+            iconPack = concurrentHashMap.get(str);
+            if (iconPack != null) {
+                j = initializationGeneration;
+                packIconBitmap = getPackIconBitmap(iconPack, resId, i, theme, str, false);
+                if (packIconBitmap != null) {
+                    publishBitmap(j, str, iconPack, resId, i, packIconBitmap);
+                    return new BitmapDrawable(ApplicationLoader.applicationContext.getResources(), packIconBitmap);
+                }
             }
         }
         return null;
+    }
+
+    public final Drawable getCachedDrawable(int resId) {
+        SourceCacheKey sourceCacheKey;
+        Bitmap bitmap;
+        if (iconOwnerMap.isEmpty() || (sourceCacheKey = resolvedCache.get(resolvedCacheKey(resId, AndroidUtilities.displayMetrics.densityDpi))) == null || (bitmap = sourceCache.get(sourceCacheKey)) == null) {
+            return null;
+        }
+        return new BitmapDrawable(ApplicationLoader.applicationContext.getResources(), bitmap);
     }
 
     public final Drawable getPackIconDrawable(IconPack pack, int resId) {
-        Bitmap packIconBitmap = getPackIconBitmap(pack, resId, AndroidUtilities.displayMetrics.densityDpi, null, null, true);
-        if (packIconBitmap != null) {
-            return new BitmapDrawable(ApplicationLoader.applicationContext.getResources(), packIconBitmap);
+        Bitmap packIconBitmap$default = getPackIconBitmap$default(this, pack, resId, AndroidUtilities.displayMetrics.densityDpi, null, null, false, 48, null);
+        if (packIconBitmap$default != null) {
+            return new BitmapDrawable(ApplicationLoader.applicationContext.getResources(), packIconBitmap$default);
         }
         return null;
     }
 
-    public static /* synthetic */ Bitmap getPackIconBitmap$default(IconManager iconManager, IconPack iconPack, int i, int i2, Resources.Theme theme, String str, boolean z, int i3, Object obj) {
+    private final Bitmap cachedPackIconBitmap(IconPack pack, int resId, int density) {
+        String str;
+        String str2;
+        IntStringMap intStringMap = systemNames;
+        if (intStringMap == null || (str = intStringMap.get(resId)) == null || (str2 = pack.getIcons().get(str)) == null) {
+            return null;
+        }
+        return sourceCache.get(sourceCacheKey(pack, str2, resId, density));
+    }
+
+    public final Drawable getCachedPackIconDrawable(IconPack pack, int resId) {
+        Bitmap bitmapCachedPackIconBitmap = cachedPackIconBitmap(pack, resId, AndroidUtilities.displayMetrics.densityDpi);
+        if (bitmapCachedPackIconBitmap != null) {
+            return new BitmapDrawable(ApplicationLoader.applicationContext.getResources(), bitmapCachedPackIconBitmap);
+        }
+        return null;
+    }
+
+    public final void requestPackIconDrawable(IconPack pack, int resId, Utilities.Callback<Drawable> callback) {
+        int i = AndroidUtilities.displayMetrics.densityDpi;
+        Bitmap bitmapCachedPackIconBitmap = cachedPackIconBitmap(pack, resId, i);
+        if (bitmapCachedPackIconBitmap == null) {
+            BuildersKt__Builders_commonKt.launch$default(scope, decodeDispatcher, null, new C01502(pack, resId, i, callback, null), 2, null);
+        } else {
+            callback.run(new BitmapDrawable(ApplicationLoader.applicationContext.getResources(), bitmapCachedPackIconBitmap));
+        }
+    }
+
+    @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
+    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$requestPackIconDrawable$2", f = "IconManager.kt", i = {0}, l = {474}, m = "invokeSuspend", n = {"bitmap"}, s = {"L$0"})
+    public static final class C01502 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
+        final Utilities.Callback<Drawable> $callback;
+        final int $density;
+        final IconPack $pack;
+        final int $resId;
+        Object L$0;
+        int label;
+
+        public C01502(IconPack iconPack, int i, int i2, Utilities.Callback<Drawable> callback, Continuation<? super C01502> continuation) {
+            super(2, continuation);
+            this.$pack = iconPack;
+            this.$resId = i;
+            this.$density = i2;
+            this.$callback = callback;
+        }
+
+        @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
+        public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
+            return new C01502(this.$pack, this.$resId, this.$density, this.$callback, continuation);
+        }
+
+        @Override // kotlin.jvm.functions.Function2
+        public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
+            return ((C01502) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+        }
+
+        @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
+        public final Object invokeSuspend(Object obj) {
+            Object coroutine_suspended = IntrinsicsKt.getCOROUTINE_SUSPENDED();
+            int i = this.label;
+            if (i == 0) {
+                ResultKt.throwOnFailure(obj);
+                Bitmap packIconBitmap$default = IconManager.getPackIconBitmap$default(IconManager.INSTANCE, this.$pack, this.$resId, this.$density, null, null, false, 48, null);
+                if (packIconBitmap$default == null) {
+                    return Unit.INSTANCE;
+                }
+                MainCoroutineDispatcher main = Dispatchers.getMain();
+                AnonymousClass1 anonymousClass1 = new AnonymousClass1(this.$callback, packIconBitmap$default, null);
+                this.L$0 = SpillingKt.nullOutSpilledVariable(packIconBitmap$default);
+                this.label = 1;
+                if (BuildersKt.withContext(main, anonymousClass1, this) == coroutine_suspended) {
+                    return coroutine_suspended;
+                }
+            } else {
+                if (i != 1) {
+                    throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+                    return null;
+                }
+                ResultKt.throwOnFailure(obj);
+            }
+            return Unit.INSTANCE;
+        }
+
+        @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
+        @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$requestPackIconDrawable$2$1", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {})
+        @SourceDebugExtension({"SMAP\nIconManager.kt\nKotlin\n*S Kotlin\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$requestPackIconDrawable$2$1\n+ 2 BitmapDrawable.kt\nandroidx/core/graphics/drawable/BitmapDrawableKt\n*L\n1#1,1083:1\n27#2:1084\n*S KotlinDebug\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$requestPackIconDrawable$2$1\n*L\n475#1:1084\n*E\n"})
+        public static final class AnonymousClass1 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
+            final Bitmap $bitmap;
+            final Utilities.Callback<Drawable> $callback;
+            int label;
+
+            public AnonymousClass1(Utilities.Callback<Drawable> callback, Bitmap bitmap, Continuation<? super AnonymousClass1> continuation) {
+                super(2, continuation);
+                this.$callback = callback;
+                this.$bitmap = bitmap;
+            }
+
+            @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
+            public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
+                return new AnonymousClass1(this.$callback, this.$bitmap, continuation);
+            }
+
+            @Override // kotlin.jvm.functions.Function2
+            public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
+                return ((AnonymousClass1) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+            }
+
+            @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
+            public final Object invokeSuspend(Object obj) {
+                IntrinsicsKt.getCOROUTINE_SUSPENDED();
+                if (this.label != 0) {
+                    throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+                    return null;
+                }
+                ResultKt.throwOnFailure(obj);
+                this.$callback.run(new BitmapDrawable(ApplicationLoader.applicationContext.getResources(), this.$bitmap));
+                return Unit.INSTANCE;
+            }
+        }
+    }
+
+    public final void requestDrawable(int resId, Utilities.Callback<Drawable> callback) {
+        if (iconOwnerMap.isEmpty()) {
+            return;
+        }
+        Drawable cachedDrawable = getCachedDrawable(resId);
+        if (cachedDrawable != null) {
+            callback.run(cachedDrawable);
+        } else {
+            BuildersKt__Builders_commonKt.launch$default(scope, decodeDispatcher, null, new AnonymousClass2(resId, AndroidUtilities.displayMetrics.densityDpi, callback, null), 2, null);
+        }
+    }
+
+    @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
+    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$requestDrawable$2", f = "IconManager.kt", i = {0}, l = {489}, m = "invokeSuspend", n = {"drawable"}, s = {"L$0"})
+    public static final class AnonymousClass2 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
+        final Utilities.Callback<Drawable> $callback;
+        final int $density;
+        final int $resId;
+        Object L$0;
+        int label;
+
+        public AnonymousClass2(int i, int i2, Utilities.Callback<Drawable> callback, Continuation<? super AnonymousClass2> continuation) {
+            super(2, continuation);
+            this.$resId = i;
+            this.$density = i2;
+            this.$callback = callback;
+        }
+
+        @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
+        public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
+            return new AnonymousClass2(this.$resId, this.$density, this.$callback, continuation);
+        }
+
+        @Override // kotlin.jvm.functions.Function2
+        public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
+            return ((AnonymousClass2) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+        }
+
+        @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
+        public final Object invokeSuspend(Object obj) {
+            Object coroutine_suspended = IntrinsicsKt.getCOROUTINE_SUSPENDED();
+            int i = this.label;
+            if (i == 0) {
+                ResultKt.throwOnFailure(obj);
+                Drawable drawable = IconManager.INSTANCE.getDrawable(this.$resId, this.$density, null);
+                if (drawable == null) {
+                    return Unit.INSTANCE;
+                }
+                MainCoroutineDispatcher main = Dispatchers.getMain();
+                AnonymousClass1 anonymousClass1 = new AnonymousClass1(this.$callback, drawable, null);
+                this.L$0 = SpillingKt.nullOutSpilledVariable(drawable);
+                this.label = 1;
+                if (BuildersKt.withContext(main, anonymousClass1, this) == coroutine_suspended) {
+                    return coroutine_suspended;
+                }
+            } else {
+                if (i != 1) {
+                    throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+                    return null;
+                }
+                ResultKt.throwOnFailure(obj);
+            }
+            return Unit.INSTANCE;
+        }
+
+        @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
+        @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$requestDrawable$2$1", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {})
+        public static final class AnonymousClass1 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
+            final Utilities.Callback<Drawable> $callback;
+            final Drawable $drawable;
+            int label;
+
+            public AnonymousClass1(Utilities.Callback<Drawable> callback, Drawable drawable, Continuation<? super AnonymousClass1> continuation) {
+                super(2, continuation);
+                this.$callback = callback;
+                this.$drawable = drawable;
+            }
+
+            @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
+            public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
+                return new AnonymousClass1(this.$callback, this.$drawable, continuation);
+            }
+
+            @Override // kotlin.jvm.functions.Function2
+            public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
+                return ((AnonymousClass1) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+            }
+
+            @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
+            public final Object invokeSuspend(Object obj) {
+                IntrinsicsKt.getCOROUTINE_SUSPENDED();
+                if (this.label != 0) {
+                    throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+                    return null;
+                }
+                ResultKt.throwOnFailure(obj);
+                this.$callback.run(this.$drawable);
+                return Unit.INSTANCE;
+            }
+        }
+    }
+
+    public final void requestDrawableForSize(int resId, int sizePx, Utilities.Callback<Drawable> callback) {
+        IntStringMap intStringMap;
+        String str;
+        IconPack iconPack;
+        String str2;
+        ConcurrentHashMap<String, IconPack> concurrentHashMap = iconOwnerMap;
+        if (concurrentHashMap.isEmpty() || sizePx <= 0 || (intStringMap = systemNames) == null || (str = intStringMap.get(resId)) == null || (iconPack = concurrentHashMap.get(str)) == null || (str2 = iconPack.getIcons().get(str)) == null) {
+            return;
+        }
+        BuildersKt__Builders_commonKt.launch$default(scope, decodeDispatcher, null, new C01491(iconPack, str2, sizePx, callback, null), 2, null);
+    }
+
+    @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
+    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$requestDrawableForSize$1", f = "IconManager.kt", i = {0, 0, 0}, l = {502}, m = "invokeSuspend", n = {"file", "bitmap", "density"}, s = {"L$0", "L$1", "I$0"})
+    public static final class C01491 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
+        final Utilities.Callback<Drawable> $callback;
+        final String $iconFileName;
+        final IconPack $pack;
+        final int $sizePx;
+        int I$0;
+        Object L$0;
+        Object L$1;
+        int label;
+
+        public C01491(IconPack iconPack, String str, int i, Utilities.Callback<Drawable> callback, Continuation<? super C01491> continuation) {
+            super(2, continuation);
+            this.$pack = iconPack;
+            this.$iconFileName = str;
+            this.$sizePx = i;
+            this.$callback = callback;
+        }
+
+        @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
+        public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
+            return new C01491(this.$pack, this.$iconFileName, this.$sizePx, this.$callback, continuation);
+        }
+
+        @Override // kotlin.jvm.functions.Function2
+        public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
+            return ((C01491) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+        }
+
+        @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
+        public final Object invokeSuspend(Object obj) {
+            Object coroutine_suspended = IntrinsicsKt.getCOROUTINE_SUSPENDED();
+            int i = this.label;
+            if (i == 0) {
+                ResultKt.throwOnFailure(obj);
+                IconManager iconManager = IconManager.INSTANCE;
+                File fileResolvePackIconFile = iconManager.resolvePackIconFile(this.$pack, this.$iconFileName);
+                if (fileResolvePackIconFile == null) {
+                    return Unit.INSTANCE;
+                }
+                int i2 = AndroidUtilities.displayMetrics.densityDpi;
+                String absolutePath = fileResolvePackIconFile.getAbsolutePath();
+                int i3 = this.$sizePx;
+                Bitmap bitmapDecodeIconFile = iconManager.decodeIconFile(absolutePath, i3, i3, i2);
+                if (bitmapDecodeIconFile == null) {
+                    return Unit.INSTANCE;
+                }
+                MainCoroutineDispatcher main = Dispatchers.getMain();
+                C00211 c00211 = new C00211(this.$callback, bitmapDecodeIconFile, null);
+                this.L$0 = SpillingKt.nullOutSpilledVariable(fileResolvePackIconFile);
+                this.L$1 = SpillingKt.nullOutSpilledVariable(bitmapDecodeIconFile);
+                this.I$0 = i2;
+                this.label = 1;
+                if (BuildersKt.withContext(main, c00211, this) == coroutine_suspended) {
+                    return coroutine_suspended;
+                }
+            } else {
+                if (i != 1) {
+                    throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+                    return null;
+                }
+                ResultKt.throwOnFailure(obj);
+            }
+            return Unit.INSTANCE;
+        }
+
+        @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
+        @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$requestDrawableForSize$1$1", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {})
+        @SourceDebugExtension({"SMAP\nIconManager.kt\nKotlin\n*S Kotlin\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$requestDrawableForSize$1$1\n+ 2 BitmapDrawable.kt\nandroidx/core/graphics/drawable/BitmapDrawableKt\n*L\n1#1,1083:1\n27#2:1084\n*S KotlinDebug\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$requestDrawableForSize$1$1\n*L\n503#1:1084\n*E\n"})
+        public static final class C00211 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
+            final Bitmap $bitmap;
+            final Utilities.Callback<Drawable> $callback;
+            int label;
+
+            public C00211(Utilities.Callback<Drawable> callback, Bitmap bitmap, Continuation<? super C00211> continuation) {
+                super(2, continuation);
+                this.$callback = callback;
+                this.$bitmap = bitmap;
+            }
+
+            @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
+            public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
+                return new C00211(this.$callback, this.$bitmap, continuation);
+            }
+
+            @Override // kotlin.jvm.functions.Function2
+            public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
+                return ((C00211) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+            }
+
+            @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
+            public final Object invokeSuspend(Object obj) {
+                IntrinsicsKt.getCOROUTINE_SUSPENDED();
+                if (this.label != 0) {
+                    throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+                    return null;
+                }
+                ResultKt.throwOnFailure(obj);
+                this.$callback.run(new BitmapDrawable(ApplicationLoader.applicationContext.getResources(), this.$bitmap));
+                return Unit.INSTANCE;
+            }
+        }
+    }
+
+    public static Bitmap getPackIconBitmap$default(IconManager iconManager, IconPack iconPack, int i, int i2, Resources.Theme theme, String str, boolean z, int i3, Object obj) {
         if ((i3 & 16) != 0) {
             str = null;
         }
@@ -537,13 +1068,16 @@ public final class IconManager {
         return iconManager.getPackIconBitmap(iconPack, i, i2, theme, str2, z);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final Bitmap getPackIconBitmap(IconPack pack, int resId, int density, Resources.Theme theme, String knownResourceName, boolean cacheResult) {
-        if (knownResourceName == null && (knownResourceName = systemNames.get(Integer.valueOf(resId))) == null) {
-            try {
-                knownResourceName = ApplicationLoader.applicationContext.getResources().getResourceEntryName(resId);
-            } catch (Exception unused) {
-                return null;
+        if (knownResourceName == null) {
+            IntStringMap intStringMap = systemNames;
+            knownResourceName = intStringMap != null ? intStringMap.get(resId) : null;
+            if (knownResourceName == null) {
+                try {
+                    knownResourceName = ApplicationLoader.applicationContext.getResources().getResourceEntryName(resId);
+                } catch (Exception unused) {
+                    return null;
+                }
             }
         }
         String str = pack.getIcons().get(knownResourceName);
@@ -551,7 +1085,8 @@ public final class IconManager {
             return null;
         }
         SourceCacheKey sourceCacheKey = sourceCacheKey(pack, str, resId, density);
-        Bitmap bitmap = sourceCache.get(sourceCacheKey);
+        IconManager$sourceCache$1 iconManager$sourceCache$1 = sourceCache;
+        Bitmap bitmap = iconManager$sourceCache$1.get(sourceCacheKey);
         if (bitmap != null) {
             return bitmap;
         }
@@ -561,33 +1096,53 @@ public final class IconManager {
         }
         Bitmap bitmapCreateBitmapFromFile = createBitmapFromFile(fileResolvePackIconFile.getAbsolutePath(), resId, density, theme);
         if (bitmapCreateBitmapFromFile != null && cacheResult) {
-            sourceCache.put(sourceCacheKey, bitmapCreateBitmapFromFile);
+            iconManager$sourceCache$1.put(sourceCacheKey, bitmapCreateBitmapFromFile);
         }
         return bitmapCreateBitmapFromFile;
     }
 
     public final Bitmap createBitmapFromFile(String path, int originalResId, int density, Resources.Theme theme) {
         Drawable drawableForDensity;
-        int i;
         try {
             Resources resources = ApplicationLoader.applicationContext.getResources();
             ExteraResources exteraResources = resources instanceof ExteraResources ? (ExteraResources) resources : null;
             if (exteraResources == null || (drawableForDensity = exteraResources.getOriginalDrawable(originalResId)) == null) {
                 drawableForDensity = ResourcesCompat.getDrawableForDensity(ApplicationLoader.applicationContext.getResources(), originalResId, density, theme);
             }
-            int iMax = Math.max(1, drawableForDensity != null ? drawableForDensity.getIntrinsicWidth() : AndroidUtilities.dp(24.0f));
-            int iMax2 = Math.max(1, drawableForDensity != null ? drawableForDensity.getIntrinsicHeight() : AndroidUtilities.dp(24.0f));
+            return decodeIconFile(path, Math.max(1, drawableForDensity != null ? drawableForDensity.getIntrinsicWidth() : AndroidUtilities.dp(24.0f)), Math.max(1, drawableForDensity != null ? drawableForDensity.getIntrinsicHeight() : AndroidUtilities.dp(24.0f)), density);
+        } catch (Exception e) {
+            FileLog.e("Error loading icon bitmap: " + path, e);
+            return null;
+        } catch (OutOfMemoryError e2) {
+            FileLog.e("Out of memory loading icon bitmap: " + path, e2);
+            return null;
+        }
+    }
+
+    public final Bitmap decodeIconFile(String path, int targetW, int targetH, int density) {
+        Bitmap bitmap;
+        int i;
+        Bitmap bitmap2;
+        Bitmap bitmap3 = null;
+        try {
+            File file = new File(path);
+            DecodedIconStore decodedIconStore = DecodedIconStore.INSTANCE;
+            Bitmap bitmap4 = decodedIconStore.get(file, targetW, targetH, density);
+            if (bitmap4 != null) {
+                return bitmap4;
+            }
             if (StringsKt.endsWith(path, ".svg", true)) {
                 FileInputStream fileInputStream = new FileInputStream(path);
                 try {
                     SVG fromInputStream = SVG.getFromInputStream(fileInputStream);
                     CloseableKt.closeFinally(fileInputStream, null);
-                    Bitmap bitmapCreateBitmap = Bitmap.createBitmap(iMax, iMax2, Bitmap.Config.ARGB_8888);
+                    Bitmap bitmapCreateBitmap = Bitmap.createBitmap(targetW, targetH, Bitmap.Config.ARGB_8888);
                     Canvas canvas = new Canvas(bitmapCreateBitmap);
-                    fromInputStream.setDocumentWidth(iMax);
-                    fromInputStream.setDocumentHeight(iMax2);
+                    fromInputStream.setDocumentWidth(targetW);
+                    fromInputStream.setDocumentHeight(targetH);
                     fromInputStream.renderToCanvas(canvas);
                     bitmapCreateBitmap.setDensity(density);
+                    decodedIconStore.put(file, targetW, targetH, density, bitmapCreateBitmap);
                     return bitmapCreateBitmap;
                 } catch (Throwable th) {
                     try {
@@ -602,79 +1157,100 @@ public final class IconManager {
             options.inJustDecodeBounds = true;
             BitmapFactory.decodeFile(path, options);
             int i2 = options.outWidth;
-            if (i2 > 0 && (i = options.outHeight) > 0 && ((long) i2) * ((long) i) <= 100000000) {
-                options.inSampleSize = 1;
-                if (i > iMax2 || i2 > iMax) {
-                    int i3 = i / 2;
-                    int i4 = i2 / 2;
-                    while (true) {
-                        int i5 = options.inSampleSize;
-                        if (i3 / i5 < iMax2 || i4 / i5 < iMax) {
-                            break;
-                        }
-                        options.inSampleSize = i5 * 2;
-                    }
-                }
-                long jMax = Math.max(((long) iMax) * ((long) iMax2), 1048576L);
+            if (i2 <= 0 || (i = options.outHeight) <= 0 || ((long) i2) * ((long) i) > 100000000) {
+                return null;
+            }
+            options.inSampleSize = 1;
+            if (i > targetH || i2 > targetW) {
+                int i3 = i / 2;
+                int i4 = i2 / 2;
                 while (true) {
-                    long j = options.outWidth;
-                    int i6 = options.inSampleSize;
-                    if ((((j + ((long) i6)) - 1) / ((long) i6)) * (((((long) options.outHeight) + ((long) i6)) - 1) / ((long) i6)) <= jMax) {
+                    int i5 = options.inSampleSize;
+                    if (i3 / i5 < targetH || i4 / i5 < targetW) {
+                        break;
+                    }
+                    options.inSampleSize = i5 * 2;
+                }
+            }
+            long jMax = Math.max(((long) targetW) * ((long) targetH), 1048576L);
+            while (true) {
+                long j = options.outWidth;
+                int i6 = options.inSampleSize;
+                bitmap = bitmap3;
+                long j2 = jMax;
+                try {
+                    if ((((j + ((long) i6)) - 1) / ((long) i6)) * (((((long) options.outHeight) + ((long) i6)) - 1) / ((long) i6)) <= j2) {
                         break;
                     }
                     options.inSampleSize = i6 * 2;
+                    bitmap3 = bitmap;
+                    jMax = j2;
+                } catch (Exception e) {
+                    e = e;
+                    FileLog.e("Error loading icon bitmap: " + path, e);
+                    return bitmap;
+                } catch (OutOfMemoryError e2) {
+                    e = e2;
+                    FileLog.e("Out of memory loading icon bitmap: " + path, e);
+                    return bitmap;
                 }
-                options.inJustDecodeBounds = false;
-                options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-                Bitmap bitmapDecodeFile = BitmapFactory.decodeFile(path, options);
-                if (bitmapDecodeFile == null) {
-                    return null;
-                }
-                if (bitmapDecodeFile.getWidth() == iMax && bitmapDecodeFile.getHeight() == iMax2) {
-                    bitmapDecodeFile.setDensity(density);
-                    return bitmapDecodeFile;
-                }
-                Bitmap bitmapCreateScaledBitmap = Bitmap.createScaledBitmap(bitmapDecodeFile, iMax, iMax2, true);
+            }
+            options.inJustDecodeBounds = false;
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            Bitmap bitmapDecodeFile = BitmapFactory.decodeFile(path, options);
+            if (bitmapDecodeFile == null) {
+                return bitmap;
+            }
+            if (bitmapDecodeFile.getWidth() != targetW || bitmapDecodeFile.getHeight() != targetH) {
+                Bitmap bitmapCreateScaledBitmap = Bitmap.createScaledBitmap(bitmapDecodeFile, targetW, targetH, true);
                 if (!Intrinsics.areEqual(bitmapCreateScaledBitmap, bitmapDecodeFile)) {
                     bitmapDecodeFile.recycle();
                 }
                 bitmapCreateScaledBitmap.setDensity(density);
-                return bitmapCreateScaledBitmap;
+                bitmap2 = bitmapCreateScaledBitmap;
+            } else {
+                bitmapDecodeFile.setDensity(density);
+                bitmap2 = bitmapDecodeFile;
             }
-            return null;
-        } catch (Exception e) {
+            DecodedIconStore.INSTANCE.put(file, targetW, targetH, density, bitmap2);
+            return bitmap2;
+        } catch (Exception e3) {
+            e = e3;
+            bitmap = null;
             FileLog.e("Error loading icon bitmap: " + path, e);
-            return null;
-        } catch (OutOfMemoryError e2) {
-            FileLog.e("Out of memory loading icon bitmap: " + path, e2);
-            return null;
+            return bitmap;
+        } catch (OutOfMemoryError e4) {
+            e = e4;
+            bitmap = null;
+            FileLog.e("Out of memory loading icon bitmap: " + path, e);
+            return bitmap;
         }
     }
 
     public final void saveCustomIcon(String packId, int resId, File tempFile, String originalName) {
-        String resourceEntryName = systemNames.get(Integer.valueOf(resId));
-        if (resourceEntryName == null) {
+        String resourceEntryName;
+        IntStringMap intStringMap = systemNames;
+        if (intStringMap == null || (resourceEntryName = intStringMap.get(resId)) == null) {
             try {
                 resourceEntryName = ApplicationLoader.applicationContext.getResources().getResourceEntryName(resId);
             } catch (Exception unused) {
                 return;
             }
         }
-        BuildersKt.launch(scope, mutationDispatcher, null, new C01481(packId, tempFile, originalName, resourceEntryName, resId, null));
+        BuildersKt__Builders_commonKt.launch$default(scope, mutationDispatcher, null, new C01521(packId, tempFile, originalName, resourceEntryName, resId, null), 2, null);
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.icons.IconManager$saveCustomIcon$1, reason: invalid class name and case insensitive filesystem */
     @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
-    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$saveCustomIcon$1", f = "IconManager.kt", i = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, l = {460}, m = "invokeSuspend", n = {"$this$launch", "packToEdit", "ext", "sanitized", "baseName", "stem", "packDirectory", "destination", "updatedMap", "previousFileName", "updatedPack", "preDecoded", "density"}, s = {"L$0", "L$1", "L$2", "L$3", "L$4", "L$5", "L$6", "L$7", "L$8", "L$9", "L$10", "L$11", "I$0"}, v = 1)
-    @SourceDebugExtension({"SMAP\nIconManager.kt\nKotlin\n*S Kotlin\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$saveCustomIcon$1\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n+ 3 _Strings.kt\nkotlin/text/StringsKt___StringsKt\n*L\n1#1,853:1\n1#2:854\n392#3,4:855\n*S KotlinDebug\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$saveCustomIcon$1\n*L\n434#1:855,4\n*E\n"})
-    public static final class C01481 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
-        final /* synthetic */ String $originalName;
-        final /* synthetic */ String $packId;
-        final /* synthetic */ int $resId;
-        final /* synthetic */ String $resourceName;
-        final /* synthetic */ File $tempFile;
+    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$saveCustomIcon$1", f = "IconManager.kt", i = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, l = {671}, m = "invokeSuspend", n = {"$this$launch", "packToEdit", "ext", "sanitized", "baseName", "stem", "packDirectory", "destination", "updatedMap", "previousFileName", "updatedPack", "preDecoded", "density"}, s = {"L$0", "L$1", "L$2", "L$3", "L$4", "L$5", "L$6", "L$7", "L$8", "L$9", "L$10", "L$11", "I$0"})
+    @SourceDebugExtension({"SMAP\nIconManager.kt\nKotlin\n*S Kotlin\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$saveCustomIcon$1\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n+ 3 _Strings.kt\nkotlin/text/StringsKt___StringsKt\n*L\n1#1,1083:1\n1#2:1084\n392#3,4:1085\n*S KotlinDebug\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$saveCustomIcon$1\n*L\n645#1:1085,4\n*E\n"})
+    public static final class C01521 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
+        final String $originalName;
+        final String $packId;
+        final int $resId;
+        final String $resourceName;
+        final File $tempFile;
         int I$0;
-        private /* synthetic */ Object L$0;
+        private Object L$0;
         Object L$1;
         Object L$10;
         Object L$11;
@@ -688,9 +1264,8 @@ public final class IconManager {
         Object L$9;
         int label;
 
-        /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
-        public C01481(String str, File file, String str2, String str3, int i, Continuation continuation) {
-            super(2, (Continuation) continuation);
+        public C01521(String str, File file, String str2, String str3, int i, Continuation<? super C01521> continuation) {
+            super(2, continuation);
             this.$packId = str;
             this.$tempFile = file;
             this.$originalName = str2;
@@ -700,32 +1275,16 @@ public final class IconManager {
 
         @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
         public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
-            C01481 c01481 = new C01481(this.$packId, this.$tempFile, this.$originalName, this.$resourceName, this.$resId, continuation);
-            c01481.L$0 = obj;
-            return (Continuation) c01481;
+            C01521 c01521 = new C01521(this.$packId, this.$tempFile, this.$originalName, this.$resourceName, this.$resId, continuation);
+            c01521.L$0 = obj;
+            return c01521;
         }
 
         @Override // kotlin.jvm.functions.Function2
         public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
-            return ((C01481) (Object) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+            return ((C01521) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
         }
 
-        /* JADX WARN: Code restructure failed: missing block: B:110:0x0291, code lost:
-        
-            r0 = th;
-         */
-        /* JADX WARN: Code restructure failed: missing block: B:111:0x0292, code lost:
-        
-            r20 = r11;
-         */
-        /* JADX WARN: Code restructure failed: missing block: B:112:0x0296, code lost:
-        
-            r0 = e;
-         */
-        /* JADX WARN: Code restructure failed: missing block: B:113:0x0297, code lost:
-        
-            r20 = r11;
-         */
         @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
         public final Object invokeSuspend(Object obj) {
             CoroutineScope coroutineScope = (CoroutineScope) this.L$0;
@@ -835,21 +1394,19 @@ public final class IconManager {
             return Unit.INSTANCE;
         }
 
-        /* JADX INFO: renamed from: com.exteragram.messenger.icons.IconManager$saveCustomIcon$1$2, reason: invalid class name */
         @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
-        @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$saveCustomIcon$1$2", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {}, v = 1)
-        @SourceDebugExtension({"SMAP\nIconManager.kt\nKotlin\n*S Kotlin\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$saveCustomIcon$1$2\n+ 2 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n*L\n1#1,853:1\n363#2,7:854\n*S KotlinDebug\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$saveCustomIcon$1$2\n*L\n461#1:854,7\n*E\n"})
+        @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$saveCustomIcon$1$2", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {})
+        @SourceDebugExtension({"SMAP\nIconManager.kt\nKotlin\n*S Kotlin\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$saveCustomIcon$1$2\n+ 2 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n*L\n1#1,1083:1\n363#2,7:1084\n*S KotlinDebug\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$saveCustomIcon$1$2\n*L\n672#1:1084,7\n*E\n"})
         public static final class AnonymousClass2 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
-            final /* synthetic */ int $density;
-            final /* synthetic */ Bitmap $preDecoded;
-            final /* synthetic */ int $resId;
-            final /* synthetic */ String $resourceName;
-            final /* synthetic */ IconPack $updatedPack;
+            final int $density;
+            final Bitmap $preDecoded;
+            final int $resId;
+            final String $resourceName;
+            final IconPack $updatedPack;
             int label;
 
-            /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
-            public AnonymousClass2(IconPack iconPack, int i, Bitmap bitmap, String str, int i2, Continuation continuation) {
-                super(2, (Continuation) continuation);
+            public AnonymousClass2(IconPack iconPack, int i, Bitmap bitmap, String str, int i2, Continuation<? super AnonymousClass2> continuation) {
+                super(2, continuation);
                 this.$updatedPack = iconPack;
                 this.$resId = i;
                 this.$preDecoded = bitmap;
@@ -859,12 +1416,12 @@ public final class IconManager {
 
             @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
             public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
-                return (Continuation) new AnonymousClass2(this.$updatedPack, this.$resId, this.$preDecoded, this.$resourceName, this.$density, continuation);
+                return new AnonymousClass2(this.$updatedPack, this.$resId, this.$preDecoded, this.$resourceName, this.$density, continuation);
             }
 
             @Override // kotlin.jvm.functions.Function2
             public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
-                return ((AnonymousClass2) (Object) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+                return ((AnonymousClass2) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
             }
 
             @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
@@ -896,44 +1453,44 @@ public final class IconManager {
                             Boxing.boxBoolean(iconManager.publishBitmap(IconManager.initializationGeneration, this.$resourceName, this.$updatedPack, this.$resId, this.$density, bitmap));
                         }
                     }
-                    NotificationCenter.getGlobalInstance().postNotificationNameOnUIThread(NotificationCenter.iconPackUpdated, new Object[0]);
+                    NotificationCenter.getGlobalInstance().lambda$postNotificationNameOnUIThread$1(NotificationCenter.iconPackUpdated, new Object[0]);
                     return Unit.INSTANCE;
                 }
                 throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+                return null;
             }
         }
     }
 
     public final void resetCustomIcon(String packId, int resId) {
-        String resourceEntryName = systemNames.get(Integer.valueOf(resId));
-        if (resourceEntryName == null) {
+        String resourceEntryName;
+        IntStringMap intStringMap = systemNames;
+        if (intStringMap == null || (resourceEntryName = intStringMap.get(resId)) == null) {
             try {
                 resourceEntryName = ApplicationLoader.applicationContext.getResources().getResourceEntryName(resId);
             } catch (Exception unused) {
                 return;
             }
         }
-        BuildersKt.launch(scope, mutationDispatcher, null, new C01471(packId, resourceEntryName, resId, null));
+        BuildersKt__Builders_commonKt.launch$default(scope, mutationDispatcher, null, new C01511(packId, resourceEntryName, resId, null), 2, null);
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.icons.IconManager$resetCustomIcon$1, reason: invalid class name and case insensitive filesystem */
     @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
-    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$resetCustomIcon$1", f = "IconManager.kt", i = {0, 0, 0, 0, 0}, l = {506}, m = "invokeSuspend", n = {"$this$launch", "packToEdit", "iconFileName", "updatedMap", "updatedPack"}, s = {"L$0", "L$1", "L$2", "L$3", "L$4"}, v = 1)
-    @SourceDebugExtension({"SMAP\nIconManager.kt\nKotlin\n*S Kotlin\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$resetCustomIcon$1\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n*L\n1#1,853:1\n1#2:854\n*E\n"})
-    public static final class C01471 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
-        final /* synthetic */ String $packId;
-        final /* synthetic */ int $resId;
-        final /* synthetic */ String $resourceName;
-        private /* synthetic */ Object L$0;
+    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$resetCustomIcon$1", f = "IconManager.kt", i = {0, 0, 0, 0, 0}, l = {717}, m = "invokeSuspend", n = {"$this$launch", "packToEdit", "iconFileName", "updatedMap", "updatedPack"}, s = {"L$0", "L$1", "L$2", "L$3", "L$4"})
+    @SourceDebugExtension({"SMAP\nIconManager.kt\nKotlin\n*S Kotlin\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$resetCustomIcon$1\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n*L\n1#1,1083:1\n1#2:1084\n*E\n"})
+    public static final class C01511 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
+        final String $packId;
+        final int $resId;
+        final String $resourceName;
+        private Object L$0;
         Object L$1;
         Object L$2;
         Object L$3;
         Object L$4;
         int label;
 
-        /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
-        public C01471(String str, String str2, int i, Continuation continuation) {
-            super(2, (Continuation) continuation);
+        public C01511(String str, String str2, int i, Continuation<? super C01511> continuation) {
+            super(2, continuation);
             this.$packId = str;
             this.$resourceName = str2;
             this.$resId = i;
@@ -941,20 +1498,20 @@ public final class IconManager {
 
         @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
         public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
-            C01471 c01471 = new C01471(this.$packId, this.$resourceName, this.$resId, continuation);
-            c01471.L$0 = obj;
-            return (Continuation) c01471;
+            C01511 c01511 = new C01511(this.$packId, this.$resourceName, this.$resId, continuation);
+            c01511.L$0 = obj;
+            return c01511;
         }
 
         @Override // kotlin.jvm.functions.Function2
         public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
-            return ((C01471) (Object) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+            return ((C01511) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
         }
 
         @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
         public final Object invokeSuspend(Object obj) {
             String str;
-            Object objM2315constructorimpl;
+            Object objM2406constructorimpl;
             CoroutineScope coroutineScope = (CoroutineScope) this.L$0;
             Object coroutine_suspended = IntrinsicsKt.getCOROUTINE_SUSPENDED();
             int i = this.label;
@@ -971,12 +1528,19 @@ public final class IconManager {
                     }
                     if (!mutableMap.values().contains(str)) {
                         try {
+                            Result.Companion companion = Result.INSTANCE;
                             File fileResolvePackIconFile = IconManager.INSTANCE.resolvePackIconFile(iconPackFindPackById, str);
                             if (fileResolvePackIconFile != null && fileResolvePackIconFile.exists()) {
                                 SimpliFiles.file(fileResolvePackIconFile).delete();
                             }
+                            objM2406constructorimpl = Result.m2406constructorimpl(Unit.INSTANCE);
                         } catch (Throwable th) {
-                            FileLog.e("Failed to delete old icon", th);
+                            Result.Companion companion2 = Result.INSTANCE;
+                            objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th));
+                        }
+                        Throwable thM2409exceptionOrNullimpl = Result.m2409exceptionOrNullimpl(objM2406constructorimpl);
+                        if (thM2409exceptionOrNullimpl != null) {
+                            FileLog.e("Failed to delete old icon", thM2409exceptionOrNullimpl);
                         }
                     }
                     MainCoroutineDispatcher main = Dispatchers.getMain();
@@ -995,35 +1559,34 @@ public final class IconManager {
             }
             if (i != 1) {
                 throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+                return null;
             }
             ResultKt.throwOnFailure(obj);
             return Unit.INSTANCE;
         }
 
-        /* JADX INFO: renamed from: com.exteragram.messenger.icons.IconManager$resetCustomIcon$1$3, reason: invalid class name */
         @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
-        @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$resetCustomIcon$1$3", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {}, v = 1)
-        @SourceDebugExtension({"SMAP\nIconManager.kt\nKotlin\n*S Kotlin\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$resetCustomIcon$1$3\n+ 2 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n*L\n1#1,853:1\n363#2,7:854\n*S KotlinDebug\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$resetCustomIcon$1$3\n*L\n507#1:854,7\n*E\n"})
+        @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$resetCustomIcon$1$3", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {})
+        @SourceDebugExtension({"SMAP\nIconManager.kt\nKotlin\n*S Kotlin\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$resetCustomIcon$1$3\n+ 2 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n*L\n1#1,1083:1\n363#2,7:1084\n*S KotlinDebug\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$resetCustomIcon$1$3\n*L\n718#1:1084,7\n*E\n"})
         public static final class AnonymousClass3 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
-            final /* synthetic */ int $resId;
-            final /* synthetic */ IconPack $updatedPack;
+            final int $resId;
+            final IconPack $updatedPack;
             int label;
 
-            /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
-            public AnonymousClass3(IconPack iconPack, int i, Continuation continuation) {
-                super(2, (Continuation) continuation);
+            public AnonymousClass3(IconPack iconPack, int i, Continuation<? super AnonymousClass3> continuation) {
+                super(2, continuation);
                 this.$updatedPack = iconPack;
                 this.$resId = i;
             }
 
             @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
             public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
-                return (Continuation) new AnonymousClass3(this.$updatedPack, this.$resId, continuation);
+                return new AnonymousClass3(this.$updatedPack, this.$resId, continuation);
             }
 
             @Override // kotlin.jvm.functions.Function2
             public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
-                return ((AnonymousClass3) (Object) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+                return ((AnonymousClass3) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
             }
 
             @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
@@ -1051,26 +1614,21 @@ public final class IconManager {
                         iconManager.rebuildOwnerMap();
                         iconManager.invalidateIconCaches(this.$updatedPack.getId(), this.$resId);
                     }
-                    NotificationCenter.getGlobalInstance().postNotificationNameOnUIThread(NotificationCenter.iconPackUpdated, new Object[0]);
+                    NotificationCenter.getGlobalInstance().lambda$postNotificationNameOnUIThread$1(NotificationCenter.iconPackUpdated, new Object[0]);
                     return Unit.INSTANCE;
                 }
                 throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+                return null;
             }
         }
     }
 
     public final int getIcon(int resId) {
         int i;
-        for (IconPack iconPack : activePacks) {
-            if (iconPack.isBase() && iconPack.getPreinstalledMap() != null && (i = iconPack.getPreinstalledMap().get(resId, -1)) != -1) {
-                return i;
-            }
-        }
-        return resId;
+        SparseIntArray sparseIntArray = basePreinstalledMap;
+        return (sparseIntArray == null || (i = sparseIntArray.get(resId, -1)) == -1) ? resId : i;
     }
 
-    /* JADX WARN: Code duplicated, block: B:20:0x0066  */
-    /* JADX WARN: Code duplicated, block: B:25:0x0081 A[RETURN] */
     @JvmStatic
     public static final IconCompat getNotificationIcon() {
         Object obj;
@@ -1079,12 +1637,12 @@ public final class IconManager {
         IconCompat iconCompatCreateWithBitmap;
         try {
             ExteraConfig.loadConfig();
-            Iterator it = SequencesKt.mapNotNull(SequencesKt.filterNot(CollectionsKt.asSequence(ExteraConfig.getIconPacksLayout()), new Function1() { // from class: com.exteragram.messenger.icons.IconManager$$ExternalSyntheticLambda0
+            Iterator it = SequencesKt.mapNotNull(SequencesKt.filterNot(CollectionsKt.asSequence(ExteraConfig.getIconPacksLayout()), new Function1() {
                 @Override // kotlin.jvm.functions.Function1
                 public final Object invoke(Object obj2) {
-                    return Boolean.valueOf(obj2 != null && ((String) obj2).startsWith("base."));
+                    return Boolean.valueOf(StringsKt.startsWith$default((String) obj2, "base.", false, 2, (Object) null));
                 }
-            }), new Function1() { // from class: com.exteragram.messenger.icons.IconManager$$ExternalSyntheticLambda1
+            }), new Function1() {
                 @Override // kotlin.jvm.functions.Function1
                 public final Object invoke(Object obj2) {
                     return IconPackStorage.INSTANCE.findPackById((String) obj2);
@@ -1116,9 +1674,9 @@ public final class IconManager {
                         return iconCompatCreateWithBitmap;
                     }
                 } else {
-                    Bitmap packIconBitmap = INSTANCE.getPackIconBitmap(iconPack, R.drawable.notification, AndroidUtilities.displayMetrics.densityDpi, null, "notification", true);
-                    if (packIconBitmap != null) {
-                        iconCompatCreateWithBitmap = IconCompat.createWithBitmap(packIconBitmap);
+                    Bitmap packIconBitmap$default = getPackIconBitmap$default(INSTANCE, iconPack, R.drawable.notification, AndroidUtilities.displayMetrics.densityDpi, null, "notification", false, 32, null);
+                    if (packIconBitmap$default != null) {
+                        iconCompatCreateWithBitmap = IconCompat.createWithBitmap(packIconBitmap$default);
                     } else {
                         iconCompatCreateWithBitmap = null;
                     }
@@ -1127,16 +1685,25 @@ public final class IconManager {
                     }
                 }
             }
-            for (String packId : ExteraConfig.getIconPacksLayout()) {
-                if (packId != null && packId.startsWith("base.")) {
-                    SparseIntArray map = getBasePackPreinstalledMap(packId);
-                    if (map != null) {
-                        int res = map.get(R.drawable.notification, -1);
-                        if (res != -1) {
-                            obj = res;
-                            break;
-                        }
-                    }
+            for (Object obj2 : SequencesKt.map(SequencesKt.mapNotNull(SequencesKt.filter(CollectionsKt.asSequence(ExteraConfig.getIconPacksLayout()), new Function1() {
+                @Override // kotlin.jvm.functions.Function1
+                public final Object invoke(Object obj3) {
+                    return Boolean.valueOf(StringsKt.startsWith$default((String) obj3, "base.", false, 2, (Object) null));
+                }
+            }), new Function1() {
+                @Override // kotlin.jvm.functions.Function1
+                public final Object invoke(Object obj3) {
+                    return IconManager.$r8$lambda$Vs1GV53ha9TZG53mOuPSdSA1wwU((String) obj3);
+                }
+            }), new Function1() {
+                @Override // kotlin.jvm.functions.Function1
+                public final Object invoke(Object obj3) {
+                    return Integer.valueOf(((SparseIntArray) obj3).get(R.drawable.notification, -1));
+                }
+            })) {
+                if (((Number) obj2).intValue() != -1) {
+                    obj = obj2;
+                    break;
                 }
             }
             Integer num = (Integer) obj;
@@ -1152,7 +1719,7 @@ public final class IconManager {
         }
     }
 
-    public static SparseIntArray getBasePackPreinstalledMap(String str) {
+    public static SparseIntArray $r8$lambda$Vs1GV53ha9TZG53mOuPSdSA1wwU(String str) {
         IconPack basePack = BaseIconPacks.INSTANCE.getBasePack(str);
         if (basePack != null) {
             return basePack.getPreinstalledMap();
@@ -1165,7 +1732,7 @@ public final class IconManager {
         return getNotificationIcon().toIcon(ApplicationLoader.applicationContext);
     }
 
-    public static /* synthetic */ void initialize$default(IconManager iconManager, boolean z, int i, Object obj) {
+    public static void initialize$default(IconManager iconManager, boolean z, int i, Object obj) {
         if ((i & 1) != 0) {
             z = false;
         }
@@ -1177,29 +1744,52 @@ public final class IconManager {
         Job job2 = initializationJob;
         if (job2 == null || !job2.isActive() || update) {
             if (update && (job = initializationJob) != null) {
-                job.cancel(null);
+                Job.cancel$default(job, null, 1, null);
             }
             Job job3 = prewarmJob;
             if (job3 != null) {
-                job3.cancel(null);
+                Job.cancel$default(job3, null, 1, null);
             }
             initializationGeneration++;
-            initializationJob = BuildersKt.launch(scope, EmptyCoroutineContext.INSTANCE, CoroutineStart.DEFAULT, new C01441(initializationGeneration, update, null));
+            initializationJob = BuildersKt__Builders_commonKt.launch$default(scope, null, null, new C01461(initializationGeneration, update, null), 3, null);
         }
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.icons.IconManager$initialize$1, reason: invalid class name and case insensitive filesystem */
     @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
-    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$initialize$1", f = "IconManager.kt", i = {0, 1}, l = {634, 648}, m = "invokeSuspend", n = {"newActivePacks", "newActivePacks"}, s = {"L$0", "L$0"}, v = 1)
-    public static final class C01441 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
-        final /* synthetic */ long $generation;
-        final /* synthetic */ boolean $update;
+    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$initialize$1", f = "IconManager.kt", i = {0, 1}, l = {845, 859}, m = "invokeSuspend", n = {"result", "result"}, s = {"L$0", "L$0"})
+    public static final class C01461 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
+        final long $generation;
+        final boolean $update;
         Object L$0;
         int label;
 
+        @Metadata(k = 3, mv = {2, 2, 0}, xi = 48)
+        public static final class WhenMappings {
+            public static final int[] $EnumSwitchMapping$0;
 
-        /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
-        public C01441(long j, boolean z, Continuation continuation) {
+            static {
+                int[] iArr = new int[ActivePacksUpdate.values().length];
+                try {
+                    iArr[ActivePacksUpdate.STALE.ordinal()] = 1;
+                } catch (NoSuchFieldError unused) {
+                }
+                try {
+                    iArr[ActivePacksUpdate.UNCHANGED.ordinal()] = 2;
+                } catch (NoSuchFieldError unused2) {
+                }
+                try {
+                    iArr[ActivePacksUpdate.CHANGED.ordinal()] = 3;
+                } catch (NoSuchFieldError unused3) {
+                }
+                try {
+                    iArr[ActivePacksUpdate.INITIAL.ordinal()] = 4;
+                } catch (NoSuchFieldError unused4) {
+                }
+                $EnumSwitchMapping$0 = iArr;
+            }
+        }
+
+        public C01461(long j, boolean z, Continuation<? super C01461> continuation) {
             super(2, continuation);
             this.$generation = j;
             this.$update = z;
@@ -1207,15 +1797,14 @@ public final class IconManager {
 
         @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
         public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
-            return (Continuation) new C01441(this.$generation, this.$update, continuation);
+            return new C01461(this.$generation, this.$update, continuation);
         }
 
         @Override // kotlin.jvm.functions.Function2
         public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
-            return ((C01441) (Object) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+            return ((C01461) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
         }
 
-        @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
         public final Object invokeSuspend(Object obj) {
             Object coroutine_suspended = IntrinsicsKt.getCOROUTINE_SUSPENDED();
             int i = this.label;
@@ -1283,27 +1872,26 @@ public final class IconManager {
             return Unit.INSTANCE;
         }
 
-        /* JADX INFO: renamed from: com.exteragram.messenger.icons.IconManager$initialize$1$1, reason: invalid class name and collision with other inner class name */
+
         @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
-        @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$initialize$1$1", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {}, v = 1)
+        @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$initialize$1$1", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {})
         public static final class C00201 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
-            final /* synthetic */ long $generation;
+            final long $generation;
             int label;
 
-            /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
-            public C00201(long j, Continuation continuation) {
+            public C00201(long j, Continuation<? super C00201> continuation) {
                 super(2, continuation);
                 this.$generation = j;
             }
 
             @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
             public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
-                return (Continuation) new C00201(this.$generation, continuation);
+                return new C00201(this.$generation, continuation);
             }
 
             @Override // kotlin.jvm.functions.Function2
             public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
-                return ((C00201) (Object) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+                return ((C00201) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
             }
 
             @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
@@ -1311,100 +1899,134 @@ public final class IconManager {
                 IntrinsicsKt.getCOROUTINE_SUSPENDED();
                 if (this.label != 0) {
                     throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+                    return null;
                 }
                 ResultKt.throwOnFailure(obj);
                 if (this.$generation != IconManager.initializationGeneration) {
                     return Unit.INSTANCE;
                 }
-                NotificationCenter.getGlobalInstance().postNotificationNameOnUIThread(NotificationCenter.iconPackUpdated, new Object[0]);
+                NotificationCenter.getGlobalInstance().lambda$postNotificationNameOnUIThread$1(NotificationCenter.iconPackUpdated, new Object[0]);
                 return Unit.INSTANCE;
             }
         }
 
-        /* JADX INFO: renamed from: com.exteragram.messenger.icons.IconManager$initialize$1$2, reason: invalid class name */
         @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
-        @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$initialize$1$2", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {}, v = 1)
+        @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$initialize$1$2", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {})
+        @SourceDebugExtension({"SMAP\nIconManager.kt\nKotlin\n*S Kotlin\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$initialize$1$2\n+ 2 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n*L\n1#1,1083:1\n296#2,2:1084\n296#2,2:1086\n*S KotlinDebug\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$initialize$1$2\n*L\n864#1:1084,2\n865#1:1086,2\n*E\n"})
         public static final class AnonymousClass2 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
-            final /* synthetic */ long $generation;
+            final long $generation;
+            final ActivePacksUpdate $result;
             int label;
 
-            /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
-            public AnonymousClass2(long j, Continuation continuation) {
+            public AnonymousClass2(long j, ActivePacksUpdate activePacksUpdate, Continuation<? super AnonymousClass2> continuation) {
                 super(2, continuation);
                 this.$generation = j;
+                this.$result = activePacksUpdate;
             }
 
             @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
             public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
-                return (Continuation) new AnonymousClass2(this.$generation, continuation);
+                return new AnonymousClass2(this.$generation, this.$result, continuation);
             }
 
             @Override // kotlin.jvm.functions.Function2
             public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
-                return ((AnonymousClass2) (Object) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+                return ((AnonymousClass2) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
             }
 
             @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
             public final Object invokeSuspend(Object obj) {
+                Object next;
+                Object next2;
+                BaseFragment safeLastFragment;
+                Activity parentActivity;
+                Activity parentActivity2;
                 IntrinsicsKt.getCOROUTINE_SUSPENDED();
                 if (this.label != 0) {
                     throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+                    return null;
                 }
                 ResultKt.throwOnFailure(obj);
                 if (this.$generation != IconManager.initializationGeneration) {
                     return Unit.INSTANCE;
                 }
                 if (ExteraConfig.getEditingIconPackId() != null) {
-                    IconPack editingPack = null;
-                    Iterator<IconPack> it = IconManager.activePacks.iterator();
-                    while (it.hasNext()) {
-                        IconPack p = it.next();
-                        if (Intrinsics.areEqual(p.getId(), ExteraConfig.getEditingIconPackId())) {
-                            editingPack = p;
+                    Iterator it = IconManager.activePacks.iterator();
+                    do {
+                        if (!it.hasNext()) {
+                            next = null;
                             break;
                         }
-                    }
-                    IconPack nonBasePack = null;
-                    Iterator<IconPack> it2 = IconManager.activePacks.iterator();
-                    while (it2.hasNext()) {
-                        IconPack p2 = it2.next();
-                        if (!p2.isBase()) {
-                            nonBasePack = p2;
+                        next = it.next();
+                    } while (!Intrinsics.areEqual(((IconPack) next).getId(), ExteraConfig.getEditingIconPackId()));
+                    IconPack iconPack = (IconPack) next;
+                    Iterator it2 = IconManager.activePacks.iterator();
+                    do {
+                        if (!it2.hasNext()) {
+                            next2 = null;
                             break;
                         }
-                    }
-                    if (editingPack != null) {
-                        if (!Intrinsics.areEqual(editingPack.getId(), nonBasePack != null ? nonBasePack.getId() : null)) {
+                        next2 = it2.next();
+                    } while (((IconPack) next2).isBase());
+                    IconPack iconPack2 = (IconPack) next2;
+                    if (iconPack != null) {
+                        if (!Intrinsics.areEqual(iconPack.getId(), iconPack2 != null ? iconPack2.getId() : null)) {
                             ExteraConfig.setEditingIconPackId(null);
-                            BaseFragment safeLastFragment = LaunchActivity.getSafeLastFragment();
-                            if (safeLastFragment != null && safeLastFragment.getParentActivity() instanceof LaunchActivity) {
-                                IconPickerController.setActive((LaunchActivity) safeLastFragment.getParentActivity(), false);
+                            safeLastFragment = LaunchActivity.getSafeLastFragment();
+                            if (safeLastFragment != null && (parentActivity = safeLastFragment.getParentActivity()) != null && (parentActivity instanceof LaunchActivity)) {
+                                IconPickerController.setActive((LaunchActivity) parentActivity, false);
                             }
                         } else {
                             BaseFragment safeLastFragment2 = LaunchActivity.getSafeLastFragment();
-                            if (safeLastFragment2 != null && safeLastFragment2.getParentActivity() instanceof LaunchActivity) {
-                                IconPickerController.setActive((LaunchActivity) safeLastFragment2.getParentActivity(), true);
+                            if (safeLastFragment2 != null && (parentActivity2 = safeLastFragment2.getParentActivity()) != null && (parentActivity2 instanceof LaunchActivity)) {
+                                IconPickerController.setActive((LaunchActivity) parentActivity2, true);
                             }
                         }
                     } else {
                         ExteraConfig.setEditingIconPackId(null);
-                        BaseFragment safeLastFragment = LaunchActivity.getSafeLastFragment();
-                        if (safeLastFragment != null && safeLastFragment.getParentActivity() instanceof LaunchActivity) {
-                            IconPickerController.setActive((LaunchActivity) safeLastFragment.getParentActivity(), false);
+                        safeLastFragment = LaunchActivity.getSafeLastFragment();
+                        if (safeLastFragment != null) {
+                            IconPickerController.setActive((LaunchActivity) parentActivity, false);
                         }
                     }
                 }
-                NotificationCenter.getGlobalInstance().postNotificationNameOnUIThread(NotificationCenter.iconPackUpdated, new Object[0]);
+                ActivePacksUpdate activePacksUpdate = this.$result;
+                ActivePacksUpdate activePacksUpdate2 = ActivePacksUpdate.INITIAL;
+                if (activePacksUpdate == activePacksUpdate2 && !IconManager.initializationTimedOut) {
+                    return Unit.INSTANCE;
+                }
+                NotificationCenter.getGlobalInstance().lambda$postNotificationNameOnUIThread$1(NotificationCenter.iconPackUpdated, new Object[0]);
                 BaseFragment safeLastFragment3 = LaunchActivity.getSafeLastFragment();
                 if (safeLastFragment3 != null) {
+                    ActivePacksUpdate activePacksUpdate3 = this.$result;
                     Theme.reloadAllResources(safeLastFragment3.getParentActivity());
-                    INavigationLayout parentLayout = safeLastFragment3.getParentLayout();
-                    if (parentLayout != null) {
-                        parentLayout.rebuildFragments(0);
+                    if (activePacksUpdate3 == activePacksUpdate2) {
+                        Activity parentActivity3 = safeLastFragment3.getParentActivity();
+                        LaunchActivity launchActivity = parentActivity3 instanceof LaunchActivity ? (LaunchActivity) parentActivity3 : null;
+                        if (launchActivity != null) {
+                            launchActivity.rebuildAllFragments(true);
+                        }
+                    } else {
+                        INavigationLayout parentLayout = safeLastFragment3.getParentLayout();
+                        if (parentLayout != null) {
+                            parentLayout.rebuildFragments(0);
+                        }
                     }
                 }
                 return Unit.INSTANCE;
             }
+        }
+    }
+
+    public final void awaitInitialization() {
+        try {
+            if (initialPacksLoaded.await(1000L, TimeUnit.MILLISECONDS)) {
+                return;
+            }
+            initializationTimedOut = true;
+            FileLog.e("Icon packs were not loaded in 1000ms");
+        } catch (InterruptedException unused) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -1427,39 +2049,34 @@ public final class IconManager {
     }
 
     public final boolean saveIconPackMetadata(IconPack iconPack) {
-        try {
-            IconPack iconPack2 = (IconPack) BuildersKt.runBlocking(mutationDispatcher, new IconManager$saveIconPackMetadata$savedPack$1(iconPack, null));
-            if (iconPack2 == null) {
-                return false;
-            }
-            BuildersKt.launch(scope, Dispatchers.getMain(), null, new C01491(iconPack2, null));
-            return true;
-        } catch (InterruptedException e) {
+        IconPack iconPack2 = (IconPack) BuildersKt.runBlockingK(mutationDispatcher, new IconManager$saveIconPackMetadata$savedPack$1(iconPack, null));
+        if (iconPack2 == null) {
             return false;
         }
+        BuildersKt__Builders_commonKt.launch$default(scope, Dispatchers.getMain(), null, new C01531(iconPack2, null), 2, null);
+        return true;
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.icons.IconManager$saveIconPackMetadata$1, reason: invalid class name and case insensitive filesystem */
     @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
-    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$saveIconPackMetadata$1", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {}, v = 1)
-    public static final class C01491 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
-        final /* synthetic */ IconPack $savedPack;
+    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$saveIconPackMetadata$1", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {})
+    @SourceDebugExtension({"SMAP\nIconManager.kt\nKotlin\n*S Kotlin\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$saveIconPackMetadata$1\n+ 2 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n*L\n1#1,1083:1\n363#2,7:1084\n*S KotlinDebug\n*F\n+ 1 IconManager.kt\ncom/exteragram/messenger/icons/IconManager$saveIconPackMetadata$1\n*L\n937#1:1084,7\n*E\n"})
+    public static final class C01531 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
+        final IconPack $savedPack;
         int label;
 
-        /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
-        public C01491(IconPack iconPack, Continuation continuation) {
+        public C01531(IconPack iconPack, Continuation<? super C01531> continuation) {
             super(2, continuation);
             this.$savedPack = iconPack;
         }
 
         @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
         public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
-            return (Continuation) new C01491(this.$savedPack, continuation);
+            return new C01531(this.$savedPack, continuation);
         }
 
         @Override // kotlin.jvm.functions.Function2
         public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
-            return ((C01491) (Object) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+            return ((C01531) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
         }
 
         @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
@@ -1484,37 +2101,36 @@ public final class IconManager {
                 if (i != -1) {
                     IconManager.activePacks.set(i, this.$savedPack);
                     IconManager.INSTANCE.rebuildOwnerMap();
-                    IconManager.resolvedCache.evictAll();
+                    IconManager.resolvedCache.clear();
                     IconManager.sourceCache.evictAll();
                 }
-                NotificationCenter.getGlobalInstance().postNotificationNameOnUIThread(NotificationCenter.iconPackUpdated, new Object[0]);
+                NotificationCenter.getGlobalInstance().lambda$postNotificationNameOnUIThread$1(NotificationCenter.iconPackUpdated, new Object[0]);
                 return Unit.INSTANCE;
             }
             throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+            return null;
         }
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.icons.IconManager$deletePack$1, reason: invalid class name */
     @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
-    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$deletePack$1", f = "IconManager.kt", i = {}, l = {723}, m = "invokeSuspend", n = {}, s = {}, v = 1)
+    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$deletePack$1", f = "IconManager.kt", i = {}, l = {953}, m = "invokeSuspend", n = {}, s = {})
     public static final class AnonymousClass1 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
-        final /* synthetic */ String $packId;
+        final String $packId;
         int label;
 
-        /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
-        public AnonymousClass1(String str, Continuation continuation) {
+        public AnonymousClass1(String str, Continuation<? super AnonymousClass1> continuation) {
             super(2, continuation);
             this.$packId = str;
         }
 
         @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
         public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
-            return (Continuation) new AnonymousClass1(this.$packId, continuation);
+            return new AnonymousClass1(this.$packId, continuation);
         }
 
         @Override // kotlin.jvm.functions.Function2
         public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
-            return ((AnonymousClass1) (Object) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+            return ((AnonymousClass1) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
         }
 
         @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
@@ -1533,33 +2149,32 @@ public final class IconManager {
             } else {
                 if (i != 1) {
                     throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+                    return null;
                 }
                 ResultKt.throwOnFailure(obj);
             }
             return Unit.INSTANCE;
         }
 
-        /* JADX INFO: renamed from: com.exteragram.messenger.icons.IconManager$deletePack$1$1, reason: invalid class name and collision with other inner class name */
         @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
-        @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$deletePack$1$1", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {}, v = 1)
+        @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$deletePack$1$1", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {})
         public static final class C00181 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
-            final /* synthetic */ String $packId;
+            final String $packId;
             int label;
 
-            /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
-            public C00181(String str, Continuation continuation) {
+            public C00181(String str, Continuation<? super C00181> continuation) {
                 super(2, continuation);
                 this.$packId = str;
             }
 
             @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
             public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
-                return (Continuation) new C00181(this.$packId, continuation);
+                return new C00181(this.$packId, continuation);
             }
 
             @Override // kotlin.jvm.functions.Function2
             public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
-                return ((C00181) (Object) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+                return ((C00181) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
             }
 
             @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
@@ -1567,6 +2182,7 @@ public final class IconManager {
                 IntrinsicsKt.getCOROUTINE_SUSPENDED();
                 if (this.label != 0) {
                     throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+                    return null;
                 }
                 ResultKt.throwOnFailure(obj);
                 if (ExteraConfig.getIconPacksLayout().contains(this.$packId) || ExteraConfig.getIconPacksHidden().contains(this.$packId)) {
@@ -1581,74 +2197,67 @@ public final class IconManager {
     }
 
     public final void deletePack(String packId) {
-        BuildersKt.launch(scope, mutationDispatcher, null, new AnonymousClass1(packId, null));
+        BuildersKt__Builders_commonKt.launch$default(scope, mutationDispatcher, null, new AnonymousClass1(packId, null), 2, null);
     }
 
-    public final boolean isIconPack(MessageObject messageObject) {
-        String pathToMessage = ChatUtils.getInstance().getPathToMessage(messageObject);
-        return messageObject != null && messageObject.getDocumentName() != null && !TextUtils.isEmpty(pathToMessage) && pathToMessage.endsWith(".icons");
-    }
-
-    public final void handleIconPack(BaseFragment baseFragment, MessageObject messageObject) {
-        handleIconPack(baseFragment, ChatUtils.getInstance().getPathToMessage(messageObject));
+    public final boolean isIconPack(String path, MessageObject messageObject) {
+        return (messageObject != null ? messageObject.getDocumentName() : null) != null && path.length() > 0 && StringsKt.endsWith$default(path, ".icons", false, 2, (Object) null);
     }
 
     private final String iconPackErrorText(IconPackStorageError error) {
         int i;
-        switch (error) {
-            case INVALID_ARCHIVE:
+        switch (WhenMappings.$EnumSwitchMapping$0[error.ordinal()]) {
+            case 1:
                 i = R.string.IconPackErrorInvalidArchive;
                 break;
-            case MISSING_METADATA:
+            case 2:
                 i = R.string.IconPackErrorMissingMetadata;
                 break;
-            case METADATA_TOO_LARGE:
+            case 3:
                 i = R.string.IconPackErrorMetadataTooLarge;
                 break;
-            case INVALID_METADATA:
+            case 4:
                 i = R.string.IconPackErrorInvalidMetadata;
                 break;
-            case TOO_MANY_FILES:
+            case 5:
                 i = R.string.IconPackErrorTooManyFiles;
                 break;
-            case ARCHIVE_TOO_LARGE:
+            case 6:
                 i = R.string.IconPackErrorArchiveTooLarge;
                 break;
-            case FILE_TOO_LARGE:
+            case 7:
                 i = R.string.IconPackErrorFileTooLarge;
                 break;
-            case COMPRESSION_RATIO_TOO_HIGH:
+            case 8:
                 i = R.string.IconPackErrorCompressionRatioTooHigh;
                 break;
-            case STORAGE_ERROR:
+            case 9:
                 i = R.string.IconPackErrorStorage;
                 break;
-            case UNKNOWN:
+            case 10:
                 i = R.string.UnknownError;
                 break;
             default:
                 throw new kotlin.NoWhenBranchMatchedException();
+                return null;
         }
         return LocaleController.getString(i);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final void showIconPackError(BaseFragment baseFragment, IconPackStorageError error) {
         BulletinFactory.of(baseFragment).createSimpleBulletin(R.raw.error, iconPackErrorText(error)).show();
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.icons.IconManager$handleIconPack$1, reason: invalid class name and case insensitive filesystem */
     @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
-    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$handleIconPack$1", f = "IconManager.kt", i = {0, 1, 1}, l = {768, 769}, m = "invokeSuspend", n = {"file", "file", "packResult"}, s = {"L$0", "L$0", "L$1"}, v = 1)
-    public static final class C01431 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
-        final /* synthetic */ BaseFragment $baseFragment;
-        final /* synthetic */ String $path;
+    @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$handleIconPack$1", f = "IconManager.kt", i = {0, 1, 1}, l = {998, 999}, m = "invokeSuspend", n = {"file", "file", "packResult"}, s = {"L$0", "L$0", "L$1"})
+    public static final class C01451 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
+        final BaseFragment $baseFragment;
+        final String $path;
         Object L$0;
         Object L$1;
         int label;
 
-        /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
-        public C01431(String str, BaseFragment baseFragment, Continuation continuation) {
+        public C01451(String str, BaseFragment baseFragment, Continuation<? super C01451> continuation) {
             super(2, continuation);
             this.$path = str;
             this.$baseFragment = baseFragment;
@@ -1656,18 +2265,14 @@ public final class IconManager {
 
         @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
         public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
-            return (Continuation) new C01431(this.$path, this.$baseFragment, continuation);
+            return new C01451(this.$path, this.$baseFragment, continuation);
         }
 
         @Override // kotlin.jvm.functions.Function2
         public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
-            return ((C01431) (Object) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+            return ((C01451) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
         }
 
-        /* JADX WARN: Code restructure failed: missing block: B:14:0x0060, code lost:
-        
-            if (kotlinx.coroutines.BuildersKt.withContext(r3, r4, r7) == r0) goto L15;
-         */
         @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
         public final Object invokeSuspend(Object obj) {
             Object coroutine_suspended = IntrinsicsKt.getCOROUTINE_SUSPENDED();
@@ -1691,29 +2296,25 @@ public final class IconManager {
             } else {
                 throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
             }
-            IconPackStorageResult packResult = (IconPackStorageResult) obj;
-            MainCoroutineDispatcher main = Dispatchers.getMain();
-            C00191 c00191 = new C00191(packResult, this.$baseFragment, file, null);
-            this.L$0 = SpillingKt.nullOutSpilledVariable(file);
-            this.L$1 = SpillingKt.nullOutSpilledVariable(packResult);
+            IconPackStorageResult<IconPack> packResult = (IconPackStorageResult<IconPack>) obj;
+            this.L$0 = file;
+            this.L$1 = packResult;
             this.label = 2;
-            if (BuildersKt.withContext(main, c00191, this) == coroutine_suspended) {
+            if (BuildersKt.withContext(Dispatchers.getMain(), new C00191(packResult, this.$baseFragment, file, null), this) == coroutine_suspended) {
                 return coroutine_suspended;
             }
             return Unit.INSTANCE;
         }
 
-        /* JADX INFO: renamed from: com.exteragram.messenger.icons.IconManager$handleIconPack$1$1, reason: invalid class name and collision with other inner class name */
         @Metadata(d1 = {"\u0000\n\n\u0000\n\u0002\u0010\u0002\n\u0002\u0018\u0002\u0010\u0000\u001a\u00020\u0001*\u00020\u0002H\n"}, d2 = {"<anonymous>", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlinx/coroutines/CoroutineScope;"}, k = 3, mv = {2, 2, 0}, xi = 48)
-        @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$handleIconPack$1$1", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {}, v = 1)
+        @DebugMetadata(c = "com.exteragram.messenger.icons.IconManager$handleIconPack$1$1", f = "IconManager.kt", i = {}, l = {}, m = "invokeSuspend", n = {}, s = {})
         public static final class C00191 extends SuspendLambda implements Function2<CoroutineScope, Continuation<? super Unit>, Object> {
-            final /* synthetic */ BaseFragment $baseFragment;
-            final /* synthetic */ File $file;
-            final /* synthetic */ IconPackStorageResult<IconPack> $packResult;
+            final BaseFragment $baseFragment;
+            final File $file;
+            final IconPackStorageResult<IconPack> $packResult;
             int label;
 
-            /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
-            public C00191(IconPackStorageResult<IconPack> iconPackStorageResult, BaseFragment baseFragment, File file, Continuation continuation) {
+            public C00191(IconPackStorageResult<IconPack> iconPackStorageResult, BaseFragment baseFragment, File file, Continuation<? super C00191> continuation) {
                 super(2, continuation);
                 this.$packResult = iconPackStorageResult;
                 this.$baseFragment = baseFragment;
@@ -1722,12 +2323,12 @@ public final class IconManager {
 
             @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
             public final Continuation<Unit> create(Object obj, Continuation<?> continuation) {
-                return (Continuation) new C00191(this.$packResult, this.$baseFragment, this.$file, continuation);
+                return new C00191(this.$packResult, this.$baseFragment, this.$file, continuation);
             }
 
             @Override // kotlin.jvm.functions.Function2
             public final Object invoke(CoroutineScope coroutineScope, Continuation<? super Unit> continuation) {
-                return ((C00191) (Object) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
+                return ((C00191) create(coroutineScope, continuation)).invokeSuspend(Unit.INSTANCE);
             }
 
             @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
@@ -1735,6 +2336,7 @@ public final class IconManager {
                 IntrinsicsKt.getCOROUTINE_SUSPENDED();
                 if (this.label != 0) {
                     throw new IllegalStateException("call to 'resume' before 'invoke' with coroutine");
+                    return null;
                 }
                 ResultKt.throwOnFailure(obj);
                 IconPackStorageResult<IconPack> iconPackStorageResult = this.$packResult;
@@ -1743,16 +2345,17 @@ public final class IconManager {
                     Activity parentActivity = this.$baseFragment.getParentActivity();
                     final File file = this.$file;
                     final BaseFragment baseFragment = this.$baseFragment;
-                    this.$baseFragment.showDialog(new InstallIconPackBottomSheet(parentActivity, iconPack, new InstallIconPackBottomSheet.InstallDelegate() { // from class: com.exteragram.messenger.icons.IconManager$handleIconPack$1$1$$ExternalSyntheticLambda0
+                    this.$baseFragment.showDialog(new InstallIconPackBottomSheet(parentActivity, iconPack, new InstallIconPackBottomSheet.InstallDelegate() {
                         @Override // com.exteragram.messenger.icons.ui.components.InstallIconPackBottomSheet.InstallDelegate
                         public final void onInstall(boolean z, boolean z2) {
-                            BuildersKt.launch(IconManager.scope, EmptyCoroutineContext.INSTANCE, CoroutineStart.DEFAULT, new IconManager$handleIconPack$1$1$bottomSheet$1$1(file, baseFragment, z2, iconPack, z, null));
+                            BuildersKt__Builders_commonKt.launch$default(IconManager.scope, null, null, new IconManager$handleIconPack$1$1$bottomSheet$1$1(file, baseFragment, z2, iconPack, z, null), 3, null);
                         }
                     }));
                 } else if (iconPackStorageResult instanceof IconPackStorageResult.Failure) {
                     IconManager.INSTANCE.showIconPackError(this.$baseFragment, ((IconPackStorageResult.Failure) iconPackStorageResult).getError());
                 } else {
                     throw new kotlin.NoWhenBranchMatchedException();
+                    return null;
                 }
                 return Unit.INSTANCE;
             }
@@ -1760,7 +2363,7 @@ public final class IconManager {
     }
 
     public final void handleIconPack(BaseFragment baseFragment, String path) {
-        BuildersKt.launch(scope, EmptyCoroutineContext.INSTANCE, CoroutineStart.DEFAULT, new C01431(path, baseFragment, null));
+        BuildersKt__Builders_commonKt.launch$default(scope, null, null, new C01451(path, baseFragment, null), 3, null);
     }
 
     public final boolean onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -1774,11 +2377,11 @@ public final class IconManager {
         return true;
     }
 
-    public final void startIconPicker(Activity activity, boolean selectFromFiles, Function1 callback) {
+    public final void startIconPicker(Activity activity, boolean selectFromFiles, Function1<? super Uri, Unit> callback) {
         Intent intentCreateIntent;
-        resultCallbacks.put(43, (Function1<Uri, Unit>) callback);
-        if (ActivityResultContracts.PickVisualMedia.isPhotoPickerAvailable(activity) && !selectFromFiles) {
-            intentCreateIntent = new ActivityResultContracts.PickVisualMedia().createIntent((Context) activity, PickVisualMediaRequestKt.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE));
+        resultCallbacks.put(43, callback);
+        if (ActivityResultContracts$PickVisualMedia.INSTANCE.isPhotoPickerAvailable(activity) && !selectFromFiles) {
+            intentCreateIntent = new ActivityResultContracts$PickVisualMedia().createIntent((Context) activity, PickVisualMediaRequestKt.PickVisualMediaRequest(ActivityResultContracts$PickVisualMedia.ImageOnly.INSTANCE));
         } else {
             Intent intent = new Intent(selectFromFiles ? "android.intent.action.OPEN_DOCUMENT" : "android.intent.action.GET_CONTENT");
             intent.setType("*/*");
@@ -1791,7 +2394,7 @@ public final class IconManager {
         activity.startActivityForResult(intentCreateIntent, 43);
     }
 
-    public static /* synthetic */ void showReplaceAlert$default(IconManager iconManager, Context context, int i, IconPack iconPack, int i2, Object obj) {
+    public static void showReplaceAlert$default(IconManager iconManager, Context context, int i, IconPack iconPack, int i2, Object obj) {
         if ((i2 & 4) != 0) {
             iconPack = null;
         }
@@ -1838,7 +2441,7 @@ public final class IconManager {
         if (copyOnWriteArrayList != null && copyOnWriteArrayList.isEmpty()) {
             return true;
         }
-        Iterator<IconPack> it = copyOnWriteArrayList.iterator();
+        Iterator<T> it = copyOnWriteArrayList.iterator();
         while (it.hasNext()) {
             if (!((IconPack) it.next()).isBase()) {
                 return false;

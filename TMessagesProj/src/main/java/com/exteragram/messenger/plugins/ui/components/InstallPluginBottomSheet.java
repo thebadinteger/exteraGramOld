@@ -1,6 +1,8 @@
 package com.exteragram.messenger.plugins.ui.components;
 
 import android.app.Activity;
+import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
@@ -8,123 +10,659 @@ import android.text.Layout;
 import android.text.SpannableStringBuilder;
 import android.text.style.StrikethroughSpan;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.RecyclerView;
+import com.chaquo.python.internal.Common;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.badges.BadgesController;
+import com.exteragram.messenger.components.CheckBoxRow;
 import com.exteragram.messenger.plugins.Plugin;
+import com.exteragram.messenger.plugins.PluginsConstants;
 import com.exteragram.messenger.plugins.PluginsController;
-import com.exteragram.messenger.plugins.PythonPluginsEngine;
+import com.exteragram.messenger.plugins.analyzer.PluginAnalyzer;
+import com.exteragram.messenger.plugins.pip.PipController;
+import com.exteragram.messenger.translator.TranslatorUtils;
+import com.exteragram.messenger.translator.core.TranslationError;
 import com.exteragram.messenger.utils.chats.ChatUtils;
 import com.exteragram.messenger.utils.text.LocaleUtils;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import kotlin.Metadata;
+import kotlin.Result;
+import kotlin.ResultKt;
+import kotlin.Unit;
+import kotlin.collections.CollectionsKt;
+import kotlin.jvm.JvmOverloads;
 import kotlin.jvm.JvmStatic;
+import kotlin.jvm.functions.Function0;
+import kotlin.jvm.functions.Function1;
 import kotlin.jvm.internal.DefaultConstructorMarker;
+import kotlin.jvm.internal.Intrinsics;
+import kotlin.jvm.internal.Ref;
 import kotlin.jvm.internal.SourceDebugExtension;
 import kotlin.text.StringsKt;
 import okhttp3.internal.url._UrlKt;
+import org.mvel2.asm.signature.SignatureVisitor;
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.FileLoader;
+import org.telegram.messenger.LanguageDetector;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.R;
+import org.telegram.messenger.TranslateController;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.Utilities;
+import org.telegram.messenger.browser.Browser;
 import org.telegram.messenger.utils.ViewOutlineProviderImpl;
+import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
+import org.telegram.ui.ActionBar.ActionBar;
+import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.BackupImageView;
+import org.telegram.ui.Components.BottomSheetWithRecyclerListView;
 import org.telegram.ui.Components.Bulletin;
 import org.telegram.ui.Components.BulletinFactory;
-import org.telegram.ui.Components.CheckBox2;
+import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.EffectsTextView;
 import org.telegram.ui.Components.LayoutHelper;
+import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.ScaleStateListAnimator;
+import org.telegram.ui.Components.UItem;
+import org.telegram.ui.Components.UniversalAdapter;
+import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
+import org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl;
+import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.telegram.ui.Stories.recorder.HintView2;
 
-@Metadata(d1 = {"\u0000P\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0006\b\u0007\u0018\u00002\u00020\u0001:\u0001 B\u001f\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\u0006\u0010\u0004\u001a\u00020\u0005\u0012\u0006\u0010\u0006\u001a\u00020\u0007¢\u0006\u0004\b\b\u0010\tJ\u0018\u0010\u0017\u001a\u00020\u00182\u0006\u0010\u0002\u001a\u00020\u00032\u0006\u0010\n\u001a\u00020\u000bH\u0002J\u0018\u0010\u0019\u001a\u00020\u00182\u0006\u0010\n\u001a\u00020\u000b2\u0006\u0010\u001a\u001a\u00020\u001bH\u0002J\u0010\u0010\u001c\u001a\u00020\u00182\u0006\u0010\u001d\u001a\u00020\rH\u0002J\b\u0010\u001e\u001a\u00020\u0018H\u0016J\b\u0010\u001f\u001a\u00020\u0018H\u0014R\u000e\u0010\u0006\u001a\u00020\u0007X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\n\u001a\u00020\u000bX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\f\u001a\u00020\rX\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\u000e\u001a\u00020\rX\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\u000f\u001a\u00020\rX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u0010\u001a\u0004\u0018\u00010\u0011X\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u0012\u001a\u0004\u0018\u00010\u0013X\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\u0014\u001a\u00020\rX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0015\u001a\u00020\u0016X\u0082\u0004¢\u0006\u0002\n\u0000¨\u0006!"}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet;", "Lorg/telegram/ui/ActionBar/BottomSheet;", "fragment", "Lorg/telegram/ui/ActionBar/BaseFragment;", "validationResult", "Lcom/exteragram/messenger/plugins/PluginsController$PluginValidationResult;", "params", "Lcom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet$PluginInstallParams;", "<init>", "(Lorg/telegram/ui/ActionBar/BaseFragment;Lcom/exteragram/messenger/plugins/PluginsController$PluginValidationResult;Lcom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet$PluginInstallParams;)V", "plugin", "Lcom/exteragram/messenger/plugins/Plugin;", "enableAfterInstallation", _UrlKt.FRAGMENT_ENCODE_SET, "installing", "cancellationRequested", "delayedLoadingRunnable", "Ljava/lang/Runnable;", "currentHint", "Lorg/telegram/ui/Stories/recorder/HintView2;", "isUpdate", "button", "Lorg/telegram/ui/Stories/recorder/ButtonWithCounterView;", "showSuccessBulletin", _UrlKt.FRAGMENT_ENCODE_SET, "showSimpleSuccessBulletin", "bf", "Lorg/telegram/ui/Components/BulletinFactory;", "restoreButtonText", "animated", "dismiss", "onSwipeStarts", "PluginInstallParams", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
-@SourceDebugExtension({"SMAP\nInstallPluginBottomSheet.kt\nKotlin\n*S Kotlin\n*F\n+ 1 InstallPluginBottomSheet.kt\ncom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n*L\n1#1,749:1\n1#2:750\n*E\n"})
-public final class InstallPluginBottomSheet extends BottomSheet {
-    final ButtonWithCounterView button;
-    volatile boolean cancellationRequested;
+@Metadata(d1 = {"\u0000ø\u0001\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\r\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000e\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0010 \n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\b\n\u0002\b\u0005\n\u0002\u0010\u0007\n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0002\b\r\n\u0002\u0018\u0002\n\u0002\b\u0010\n\u0002\u0018\u0002\n\u0002\b\n\n\u0002\u0018\u0002\n\u0002\b\u0005\u0018\u0000 \u0086\u00012\u00020\u0001:\u0004\u0085\u0001\u0086\u0001B\u001f\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\u0006\u0010\u0004\u001a\u00020\u0005\u0012\u0006\u0010\u0006\u001a\u00020\u0007¢\u0006\u0004\b\b\u0010\tJ\b\u0010?\u001a\u00020\u001bH\u0014J\u0010\u0010@\u001a\u00020A2\u0006\u0010B\u001a\u00020CH\u0014J(\u0010D\u001a\u00020E2\u0016\u0010F\u001a\u0012\u0012\u0004\u0012\u00020H0Gj\b\u0012\u0004\u0012\u00020H`I2\u0006\u0010\u0018\u001a\u00020\u0019H\u0002J\u0018\u0010J\u001a\u00020H2\u0006\u0010K\u001a\u00020L2\u0006\u0010M\u001a\u000203H\u0002J\u0018\u0010N\u001a\u00020H2\u0006\u0010K\u001a\u00020L2\u0006\u0010O\u001a\u000203H\u0002J\u0010\u0010P\u001a\u00020H2\u0006\u0010Q\u001a\u00020RH\u0002J \u0010S\u001a\u00020E2\u0016\u0010F\u001a\u0012\u0012\u0004\u0012\u00020H0Gj\b\u0012\u0004\u0012\u00020H`IH\u0002J\u0010\u0010T\u001a\u00020E2\u0006\u0010U\u001a\u00020\u001dH\u0016J \u0010V\u001a\u00020E2\u0006\u0010W\u001a\u00020X2\u0006\u0010Y\u001a\u00020L2\u0006\u0010Z\u001a\u00020RH\u0014J\u0010\u0010[\u001a\u00020E2\u0006\u0010\\\u001a\u00020:H\u0002J\b\u0010]\u001a\u00020EH\u0002J\b\u0010^\u001a\u00020EH\u0002J\b\u0010_\u001a\u00020EH\u0002J\b\u0010`\u001a\u00020EH\u0002J\b\u0010a\u001a\u00020\rH\u0002J\u0010\u0010b\u001a\u00020E2\u0006\u0010c\u001a\u00020\rH\u0002J\u0010\u0010d\u001a\u00020\u001f2\u0006\u0010e\u001a\u00020fH\u0002J\u0010\u0010g\u001a\u00020\u001f2\u0006\u0010e\u001a\u00020fH\u0002J\u0010\u0010h\u001a\u00020\u001f2\u0006\u0010e\u001a\u00020fH\u0002J\u0010\u0010i\u001a\u00020E2\u0006\u0010j\u001a\u000203H\u0002J\b\u0010k\u001a\u00020EH\u0002J\u0010\u0010l\u001a\u00020E2\u0006\u0010m\u001a\u00020\u001fH\u0002J\u0010\u0010n\u001a\u00020\u001f2\u0006\u0010e\u001a\u00020fH\u0002J\b\u0010o\u001a\u00020EH\u0002J\b\u0010p\u001a\u00020EH\u0002J\b\u0010q\u001a\u00020EH\u0002J6\u0010r\u001a\u00020E2\u0006\u0010s\u001a\u0002032\u0006\u0010t\u001a\u0002032\u0006\u0010u\u001a\u0002032\u0014\u0010v\u001a\u0010\u0012\u0006\u0012\u0004\u0018\u000103\u0012\u0004\u0012\u00020E0wH\u0002J\u001e\u0010x\u001a\u00020E2\f\u0010y\u001a\b\u0012\u0004\u0012\u000205092\u0006\u0010z\u001a\u00020\rH\u0002J\u0010\u0010{\u001a\u00020E2\u0006\u0010|\u001a\u00020\rH\u0002J\b\u0010}\u001a\u00020EH\u0002J\b\u0010~\u001a\u00020EH\u0002J\u0018\u0010\u007f\u001a\u00020E2\u0006\u0010\u0002\u001a\u00020\u00032\u0006\u0010\n\u001a\u00020\u000bH\u0002J\u001b\u0010\u0080\u0001\u001a\u00020E2\u0006\u0010\n\u001a\u00020\u000b2\b\u0010\u0081\u0001\u001a\u00030\u0082\u0001H\u0002J\t\u0010\u0083\u0001\u001a\u00020EH\u0016J\t\u0010\u0084\u0001\u001a\u00020EH\u0014R\u000e\u0010\u0002\u001a\u00020\u0003X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0006\u001a\u00020\u0007X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\n\u001a\u00020\u000bX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\f\u001a\u00020\rX\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\u000e\u001a\u00020\rX\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\u000f\u001a\u00020\rX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u0010\u001a\u0004\u0018\u00010\u0011X\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u0012\u001a\u0004\u0018\u00010\u0013X\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\u0014\u001a\u00020\rX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0015\u001a\u00020\u0016X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0017\u001a\u00020\rX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u0018\u001a\u0004\u0018\u00010\u0019X\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u001a\u001a\u0004\u0018\u00010\u001bX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u001c\u001a\u0004\u0018\u00010\u001dX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u001e\u001a\u0004\u0018\u00010\u001fX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010 \u001a\u0004\u0018\u00010\u001fX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010!\u001a\u0004\u0018\u00010\"X\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010#\u001a\u0004\u0018\u00010$X\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010%\u001a\u0004\u0018\u00010\"X\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010&\u001a\u0004\u0018\u00010\u001fX\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010'\u001a\u00020\rX\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010(\u001a\u00020\rX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010)\u001a\u0004\u0018\u00010*X\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010+\u001a\u0004\u0018\u00010,X\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010-\u001a\u00020.X\u0082\u0004¢\u0006\u0002\n\u0000R\u0010\u0010/\u001a\u0004\u0018\u00010\u001fX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u00100\u001a\u0004\u0018\u000101X\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u00102\u001a\u0004\u0018\u000103X\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u00104\u001a\u000205X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u00106\u001a\u000205X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u00107\u001a\u00020\rX\u0082\u000e¢\u0006\u0002\n\u0000R\u0014\u00108\u001a\b\u0012\u0004\u0012\u00020:09X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010;\u001a\u00020\rX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010<\u001a\u00020\rX\u0082\u000e¢\u0006\u0002\n\u0000R\u0014\u0010=\u001a\b\u0012\u0004\u0012\u00020:0>X\u0082\u0004¢\u0006\u0002\n\u0000¨\u0006\u0087\u0001"}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet;", "Lorg/telegram/ui/Components/BottomSheetWithRecyclerListView;", "fragment", "Lorg/telegram/ui/ActionBar/BaseFragment;", "validationResult", "Lcom/exteragram/messenger/plugins/PluginsController$PluginValidationResult;", PluginsConstants.PARAMS, "Lcom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet$PluginInstallParams;", "<init>", "(Lorg/telegram/ui/ActionBar/BaseFragment;Lcom/exteragram/messenger/plugins/PluginsController$PluginValidationResult;Lcom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet$PluginInstallParams;)V", "plugin", "Lcom/exteragram/messenger/plugins/Plugin;", "enableAfterInstallation", _UrlKt.FRAGMENT_ENCODE_SET, "installing", "cancellationRequested", "delayedLoadingRunnable", "Ljava/lang/Runnable;", "currentHint", "Lorg/telegram/ui/Stories/recorder/HintView2;", "isUpdate", "button", "Lorg/telegram/ui/Stories/recorder/ButtonWithCounterView;", "contentReady", "adapter", "Lorg/telegram/ui/Components/UniversalAdapter;", "titleText", _UrlKt.FRAGMENT_ENCODE_SET, "sheetContainer", "Landroid/widget/FrameLayout;", "headerView", "Landroid/view/View;", "descriptionView", "actionsPill", "Landroid/widget/LinearLayout;", "translateButton", "Lcom/exteragram/messenger/plugins/ui/components/PluginTranslateButton;", "bottomContainer", "enableAfterInstallRow", "riskAcknowledged", "analysisRunning", "analysisTask", "Lcom/exteragram/messenger/plugins/analyzer/PluginAnalyzer$Task;", "analysisSnapshot", "Ljava/io/File;", "analysisSection", "Lcom/exteragram/messenger/plugins/ui/components/PluginAnalysisSection;", "errorView", "errorTextView", "Landroid/widget/TextView;", "errorText", _UrlKt.FRAGMENT_ENCODE_SET, "nameText", "Lcom/exteragram/messenger/plugins/ui/components/TranslatableText;", "descriptionText", "translating", Common.ASSET_REQUIREMENTS, _UrlKt.FRAGMENT_ENCODE_SET, "Lcom/exteragram/messenger/plugins/ui/components/RequiredPluginInfo;", "unknownSourceBlocked", "blocked", "requirementDelegate", "Lorg/telegram/messenger/Utilities$Callback;", "getTitle", "createAdapter", "Lorg/telegram/ui/Components/RecyclerListView$SelectionAdapter;", "listView", "Lorg/telegram/ui/Components/RecyclerListView;", "fillItems", _UrlKt.FRAGMENT_ENCODE_SET, PluginsConstants.Settings.ITEMS, "Ljava/util/ArrayList;", "Lorg/telegram/ui/Components/UItem;", "Lkotlin/collections/ArrayList;", "pipRow", "id", _UrlKt.FRAGMENT_ENCODE_SET, "requirement", "wheelRow", "fileName", "spacer", "heightDp", _UrlKt.FRAGMENT_ENCODE_SET, "addSectionGap", "onViewCreated", "containerView", "onPreDraw", "canvas", "Landroid/graphics/Canvas;", "top", "progressToFullView", "onRequirementAction", "info", "checkRequirementsSatisfied", "startAnalysis", "onAnalysisChanged", "openReport", "needsRiskAcknowledgement", "applyButtonState", "animated", "buildHeader", "activity", "Landroid/app/Activity;", "buildDescription", "buildError", "showError", "message", "scrollToError", "showSourceHint", PluginsConstants.Settings.VIEW, "createEnableAfterInstallRow", "openPluginFile", "checkTranslatable", "onTranslateClick", "translateText", "text", "fromLanguage", "toLanguage", "done", "Lkotlin/Function1;", "onTranslationFinished", "texts", "success", "showTexts", "translated", "onTextTransitionUpdate", "onInstallClick", "showSuccessBulletin", "showSimpleSuccessBulletin", "bf", "Lorg/telegram/ui/Components/BulletinFactory;", "dismiss", "onSwipeStarts", "PluginInstallParams", "Companion", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+@SourceDebugExtension({"SMAP\nInstallPluginBottomSheet.kt\nKotlin\n*S Kotlin\n*F\n+ 1 InstallPluginBottomSheet.kt\ncom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n+ 3 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n+ 4 _Arrays.kt\nkotlin/collections/ArraysKt___ArraysKt\n*L\n1#1,1488:1\n1#2:1489\n1807#3,3:1490\n1915#3,2:1496\n3938#4:1493\n4474#4,2:1494\n*S KotlinDebug\n*F\n+ 1 InstallPluginBottomSheet.kt\ncom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet\n*L\n424#1:1490,3\n1079#1:1496,2\n1018#1:1493\n1018#1:1494,2\n*E\n"})
+public final class InstallPluginBottomSheet extends BottomSheetWithRecyclerListView {
+    private static final float SECTION_GAP = 12.0f;
+    private LinearLayout actionsPill;
+    private UniversalAdapter adapter;
+    private boolean analysisRunning;
+    private final PluginAnalysisSection analysisSection;
+    private File analysisSnapshot;
+    private PluginAnalyzer.Task analysisTask;
+    private boolean blocked;
+    private LinearLayout bottomContainer;
+    private final ButtonWithCounterView button;
+    private volatile boolean cancellationRequested;
+    private boolean contentReady;
     private HintView2 currentHint;
-    Runnable delayedLoadingRunnable;
+    private Runnable delayedLoadingRunnable;
+    private final TranslatableText descriptionText;
+    private View descriptionView;
+    private View enableAfterInstallRow;
     private boolean enableAfterInstallation;
+    private String errorText;
+    private TextView errorTextView;
+    private View errorView;
+    private final BaseFragment fragment;
+    private View headerView;
     private boolean installing;
     private final boolean isUpdate;
+    private final TranslatableText nameText;
     private final PluginInstallParams params;
     private final Plugin plugin;
+    private final Utilities.Callback<RequiredPluginInfo> requirementDelegate;
+    private final List<RequiredPluginInfo> requirements;
+    private boolean riskAcknowledged;
+    private FrameLayout sheetContainer;
+    private CharSequence titleText;
+    private PluginTranslateButton translateButton;
+    private boolean translating;
+    private final boolean unknownSourceBlocked;
+
+    public static CharSequence $r8$lambda$q4p5RiDrgsviqy7JLiU9TlMNu8Q(String str) {
+        return str;
+    }
 
     @Override // org.telegram.ui.ActionBar.BaseFragment.AttachedSheet
-    public /* bridge */ /* synthetic */ void setLastVisible(boolean z) {
+    public void setLastVisible(boolean z) {
         super.setLastVisible(z);
     }
 
-    public InstallPluginBottomSheet(final BaseFragment baseFragment, PluginsController.PluginValidationResult pluginValidationResult, PluginInstallParams pluginInstallParams) {
-        super(baseFragment.getParentActivity(), false, baseFragment.getResourceProvider());
-        float f;
-        Plugin plugin;
-        boolean z;
+    public InstallPluginBottomSheet(BaseFragment baseFragment, PluginsController.PluginValidationResult pluginValidationResult, PluginInstallParams pluginInstallParams) {
+        List<RequiredPluginInfo> list;
+        super(baseFragment.getParentActivity(), baseFragment, false, false, false, true, BottomSheetWithRecyclerListView.ActionBarType.FADING, baseFragment.getResourceProvider());
+        this.fragment = baseFragment;
         this.params = pluginInstallParams;
-        Plugin plugin2 = pluginValidationResult.getPlugin();
-        if (plugin2 == null) {
+        Plugin plugin = pluginValidationResult.getPlugin();
+        if (plugin == null) {
             throw new IllegalArgumentException("Required value was null.");
+            throw null;
         }
-        this.plugin = plugin2;
-        PluginsController.Companion companion = PluginsController.INSTANCE;
-        boolean zContainsKey = companion.getInstance().getPlugins().containsKey(plugin2.getId());
-        this.isUpdate = zContainsKey;
-        setDelegate(new BottomSheet.BottomSheetDelegate() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet.1
+        this.plugin = plugin;
+        this.isUpdate = PluginsController.INSTANCE.getInstance().getPlugins().containsKey(plugin.getId());
+        this.analysisRunning = ExteraConfig.getPluginsStaticAnalysis();
+        PluginAnalysisSection pluginAnalysisSection = new PluginAnalysisSection(this.resourcesProvider, new InstallPluginBottomSheet$analysisSection$1(this), new InstallPluginBottomSheet$analysisSection$2(this));
+        this.analysisSection = pluginAnalysisSection;
+        this.nameText = new TranslatableText(plugin.getName(), new Function1() {
+            @Override // kotlin.jvm.functions.Function1
+            public final Object invoke(Object obj) {
+                return InstallPluginBottomSheet.$r8$lambda$q4p5RiDrgsviqy7JLiU9TlMNu8Q((String) obj);
+            }
+        }, new InstallPluginBottomSheet$nameText$2(this));
+        this.descriptionText = new TranslatableText(plugin.getDescription(), new Function1() {
+            @Override // kotlin.jvm.functions.Function1
+            public final Object invoke(Object obj) {
+                InstallPluginBottomSheet installPluginBottomSheet = this.f$0;
+                return LocaleUtils.fullyFormatText((String) obj, installPluginBottomSheet.fragment, installPluginBottomSheet::dismiss);
+            }
+        }, new InstallPluginBottomSheet$descriptionText$2(this));
+        List<RequiredPluginInfo> requiredPlugins = pluginInstallParams.getRequiredPlugins();
+        this.requirements = (requiredPlugins == null || (list = CollectionsKt.toList(requiredPlugins)) == null) ? CollectionsKt.emptyList() : list;
+        boolean z = (pluginInstallParams.getTrusted() || ExteraConfig.getPluginsUnknownSources()) ? false : true;
+        this.unknownSourceBlocked = z;
+        this.blocked = z || pluginInstallParams.getBlockedTitle() != null;
+        this.requirementDelegate = new Utilities.Callback() {
+            @Override // org.telegram.messenger.Utilities.Callback
+            public final void run(Object obj) {
+                this.f$0.onRequirementAction((RequiredPluginInfo) obj);
+            }
+        };
+        setDelegate(new BottomSheet.BottomSheetDelegate() {
             @Override // org.telegram.ui.ActionBar.BottomSheet.BottomSheetDelegate, org.telegram.ui.ActionBar.BottomSheet.BottomSheetDelegateInterface
             public boolean canDismiss() {
                 return !InstallPluginBottomSheet.this.installing;
             }
         });
         Activity parentActivity = baseFragment.getParentActivity();
-        fixNavigationBar();
-        FrameLayout frameLayout = new FrameLayout(parentActivity);
+        this.occupyNavigationBar = true;
+        setApplyBottomPadding(false);
+        this.topPadding = 0.2f;
+        int i = Theme.key_windowBackgroundGray;
+        setBackgroundColor(getThemedColor(i));
+        ActionBar actionBar = this.actionBar;
+        actionBar.setBackgroundColor(getThemedColor(i));
+        actionBar.setCastShadows(false);
+        this.showShadow = false;
+        this.titleText = plugin.getName();
+        updateTitle();
+        this.takeTranslationIntoAccount = true;
+        RecyclerListView recyclerListView = this.recyclerListView;
+        recyclerListView.setClipChildren(false);
+        recyclerListView.setClipToPadding(false);
+        recyclerListView.setOverScrollMode(2);
+        int i2 = this.backgroundPaddingLeft;
+        recyclerListView.setPadding(i2, 0, i2, 0);
+        recyclerListView.setSections();
+        DefaultItemAnimator defaultItemAnimator = new DefaultItemAnimator() {
+            @Override // androidx.recyclerview.widget.DefaultItemAnimator
+            public void onMoveAnimationUpdate(RecyclerView.ViewHolder holder) {
+                super.onMoveAnimationUpdate(holder);
+                ((BottomSheet) this.this$0).containerView.invalidate();
+            }
+        };
+        defaultItemAnimator.setSupportsChangeAnimations(false);
+        defaultItemAnimator.setDelayAnimations(false);
+        defaultItemAnimator.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
+        defaultItemAnimator.setDurations(350L);
+        recyclerListView.setItemAnimator(defaultItemAnimator);
+        this.recyclerListView.setOnItemClickListener(new RecyclerListView.OnItemClickListener() {
+            @Override // org.telegram.ui.Components.RecyclerListView.OnItemClickListener
+            public final void onItemClick(View view, int i3) {
+                InstallPluginBottomSheet.$r8$lambda$0bzmhvmogRnBU8vwylqF8Odp7Is(this.f$0, view, i3);
+            }
+        });
+        this.headerView = buildHeader(parentActivity);
+        this.descriptionView = buildDescription(parentActivity);
+        this.errorView = buildError(parentActivity);
+        checkTranslatable();
+        ButtonWithCounterView buttonWithCounterView = new ButtonWithCounterView(parentActivity, true, this.resourcesProvider);
+        buttonWithCounterView.setRound();
+        this.button = buttonWithCounterView;
+        applyButtonState(false);
         LinearLayout linearLayout = new LinearLayout(parentActivity);
+        linearLayout.setOrientation(1);
+        linearLayout.setBackground(PluginAnalysisCellsKt.sheetBottomBackdrop(getThemedColor(i)));
+        linearLayout.setPadding(0, 0, 0, AndroidUtilities.navigationBarHeight);
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(-1, AndroidUtilities.dp(48.0f));
+        int iDp = this.backgroundPaddingLeft + AndroidUtilities.dp(12.0f);
+        layoutParams.setMargins(iDp, AndroidUtilities.dp(12.0f), iDp, AndroidUtilities.dp(12.0f));
+        Unit unit = Unit.INSTANCE;
+        linearLayout.addView(buttonWithCounterView, layoutParams);
+        if (!plugin.isEnabled() && !ExteraConfig.getPluginsSafeMode()) {
+            View viewCreateEnableAfterInstallRow = createEnableAfterInstallRow(parentActivity);
+            viewCreateEnableAfterInstallRow.setVisibility(this.blocked ? 8 : 0);
+            linearLayout.addView(viewCreateEnableAfterInstallRow, LayoutHelper.createLinear(-2, -2, 1, 0.0f, 0.0f, 0.0f, 8.0f));
+            this.enableAfterInstallRow = viewCreateEnableAfterInstallRow;
+        }
+        linearLayout.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override // android.view.View.OnLayoutChangeListener
+            public final void onLayoutChange(View view, int i3, int i4, int i5, int i6, int i7, int i8, int i9, int i10) {
+                InstallPluginBottomSheet.$r8$lambda$JcFMrAkO6mT6xcKCfpOjvc83vx8(this.f$0, view, i3, i4, i5, i6, i7, i8, i9, i10);
+            }
+        });
+        this.bottomContainer = linearLayout;
+        FrameLayout frameLayout = this.sheetContainer;
+        if (frameLayout != null) {
+            frameLayout.addView(linearLayout, LayoutHelper.createFrame(-1, -2, 80));
+        }
+        ActionBarMenu actionBarMenuCreateMenu = this.actionBar.createMenu();
+        actionBarMenuCreateMenu.setPadding(0, 0, AndroidUtilities.dp(3.5f), 0);
+        actionBarMenuCreateMenu.addItem(1, R.drawable.msg_openin);
+        this.actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
+            @Override // org.telegram.ui.ActionBar.ActionBar.ActionBarMenuOnItemClick
+            public void onItemClick(int id) {
+                if (id == -1) {
+                    InstallPluginBottomSheet.this.dismiss();
+                } else {
+                    if (id != 1) {
+                        return;
+                    }
+                    InstallPluginBottomSheet.this.openPluginFile();
+                }
+            }
+        });
+        if (ExteraConfig.getPluginsStaticAnalysis()) {
+            startAnalysis();
+        } else {
+            pluginAnalysisSection.setDisabled();
+        }
+        this.contentReady = true;
+        UniversalAdapter universalAdapter = this.adapter;
+        if (universalAdapter != null) {
+            universalAdapter.update(false);
+        }
+        this.layoutManager.scrollToPositionWithOffset(0, 0);
+    }
+
+    public static void $r8$lambda$0bzmhvmogRnBU8vwylqF8Odp7Is(InstallPluginBottomSheet installPluginBottomSheet, View view, int i) {
+        UItem item;
+        UniversalAdapter universalAdapter = installPluginBottomSheet.adapter;
+        if (universalAdapter == null || (item = universalAdapter.getItem(i - 1)) == null) {
+            return;
+        }
+        Object obj = item.object2;
+        String str = obj instanceof String ? (String) obj : null;
+        if (str == null) {
+            return;
+        }
+        Browser.openUrl(installPluginBottomSheet.getContext(), str);
+    }
+
+    public static void $r8$lambda$JcFMrAkO6mT6xcKCfpOjvc83vx8(InstallPluginBottomSheet installPluginBottomSheet, View view, int i, int i2, int i3, int i4, int i5, int i6, int i7, int i8) {
+        int i9 = i4 - i2;
+        if (installPluginBottomSheet.recyclerListView.getPaddingBottom() != i9) {
+            RecyclerListView recyclerListView = installPluginBottomSheet.recyclerListView;
+            int i10 = installPluginBottomSheet.backgroundPaddingLeft;
+            recyclerListView.setPadding(i10, 0, i10, i9);
+        }
+    }
+
+    @Override // org.telegram.ui.Components.BottomSheetWithRecyclerListView
+    public CharSequence getTitle() {
+        CharSequence charSequence = this.titleText;
+        return charSequence == null ? _UrlKt.FRAGMENT_ENCODE_SET : charSequence;
+    }
+
+    @Override // org.telegram.ui.Components.BottomSheetWithRecyclerListView
+    public RecyclerListView.SelectionAdapter createAdapter(RecyclerListView listView) {
+        Context context = getContext();
+        int i = this.currentAccount;
+        BaseFragment baseFragment = getBaseFragment();
+        UniversalAdapter universalAdapter = new UniversalAdapter(listView, context, i, baseFragment != null ? baseFragment.getClassGuid() : 0, true, new Utilities.Callback2() {
+            @Override // org.telegram.messenger.Utilities.Callback2
+            public final void run(Object obj, Object obj2) {
+                this.f$0.fillItems((ArrayList) obj, (UniversalAdapter) obj2);
+            }
+        }, this.resourcesProvider);
+        this.adapter = universalAdapter;
+        return universalAdapter;
+    }
+
+    public final void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
+        View view;
+        if (this.contentReady) {
+            View view2 = this.headerView;
+            if (view2 != null) {
+                items.add(UItem.asCustomShadow(view2));
+                items.add(spacer(20.0f));
+            }
+            View view3 = this.descriptionView;
+            if (view3 != null) {
+                items.add(UItem.asCustom(view3));
+            }
+            if (!this.requirements.isEmpty()) {
+                addSectionGap(items);
+                items.add(InstallPluginBottomSheetKt.pluginSheetHeader(LocaleController.getString(R.string.PluginRequired)));
+                Iterator<RequiredPluginInfo> it = this.requirements.iterator();
+                while (it.hasNext()) {
+                    items.add(RequiredPluginCell.Factory.INSTANCE.asRequirement(it.next(), this.requirementDelegate));
+                }
+            }
+            List<String> requirements = this.plugin.getRequirements();
+            List<String> list = requirements;
+            int i = 0;
+            if (list != null && !list.isEmpty()) {
+                addSectionGap(items);
+                items.add(InstallPluginBottomSheetKt.pluginSheetHeader(LocaleController.getString(R.string.PluginRequirements)));
+                Iterator<T> it2 = requirements.iterator();
+                int i2 = 0;
+                while (it2.hasNext()) {
+                    items.add(pipRow(i2 + 1000, (String) it2.next()));
+                    i2++;
+                }
+            }
+            List<String> bundledPackages = this.params.getBundledPackages();
+            if (bundledPackages != null) {
+                if (bundledPackages.isEmpty()) {
+                    bundledPackages = null;
+                }
+                if (bundledPackages != null) {
+                    addSectionGap(items);
+                    items.add(InstallPluginBottomSheetKt.pluginSheetHeader(LocaleController.getString(R.string.PluginBundledPackages)));
+                    Iterator<T> it3 = bundledPackages.iterator();
+                    while (it3.hasNext()) {
+                        items.add(wheelRow(i + 1500, (String) it3.next()));
+                        i++;
+                    }
+                }
+            }
+            if (this.analysisSection.isVisible()) {
+                addSectionGap(items);
+                this.analysisSection.fill(items);
+            }
+            if (this.errorText == null || (view = this.errorView) == null) {
+                return;
+            }
+            addSectionGap(items);
+            items.add(UItem.asCustomShadow(view));
+        }
+    }
+
+    private final UItem pipRow(int id, String requirement) {
+        String string = StringsKt.trim((CharSequence) requirement).toString();
+        PluginRequirementsView.Companion companion = PluginRequirementsView.INSTANCE;
+        String strRequirementName = companion.requirementName(string);
+        String strRequirementUrl = companion.requirementUrl(string);
+        if (strRequirementUrl == null) {
+            return UItem.asSettingsCell(id, string, (CharSequence) null);
+        }
+        String string2 = StringsKt.trim((CharSequence) StringsKt.removePrefix(string, (CharSequence) strRequirementName)).toString();
+        UItem uItemAsButton = UItem.asButton(id, strRequirementName, string2.length() != 0 ? string2 : null);
+        uItemAsButton.object2 = strRequirementUrl;
+        return uItemAsButton;
+    }
+
+    private final UItem wheelRow(int id, String fileName) {
+        String strDropLast;
+        String str = StringsKt.endsWith(fileName, ".whl", true) ? fileName : null;
+        List listSplit$default = (str == null || (strDropLast = StringsKt.dropLast(str, 4)) == null) ? null : StringsKt.split$default((CharSequence) strDropLast, new String[]{"-"}, false, 0, 6, (Object) null);
+        if (listSplit$default == null || listSplit$default.size() < 2) {
+            return UItem.asSettingsCell(id, fileName, (CharSequence) null);
+        }
+        return UItem.asSettingsCell(id, StringsKt.replace$default((String) listSplit$default.get(0), '_', SignatureVisitor.SUPER, false, 4, (Object) null), (CharSequence) listSplit$default.get(1));
+    }
+
+    private final UItem spacer(float heightDp) {
+        UItem uItemAsSpace = UItem.asSpace(AndroidUtilities.dp(heightDp));
+        uItemAsSpace.transparent = true;
+        return uItemAsSpace;
+    }
+
+    private final void addSectionGap(ArrayList<UItem> items) {
+        UItem uItem = (UItem) CollectionsKt.lastOrNull((List) items);
+        if (uItem == null || uItem.viewType != 7) {
+            items.add(spacer(12.0f));
+        }
+    }
+
+    @Override // org.telegram.ui.Components.BottomSheetWithRecyclerListView
+    public void onViewCreated(FrameLayout containerView) {
+        super.onViewCreated(containerView);
+        this.sheetContainer = containerView;
+    }
+
+    @Override // org.telegram.ui.Components.BottomSheetWithRecyclerListView
+    public void onPreDraw(Canvas canvas, int top, float progressToFullView) {
+        LinearLayout linearLayout = this.actionsPill;
+        if (linearLayout != null) {
+            float f = 1.0f - progressToFullView;
+            linearLayout.setAlpha(f);
+            int childCount = linearLayout.getChildCount();
+            for (int i = 0; i < childCount; i++) {
+                linearLayout.getChildAt(i).setClickable(f > 0.5f);
+            }
+        }
+    }
+
+    public final void onRequirementAction(final RequiredPluginInfo info) {
+        if (info.isSatisfied()) {
+            return;
+        }
+        if (info.state == 1) {
+            PluginsController.INSTANCE.getInstance().setPluginEnabled(info.id, true, new Utilities.Callback() {
+                @Override // org.telegram.messenger.Utilities.Callback
+                public final void run(Object obj) {
+                    AndroidUtilities.runOnUIThread(new Runnable() {
+                        @Override // java.lang.Runnable
+                        public final void run() {
+                            InstallPluginBottomSheet.$r8$lambda$ygHdFyxeNiV7tc6DloyjJzDY5Ys(str, requiredPluginInfo, installPluginBottomSheet);
+                        }
+                    });
+                }
+            });
+            return;
+        }
+        String str = info.downloadUrl;
+        if (str == null) {
+            return;
+        }
+        dismiss();
+        Browser.openUrl(getContext(), str);
+    }
+
+    public static void $r8$lambda$ygHdFyxeNiV7tc6DloyjJzDY5Ys(String str, RequiredPluginInfo requiredPluginInfo, InstallPluginBottomSheet installPluginBottomSheet) {
+        String name;
+        if (str == null) {
+            Plugin plugin = PluginsController.INSTANCE.getInstance().getPlugins().get(requiredPluginInfo.id);
+            requiredPluginInfo.currentVersion = plugin != null ? plugin.getVersion() : null;
+            if (plugin == null || (name = plugin.getName()) == null) {
+                name = requiredPluginInfo.name;
+            }
+            requiredPluginInfo.name = name;
+            requiredPluginInfo.state = 3;
+            installPluginBottomSheet.errorText = null;
+            UniversalAdapter universalAdapter = installPluginBottomSheet.adapter;
+            if (universalAdapter != null) {
+                universalAdapter.update(true);
+            }
+            installPluginBottomSheet.checkRequirementsSatisfied();
+            return;
+        }
+        installPluginBottomSheet.showError(str);
+    }
+
+    private final void checkRequirementsSatisfied() {
+        if (this.unknownSourceBlocked || !this.blocked || this.requirements.isEmpty()) {
+            return;
+        }
+        List<RequiredPluginInfo> list = this.requirements;
+        if (!(list instanceof Collection) || !list.isEmpty()) {
+            Iterator<T> it = list.iterator();
+            while (it.hasNext()) {
+                if (!((RequiredPluginInfo) it.next()).isSatisfied()) {
+                    return;
+                }
+            }
+        }
+        this.blocked = false;
+        applyButtonState(true);
+        View view = this.enableAfterInstallRow;
+        if (view != null) {
+            view.setVisibility(0);
+        }
+    }
+
+    private final void startAnalysis() {
+        this.analysisTask = PluginAnalyzer.INSTANCE.analyze(new PluginAnalyzer.Request(this.params.getFilePath(), new File(this.params.getFilePath()).getName(), this.isUpdate ? PluginsController.INSTANCE.getInstance().getPluginPath(this.plugin.getId()) : null, true), new Function1() {
+            @Override // kotlin.jvm.functions.Function1
+            public final Object invoke(Object obj) {
+                return InstallPluginBottomSheet.$r8$lambda$2nofFBsxR6b8DcGn0hGwJ9V3D4U(this.f$0, (PluginAnalyzer.Result) obj);
+            }
+        });
+    }
+
+    public static Unit $r8$lambda$2nofFBsxR6b8DcGn0hGwJ9V3D4U(InstallPluginBottomSheet installPluginBottomSheet, PluginAnalyzer.Result result) {
+        installPluginBottomSheet.analysisTask = null;
+        installPluginBottomSheet.analysisRunning = false;
+        installPluginBottomSheet.analysisSnapshot = result.getSnapshot();
+        installPluginBottomSheet.analysisSection.setResult(result);
+        return Unit.INSTANCE;
+    }
+
+    public final void onAnalysisChanged() {
+        applyButtonState(true);
+        UniversalAdapter universalAdapter = this.adapter;
+        if (universalAdapter != null) {
+            universalAdapter.update(true);
+        }
+    }
+
+    public final void openReport() {
+        if (this.installing) {
+            return;
+        }
+        if (needsRiskAcknowledgement() && !this.blocked) {
+            this.analysisSection.openReport(this.fragment, LocaleController.getString(this.isUpdate ? R.string.PluginAnalysisConfirmUpdate : R.string.PluginAnalysisConfirmInstall), new Function0() {
+                @Override // kotlin.jvm.functions.Function0
+                public final Object invoke() {
+                    return InstallPluginBottomSheet.$r8$lambda$0cf08hiAyErbRPo06YZyK3Bfkf8(this.f$0);
+                }
+            });
+        } else {
+            this.analysisSection.openReport(this.fragment, null, null);
+        }
+    }
+
+    public static Unit $r8$lambda$0cf08hiAyErbRPo06YZyK3Bfkf8(InstallPluginBottomSheet installPluginBottomSheet) {
+        installPluginBottomSheet.riskAcknowledged = true;
+        installPluginBottomSheet.applyButtonState(true);
+        installPluginBottomSheet.onInstallClick();
+        return Unit.INSTANCE;
+    }
+
+    private final boolean needsRiskAcknowledgement() {
+        return (this.params.getTrusted() || this.analysisSection.getMaxSeverity() < 3 || this.riskAcknowledged) ? false : true;
+    }
+
+    private final void applyButtonState(boolean animated) {
+        String blockedTitle;
+        String blockedSubtitle;
+        ButtonWithCounterView buttonWithCounterView = this.button;
+        buttonWithCounterView.setTextColor(getThemedColor(Theme.key_featuredStickers_buttonText));
+        int i = Theme.key_featuredStickers_addButton;
+        int iCompositeColors = ColorUtils.compositeColors(ColorUtils.setAlphaComponent(getThemedColor(i), 180), getThemedColor(Theme.key_windowBackgroundWhite));
+        String string = LocaleController.getString(this.isUpdate ? R.string.UpdatePlugin : R.string.InstallPlugin);
+        if (this.unknownSourceBlocked) {
+            blockedTitle = LocaleController.getString(R.string.PluginInstallBlocked);
+        } else {
+            blockedTitle = this.params.getBlockedTitle();
+        }
+        if (this.unknownSourceBlocked) {
+            blockedSubtitle = LocaleController.getString(R.string.PluginInstallBlockedInfo);
+        } else {
+            blockedSubtitle = this.params.getBlockedSubtitle();
+        }
+        if (this.blocked && blockedTitle != null) {
+            buttonWithCounterView.setColor(iCompositeColors);
+            buttonWithCounterView.setText(blockedTitle, animated);
+            buttonWithCounterView.setSubText(blockedSubtitle, animated);
+            buttonWithCounterView.setOnClickListener(null);
+            buttonWithCounterView.setClickable(false);
+            buttonWithCounterView.setFocusable(false);
+            return;
+        }
+        if (this.analysisRunning) {
+            buttonWithCounterView.setColor(iCompositeColors);
+            buttonWithCounterView.setText(LocaleController.getString(R.string.PluginAnalyzing), animated);
+            buttonWithCounterView.setSubText(null, animated);
+            buttonWithCounterView.setOnClickListener(null);
+            buttonWithCounterView.setClickable(false);
+            buttonWithCounterView.setFocusable(false);
+            return;
+        }
+        if (needsRiskAcknowledgement()) {
+            int iAnalysisSeverityColor = PluginAnalysisCellsKt.analysisSeverityColor(3, this.resourcesProvider);
+            buttonWithCounterView.setColor(iAnalysisSeverityColor);
+            buttonWithCounterView.setTextColor(AndroidUtilities.computePerceivedBrightness(iAnalysisSeverityColor) > 0.721f ? ColorUtils.blendARGB(iAnalysisSeverityColor, -16777216, 0.8f) : -1);
+            buttonWithCounterView.setText(LocaleController.getString(R.string.PluginAnalysisViewReport), animated);
+            buttonWithCounterView.setSubText(null, animated);
+            buttonWithCounterView.setFocusable(true);
+            buttonWithCounterView.setOnClickListener(new View.OnClickListener() {
+                @Override // android.view.View.OnClickListener
+                public final void onClick(View view) {
+                    this.f$0.openReport();
+                }
+            });
+            return;
+        }
+        buttonWithCounterView.setColor(getThemedColor(i));
+        buttonWithCounterView.setText(string, animated);
+        buttonWithCounterView.setSubText(null, animated);
+        buttonWithCounterView.setFocusable(true);
+        buttonWithCounterView.setOnClickListener(new View.OnClickListener() {
+            @Override // android.view.View.OnClickListener
+            public final void onClick(View view) {
+                this.f$0.onInstallClick();
+            }
+        });
+    }
+
+    private final View buildHeader(final Activity activity) {
+        LinearLayout linearLayout = new LinearLayout(activity);
         linearLayout.setOrientation(1);
         linearLayout.setClipChildren(false);
         linearLayout.setClipToPadding(false);
-        frameLayout.addView(linearLayout);
-        if (plugin2.getPack() != null && plugin2.getIndex() >= 0) {
-            FrameLayout frameLayout2 = new FrameLayout(parentActivity);
-            frameLayout2.setClipChildren(false);
-            frameLayout2.setClipToPadding(false);
-            f = 12.0f;
-            BackupImageView backupImageView = new BackupImageView(parentActivity);
+        Drawable iconDrawable = this.params.getIconDrawable();
+        if (iconDrawable != null || (this.plugin.getPack() != null && this.plugin.getIndex() >= 0)) {
+            FrameLayout frameLayout = new FrameLayout(activity);
+            frameLayout.setClipChildren(false);
+            frameLayout.setClipToPadding(false);
+            BackupImageView backupImageView = new BackupImageView(activity);
             backupImageView.setOutlineProvider(ViewOutlineProviderImpl.boundsWithRoundRect(AndroidUtilities.dpf2(12.0f)));
             backupImageView.setClipToOutline(true);
             backupImageView.getImageReceiver().setAutoRepeat(1);
-            frameLayout2.addView(backupImageView, LayoutHelper.createFrame(78, 78, 17));
-            FrameLayout frameLayout3 = new FrameLayout(parentActivity);
-            frameLayout3.setBackground(Theme.createCircleDrawable(AndroidUtilities.dp(28.0f), getThemedColor(Theme.key_dialogBackground)));
-            FrameLayout frameLayout4 = new FrameLayout(parentActivity);
-            frameLayout4.setBackground(Theme.createCircleDrawable(AndroidUtilities.dp(24.0f), getThemedColor(Theme.key_featuredStickers_addButton)));
-            frameLayout3.addView(frameLayout4, LayoutHelper.createFrame(24, 24, 17));
-            ImageView imageView = new ImageView(parentActivity);
+            frameLayout.addView(backupImageView, LayoutHelper.createFrame(78, 78, 17));
+            FrameLayout frameLayout2 = new FrameLayout(activity);
+            frameLayout2.setBackground(Theme.createCircleDrawable(AndroidUtilities.dp(28.0f), getThemedColor(Theme.key_windowBackgroundGray)));
+            FrameLayout frameLayout3 = new FrameLayout(activity);
+            frameLayout3.setBackground(Theme.createCircleDrawable(AndroidUtilities.dp(24.0f), getThemedColor(Theme.key_featuredStickers_addButton)));
+            frameLayout2.addView(frameLayout3, LayoutHelper.createFrame(24, 24, 17));
+            ImageView imageView = new ImageView(activity);
             imageView.setImageResource(R.drawable.plugins_filled);
             imageView.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_featuredStickers_buttonText), PorterDuff.Mode.SRC_IN));
             imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            frameLayout3.addView(imageView, LayoutHelper.createFrame(16, 16, 17));
-            frameLayout2.addView(frameLayout3, LayoutHelper.createFrame(28, 28.0f, 8388693, 0.0f, 0.0f, -4.0f, -4.0f));
-            linearLayout.addView(frameLayout2, LayoutHelper.createLinear(78, 78, 1, 0.0f, 28.0f, 0.0f, 0.0f));
-            MediaDataController.getInstance(UserConfig.selectedAccount).setPlaceholderImageByIndex(backupImageView, plugin2.getPack(), plugin2.getIndex(), "150_150");
+            frameLayout2.addView(imageView, LayoutHelper.createFrame(16, 16, 17));
+            frameLayout.addView(frameLayout2, LayoutHelper.createFrame(28, 28.0f, 8388693, 0.0f, 0.0f, -4.0f, -4.0f));
+            linearLayout.addView(frameLayout, LayoutHelper.createLinear(78, 78, 1, 0.0f, 28.0f, 0.0f, 0.0f));
+            if (iconDrawable != null) {
+                backupImageView.setImageDrawable(iconDrawable);
+            } else {
+                MediaDataController.getInstance(UserConfig.selectedAccount).setPlaceholderImageByIndex(backupImageView, this.plugin.getPack(), this.plugin.getIndex(), "150_150", this.resourcesProvider);
+            }
         } else {
-            f = 12.0f;
-            ImageView imageView2 = new ImageView(parentActivity);
+            ImageView imageView2 = new ImageView(activity);
             imageView2.setScaleType(ImageView.ScaleType.FIT_CENTER);
             imageView2.setImageResource(R.drawable.plugins_filled);
             imageView2.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_featuredStickers_buttonText), PorterDuff.Mode.SRC_IN));
@@ -133,185 +671,243 @@ public final class InstallPluginBottomSheet extends BottomSheet {
             imageView2.setPadding(iDp, iDp, iDp, iDp);
             linearLayout.addView(imageView2, LayoutHelper.createLinear(78, 78, 1, 0.0f, 28.0f, 0.0f, 0.0f));
         }
-        TextView textView = new TextView(parentActivity);
+        TextView textView = new TextView(activity) {
+            @Override // android.widget.TextView, android.view.View
+            public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+                super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+                setMeasuredDimension(getMeasuredWidth(), this.nameText.getHeight(getMeasuredHeight()));
+            }
+
+            @Override // android.widget.TextView, android.view.View
+            public void onDraw(Canvas canvas) {
+                int iBeforeDraw = this.nameText.beforeDraw(canvas);
+                super.onDraw(canvas);
+                this.nameText.afterDraw(canvas, iBeforeDraw);
+            }
+        };
         textView.setGravity(1);
-        int i = Theme.key_windowBackgroundWhiteBlackText;
-        textView.setTextColor(getThemedColor(i));
+        textView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
         textView.setTextSize(1, 18.0f);
         textView.setTypeface(AndroidUtilities.bold());
-        textView.setText(plugin2.getName());
+        textView.setText(this.plugin.getName());
+        this.nameText.setView(textView);
         linearLayout.addView(textView, LayoutHelper.createLinear(-1, -2, 0, 40.0f, 16.0f, 40.0f, 0.0f));
-        EffectsTextView effectsTextView = new EffectsTextView(parentActivity, baseFragment.getResourceProvider());
+        EffectsTextView effectsTextView = new EffectsTextView(activity, this.fragment.getResourceProvider());
         effectsTextView.setGravity(1);
         effectsTextView.setTypeface(AndroidUtilities.regular());
         effectsTextView.setMovementMethod(new AndroidUtilities.LinkMovementMethodMy());
-        int i2 = Theme.key_dialogTextLink;
-        effectsTextView.setLinkTextColor(getThemedColor(i2));
+        effectsTextView.setLinkTextColor(getThemedColor(Theme.key_dialogTextLink));
         effectsTextView.setTextSize(1, 14.0f);
-        int i3 = Theme.key_windowBackgroundWhiteGrayText;
-        effectsTextView.setTextColor(getThemedColor(i3));
+        effectsTextView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText));
         SpannableStringBuilder spannableStringBuilderAppend = new SpannableStringBuilder(LocaleController.getString(R.string.PluginVersion)).append((CharSequence) " ");
         int length = spannableStringBuilderAppend.length();
-        if (zContainsKey) {
-            Plugin plugin3 = companion.getInstance().getPlugins().get(plugin2.getId());
-            if (plugin3 != null) {
-                String version = plugin3.getVersion();
-                version = version == null ? "" : version;
-                String version2 = plugin2.getVersion();
-                plugin = plugin2;
-                spannableStringBuilderAppend.append((CharSequence) version).append((CharSequence) " -> ").append((CharSequence) (version2 == null ? "" : version2));
+        if (this.isUpdate) {
+            Plugin plugin = PluginsController.INSTANCE.getInstance().getPlugins().get(this.plugin.getId());
+            if (plugin != null) {
+                String version = plugin.getVersion();
+                String str = _UrlKt.FRAGMENT_ENCODE_SET;
+                if (version == null) {
+                    version = _UrlKt.FRAGMENT_ENCODE_SET;
+                }
+                String version2 = this.plugin.getVersion();
+                if (version2 != null) {
+                    str = version2;
+                }
+                spannableStringBuilderAppend.append((CharSequence) version).append((CharSequence) " -> ").append((CharSequence) str);
                 spannableStringBuilderAppend = LocaleUtils.replaceArrows(getContext(), spannableStringBuilderAppend, R.drawable.msg_mini_arrow_mediathin);
                 spannableStringBuilderAppend.setSpan(new StrikethroughSpan(), length, version.length() + length, 33);
-            } else {
-                plugin = plugin2;
             }
         } else {
-            plugin = plugin2;
-            spannableStringBuilderAppend.append((CharSequence) plugin.getVersion());
+            spannableStringBuilderAppend.append((CharSequence) this.plugin.getVersion());
         }
-        spannableStringBuilderAppend.append((CharSequence) " • ").append(LocaleUtils.formatWithUsernames(plugin.getAuthor(), baseFragment, new Runnable() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda4
-            @Override // java.lang.Runnable
-            public final void run() {
-                InstallPluginBottomSheet.this.dismiss();
-            }
-        }));
+        spannableStringBuilderAppend.append((CharSequence) " • ").append(LocaleUtils.formatWithUsernames(this.plugin.getAuthor(), this.fragment, this::dismiss));
         effectsTextView.setText(spannableStringBuilderAppend);
         linearLayout.addView(effectsTextView, LayoutHelper.createLinear(-1, -2, 0, 21.0f, 4.0f, 21.0f, 0.0f));
-        int i4 = pluginInstallParams.getTrusted() ? R.drawable.trusted_mini : R.drawable.unknown_mini;
-        int themedColor = getThemedColor(pluginInstallParams.getTrusted() ? Theme.key_windowBackgroundWhiteGreenText : Theme.key_text_RedRegular);
-        String string = LocaleController.getString(pluginInstallParams.getTrusted() ? R.string.PluginSourceTrusted : R.string.PluginSourceUnknown);
-        final LinearLayout linearLayout2 = new LinearLayout(parentActivity);
+        int i = this.params.getTrusted() ? R.drawable.trusted_mini : R.drawable.unknown_mini;
+        int themedColor = getThemedColor(this.params.getTrusted() ? Theme.key_windowBackgroundWhiteGreenText : Theme.key_text_RedRegular);
+        String string = LocaleController.getString(this.params.getTrusted() ? R.string.PluginSourceTrusted : R.string.PluginSourceUnknown);
+        final LinearLayout linearLayout2 = new LinearLayout(activity);
         ScaleStateListAnimator.apply(linearLayout2, 0.05f, 1.5f);
         linearLayout2.setOrientation(0);
-        linearLayout2.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(20.0f), AndroidUtilities.dp(20.0f), AndroidUtilities.multiplyAlphaComponent(themedColor, 0.1f)));
-        linearLayout2.setPadding(AndroidUtilities.dp(f), AndroidUtilities.dp(6.0f), AndroidUtilities.dp(16.0f), AndroidUtilities.dp(6.0f));
+        linearLayout2.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(20.0f), AndroidUtilities.dp(20.0f), ColorUtils.compositeColors(AndroidUtilities.multiplyAlphaComponent(themedColor, 0.1f), getThemedColor(Theme.key_windowBackgroundWhite))));
+        linearLayout2.setPadding(AndroidUtilities.dp(12.0f), AndroidUtilities.dp(6.0f), AndroidUtilities.dp(16.0f), AndroidUtilities.dp(6.0f));
         linearLayout2.setGravity(17);
-        ImageView imageView3 = new ImageView(parentActivity);
-        imageView3.setImageResource(i4);
+        ImageView imageView3 = new ImageView(activity);
+        imageView3.setImageResource(i);
         imageView3.setColorFilter(new PorterDuffColorFilter(themedColor, PorterDuff.Mode.SRC_IN));
         linearLayout2.addView(imageView3, LayoutHelper.createLinear(14, 14, 16, 0.0f, 0.0f, 6.0f, 0.0f));
-        TextView textView2 = new TextView(parentActivity);
+        TextView textView2 = new TextView(activity);
         textView2.setTypeface(AndroidUtilities.regular());
         textView2.setTextColor(themedColor);
         textView2.setTextSize(1, 13.0f);
         textView2.setText(string);
         linearLayout2.addView(textView2);
         linearLayout.addView(linearLayout2, LayoutHelper.createLinear(-2, -2, 17, 0.0f, 12.0f, 0.0f, 0.0f));
-        linearLayout2.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda5
+        linearLayout2.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                InstallPluginBottomSheet.m1352$r8$lambda$6QsFbuezsLvhAJ04uYNgmHwy8(InstallPluginBottomSheet.this, view);
+                this.f$0.showSourceHint(view);
             }
         });
-        EffectsTextView effectsTextView2 = new EffectsTextView(parentActivity);
-        effectsTextView2.setGravity(3);
-        effectsTextView2.setTypeface(AndroidUtilities.regular());
-        effectsTextView2.setMovementMethod(new AndroidUtilities.LinkMovementMethodMy());
-        effectsTextView2.setLinkTextColor(getThemedColor(i2));
-        effectsTextView2.setTextSize(1, 15.0f);
-        effectsTextView2.setTextColor(getThemedColor(i));
-        effectsTextView2.setText(LocaleUtils.fullyFormatText(plugin.getDescription(), baseFragment, new Runnable() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda4
-            @Override // java.lang.Runnable
-            public final void run() {
-                InstallPluginBottomSheet.this.dismiss();
-            }
-        }));
-        linearLayout.addView(effectsTextView2, LayoutHelper.createLinear(-1, -2, 0, 21.0f, 28.0f, 21.0f, 0.0f));
-        List<String> requirements = plugin.getRequirements();
-        if (requirements != null && !requirements.isEmpty()) {
-            PluginRequirementsView pluginRequirementsView = new PluginRequirementsView(parentActivity, baseFragment.getResourceProvider());
-            linearLayout.addView(pluginRequirementsView, LayoutHelper.createLinear(-1, -2, 0, 21.0f, 12.0f, 21.0f, 0.0f));
-            pluginRequirementsView.setRequirements(plugin.getRequirements());
-        }
-        final ButtonWithCounterView buttonWithCounterView = new ButtonWithCounterView(parentActivity, true, this.resourcesProvider);
-        buttonWithCounterView.setRound();
-        buttonWithCounterView.setText(LocaleController.getString(zContainsKey ? R.string.UpdatePlugin : R.string.InstallPlugin), false);
-        buttonWithCounterView.setSubText(null, false);
-        buttonWithCounterView.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda6
-            @Override // android.view.View.OnClickListener
-            public final void onClick(View view) {
-                InstallPluginBottomSheet.$r8$lambda$mhmbFSrf6ODSDx9RaNzu7UYWBis(InstallPluginBottomSheet.this, buttonWithCounterView, baseFragment, view);
-            }
-        });
-        this.button = buttonWithCounterView;
-        linearLayout.addView(buttonWithCounterView, LayoutHelper.createLinear(-1, 48, 0, 16.0f, 28.0f, 16.0f, 16.0f));
-        if (!plugin.isEnabled() && !ExteraConfig.getPluginsSafeMode()) {
-            final CheckBox2 checkBox2 = new CheckBox2(parentActivity, 21, this.resourcesProvider);
-            checkBox2.setColor(Theme.key_radioBackgroundChecked, Theme.key_checkboxDisabled, Theme.key_checkboxCheck);
-            checkBox2.setDrawUnchecked(true);
-            checkBox2.setChecked(this.enableAfterInstallation, false);
-            checkBox2.setDrawBackgroundAsArc(10);
-            TextView textView3 = new TextView(parentActivity);
-            textView3.setTextColor(getThemedColor(i));
-            textView3.setTextSize(1, 14.0f);
-            textView3.setText(LocaleController.getString(R.string.EnableAfterInstallation));
-            FrameLayout frameLayout5 = new FrameLayout(parentActivity);
-            frameLayout5.addView(checkBox2, LayoutHelper.createFrame(21, 21.0f, 17, 0.0f, 0.0f, 0.0f, 0.0f));
-            LinearLayout linearLayout3 = new LinearLayout(parentActivity);
-            linearLayout3.setOrientation(0);
-            linearLayout3.setPadding(AndroidUtilities.dp(8.0f), AndroidUtilities.dp(6.0f), AndroidUtilities.dp(10.0f), AndroidUtilities.dp(6.0f));
-            linearLayout3.addView(frameLayout5, LayoutHelper.createLinear(24, 24, 16, 0.0f, 0.0f, 6.0f, 0.0f));
-            linearLayout3.addView(textView3, LayoutHelper.createLinear(-2, -2, 16));
-            linearLayout3.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda7
-                @Override // android.view.View.OnClickListener
-                public final void onClick(View view) {
-                    InstallPluginBottomSheet.$r8$lambda$R8l3SwnXpEYtAjSIVKWgpJ3tSSc(checkBox2, InstallPluginBottomSheet.this, view);
-                }
-            });
-            ScaleStateListAnimator.apply(linearLayout3, 0.05f, 1.2f);
-            linearLayout3.setBackground(Theme.createRadSelectorDrawable(getThemedColor(Theme.key_listSelector), 8, 8));
-            linearLayout.addView(linearLayout3, LayoutHelper.createLinear(-2, -2, 1, 0.0f, 0.0f, 0.0f, 8.0f));
-        }
-        ImageView imageView4 = new ImageView(parentActivity);
+        int themedColor2 = getThemedColor(Theme.key_windowBackgroundWhiteGrayIcon);
+        ImageView imageView4 = new ImageView(activity);
         ScaleStateListAnimator.apply(imageView4, 0.15f, 1.5f);
-        Drawable drawable = ContextCompat.getDrawable(parentActivity, R.drawable.msg_openin);
+        Drawable drawable = ContextCompat.getDrawable(activity, R.drawable.msg_openin);
         imageView4.setImageDrawable(drawable != null ? drawable.mutate() : null);
-        imageView4.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_windowBackgroundWhiteGrayIcon), PorterDuff.Mode.MULTIPLY));
+        imageView4.setColorFilter(new PorterDuffColorFilter(themedColor2, PorterDuff.Mode.MULTIPLY));
         imageView4.setScaleType(ImageView.ScaleType.CENTER);
-        imageView4.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda8
+        imageView4.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                InstallPluginBottomSheet.$r8$lambda$f6lHCVPGyeXGXAmhyEm1tg18hC8(InstallPluginBottomSheet.this, baseFragment, view);
+                this.f$0.openPluginFile();
             }
         });
-        imageView4.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_dialogButtonSelector), 1, AndroidUtilities.dp(20.0f)));
-        frameLayout.addView(imageView4, LayoutHelper.createFrame(40, 40.0f, 53, 0.0f, 16.0f, 16.0f, 0.0f));
-        ScrollView scrollView = new ScrollView(parentActivity);
-        scrollView.addView(frameLayout);
-        setCustomView(scrollView);
-        boolean showHint = pluginInstallParams.getTrusted()
-                ? !ExteraConfig.getPreferences().getBoolean("trusted_source_hint", false)
-                : !ExteraConfig.getPreferences().getBoolean("unknown_source_hint", false);
-        if (showHint) {
+        int i2 = Theme.key_dialogButtonSelector;
+        imageView4.setBackground(Theme.createSelectorDrawable(getThemedColor(i2), 1, AndroidUtilities.dp(20.0f)));
+        PluginTranslateButton pluginTranslateButton = new PluginTranslateButton(activity, themedColor2);
+        ScaleStateListAnimator.apply(pluginTranslateButton, 0.15f, 1.5f);
+        pluginTranslateButton.setVisibility(8);
+        pluginTranslateButton.setOnClickListener(new View.OnClickListener() {
+            @Override // android.view.View.OnClickListener
+            public final void onClick(View view) {
+                this.f$0.onTranslateClick();
+            }
+        });
+        pluginTranslateButton.setBackground(Theme.createSelectorDrawable(getThemedColor(i2), 1, AndroidUtilities.dp(20.0f)));
+        this.translateButton = pluginTranslateButton;
+        LinearLayout linearLayout3 = new LinearLayout(activity);
+        linearLayout3.setOrientation(0);
+        int iDp2 = AndroidUtilities.dp(2.0f);
+        linearLayout3.setPadding(iDp2, iDp2, iDp2, iDp2);
+        BlurredBackgroundSourceColor blurredBackgroundSourceColor = new BlurredBackgroundSourceColor();
+        blurredBackgroundSourceColor.setColor(getThemedColor(Theme.key_windowBackgroundGray));
+        BlurredBackgroundDrawable radius = blurredBackgroundSourceColor.createDrawable().setColorProvider(BlurredBackgroundProviderImpl.topPanelChatActivity(this.resourcesProvider)).setRadius(AndroidUtilities.dpf2(22.0f));
+        radius.setShadowAlpha(0.0f);
+        linearLayout3.setBackground(radius);
+        linearLayout3.addView(pluginTranslateButton, LayoutHelper.createLinear(40, 40));
+        linearLayout3.addView(imageView4, LayoutHelper.createLinear(40, 40));
+        this.actionsPill = linearLayout3;
+        if ((this.params.getTrusted() && !ExteraConfig.getPreferences().getBoolean("trusted_source_hint", false)) || (!this.params.getTrusted() && !ExteraConfig.getPreferences().getBoolean("unknown_source_hint", false))) {
             AndroidUtilities.runOnUIThread(new Runnable() {
-                @Override
+                @Override // java.lang.Runnable
                 public final void run() {
-                    InstallPluginBottomSheet.$r8$lambda$0dAXGrdKgOqN6gkG9N_fcAhckns(linearLayout2, InstallPluginBottomSheet.this);
+                    InstallPluginBottomSheet.$r8$lambda$sIZ3OX1cbRbvromIzWVToUFxDEM(linearLayout2, this);
                 }
             }, 600L);
         }
+        FrameLayout frameLayout4 = new FrameLayout(activity);
+        frameLayout4.setClipChildren(false);
+        frameLayout4.setClipToPadding(false);
+        frameLayout4.addView(linearLayout, LayoutHelper.createFrame(-1, -2.0f));
+        frameLayout4.addView(linearLayout3, LayoutHelper.createFrame(-2, 44.0f, 53, 0.0f, 14.0f, 12.0f, 0.0f));
+        return frameLayout4;
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$6QsFbuez-sLv-hAJ04uYNgmHwy8, reason: not valid java name */
-    public static void m1352$r8$lambda$6QsFbuezsLvhAJ04uYNgmHwy8(final InstallPluginBottomSheet installPluginBottomSheet, final View view) {
-        HintView2 hintView2 = installPluginBottomSheet.currentHint;
+    public static void $r8$lambda$sIZ3OX1cbRbvromIzWVToUFxDEM(LinearLayout linearLayout, InstallPluginBottomSheet installPluginBottomSheet) {
+        linearLayout.performClick();
+        ExteraConfig.getEditor().putBoolean(installPluginBottomSheet.params.getTrusted() ? "trusted_source_hint" : "unknown_source_hint", true).apply();
+    }
+
+    private final View buildDescription(Activity activity) {
+        EffectsTextView effectsTextView = new EffectsTextView(activity) {
+            @Override // android.widget.TextView, android.view.View
+            public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+                super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+                setMeasuredDimension(getMeasuredWidth(), this.descriptionText.getHeight(getMeasuredHeight()));
+            }
+
+            @Override // org.telegram.ui.Components.EffectsTextView, org.telegram.ui.Components.spoilers.SpoilersTextView, android.widget.TextView, android.view.View
+            public void onDraw(Canvas canvas) {
+                int iBeforeDraw = this.descriptionText.beforeDraw(canvas);
+                super.onDraw(canvas);
+                this.descriptionText.afterDraw(canvas, iBeforeDraw);
+            }
+        };
+        effectsTextView.setGravity(3);
+        effectsTextView.setTypeface(AndroidUtilities.regular());
+        effectsTextView.setMovementMethod(new AndroidUtilities.LinkMovementMethodMy());
+        effectsTextView.setLinkTextColor(getThemedColor(Theme.key_dialogTextLink));
+        effectsTextView.setTextSize(1, 15.0f);
+        effectsTextView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
+        effectsTextView.setText(LocaleUtils.fullyFormatText(this.plugin.getDescription(), this.fragment, this::dismiss));
+        effectsTextView.setPadding(AndroidUtilities.dp(16.0f), AndroidUtilities.dp(14.0f), AndroidUtilities.dp(16.0f), AndroidUtilities.dp(12.0f));
+        this.descriptionText.setView(effectsTextView);
+        return effectsTextView;
+    }
+
+    private final View buildError(Activity activity) {
+        int themedColor = getThemedColor(Theme.key_text_RedRegular);
+        int iDp = AndroidUtilities.dp(ExteraConfig.getSectionRadiusDp());
+        TextView textView = new TextView(activity);
+        textView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MONO));
+        textView.setTextSize(1, 12.0f);
+        textView.setTextColor(themedColor);
+        textView.setPadding(AndroidUtilities.dp(16.0f), AndroidUtilities.dp(14.0f), AndroidUtilities.dp(16.0f), AndroidUtilities.dp(12.0f));
+        textView.setBackground(Theme.createRoundRectDrawable(iDp, iDp, ColorUtils.compositeColors(AndroidUtilities.multiplyAlphaComponent(themedColor, 0.1f), getThemedColor(Theme.key_windowBackgroundWhite))));
+        ScaleStateListAnimator.apply(textView, 0.02f, 1.5f);
+        textView.setOnClickListener(new View.OnClickListener() {
+            @Override // android.view.View.OnClickListener
+            public final void onClick(View view) {
+                InstallPluginBottomSheet.$r8$lambda$st4D8IrpCXUZ934lqjJQ6dhtLQQ(this.f$0, view);
+            }
+        });
+        this.errorTextView = textView;
+        FrameLayout frameLayout = new FrameLayout(activity);
+        frameLayout.setPadding(AndroidUtilities.dp(12.0f), 0, AndroidUtilities.dp(12.0f), AndroidUtilities.dp(12.0f));
+        frameLayout.addView(textView, LayoutHelper.createFrame(-1, -2.0f));
+        return frameLayout;
+    }
+
+    public static void $r8$lambda$st4D8IrpCXUZ934lqjJQ6dhtLQQ(InstallPluginBottomSheet installPluginBottomSheet, View view) {
+        String str = installPluginBottomSheet.errorText;
+        if (str != null && AndroidUtilities.addToClipboard(str)) {
+            BulletinFactory.of(installPluginBottomSheet.topBulletinContainer, installPluginBottomSheet.resourcesProvider).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
+        }
+    }
+
+    private final void showError(String message) {
+        String string = StringsKt.trim((CharSequence) message).toString();
+        boolean z = this.errorText == null;
+        this.errorText = string;
+        TextView textView = this.errorTextView;
+        if (textView != null) {
+            textView.setText(string);
+        }
+        UniversalAdapter universalAdapter = this.adapter;
+        if (universalAdapter != null) {
+            universalAdapter.update(true);
+        }
+        if (z) {
+            scrollToError();
+        }
+    }
+
+    private final void scrollToError() {
+        RecyclerView.Adapter adapter = this.recyclerListView.getAdapter();
+        if (adapter != null) {
+            this.recyclerListView.smoothScrollToPosition(adapter.getItemCount() - 1);
+        }
+    }
+
+    public final void showSourceHint(final View view) {
+        HintView2 hintView2 = this.currentHint;
         if (hintView2 != null) {
             hintView2.hide();
         }
-        installPluginBottomSheet.currentHint = null;
-        final HintView2 rounding = new HintView2(installPluginBottomSheet.getContext(), 3).setMultilineText(true).setBgColor(installPluginBottomSheet.getThemedColor(Theme.key_undo_background)).setTextColor(installPluginBottomSheet.getThemedColor(Theme.key_undo_infoColor)).setText(AndroidUtilities.replaceTags(LocaleController.getString(installPluginBottomSheet.params.getTrusted() ? R.string.PluginSourceTrustedInfo : R.string.PluginSourceUnknownInfo))).setTextAlign(Layout.Alignment.ALIGN_CENTER).allowBlur(true).setRounding(12.0f);
+        this.currentHint = null;
+        final HintView2 rounding = new HintView2(getContext(), 3).setMultilineText(true).setBgColor(getThemedColor(Theme.key_undo_background)).setTextColor(getThemedColor(Theme.key_undo_infoColor)).setText(AndroidUtilities.replaceTags(LocaleController.getString(this.params.getTrusted() ? R.string.PluginSourceTrustedInfo : R.string.PluginSourceUnknownInfo))).setTextAlign(Layout.Alignment.ALIGN_CENTER).allowBlur(true).setRounding(12.0f);
         rounding.setMaxWidthPx(HintView2.cutInFancyHalf(rounding.getText(), rounding.getTextPaint()));
-        installPluginBottomSheet.container.addView(rounding, LayoutHelper.createFrame(-1, 100.0f, 55, 32.0f, 0.0f, 32.0f, 0.0f));
-        installPluginBottomSheet.currentHint = rounding;
-        installPluginBottomSheet.container.post(new Runnable() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda2
+        this.container.addView(rounding, LayoutHelper.createFrame(-1, 100.0f, 55, 32.0f, 0.0f, 32.0f, 0.0f));
+        this.currentHint = rounding;
+        this.container.post(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                InstallPluginBottomSheet.$r8$lambda$PL7ooqHXepYuyf5ZRxpUpkoVJtQ(view, installPluginBottomSheet, rounding);
+                InstallPluginBottomSheet.$r8$lambda$CmdM4raDqW8NiDpY5bj2mp4mzB8(view, this, rounding);
             }
         });
     }
 
-    public static void $r8$lambda$PL7ooqHXepYuyf5ZRxpUpkoVJtQ(View view, InstallPluginBottomSheet installPluginBottomSheet, HintView2 hintView2) {
+    public static void $r8$lambda$CmdM4raDqW8NiDpY5bj2mp4mzB8(View view, InstallPluginBottomSheet installPluginBottomSheet, HintView2 hintView2) {
         int[] iArr = new int[2];
         view.getLocationInWindow(iArr);
         int[] iArr2 = new int[2];
@@ -327,52 +923,319 @@ public final class InstallPluginBottomSheet extends BottomSheet {
         hintView2.show();
     }
 
-    public static void $r8$lambda$mhmbFSrf6ODSDx9RaNzu7UYWBis(final InstallPluginBottomSheet installPluginBottomSheet, ButtonWithCounterView buttonWithCounterView, final BaseFragment baseFragment, View view) {
-        if (installPluginBottomSheet.installing) {
-            if (installPluginBottomSheet.cancellationRequested) {
-                return;
+    private final View createEnableAfterInstallRow(Activity activity) {
+        CheckBoxRow checkBoxRow = new CheckBoxRow(activity, LocaleController.getString(R.string.EnableAfterInstallation), this.enableAfterInstallation, this.resourcesProvider);
+        checkBoxRow.setOnCheckedChange(new Function1() {
+            @Override // kotlin.jvm.functions.Function1
+            public final Object invoke(Object obj) {
+                return InstallPluginBottomSheet.$r8$lambda$Uf4M4Lht3Ku1QN06qUf2OyPvuCY(this.f$0, ((Boolean) obj).booleanValue());
             }
-            installPluginBottomSheet.cancellationRequested = true;
-            buttonWithCounterView.setLoading(true);
-            buttonWithCounterView.setSubText(null, true);
+        });
+        return checkBoxRow;
+    }
+
+    public static Unit $r8$lambda$Uf4M4Lht3Ku1QN06qUf2OyPvuCY(InstallPluginBottomSheet installPluginBottomSheet, boolean z) {
+        installPluginBottomSheet.enableAfterInstallation = z;
+        return Unit.INSTANCE;
+    }
+
+    public final void openPluginFile() {
+        if (this.installing) {
             return;
         }
-        installPluginBottomSheet.installing = true;
-        installPluginBottomSheet.cancellationRequested = false;
-        installPluginBottomSheet.setCanDismissWithSwipe(false);
-        installPluginBottomSheet.setCanDismissWithTouchOutside(false);
-        Runnable runnable = installPluginBottomSheet.delayedLoadingRunnable;
+        File file = new File(this.params.getFilePath());
+        if (file.exists()) {
+            if (PluginFileViewer.canOpen(file)) {
+                String name = file.getName();
+                if (!StringsKt.contains$default((CharSequence) name, '.', false, 2, (Object) null)) {
+                    name = null;
+                }
+                if (name == null) {
+                    name = this.plugin.getId() + PluginsConstants.PLUGINS_EXT;
+                }
+                if (PluginFileViewer.INSTANCE.open(this.fragment, file, name)) {
+                    dismiss();
+                    return;
+                }
+                return;
+            }
+            PluginFileViewer.openExternally(this.fragment, file, file.getName());
+        }
+    }
+
+    private final void checkTranslatable() {
+        if (LanguageDetector.hasSupport()) {
+            TranslatableText[] translatableTextArr = {this.nameText, this.descriptionText};
+            for (int i = 0; i < 2; i++) {
+                final TranslatableText translatableText = translatableTextArr[i];
+                String original = translatableText.getOriginal();
+                if (original != null && !StringsKt.isBlank(original)) {
+                    LanguageDetector.detectLanguage(original, new LanguageDetector.StringCallback() {
+                        @Override // org.telegram.messenger.LanguageDetector.StringCallback
+                        public final void run(String str) {
+                            AndroidUtilities.runOnUIThread(new Runnable() {
+                                @Override // java.lang.Runnable
+                                public final void run() {
+                                    InstallPluginBottomSheet.$r8$lambda$lYpnVpdXqQFqIkvongltEzgk7JI(str, translatableText, installPluginBottomSheet);
+                                }
+                            });
+                        }
+                    }, null);
+                }
+            }
+        }
+    }
+
+    public static void $r8$lambda$lYpnVpdXqQFqIkvongltEzgk7JI(String str, TranslatableText translatableText, InstallPluginBottomSheet installPluginBottomSheet) {
+        if (str == null || str.length() == 0 || Intrinsics.areEqual(str, TranslateController.UNKNOWN_LANGUAGE) || TranslatorUtils.isRestrictedLanguage(str)) {
+            return;
+        }
+        translatableText.setLanguage(str);
+        PluginTranslateButton pluginTranslateButton = installPluginBottomSheet.translateButton;
+        if (pluginTranslateButton != null) {
+            pluginTranslateButton.setVisibility(0);
+        }
+    }
+
+    public final void onTranslateClick() {
+        PluginTranslateButton pluginTranslateButton = this.translateButton;
+        if (pluginTranslateButton == null || this.translating) {
+            return;
+        }
+        int i = 0;
+        if (pluginTranslateButton.getState() == 2) {
+            showTexts(false);
+            pluginTranslateButton.setState(0);
+            return;
+        }
+        TranslatableText[] translatableTextArr = {this.nameText, this.descriptionText};
+        final ArrayList arrayList = new ArrayList();
+        for (int i2 = 0; i2 < 2; i2++) {
+            TranslatableText translatableText = translatableTextArr[i2];
+            if (translatableText.getLanguage() != null && translatableText.getTranslation() == null) {
+                arrayList.add(translatableText);
+            }
+        }
+        if (arrayList.isEmpty()) {
+            showTexts(true);
+            pluginTranslateButton.setState(2);
+            return;
+        }
+        this.translating = true;
+        pluginTranslateButton.setState(1);
+        String resolvedTargetLanguageCode = TranslatorUtils.getResolvedTargetLanguageCode();
+        final Ref.IntRef intRef = new Ref.IntRef();
+        intRef.element = arrayList.size();
+        final Ref.BooleanRef booleanRef = new Ref.BooleanRef();
+        int size = arrayList.size();
+        while (i < size) {
+            Object obj = arrayList.get(i);
+            i++;
+            final TranslatableText translatableText2 = (TranslatableText) obj;
+            translatableText2.startLoading();
+            String original = translatableText2.getOriginal();
+            if (original == null) {
+                original = _UrlKt.FRAGMENT_ENCODE_SET;
+            }
+            String language = translatableText2.getLanguage();
+            if (language == null) {
+                language = "auto";
+            }
+            translateText(original, language, resolvedTargetLanguageCode, new Function1() {
+                @Override // kotlin.jvm.functions.Function1
+                public final Object invoke(Object obj2) {
+                    return InstallPluginBottomSheet.$r8$lambda$Wht3BR237bfqcnxlUbxx9Esoxa4(booleanRef, translatableText2, intRef, this, arrayList, (String) obj2);
+                }
+            });
+        }
+    }
+
+    public static Unit $r8$lambda$Wht3BR237bfqcnxlUbxx9Esoxa4(Ref.BooleanRef booleanRef, TranslatableText translatableText, Ref.IntRef intRef, InstallPluginBottomSheet installPluginBottomSheet, List list, String str) {
+        if (str == null) {
+            booleanRef.element = true;
+        } else {
+            translatableText.setTranslation(str);
+        }
+        int i = intRef.element - 1;
+        intRef.element = i;
+        if (i == 0) {
+            installPluginBottomSheet.onTranslationFinished(list, !booleanRef.element);
+        }
+        return Unit.INSTANCE;
+    }
+
+    private final void translateText(String text, String fromLanguage, String toLanguage, final Function1<? super String, Unit> done) {
+        final Ref.BooleanRef booleanRef = new Ref.BooleanRef();
+        final Function1 function1 = new Function1() {
+            @Override // kotlin.jvm.functions.Function1
+            public final Object invoke(Object obj) {
+                return InstallPluginBottomSheet.$r8$lambda$BpppRLYM4jGY746baMP4sczvjf0(booleanRef, done, (String) obj);
+            }
+        };
+        TranslatorUtils.translate(text, fromLanguage, toLanguage, new TranslatorUtils.TranslateCallback() {
+            @Override // com.exteragram.messenger.translator.TranslatorUtils.TranslateCallback
+            public void onFailed(TranslationError translationError) {
+                super.onFailed(translationError);
+            }
+
+            @Override // com.exteragram.messenger.translator.TranslatorUtils.TranslateCallback
+            public void onReqId(int i) {
+                super.onReqId(i);
+            }
+
+            @Override // com.exteragram.messenger.translator.TranslatorUtils.TranslateCallback
+            public void onSuccess(TLObject tLObject, TLRPC.TL_error tL_error) {
+                super.onSuccess(tLObject, tL_error);
+            }
+
+            @Override // com.exteragram.messenger.translator.TranslatorUtils.TranslateCallback
+            public void onSuccess(TLRPC.TL_textWithEntities tL_textWithEntities) {
+                super.onSuccess(tL_textWithEntities);
+            }
+
+            @Override // com.exteragram.messenger.translator.TranslatorUtils.TranslateCallback
+            public void onSuccess(String translatedText) {
+                Function1<String, Unit> function2 = function1;
+                if (translatedText == null || StringsKt.isBlank(translatedText)) {
+                    translatedText = null;
+                }
+                function2.invoke(translatedText);
+            }
+
+            @Override // com.exteragram.messenger.translator.TranslatorUtils.TranslateCallback
+            public void onFailed() {
+                function1.invoke(null);
+            }
+        });
+    }
+
+    public static Unit $r8$lambda$BpppRLYM4jGY746baMP4sczvjf0(final Ref.BooleanRef booleanRef, final Function1 function1, final String str) {
+        AndroidUtilities.runOnUIThread(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                InstallPluginBottomSheet.$r8$lambda$FRhSLkc_E4H1_PFap2gPcDR_fp4(booleanRef, function1, str);
+            }
+        });
+        return Unit.INSTANCE;
+    }
+
+    public static void $r8$lambda$FRhSLkc_E4H1_PFap2gPcDR_fp4(Ref.BooleanRef booleanRef, Function1 function1, String str) {
+        if (booleanRef.element) {
+            return;
+        }
+        booleanRef.element = true;
+        function1.invoke(str);
+    }
+
+    private final void onTranslationFinished(List<TranslatableText> texts, boolean success) {
+        this.translating = false;
+        if (success) {
+            showTexts(true);
+            PluginTranslateButton pluginTranslateButton = this.translateButton;
+            if (pluginTranslateButton != null) {
+                pluginTranslateButton.setState(2);
+            }
+        } else {
+            PluginTranslateButton pluginTranslateButton2 = this.translateButton;
+            if (pluginTranslateButton2 != null) {
+                pluginTranslateButton2.setState(0);
+            }
+            if (isShowing()) {
+                BulletinFactory.of(this.topBulletinContainer, this.resourcesProvider).createErrorBulletin(LocaleController.getString(R.string.TranslationFailedAlert2)).show();
+            }
+        }
+        Iterator<T> it = texts.iterator();
+        while (it.hasNext()) {
+            ((TranslatableText) it.next()).stopLoading();
+        }
+    }
+
+    private final void showTexts(boolean translated) {
+        String original;
+        this.nameText.show(translated);
+        this.descriptionText.show(translated);
+        TranslatableText translatableText = this.nameText;
+        if (translated) {
+            original = translatableText.getTranslation();
+            if (original == null) {
+                original = this.nameText.getOriginal();
+            }
+        } else {
+            original = translatableText.getOriginal();
+        }
+        this.titleText = original;
+        updateTitle();
+    }
+
+    public final void onTextTransitionUpdate() {
+        ViewGroup viewGroup = this.containerView;
+        if (viewGroup != null) {
+            viewGroup.invalidate();
+        }
+    }
+
+    public final void onInstallClick() {
+        String filePath;
+        if (this.installing) {
+            if (this.cancellationRequested) {
+                return;
+            }
+            this.cancellationRequested = true;
+            this.button.setLoading(true);
+            this.button.setSubText(null, true);
+            return;
+        }
+        if (this.analysisRunning || needsRiskAcknowledgement()) {
+            return;
+        }
+        ConcurrentHashMap<String, PluginsController.PluginsEngine> engines = PluginsController.INSTANCE.getEngines();
+        String engine = this.plugin.getEngine();
+        if (engine == null) {
+            engine = PluginsConstants.PYTHON;
+        }
+        PluginsController.PluginsEngine pluginsEngine = engines.get(engine);
+        if (pluginsEngine == null) {
+            return;
+        }
+        this.installing = true;
+        this.cancellationRequested = false;
+        setCanDismissWithSwipe(false);
+        setCanDismissWithTouchOutside(false);
+        Runnable runnable = this.delayedLoadingRunnable;
         if (runnable != null) {
             AndroidUtilities.cancelRunOnUIThread(runnable);
         }
-        Runnable runnable2 = new Runnable() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda10
+        Runnable runnable2 = new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                installPluginBottomSheet.button.setLoading(true);
+                this.f$0.button.setLoading(true);
             }
         };
-        installPluginBottomSheet.delayedLoadingRunnable = runnable2;
+        this.delayedLoadingRunnable = runnable2;
         AndroidUtilities.runOnUIThread(runnable2, 250L);
-        PluginsController.PluginsEngine pluginsEngine = PluginsController.INSTANCE.getEngines().get("python");
-        PythonPluginsEngine pythonPluginsEngine = pluginsEngine instanceof PythonPluginsEngine ? (PythonPluginsEngine) pluginsEngine : null;
-        if (pythonPluginsEngine == null) {
-            return;
+        File file = this.analysisSnapshot;
+        if (file == null) {
+            filePath = this.params.getFilePath();
+        } else {
+            File file2 = file.isFile() ? file : null;
+            if (file2 == null || (filePath = file2.getAbsolutePath()) == null) {
+                filePath = this.params.getFilePath();
+            }
         }
-        pythonPluginsEngine.loadPluginFromFile(installPluginBottomSheet.params.getFilePath(), installPluginBottomSheet.plugin, new Utilities.Callback() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda11
+        pluginsEngine.loadPluginFromFile(filePath, this.plugin, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                final String str = (String) obj;
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda17
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
-                        InstallPluginBottomSheet.$r8$lambda$6zxqI9k4hzUm636fgiMNfKCapIU(installPluginBottomSheet, str, baseFragment);
+                        InstallPluginBottomSheet.$r8$lambda$MSWO2YwVos77J8g_f_xRWj9T33w(installPluginBottomSheet, str);
                     }
                 });
             }
-        }, new InstallPluginBottomSheet$buttonView$1$1$4(installPluginBottomSheet));
+        }, new AnonymousClass4());
     }
 
-    public static void $r8$lambda$6zxqI9k4hzUm636fgiMNfKCapIU(final InstallPluginBottomSheet installPluginBottomSheet, final String str, final BaseFragment baseFragment) {
+    public static void $r8$lambda$MSWO2YwVos77J8g_f_xRWj9T33w(final InstallPluginBottomSheet installPluginBottomSheet, String str) {
         Runnable runnable = installPluginBottomSheet.delayedLoadingRunnable;
         if (runnable != null) {
             AndroidUtilities.cancelRunOnUIThread(runnable);
@@ -385,90 +1248,88 @@ public final class InstallPluginBottomSheet extends BottomSheet {
         installPluginBottomSheet.installing = false;
         if (installPluginBottomSheet.cancellationRequested) {
             installPluginBottomSheet.cancellationRequested = false;
-            installPluginBottomSheet.restoreButtonText(true);
+            installPluginBottomSheet.applyButtonState(true);
             return;
         }
         if (str != null) {
-            if (str.contains("Installation cancelled")) {
-                installPluginBottomSheet.restoreButtonText(true);
-                return;
-            } else {
-                installPluginBottomSheet.restoreButtonText(true);
-                BulletinFactory.of(installPluginBottomSheet.topBulletinContainer, installPluginBottomSheet.resourcesProvider).createSimpleBulletin(R.raw.error, AndroidUtilities.replaceTags(LocaleController.formatString(R.string.PluginInstallError, installPluginBottomSheet.plugin.getName())), LocaleUtils.createCopySpan(baseFragment), new Runnable() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda0
-                    @Override // java.lang.Runnable
-                    public final void run() {
-                        InstallPluginBottomSheet.$r8$lambda$2g0LtQ8c5aj3CwgjkXzlSntggOU(str, baseFragment);
-                    }
-                }).show();
+            installPluginBottomSheet.applyButtonState(true);
+            if (StringsKt.contains$default((CharSequence) str, (CharSequence) "Installation cancelled", false, 2, (Object) null)) {
                 return;
             }
-        }
-        installPluginBottomSheet.dismiss();
-        if (installPluginBottomSheet.enableAfterInstallation && !ExteraConfig.getPluginsSafeMode()) {
-            PluginsController.INSTANCE.getInstance().setPluginEnabled(installPluginBottomSheet.plugin.getId(), true, new Utilities.Callback() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda1
-                @Override // org.telegram.messenger.Utilities.Callback
-                public final void run(Object obj) {
-                    InstallPluginBottomSheet.m1354$r8$lambda$XazxihW_JS_X65B2kIJsbNdqQg(installPluginBottomSheet, baseFragment, (String) obj);
-                }
-            });
-        } else {
-            installPluginBottomSheet.showSuccessBulletin(baseFragment, installPluginBottomSheet.plugin);
-        }
-    }
-
-    public static void $r8$lambda$2g0LtQ8c5aj3CwgjkXzlSntggOU(String str, BaseFragment baseFragment) {
-        if (AndroidUtilities.addToClipboard(str)) {
-            BulletinFactory.of(baseFragment).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
-        }
-    }
-
-    /* JADX INFO: renamed from: $r8$lambda$XazxihW_JS_X65B2kIJ-sbNdqQg, reason: not valid java name */
-    public static void m1354$r8$lambda$XazxihW_JS_X65B2kIJsbNdqQg(InstallPluginBottomSheet installPluginBottomSheet, final BaseFragment baseFragment, final String str) {
-        if (str == null) {
-            installPluginBottomSheet.showSuccessBulletin(baseFragment, installPluginBottomSheet.plugin);
-        } else {
-            BulletinFactory.of(baseFragment).createSimpleBulletin(R.raw.error, AndroidUtilities.replaceTags(LocaleController.formatString(R.string.PluginInstalledButFailedToEnable, installPluginBottomSheet.plugin.getName())), LocaleUtils.createCopySpan(baseFragment), new Runnable() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda14
-                @Override // java.lang.Runnable
-                public final void run() {
-                    InstallPluginBottomSheet.$r8$lambda$rBBotAd4KCEuAuU0dxzvUit8T6k(str, baseFragment);
-                }
-            }).show();
-        }
-    }
-
-    public static void $r8$lambda$rBBotAd4KCEuAuU0dxzvUit8T6k(String str, BaseFragment baseFragment) {
-        if (AndroidUtilities.addToClipboard(str)) {
-            BulletinFactory.of(baseFragment).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
-        }
-    }
-
-    public static void $r8$lambda$R8l3SwnXpEYtAjSIVKWgpJ3tSSc(CheckBox2 checkBox2, InstallPluginBottomSheet installPluginBottomSheet, View view) {
-        checkBox2.setChecked(!checkBox2.isChecked(), true);
-        installPluginBottomSheet.enableAfterInstallation = checkBox2.isChecked();
-    }
-
-    public static void $r8$lambda$f6lHCVPGyeXGXAmhyEm1tg18hC8(InstallPluginBottomSheet installPluginBottomSheet, BaseFragment baseFragment, View view) {
-        String name;
-        if (installPluginBottomSheet.installing) {
+            installPluginBottomSheet.showError(str);
             return;
         }
-        File file = new File(installPluginBottomSheet.params.getFilePath());
-        if (file.exists()) {
-            String name2 = file.getName();
-            if (StringsKt.endsWith(name2, ".plugin", true)) {
-                name = file.getName();
-            } else {
-                name = installPluginBottomSheet.plugin.getId() + ".plugin";
-            }
-            if (PluginFileViewer.INSTANCE.open(baseFragment, file, name)) {
-                installPluginBottomSheet.dismiss();
-            }
+        if (installPluginBottomSheet.enableAfterInstallation && !ExteraConfig.getPluginsSafeMode()) {
+            installPluginBottomSheet.installing = true;
+            installPluginBottomSheet.setCanDismissWithSwipe(false);
+            installPluginBottomSheet.setCanDismissWithTouchOutside(false);
+            installPluginBottomSheet.button.setLoading(true);
+            PluginsController.INSTANCE.getInstance().setPluginEnabled(installPluginBottomSheet.plugin.getId(), true, new Utilities.Callback() {
+                @Override // org.telegram.messenger.Utilities.Callback
+                public final void run(Object obj) {
+                    AndroidUtilities.runOnUIThread(new Runnable() {
+                        @Override // java.lang.Runnable
+                        public final void run() {
+                            InstallPluginBottomSheet.m1958$r8$lambda$lHySpQOgHzoQDXdeVlQ8VAKaZ8(installPluginBottomSheet, str);
+                        }
+                    });
+                }
+            });
+            return;
+        }
+        installPluginBottomSheet.dismiss();
+        installPluginBottomSheet.showSuccessBulletin(installPluginBottomSheet.fragment, installPluginBottomSheet.plugin);
+    }
+
+    public static void m1958$r8$lambda$lHySpQOgHzoQDXdeVlQ8VAKaZ8(InstallPluginBottomSheet installPluginBottomSheet, String str) {
+        installPluginBottomSheet.installing = false;
+        installPluginBottomSheet.setCanDismissWithSwipe(true);
+        installPluginBottomSheet.setCanDismissWithTouchOutside(true);
+        installPluginBottomSheet.button.setLoading(false);
+        if (str != null) {
+            installPluginBottomSheet.applyButtonState(true);
+            installPluginBottomSheet.showError(str);
+        } else {
+            installPluginBottomSheet.dismiss();
+            installPluginBottomSheet.showSuccessBulletin(installPluginBottomSheet.fragment, installPluginBottomSheet.plugin);
         }
     }
 
-    public static void $r8$lambda$0dAXGrdKgOqN6gkG9N_fcAhckns(LinearLayout linearLayout, InstallPluginBottomSheet installPluginBottomSheet) {
-        linearLayout.performClick();
-        ExteraConfig.getEditor().putBoolean(installPluginBottomSheet.params.getTrusted() ? "trusted_source_hint" : "unknown_source_hint", true).apply();
+    @Metadata(d1 = {"\u0000\u001d\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0010\u000e\n\u0000\n\u0002\u0010\u000b\n\u0000*\u0001\u0000\b\n\u0018\u00002\u00020\u0001J\u0010\u0010\u0002\u001a\u00020\u00032\u0006\u0010\u0004\u001a\u00020\u0005H\u0016J\b\u0010\u0006\u001a\u00020\u0007H\u0016¨\u0006\b"}, d2 = {"com/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet$onInstallClick$4", "Lcom/exteragram/messenger/plugins/pip/PipController$InstallerDelegate;", "onProgress", _UrlKt.FRAGMENT_ENCODE_SET, "text", _UrlKt.FRAGMENT_ENCODE_SET, "isCancelled", _UrlKt.FRAGMENT_ENCODE_SET, "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+    @SourceDebugExtension({"SMAP\nInstallPluginBottomSheet.kt\nKotlin\n*S Kotlin\n*F\n+ 1 InstallPluginBottomSheet.kt\ncom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet$onInstallClick$4\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n*L\n1#1,1488:1\n1#2:1489\n*E\n"})
+    public static final class AnonymousClass4 implements PipController.InstallerDelegate {
+        public AnonymousClass4() {
+        }
+
+        @Override // com.exteragram.messenger.plugins.pip.PipController.InstallerDelegate
+        public void onProgress(final String text) {
+            final InstallPluginBottomSheet installPluginBottomSheet = InstallPluginBottomSheet.this;
+            AndroidUtilities.runOnUIThread(new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() {
+                    InstallPluginBottomSheet.AnonymousClass4.$r8$lambda$CRoqHnY2Bzd4KgYV55JhE9rdRbw(installPluginBottomSheet, text);
+                }
+            });
+        }
+
+        public static void $r8$lambda$CRoqHnY2Bzd4KgYV55JhE9rdRbw(InstallPluginBottomSheet installPluginBottomSheet, String str) {
+            Runnable runnable = installPluginBottomSheet.delayedLoadingRunnable;
+            if (runnable != null) {
+                AndroidUtilities.cancelRunOnUIThread(runnable);
+            }
+            installPluginBottomSheet.delayedLoadingRunnable = null;
+            if (installPluginBottomSheet.cancellationRequested) {
+                return;
+            }
+            installPluginBottomSheet.button.setLoading(false);
+            installPluginBottomSheet.button.setText(LocaleController.getString(R.string.Cancel), true);
+            installPluginBottomSheet.button.setSubText(str, true);
+        }
+
+        @Override // com.exteragram.messenger.plugins.pip.PipController.InstallerDelegate
+        public boolean isCancelled() {
+            return InstallPluginBottomSheet.this.cancellationRequested;
+        }
     }
 
     private final void showSuccessBulletin(BaseFragment fragment, final Plugin plugin) {
@@ -478,21 +1339,20 @@ public final class InstallPluginBottomSheet extends BottomSheet {
             TLRPC.TL_inputStickerSetShortName tL_inputStickerSetShortName = new TLRPC.TL_inputStickerSetShortName();
             tL_inputStickerSetShortName.short_name = plugin.getPack();
             final AtomicBoolean atomicBoolean = new AtomicBoolean(false);
-            final Runnable runnable = new Runnable() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda15
+            final Runnable runnable = new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    InstallPluginBottomSheet.m1355$r8$lambda$m1T4B_qtYg05YJLUhh4xouvx3c(atomicBoolean, InstallPluginBottomSheet.this, plugin, bulletinFactoryOf);
+                    InstallPluginBottomSheet.$r8$lambda$G9_6g4E7BJ4HtKWgMMCodNIXPJk(atomicBoolean, this, plugin, bulletinFactoryOf);
                 }
             };
             AndroidUtilities.runOnUIThread(runnable, 300L);
-            MediaDataController.getInstance(UserConfig.selectedAccount).getStickerSet(tL_inputStickerSetShortName, 0, true, new Utilities.Callback() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda16
+            MediaDataController.getInstance(UserConfig.selectedAccount).getStickerSet(tL_inputStickerSetShortName, 0, true, new Utilities.Callback() {
                 @Override // org.telegram.messenger.Utilities.Callback
                 public final void run(Object obj) {
-                    final TLRPC.TL_messages_stickerSet tL_messages_stickerSet = (TLRPC.TL_messages_stickerSet) obj;
-                    AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda3
+                    AndroidUtilities.runOnUIThread(new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
-                            InstallPluginBottomSheet.showSuccessBulletin$lambda$2$0(atomicBoolean, tL_messages_stickerSet, plugin, runnable, InstallPluginBottomSheet.this, name, bulletinFactoryOf);
+                            InstallPluginBottomSheet.m1957$r8$lambda$d3Uhw0PHaEOTZAN1JLOhoC1D4(atomicBoolean, tL_messages_stickerSet, plugin, runnable, installPluginBottomSheet, str, bulletinFactory);
                         }
                     });
                 }
@@ -502,27 +1362,22 @@ public final class InstallPluginBottomSheet extends BottomSheet {
         showSimpleSuccessBulletin(plugin, bulletinFactoryOf);
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$m1T4B_qtYg05YJL-Uhh4xouvx3c, reason: not valid java name */
-    public static void m1355$r8$lambda$m1T4B_qtYg05YJLUhh4xouvx3c(AtomicBoolean atomicBoolean, InstallPluginBottomSheet installPluginBottomSheet, Plugin plugin, BulletinFactory bulletinFactory) {
+    public static void $r8$lambda$G9_6g4E7BJ4HtKWgMMCodNIXPJk(AtomicBoolean atomicBoolean, InstallPluginBottomSheet installPluginBottomSheet, Plugin plugin, BulletinFactory bulletinFactory) {
         if (atomicBoolean.getAndSet(true)) {
             return;
         }
         installPluginBottomSheet.showSimpleSuccessBulletin(plugin, bulletinFactory);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public static final void showSuccessBulletin$lambda$2$0(AtomicBoolean atomicBoolean, TLRPC.TL_messages_stickerSet tL_messages_stickerSet, final Plugin plugin, Runnable runnable, InstallPluginBottomSheet installPluginBottomSheet, String str, BulletinFactory bulletinFactory) {
+    public static void m1957$r8$lambda$d3Uhw0PHaEOTZAN1JLOhoC1D4(AtomicBoolean atomicBoolean, TLRPC.TL_messages_stickerSet tL_messages_stickerSet, final Plugin plugin, Runnable runnable, InstallPluginBottomSheet installPluginBottomSheet, String str, BulletinFactory bulletinFactory) {
         Bulletin bulletinCreateSimpleBulletin;
         int index;
         if (atomicBoolean.get()) {
             return;
         }
         TLRPC.Document document = null;
-        if ((tL_messages_stickerSet != null ? tL_messages_stickerSet.documents : null) != null) {
-            ArrayList<TLRPC.Document> arrayList = tL_messages_stickerSet.documents;
-            if (!arrayList.isEmpty() && (index = plugin.getIndex()) >= 0 && index < tL_messages_stickerSet.documents.size()) {
-                document = tL_messages_stickerSet.documents.get(index);
-            }
+        if ((tL_messages_stickerSet != null ? tL_messages_stickerSet.documents : null) != null && !tL_messages_stickerSet.documents.isEmpty() && (index = plugin.getIndex()) >= 0 && index < tL_messages_stickerSet.documents.size()) {
+            document = tL_messages_stickerSet.documents.get(index);
         }
         if (document == null || atomicBoolean.getAndSet(true)) {
             return;
@@ -532,10 +1387,10 @@ public final class InstallPluginBottomSheet extends BottomSheet {
         PluginsController.Companion companion = PluginsController.INSTANCE;
         Plugin plugin2 = companion.getInstance().getPlugins().get(plugin.getId());
         if (plugin2 != null && companion.getInstance().hasPluginSettings(plugin.getId()) && plugin2.isEnabled()) {
-            bulletinCreateSimpleBulletin = bulletinFactory.createEmojiBulletin(document, spannableStringBuilderReplaceTags, LocaleController.getString(R.string.Settings), new Runnable() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda12
+            bulletinCreateSimpleBulletin = bulletinFactory.createEmojiBulletin(document, spannableStringBuilderReplaceTags, LocaleController.getString(R.string.Settings), new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    InstallPluginBottomSheet.showSuccessBulletin$lambda$2$0$0(plugin);
+                    PluginsController.INSTANCE.openPluginSettings(plugin.getId());
                 }
             });
         } else {
@@ -544,17 +1399,12 @@ public final class InstallPluginBottomSheet extends BottomSheet {
         bulletinCreateSimpleBulletin.show();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public static final void showSuccessBulletin$lambda$2$0$0(Plugin plugin) {
-        PluginsController.INSTANCE.openPluginSettings(plugin.getId());
-    }
-
     private final void showSimpleSuccessBulletin(final Plugin plugin, BulletinFactory bf) {
-        CharSequence string = AndroidUtilities.replaceTags(LocaleController.formatString(this.isUpdate ? R.string.PluginUpdated : R.string.PluginInstalled, plugin.getName()));
+        String string = LocaleController.formatString(this.isUpdate ? R.string.PluginUpdated : R.string.PluginInstalled, plugin.getName());
         PluginsController.Companion companion = PluginsController.INSTANCE;
         Plugin plugin2 = companion.getInstance().getPlugins().get(plugin.getId());
         if (plugin2 != null && companion.getInstance().hasPluginSettings(plugin.getId()) && plugin2.isEnabled()) {
-            bf.createSimpleBulletin(R.raw.contact_check, string, LocaleController.getString(R.string.Settings), new Runnable() { // from class: com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet$$ExternalSyntheticLambda13
+            bf.createSimpleBulletin(R.raw.contact_check, string, LocaleController.getString(R.string.Settings), new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
                     PluginsController.INSTANCE.openPluginSettings(plugin.getId());
@@ -565,11 +1415,6 @@ public final class InstallPluginBottomSheet extends BottomSheet {
         }
     }
 
-    private final void restoreButtonText(boolean animated) {
-        this.button.setText(LocaleController.getString(this.isUpdate ? R.string.UpdatePlugin : R.string.InstallPlugin), animated);
-        this.button.setSubText(null, animated);
-    }
-
     @Override // org.telegram.ui.ActionBar.BottomSheet, android.app.Dialog, android.content.DialogInterface, org.telegram.ui.ActionBar.BaseFragment.AttachedSheet
     public void dismiss() {
         HintView2 hintView2 = this.currentHint;
@@ -577,6 +1422,16 @@ public final class InstallPluginBottomSheet extends BottomSheet {
             hintView2.hide();
         }
         this.currentHint = null;
+        PluginAnalyzer.Task task = this.analysisTask;
+        if (task != null) {
+            task.cancel();
+        }
+        this.analysisTask = null;
+        File file = this.analysisSnapshot;
+        if (file != null) {
+            file.delete();
+        }
+        this.analysisSnapshot = null;
         super.dismiss();
     }
 
@@ -589,21 +1444,53 @@ public final class InstallPluginBottomSheet extends BottomSheet {
         this.currentHint = null;
     }
 
-    @Metadata(d1 = {"\u0000\u0018\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\u000e\n\u0000\n\u0002\u0010\u000b\n\u0002\b\f\u0018\u0000 \u00102\u00020\u0001:\u0001\u0010B\u0017\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\u0006\u0010\u0004\u001a\u00020\u0005¢\u0006\u0004\b\u0006\u0010\u0007R\u001a\u0010\u0002\u001a\u00020\u0003X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\b\u0010\t\"\u0004\b\n\u0010\u000bR\u001a\u0010\u0004\u001a\u00020\u0005X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\f\u0010\r\"\u0004\b\u000e\u0010\u000f¨\u0006\u0011"}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet$PluginInstallParams;", _UrlKt.FRAGMENT_ENCODE_SET, "filePath", _UrlKt.FRAGMENT_ENCODE_SET, "trusted", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "(Ljava/lang/String;Z)V", "getFilePath", "()Ljava/lang/String;", "setFilePath", "(Ljava/lang/String;)V", "getTrusted", "()Z", "setTrusted", "(Z)V", "Companion", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+    @Metadata(d1 = {"\u00004\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\u000e\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0010\u000b\n\u0002\b\u0006\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0010 \n\u0002\u0018\u0002\n\u0002\b\u0010\u0018\u0000 &2\u00020\u0001:\u0001&B\u0019\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\b\u0010\u0004\u001a\u0004\u0018\u00010\u0005¢\u0006\u0004\b\u0006\u0010\u0007B\u001b\b\u0017\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\b\b\u0002\u0010\b\u001a\u00020\t¢\u0006\u0004\b\u0006\u0010\nR\u0011\u0010\u0002\u001a\u00020\u0003¢\u0006\b\n\u0000\u001a\u0004\b\u000b\u0010\fR\u0011\u0010\b\u001a\u00020\t¢\u0006\b\n\u0000\u001a\u0004\b\r\u0010\u000eR\u001c\u0010\u000f\u001a\u0004\u0018\u00010\u0010X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u0011\u0010\u0012\"\u0004\b\u0013\u0010\u0014R\"\u0010\u0015\u001a\n\u0012\u0004\u0012\u00020\u0017\u0018\u00010\u0016X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u0018\u0010\u0019\"\u0004\b\u001a\u0010\u001bR\"\u0010\u001c\u001a\n\u0012\u0004\u0012\u00020\u0003\u0018\u00010\u0016X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u001d\u0010\u0019\"\u0004\b\u001e\u0010\u001bR\u001c\u0010\u001f\u001a\u0004\u0018\u00010\u0003X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b \u0010\f\"\u0004\b!\u0010\"R\u001c\u0010#\u001a\u0004\u0018\u00010\u0003X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b$\u0010\f\"\u0004\b%\u0010\"¨\u0006'"}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet$PluginInstallParams;", _UrlKt.FRAGMENT_ENCODE_SET, "filePath", _UrlKt.FRAGMENT_ENCODE_SET, "source", "Lorg/telegram/messenger/MessageObject;", "<init>", "(Ljava/lang/String;Lorg/telegram/messenger/MessageObject;)V", "trusted", _UrlKt.FRAGMENT_ENCODE_SET, "(Ljava/lang/String;Z)V", "getFilePath", "()Ljava/lang/String;", "getTrusted", "()Z", "iconDrawable", "Landroid/graphics/drawable/Drawable;", "getIconDrawable", "()Landroid/graphics/drawable/Drawable;", "setIconDrawable", "(Landroid/graphics/drawable/Drawable;)V", "requiredPlugins", _UrlKt.FRAGMENT_ENCODE_SET, "Lcom/exteragram/messenger/plugins/ui/components/RequiredPluginInfo;", "getRequiredPlugins", "()Ljava/util/List;", "setRequiredPlugins", "(Ljava/util/List;)V", "bundledPackages", "getBundledPackages", "setBundledPackages", "blockedTitle", "getBlockedTitle", "setBlockedTitle", "(Ljava/lang/String;)V", "blockedSubtitle", "getBlockedSubtitle", "setBlockedSubtitle", "Companion", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
     public static final class PluginInstallParams {
 
-        /* JADX INFO: renamed from: Companion, reason: from kotlin metadata */
         public static final Companion INSTANCE = new Companion(null);
-        private String filePath;
-        private boolean trusted;
+        private String blockedSubtitle;
+        private String blockedTitle;
+        private List<String> bundledPackages;
+        private final String filePath;
+        private Drawable iconDrawable;
+        private List<RequiredPluginInfo> requiredPlugins;
+        private final boolean trusted;
+
+        @JvmOverloads
+        public PluginInstallParams(String str) {
+            this(str, false, 2, null);
+        }
 
         @JvmStatic
+        @JvmOverloads
         public static final PluginInstallParams of(MessageObject messageObject) {
             return INSTANCE.of(messageObject);
         }
 
-        public PluginInstallParams(String str, boolean z) {
+        @JvmStatic
+        @JvmOverloads
+        public static final PluginInstallParams of(MessageObject messageObject, String str) {
+            return INSTANCE.of(messageObject, str);
+        }
+
+        @JvmStatic
+        public static final PluginInstallParams untrusted(String str) {
+            return INSTANCE.untrusted(str);
+        }
+
+        public PluginInstallParams(String str, MessageObject messageObject) {
+            boolean z;
             this.filePath = str;
+            if (messageObject != null) {
+                Companion companion = INSTANCE;
+                if (companion.isTrustedSource(messageObject) && companion.isMessageFile(messageObject, str)) {
+                    z = true;
+                } else {
+                    z = false;
+                }
+            } else {
+                z = false;
+            }
             this.trusted = z;
         }
 
@@ -611,51 +1498,165 @@ public final class InstallPluginBottomSheet extends BottomSheet {
             return this.filePath;
         }
 
-        public final void setFilePath(String str) {
-            this.filePath = str;
+        public PluginInstallParams(String str, boolean z, int i, DefaultConstructorMarker defaultConstructorMarker) {
+            this(str, (i & 2) != 0 ? false : z);
+        }
+
+        @JvmOverloads
+        public PluginInstallParams(String str, boolean z) {
+            this(str, (MessageObject) null);
         }
 
         public final boolean getTrusted() {
             return this.trusted;
         }
 
-        public final void setTrusted(boolean z) {
-            this.trusted = z;
+        public final Drawable getIconDrawable() {
+            return this.iconDrawable;
         }
 
-        @Metadata(d1 = {"\u0000\u0018\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\b\u0086\u0003\u0018\u00002\u00020\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\u0010\u0010\u0004\u001a\u00020\u00052\u0006\u0010\u0006\u001a\u00020\u0007H\u0007¨\u0006\b"}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet$PluginInstallParams$Companion;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "of", "Lcom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet$PluginInstallParams;", "messageObject", "Lorg/telegram/messenger/MessageObject;", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+        public final void setIconDrawable(Drawable drawable) {
+            this.iconDrawable = drawable;
+        }
+
+        public final List<RequiredPluginInfo> getRequiredPlugins() {
+            return this.requiredPlugins;
+        }
+
+        public final void setRequiredPlugins(List<RequiredPluginInfo> list) {
+            this.requiredPlugins = list;
+        }
+
+        public final List<String> getBundledPackages() {
+            return this.bundledPackages;
+        }
+
+        public final void setBundledPackages(List<String> list) {
+            this.bundledPackages = list;
+        }
+
+        public final String getBlockedTitle() {
+            return this.blockedTitle;
+        }
+
+        public final void setBlockedTitle(String str) {
+            this.blockedTitle = str;
+        }
+
+        public final String getBlockedSubtitle() {
+            return this.blockedSubtitle;
+        }
+
+        public final void setBlockedSubtitle(String str) {
+            this.blockedSubtitle = str;
+        }
+
+        @Metadata(d1 = {"\u0000(\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000e\n\u0002\b\u0003\n\u0002\u0010\u000b\n\u0002\b\u0003\b\u0086\u0003\u0018\u00002\u00020\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\u001c\u0010\u0004\u001a\u00020\u00052\u0006\u0010\u0006\u001a\u00020\u00072\n\b\u0002\u0010\b\u001a\u0004\u0018\u00010\tH\u0007J\u0010\u0010\n\u001a\u00020\u00052\u0006\u0010\u000b\u001a\u00020\tH\u0007J\u0010\u0010\f\u001a\u00020\r2\u0006\u0010\u0006\u001a\u00020\u0007H\u0002J\u001a\u0010\u000e\u001a\u00020\r2\u0006\u0010\u0006\u001a\u00020\u00072\b\u0010\u000b\u001a\u0004\u0018\u00010\tH\u0002J\u0014\u0010\u000f\u001a\u0004\u0018\u00010\t2\b\u0010\b\u001a\u0004\u0018\u00010\tH\u0002¨\u0006\u0010"}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet$PluginInstallParams$Companion;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "of", "Lcom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet$PluginInstallParams;", "messageObject", "Lorg/telegram/messenger/MessageObject;", "path", _UrlKt.FRAGMENT_ENCODE_SET, "untrusted", "filePath", "isTrustedSource", _UrlKt.FRAGMENT_ENCODE_SET, "isMessageFile", "canonicalPath", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+        @SourceDebugExtension({"SMAP\nInstallPluginBottomSheet.kt\nKotlin\n*S Kotlin\n*F\n+ 1 InstallPluginBottomSheet.kt\ncom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet$PluginInstallParams$Companion\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n+ 3 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n*L\n1#1,1488:1\n1#2:1489\n1807#3,3:1490\n*S KotlinDebug\n*F\n+ 1 InstallPluginBottomSheet.kt\ncom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet$PluginInstallParams$Companion\n*L\n1340#1:1490,3\n*E\n"})
         public static final class Companion {
-            public /* synthetic */ Companion(DefaultConstructorMarker defaultConstructorMarker) {
+            public Companion(DefaultConstructorMarker defaultConstructorMarker) {
                 this();
+            }
+
+            @JvmStatic
+            @JvmOverloads
+            public final PluginInstallParams of(MessageObject messageObject) {
+                return of$default(this, messageObject, null, 2, null);
             }
 
             private Companion() {
             }
 
-            /* JADX WARN: Code duplicated, block: B:11:0x0037  */
+            public static PluginInstallParams of$default(Companion companion, MessageObject messageObject, String str, int i, Object obj) {
+                if ((i & 2) != 0) {
+                    str = null;
+                }
+                return companion.of(messageObject, str);
+            }
+
             @JvmStatic
-            public final PluginInstallParams of(MessageObject messageObject) {
-                String pathToMessage = ChatUtils.getInstance().getPathToMessage(messageObject);
-                boolean z = true;
-                boolean z2 = false;
+            @JvmOverloads
+            public final PluginInstallParams of(MessageObject messageObject, String path) {
+                if (path == null) {
+                    path = ChatUtils.getInstance().getPathToMessage(messageObject);
+                }
+                return new PluginInstallParams(path, messageObject);
+            }
+
+            @JvmStatic
+            public final PluginInstallParams untrusted(String filePath) {
+                return new PluginInstallParams(filePath, false, 2, null);
+            }
+
+            public final boolean isTrustedSource(MessageObject messageObject) {
+                long dialogId;
                 if (messageObject.isForwarded()) {
                     Long forwardedFromId = messageObject.getForwardedFromId();
-                    if (forwardedFromId != null) {
-                        BadgesController badgesController = BadgesController.INSTANCE;
-                        if (!badgesController.isTrusted(-forwardedFromId.longValue()) && !badgesController.isExtera(-forwardedFromId.longValue())) {
-                            z = false;
-                        }
-                        z2 = z;
+                    if (forwardedFromId == null) {
+                        return false;
                     }
-                } else if (messageObject.isFromChannel() && !messageObject.isFromChat()) {
-                    long j = -messageObject.getDialogId();
-                    BadgesController badgesController2 = BadgesController.INSTANCE;
-                    if (!badgesController2.isTrusted(j) && !badgesController2.isExtera(j)) {
-                        z = false;
+                    dialogId = forwardedFromId.longValue();
+                } else {
+                    if (!messageObject.isFromChannel() || messageObject.isFromChat()) {
+                        return false;
                     }
-                    z2 = z;
+                    dialogId = messageObject.getDialogId();
                 }
-                return new PluginInstallParams(pathToMessage, z2);
+                long j = -dialogId;
+                BadgesController badgesController = BadgesController.INSTANCE;
+                return badgesController.isTrusted(j) || badgesController.isExtera(j);
+            }
+
+            public final boolean isMessageFile(MessageObject messageObject, String filePath) {
+                File pathToAttach;
+                File pathToAttach2;
+                String strCanonicalPath = canonicalPath(filePath);
+                if (strCanonicalPath == null) {
+                    return false;
+                }
+                FileLoader fileLoader = FileLoader.getInstance(messageObject.currentAccount);
+                TLRPC.Document document = messageObject.getDocument();
+                String pathToMessage = ChatUtils.getInstance().getPathToMessage(messageObject);
+                File pathToMessage2 = fileLoader.getPathToMessage(messageObject.messageOwner);
+                String path = null;
+                String path2 = pathToMessage2 != null ? pathToMessage2.getPath() : null;
+                String path3 = (document == null || (pathToAttach2 = fileLoader.getPathToAttach(document, true)) == null) ? null : pathToAttach2.getPath();
+                if (document != null && (pathToAttach = fileLoader.getPathToAttach(document, false)) != null) {
+                    path = pathToAttach.getPath();
+                }
+                List listListOf = CollectionsKt.listOf((Object[]) new String[]{pathToMessage, path2, path3, path});
+                if ((listListOf instanceof Collection) && listListOf.isEmpty()) {
+                    return false;
+                }
+                Iterator it = listListOf.iterator();
+                while (it.hasNext()) {
+                    if (Intrinsics.areEqual(PluginInstallParams.INSTANCE.canonicalPath((String) it.next()), strCanonicalPath)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            private final String canonicalPath(String path) {
+                Object objM2406constructorimpl;
+                if (path == null) {
+                    return null;
+                }
+                if (path.length() <= 0) {
+                    path = null;
+                }
+                if (path == null) {
+                    return null;
+                }
+                Companion companion = PluginInstallParams.INSTANCE;
+                try {
+                    Result.Companion companion2 = Result.INSTANCE;
+                    objM2406constructorimpl = Result.m2406constructorimpl(new File(path).getCanonicalPath());
+                } catch (Throwable th) {
+                    Result.Companion companion3 = Result.INSTANCE;
+                    objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th));
+                }
+                return (String) (Result.m2412isFailureimpl(objM2406constructorimpl) ? null : objM2406constructorimpl);
             }
         }
     }

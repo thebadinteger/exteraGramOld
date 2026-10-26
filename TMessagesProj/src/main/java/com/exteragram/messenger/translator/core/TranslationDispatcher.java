@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import kotlin.LazyKt__LazyJVMKt$$ExternalSyntheticBUOutline0;
 import kotlin.Metadata;
 import kotlin.Unit;
 import kotlin.collections.ArrayDeque;
@@ -24,9 +23,8 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.Utilities;
 
-/* JADX INFO: loaded from: classes4.dex */
-@Metadata(d1 = {"\u0000j\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\u0010\u000e\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0010\t\n\u0000\n\u0002\u0010 \n\u0002\b\u0003\n\u0002\u0010\u000b\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\t\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\b\n\u0002\b\u0005\bÆ\u0002\u0018\u00002\u00020\u0001:\u0003/01B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\u0010\u0010\n\u001a\u00020\b2\u0006\u0010\u000b\u001a\u00020\fH\u0002JH\u0010\r\u001a\u00020\u000e2\u0006\u0010\u000b\u001a\u00020\f2\u0006\u0010\u000f\u001a\u00020\u00102\f\u0010\u0011\u001a\b\u0012\u0004\u0012\u00020\u00070\u00122\u0006\u0010\u0013\u001a\u00020\u00072\u0006\u0010\u0014\u001a\u00020\u00072\b\b\u0002\u0010\u0015\u001a\u00020\u00162\u0006\u0010\u0017\u001a\u00020\u0018H\u0007J\u0010\u0010\u0019\u001a\u00020\u000e2\u0006\u0010\u000f\u001a\u00020\u0010H\u0007J\b\u0010\u001a\u001a\u00020\u000eH\u0007J\u001c\u0010\u001b\u001a\u00020\u000e2\u0012\u0010\u001c\u001a\u000e\u0012\u0004\u0012\u00020\u001e\u0012\u0004\u0012\u00020\u00160\u001dH\u0002J\u0010\u0010\u001f\u001a\u00020\u000e2\u0006\u0010 \u001a\u00020\bH\u0002J\u0012\u0010!\u001a\u0004\u0018\u00010\u001e2\u0006\u0010 \u001a\u00020\bH\u0002J\u0018\u0010\"\u001a\u00020\u000e2\u0006\u0010 \u001a\u00020\b2\u0006\u0010#\u001a\u00020\u0010H\u0002J\u0018\u0010$\u001a\u00020\u000e2\u0006\u0010 \u001a\u00020\b2\u0006\u0010%\u001a\u00020\u001eH\u0002J \u0010&\u001a\u00020\u000e2\u0006\u0010 \u001a\u00020\b2\u0006\u0010%\u001a\u00020\u001e2\u0006\u0010'\u001a\u00020(H\u0002J\u0018\u0010)\u001a\u00020\u00102\u0006\u0010*\u001a\u00020+2\u0006\u0010,\u001a\u00020-H\u0002J2\u0010.\u001a\u00020\u000e2\u0006\u0010 \u001a\u00020\b2\u0006\u0010%\u001a\u00020\u001e2\u000e\u0010\u0011\u001a\n\u0012\u0004\u0012\u00020\u0007\u0018\u00010\u00122\b\u0010'\u001a\u0004\u0018\u00010(H\u0002R\u000e\u0010\u0004\u001a\u00020\u0001X\u0082\u0004¢\u0006\u0002\n\u0000R*\u0010\u0005\u001a\u001e\u0012\u0004\u0012\u00020\u0007\u0012\u0004\u0012\u00020\b0\u0006j\u000e\u0012\u0004\u0012\u00020\u0007\u0012\u0004\u0012\u00020\b`\tX\u0082\u0004¢\u0006\u0002\n\u0000¨\u00062"}, d2 = {"Lcom/exteragram/messenger/translator/core/TranslationDispatcher;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "lock", "gates", "Ljava/util/HashMap;", _UrlKt.FRAGMENT_ENCODE_SET, "Lcom/exteragram/messenger/translator/core/TranslationDispatcher$Gate;", "Lkotlin/collections/HashMap;", "gateOf", "translator", "Lcom/exteragram/messenger/translator/core/HttpTranslator;", "enqueue", _UrlKt.FRAGMENT_ENCODE_SET, "tag", _UrlKt.FRAGMENT_ENCODE_SET, "texts", _UrlKt.FRAGMENT_ENCODE_SET, "fromLang", "toLang", PluginsConstants.MenuItemProperties.PRIORITY, _UrlKt.FRAGMENT_ENCODE_SET, "completion", "Lcom/exteragram/messenger/translator/core/TranslationDispatcher$Completion;", "cancel", "cancelAll", "cancelMatching", "matches", "Lkotlin/Function1;", "Lcom/exteragram/messenger/translator/core/TranslationDispatcher$Job;", "pump", "gate", "nextJob", "schedulePump", "delay", "start", "job", "retryOrFail", "error", "Lcom/exteragram/messenger/translator/core/TranslationError;", "backoff", "limits", "Lcom/exteragram/messenger/translator/core/ProviderLimits;", "attempt", _UrlKt.FRAGMENT_ENCODE_SET, "finish", "Completion", "Job", "Gate", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
-@SourceDebugExtension({"SMAP\nTranslationDispatcher.kt\nKotlin\n*S Kotlin\n*F\n+ 1 TranslationDispatcher.kt\ncom/exteragram/messenger/translator/core/TranslationDispatcher\n+ 2 Maps.kt\nkotlin/collections/MapsKt__MapsKt\n+ 3 fake.kt\nkotlin/jvm/internal/FakeKt\n+ 4 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n*L\n1#1,251:1\n410#2,3:252\n413#2,4:256\n1#3:255\n777#4:260\n873#4,2:261\n1915#4,2:263\n1915#4,2:265\n*S KotlinDebug\n*F\n+ 1 TranslationDispatcher.kt\ncom/exteragram/messenger/translator/core/TranslationDispatcher\n*L\n59#1:252,3\n59#1:256,4\n97#1:260\n97#1:261,2\n108#1:263,2\n111#1:265,2\n*E\n"})
+@Metadata(d1 = {"\u0000l\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\u0010\u000e\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0010\t\n\u0000\n\u0002\u0010 \n\u0002\b\u0003\n\u0002\u0010\u000b\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\t\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\b\n\u0002\b\u0005\bÆ\u0002\u0018\u00002\u00020\u0001:\u0003012B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\u0010\u0010\n\u001a\u00020\b2\u0006\u0010\u000b\u001a\u00020\fH\u0002JR\u0010\r\u001a\u00020\u000e2\u0006\u0010\u000b\u001a\u00020\f2\u0006\u0010\u000f\u001a\u00020\u00102\f\u0010\u0011\u001a\b\u0012\u0004\u0012\u00020\u00070\u00122\u0006\u0010\u0013\u001a\u00020\u00072\u0006\u0010\u0014\u001a\u00020\u00072\b\b\u0002\u0010\u0015\u001a\u00020\u00162\b\b\u0002\u0010\u0017\u001a\u00020\u00162\u0006\u0010\u0018\u001a\u00020\u0019H\u0007J\u0010\u0010\u001a\u001a\u00020\u000e2\u0006\u0010\u000f\u001a\u00020\u0010H\u0007J\b\u0010\u001b\u001a\u00020\u000eH\u0007J\u001c\u0010\u001c\u001a\u00020\u000e2\u0012\u0010\u001d\u001a\u000e\u0012\u0004\u0012\u00020\u001f\u0012\u0004\u0012\u00020\u00160\u001eH\u0002J\u0010\u0010 \u001a\u00020\u000e2\u0006\u0010!\u001a\u00020\bH\u0002J\u0012\u0010\"\u001a\u0004\u0018\u00010\u001f2\u0006\u0010!\u001a\u00020\bH\u0002J\u0018\u0010#\u001a\u00020\u000e2\u0006\u0010!\u001a\u00020\b2\u0006\u0010$\u001a\u00020\u0010H\u0002J\u0018\u0010%\u001a\u00020\u000e2\u0006\u0010!\u001a\u00020\b2\u0006\u0010&\u001a\u00020\u001fH\u0002J \u0010'\u001a\u00020\u000e2\u0006\u0010!\u001a\u00020\b2\u0006\u0010&\u001a\u00020\u001f2\u0006\u0010(\u001a\u00020)H\u0002J\u0018\u0010*\u001a\u00020\u00102\u0006\u0010+\u001a\u00020,2\u0006\u0010-\u001a\u00020.H\u0002J2\u0010/\u001a\u00020\u000e2\u0006\u0010!\u001a\u00020\b2\u0006\u0010&\u001a\u00020\u001f2\u000e\u0010\u0011\u001a\n\u0012\u0004\u0012\u00020\u0007\u0018\u00010\u00122\b\u0010(\u001a\u0004\u0018\u00010)H\u0002R\u000e\u0010\u0004\u001a\u00020\u0001X\u0082\u0004¢\u0006\u0002\n\u0000R*\u0010\u0005\u001a\u001e\u0012\u0004\u0012\u00020\u0007\u0012\u0004\u0012\u00020\b0\u0006j\u000e\u0012\u0004\u0012\u00020\u0007\u0012\u0004\u0012\u00020\b`\tX\u0082\u0004¢\u0006\u0002\n\u0000¨\u00063"}, d2 = {"Lcom/exteragram/messenger/translator/core/TranslationDispatcher;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "lock", "gates", "Ljava/util/HashMap;", _UrlKt.FRAGMENT_ENCODE_SET, "Lcom/exteragram/messenger/translator/core/TranslationDispatcher$Gate;", "Lkotlin/collections/HashMap;", "gateOf", "translator", "Lcom/exteragram/messenger/translator/core/HttpTranslator;", "enqueue", _UrlKt.FRAGMENT_ENCODE_SET, "tag", _UrlKt.FRAGMENT_ENCODE_SET, "texts", _UrlKt.FRAGMENT_ENCODE_SET, "fromLang", "toLang", PluginsConstants.MenuItemProperties.PRIORITY, _UrlKt.FRAGMENT_ENCODE_SET, "html", "completion", "Lcom/exteragram/messenger/translator/core/TranslationDispatcher$Completion;", "cancel", "cancelAll", "cancelMatching", "matches", "Lkotlin/Function1;", "Lcom/exteragram/messenger/translator/core/TranslationDispatcher$Job;", "pump", "gate", "nextJob", "schedulePump", "delay", "start", "job", "retryOrFail", "error", "Lcom/exteragram/messenger/translator/core/TranslationError;", "backoff", "limits", "Lcom/exteragram/messenger/translator/core/ProviderLimits;", "attempt", _UrlKt.FRAGMENT_ENCODE_SET, "finish", "Completion", "Job", "Gate", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+@SourceDebugExtension({"SMAP\nTranslationDispatcher.kt\nKotlin\n*S Kotlin\n*F\n+ 1 TranslationDispatcher.kt\ncom/exteragram/messenger/translator/core/TranslationDispatcher\n+ 2 Maps.kt\nkotlin/collections/MapsKt__MapsKt\n+ 3 fake.kt\nkotlin/jvm/internal/FakeKt\n+ 4 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n*L\n1#1,253:1\n410#2,3:254\n413#2,4:258\n1#3:257\n777#4:262\n873#4,2:263\n1915#4,2:265\n1915#4,2:267\n*S KotlinDebug\n*F\n+ 1 TranslationDispatcher.kt\ncom/exteragram/messenger/translator/core/TranslationDispatcher\n*L\n60#1:254,3\n60#1:258,4\n99#1:262\n99#1:263,2\n110#1:265,2\n113#1:267,2\n*E\n"})
 public final class TranslationDispatcher {
     public static final TranslationDispatcher INSTANCE = new TranslationDispatcher();
     private static final Object lock = new Object();
@@ -40,24 +38,26 @@ public final class TranslationDispatcher {
     private TranslationDispatcher() {
     }
 
-    @Metadata(d1 = {"\u0000B\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\t\n\u0000\n\u0002\u0010 \n\u0002\u0010\u000e\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u000e\n\u0002\u0010\b\n\u0002\b\u0005\n\u0002\u0010\u000b\n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0002\b\u0005\b\u0002\u0018\u00002\u00020\u0001B=\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\u0006\u0010\u0004\u001a\u00020\u0005\u0012\f\u0010\u0006\u001a\b\u0012\u0004\u0012\u00020\b0\u0007\u0012\u0006\u0010\t\u001a\u00020\b\u0012\u0006\u0010\n\u001a\u00020\b\u0012\u0006\u0010\u000b\u001a\u00020\f¢\u0006\u0004\b\r\u0010\u000eR\u0011\u0010\u0002\u001a\u00020\u0003¢\u0006\b\n\u0000\u001a\u0004\b\u000f\u0010\u0010R\u0011\u0010\u0004\u001a\u00020\u0005¢\u0006\b\n\u0000\u001a\u0004\b\u0011\u0010\u0012R\u0017\u0010\u0006\u001a\b\u0012\u0004\u0012\u00020\b0\u0007¢\u0006\b\n\u0000\u001a\u0004\b\u0013\u0010\u0014R\u0011\u0010\t\u001a\u00020\b¢\u0006\b\n\u0000\u001a\u0004\b\u0015\u0010\u0016R\u0011\u0010\n\u001a\u00020\b¢\u0006\b\n\u0000\u001a\u0004\b\u0017\u0010\u0016R\u0011\u0010\u000b\u001a\u00020\f¢\u0006\b\n\u0000\u001a\u0004\b\u0018\u0010\u0019R\u001a\u0010\u001a\u001a\u00020\u001bX\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u001c\u0010\u001d\"\u0004\b\u001e\u0010\u001fR\u001a\u0010 \u001a\u00020!X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\"\u0010#\"\u0004\b$\u0010%R\u001c\u0010&\u001a\u0004\u0018\u00010'X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b(\u0010)\"\u0004\b*\u0010+¨\u0006,"}, d2 = {"Lcom/exteragram/messenger/translator/core/TranslationDispatcher$Job;", _UrlKt.FRAGMENT_ENCODE_SET, "translator", "Lcom/exteragram/messenger/translator/core/HttpTranslator;", "tag", _UrlKt.FRAGMENT_ENCODE_SET, "texts", _UrlKt.FRAGMENT_ENCODE_SET, _UrlKt.FRAGMENT_ENCODE_SET, "fromLang", "toLang", "completion", "Lcom/exteragram/messenger/translator/core/TranslationDispatcher$Completion;", "<init>", "(Lcom/exteragram/messenger/translator/core/HttpTranslator;JLjava/util/List;Ljava/lang/String;Ljava/lang/String;Lcom/exteragram/messenger/translator/core/TranslationDispatcher$Completion;)V", "getTranslator", "()Lcom/exteragram/messenger/translator/core/HttpTranslator;", "getTag", "()J", "getTexts", "()Ljava/util/List;", "getFromLang", "()Ljava/lang/String;", "getToLang", "getCompletion", "()Lcom/exteragram/messenger/translator/core/TranslationDispatcher$Completion;", "attempt", _UrlKt.FRAGMENT_ENCODE_SET, "getAttempt", "()I", "setAttempt", "(I)V", "cancelled", _UrlKt.FRAGMENT_ENCODE_SET, "getCancelled", "()Z", "setCancelled", "(Z)V", "call", "Lokhttp3/Call;", "getCall", "()Lokhttp3/Call;", "setCall", "(Lokhttp3/Call;)V", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+    @Metadata(d1 = {"\u0000@\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\t\n\u0000\n\u0002\u0010 \n\u0002\u0010\u000e\n\u0002\b\u0003\n\u0002\u0010\u000b\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0010\n\u0002\u0010\b\n\u0002\b\t\n\u0002\u0018\u0002\n\u0002\b\u0005\b\u0002\u0018\u00002\u00020\u0001BE\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\u0006\u0010\u0004\u001a\u00020\u0005\u0012\f\u0010\u0006\u001a\b\u0012\u0004\u0012\u00020\b0\u0007\u0012\u0006\u0010\t\u001a\u00020\b\u0012\u0006\u0010\n\u001a\u00020\b\u0012\u0006\u0010\u000b\u001a\u00020\f\u0012\u0006\u0010\r\u001a\u00020\u000e¢\u0006\u0004\b\u000f\u0010\u0010R\u0011\u0010\u0002\u001a\u00020\u0003¢\u0006\b\n\u0000\u001a\u0004\b\u0011\u0010\u0012R\u0011\u0010\u0004\u001a\u00020\u0005¢\u0006\b\n\u0000\u001a\u0004\b\u0013\u0010\u0014R\u0017\u0010\u0006\u001a\b\u0012\u0004\u0012\u00020\b0\u0007¢\u0006\b\n\u0000\u001a\u0004\b\u0015\u0010\u0016R\u0011\u0010\t\u001a\u00020\b¢\u0006\b\n\u0000\u001a\u0004\b\u0017\u0010\u0018R\u0011\u0010\n\u001a\u00020\b¢\u0006\b\n\u0000\u001a\u0004\b\u0019\u0010\u0018R\u0011\u0010\u000b\u001a\u00020\f¢\u0006\b\n\u0000\u001a\u0004\b\u001a\u0010\u001bR\u0011\u0010\r\u001a\u00020\u000e¢\u0006\b\n\u0000\u001a\u0004\b\u001c\u0010\u001dR\u001a\u0010\u001e\u001a\u00020\u001fX\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b \u0010!\"\u0004\b\"\u0010#R\u001a\u0010$\u001a\u00020\fX\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b%\u0010\u001b\"\u0004\b&\u0010'R\u001c\u0010(\u001a\u0004\u0018\u00010)X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b*\u0010+\"\u0004\b,\u0010-¨\u0006."}, d2 = {"Lcom/exteragram/messenger/translator/core/TranslationDispatcher$Job;", _UrlKt.FRAGMENT_ENCODE_SET, "translator", "Lcom/exteragram/messenger/translator/core/HttpTranslator;", "tag", _UrlKt.FRAGMENT_ENCODE_SET, "texts", _UrlKt.FRAGMENT_ENCODE_SET, _UrlKt.FRAGMENT_ENCODE_SET, "fromLang", "toLang", "html", _UrlKt.FRAGMENT_ENCODE_SET, "completion", "Lcom/exteragram/messenger/translator/core/TranslationDispatcher$Completion;", "<init>", "(Lcom/exteragram/messenger/translator/core/HttpTranslator;JLjava/util/List;Ljava/lang/String;Ljava/lang/String;ZLcom/exteragram/messenger/translator/core/TranslationDispatcher$Completion;)V", "getTranslator", "()Lcom/exteragram/messenger/translator/core/HttpTranslator;", "getTag", "()J", "getTexts", "()Ljava/util/List;", "getFromLang", "()Ljava/lang/String;", "getToLang", "getHtml", "()Z", "getCompletion", "()Lcom/exteragram/messenger/translator/core/TranslationDispatcher$Completion;", "attempt", _UrlKt.FRAGMENT_ENCODE_SET, "getAttempt", "()I", "setAttempt", "(I)V", "cancelled", "getCancelled", "setCancelled", "(Z)V", "call", "Lokhttp3/Call;", "getCall", "()Lokhttp3/Call;", "setCall", "(Lokhttp3/Call;)V", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
     public static final class Job {
         private int attempt;
         private Call call;
         private boolean cancelled;
         private final Completion completion;
         private final String fromLang;
+        private final boolean html;
         private final long tag;
         private final List<String> texts;
         private final String toLang;
         private final HttpTranslator translator;
 
-        public Job(HttpTranslator httpTranslator, long j, List<String> list, String str, String str2, Completion completion) {
+        public Job(HttpTranslator httpTranslator, long j, List<String> list, String str, String str2, boolean z, Completion completion) {
             this.translator = httpTranslator;
             this.tag = j;
             this.texts = list;
             this.fromLang = str;
             this.toLang = str2;
+            this.html = z;
             this.completion = completion;
         }
 
@@ -79,6 +79,10 @@ public final class TranslationDispatcher {
 
         public final String getToLang() {
             return this.toLang;
+        }
+
+        public final boolean getHtml() {
+            return this.html;
         }
 
         public final Completion getCompletion() {
@@ -176,33 +180,35 @@ public final class TranslationDispatcher {
     private final Gate gateOf(HttpTranslator translator) {
         HashMap<String, Gate> map = gates;
         String name = translator.getClass().getName();
-        Gate gate = map.get(name);
+        final Gate gate = map.get(name);
         if (gate == null) {
-            final Gate newGate = new Gate(translator.getLimits());
-            gate.setPumpRunnable(new Runnable() { // from class: com.exteragram.messenger.translator.core.TranslationDispatcher$$ExternalSyntheticLambda5
+            gate = new Gate(translator.getLimits());
+            gate.setPumpRunnable(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    TranslationDispatcher.INSTANCE.pump(newGate);
+                    TranslationDispatcher.INSTANCE.pump(gate);
                 }
             });
-            map.put(name, newGate);
-            gate = newGate;
+            map.put(name, gate);
         }
         return gate;
     }
 
-    public static /* synthetic */ void enqueue$default(HttpTranslator httpTranslator, long j, List list, String str, String str2, boolean z, Completion completion, int i, Object obj) {
+    public static void enqueue$default(HttpTranslator httpTranslator, long j, List list, String str, String str2, boolean z, boolean z2, Completion completion, int i, Object obj) {
         if ((i & 32) != 0) {
             z = false;
         }
-        enqueue(httpTranslator, j, list, str, str2, z, completion);
+        if ((i & 64) != 0) {
+            z2 = false;
+        }
+        enqueue(httpTranslator, j, list, str, str2, z, z2, completion);
     }
 
     @JvmStatic
-    public static final void enqueue(HttpTranslator translator, long tag, List<String> texts, String fromLang, String toLang, boolean priority, final Completion completion) {
+    public static final void enqueue(HttpTranslator translator, long tag, List<String> texts, String fromLang, String toLang, boolean priority, boolean html, final Completion completion) {
         final Gate gateGateOf;
         if (texts.isEmpty()) {
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.translator.core.TranslationDispatcher$$ExternalSyntheticLambda3
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
                     completion.onDone(CollectionsKt.emptyList(), null);
@@ -213,7 +219,7 @@ public final class TranslationDispatcher {
         synchronized (lock) {
             try {
                 gateGateOf = INSTANCE.gateOf(translator);
-                Job job = new Job(translator, tag, texts, fromLang, toLang, completion);
+                Job job = new Job(translator, tag, texts, fromLang, toLang, html, completion);
                 if (priority) {
                     gateGateOf.getQueue().addFirst(job);
                 } else {
@@ -223,7 +229,7 @@ public final class TranslationDispatcher {
                 throw th;
             }
         }
-        Utilities.globalQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.translator.core.TranslationDispatcher$$ExternalSyntheticLambda4
+        Utilities.globalQueue.postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 TranslationDispatcher.INSTANCE.pump(gateGateOf);
@@ -231,17 +237,16 @@ public final class TranslationDispatcher {
         });
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$YgkMm1tTSBJeHRcSiH6yxkP-WcU, reason: not valid java name */
-    public static boolean m1765$r8$lambda$YgkMm1tTSBJeHRcSiH6yxkPWcU(long j, Job job) {
+    public static boolean m2119$r8$lambda$YgkMm1tTSBJeHRcSiH6yxkPWcU(long j, Job job) {
         return job.getTag() == j;
     }
 
     @JvmStatic
     public static final void cancel(final long tag) {
-        INSTANCE.cancelMatching(new Function1() { // from class: com.exteragram.messenger.translator.core.TranslationDispatcher$$ExternalSyntheticLambda0
+        INSTANCE.cancelMatching(new Function1() {
             @Override // kotlin.jvm.functions.Function1
             public final Object invoke(Object obj) {
-                return Boolean.valueOf(TranslationDispatcher.m1765$r8$lambda$YgkMm1tTSBJeHRcSiH6yxkPWcU(tag, (TranslationDispatcher.Job) obj));
+                return Boolean.valueOf(TranslationDispatcher.m2119$r8$lambda$YgkMm1tTSBJeHRcSiH6yxkPWcU(tag, (TranslationDispatcher.Job) obj));
             }
         });
     }
@@ -252,7 +257,7 @@ public final class TranslationDispatcher {
 
     @JvmStatic
     public static final void cancelAll() {
-        INSTANCE.cancelMatching(new Function1() { // from class: com.exteragram.messenger.translator.core.TranslationDispatcher$$ExternalSyntheticLambda1
+        INSTANCE.cancelMatching(new Function1() {
             @Override // kotlin.jvm.functions.Function1
             public final Object invoke(Object obj) {
                 return Boolean.valueOf(TranslationDispatcher.$r8$lambda$dlGT4IYH9GaeUwn58jwdjFq8gMo((TranslationDispatcher.Job) obj));
@@ -300,7 +305,7 @@ public final class TranslationDispatcher {
         if (arrayList2.isEmpty()) {
             return;
         }
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.translator.core.TranslationDispatcher$$ExternalSyntheticLambda2
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 TranslationDispatcher.$r8$lambda$zfieef9Kbhl4WA3IigC4KtjN0KQ(arrayList2);
@@ -308,7 +313,6 @@ public final class TranslationDispatcher {
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final void pump(Gate gate) {
         while (true) {
             Job jobNextJob = nextJob(gate);
@@ -359,7 +363,7 @@ public final class TranslationDispatcher {
     private final void start(final Gate gate, final Job job) {
         boolean cancelled;
         try {
-            Call callNewCall = job.getTranslator().getClient().newCall(job.getTranslator().buildRequest(job.getTexts(), job.getFromLang(), job.getToLang()));
+            Call callNewCall = job.getTranslator().getClient().newCall(job.getTranslator().buildRequest(job.getTexts(), job.getFromLang(), job.getToLang(), job.getHtml()));
             synchronized (lock) {
                 try {
                     if (!job.getCancelled()) {
@@ -373,10 +377,10 @@ public final class TranslationDispatcher {
             if (cancelled) {
                 finish(gate, job, null, null);
             } else {
-                callNewCall.enqueue(new Callback() { // from class: com.exteragram.messenger.translator.core.TranslationDispatcher.start.1
+                callNewCall.enqueue(new Callback() {
                     @Override // okhttp3.Callback
                     public void onFailure(Call call, IOException e) {
-                        if (call.isCanceled()) {
+                        if (call.getCanceled()) {
                             TranslationDispatcher.INSTANCE.finish(gate, job, null, null);
                         } else {
                             FileLog.e(e);
@@ -409,7 +413,7 @@ public final class TranslationDispatcher {
                         } else if (failure instanceof ProviderResponse.Failure) {
                             TranslationDispatcher.INSTANCE.retryOrFail(gate, job, ((ProviderResponse.Failure) failure).getError());
                         } else {
-                            LazyKt__LazyJVMKt$$ExternalSyntheticBUOutline0.m();
+                            throw new kotlin.NoWhenBranchMatchedException();
                         }
                     }
                 });
@@ -420,8 +424,6 @@ public final class TranslationDispatcher {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    /* JADX WARN: Code duplicated, block: B:12:0x0036  */
     public final void retryOrFail(final Gate gate, final Job job, TranslationError error) {
         long jBackoff;
         boolean cancelled;
@@ -458,13 +460,13 @@ public final class TranslationDispatcher {
             }
         }
         if (cancelled) {
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.translator.core.TranslationDispatcher$$ExternalSyntheticLambda8
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
                     job.getCompletion().onDone(null, TranslationError.Cancelled.INSTANCE);
                 }
             });
-            Utilities.globalQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.translator.core.TranslationDispatcher$$ExternalSyntheticLambda9
+            Utilities.globalQueue.postRunnable(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
                     TranslationDispatcher.INSTANCE.pump(gate);
@@ -480,7 +482,6 @@ public final class TranslationDispatcher {
         return jMin + ((long) Utilities.random.nextInt(RangesKt.coerceAtLeast((int) (jMin / 4), 1)));
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final void finish(final Gate gate, final Job job, final List<String> texts, final TranslationError error) {
         final boolean cancelled;
         synchronized (lock) {
@@ -488,13 +489,13 @@ public final class TranslationDispatcher {
             job.setCall(null);
             cancelled = job.getCancelled();
         }
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.translator.core.TranslationDispatcher$$ExternalSyntheticLambda6
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 TranslationDispatcher.$r8$lambda$fKvaJXZz4Z9eg26HlE3NWmdUvgY(cancelled, job, texts, error);
             }
         });
-        Utilities.globalQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.translator.core.TranslationDispatcher$$ExternalSyntheticLambda7
+        Utilities.globalQueue.postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 TranslationDispatcher.INSTANCE.pump(gate);

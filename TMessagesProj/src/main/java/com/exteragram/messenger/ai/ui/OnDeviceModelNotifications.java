@@ -14,7 +14,6 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.ui.LaunchActivity;
 
-/* JADX INFO: loaded from: classes4.dex */
 public abstract class OnDeviceModelNotifications {
     public static void showProgress(int i, int i2) {
         NotificationCompat.Builder timeoutAfter = createBuilder(i).setContentTitle(LocaleController.getString(R.string.DownloadingModel)).setSilent(true).setOngoing(false).setTimeoutAfter(300000L);

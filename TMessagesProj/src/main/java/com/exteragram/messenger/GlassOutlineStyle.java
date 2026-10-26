@@ -11,7 +11,7 @@ public enum GlassOutlineStyle {
     SOLID,
     HIDDEN;
 
-    private static final /* synthetic */ EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
+    private static final EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
 
     public static EnumEntries<GlassOutlineStyle> getEntries() {
         return $ENTRIES;

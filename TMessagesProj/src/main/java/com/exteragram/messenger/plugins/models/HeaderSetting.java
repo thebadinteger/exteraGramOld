@@ -1,5 +1,6 @@
 package com.exteragram.messenger.plugins.models;
 
+import com.exteragram.messenger.plugins.PluginsConstants;
 import kotlin.Metadata;
 import okhttp3.internal.url._UrlKt;
 
@@ -7,16 +8,16 @@ import okhttp3.internal.url._UrlKt;
 public final class HeaderSetting extends SettingItem {
     private String text;
 
-    public HeaderSetting(String str) {
-        super("header", null, null, null, 14, null);
-        this.text = str;
-    }
-
     public final String getText() {
         return this.text;
     }
 
     public final void setText(String str) {
+        this.text = str;
+    }
+
+    public HeaderSetting(String str) {
+        super(PluginsConstants.Settings.TYPE_HEADER, null, null, null, 14, null);
         this.text = str;
     }
 }

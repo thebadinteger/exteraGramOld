@@ -14,6 +14,7 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.SparseArray;
 import android.view.View;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
 import androidx.core.math.MathUtils;
 import androidx.dynamicanimation.animation.DynamicAnimation;
@@ -35,7 +36,6 @@ import org.telegram.ui.Components.AnimatedEmojiDrawable;
 import org.telegram.ui.Components.AnimatedFloat;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 
-/* JADX INFO: loaded from: classes4.dex */
 public class SwipeActionsHelper {
     private float anchorY;
     private AnimatedEmojiDrawable animatedReaction;
@@ -81,23 +81,19 @@ public class SwipeActionsHelper {
     private final SparseArray<Drawable> spareIcons = new SparseArray<>();
     private final SparseArray<Float> iconFits = new SparseArray<>();
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$0(DynamicAnimation dynamicAnimation, float f, float f2) {
+    public void lambda$new$0(DynamicAnimation dynamicAnimation, float f, float f2) {
         invalidate();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$1(DynamicAnimation dynamicAnimation, float f, float f2) {
+    public void lambda$new$1(DynamicAnimation dynamicAnimation, float f, float f2) {
         invalidate();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$2(DynamicAnimation dynamicAnimation, float f, float f2) {
+    public void lambda$new$2(DynamicAnimation dynamicAnimation, float f, float f2) {
         invalidate();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$3(DynamicAnimation dynamicAnimation, float f, float f2) {
+    public void lambda$new$3(DynamicAnimation dynamicAnimation, float f, float f2) {
         invalidate();
     }
 
@@ -108,42 +104,42 @@ public class SwipeActionsHelper {
         this.outlineDarkenPaint = paint2;
         this.path = new Path();
         this.rect = new RectF();
-        this.liveAlpha = new AnimatedFloat(new Runnable() { // from class: com.exteragram.messenger.utils.chats.SwipeActionsHelper$$ExternalSyntheticLambda0
+        this.liveAlpha = new AnimatedFloat(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                SwipeActionsHelper.this.invalidate();
+                this.f$0.invalidate();
             }
         }, 0L, 280L, CubicBezierInterpolator.EASE_OUT);
         FloatValueHolder floatValueHolder = new FloatValueHolder(0.0f);
         this.position = floatValueHolder;
-        this.positionSpring = new SpringAnimation(floatValueHolder).setSpring(new SpringForce(0.0f).setStiffness(430.0f).setDampingRatio(0.55f)).addUpdateListener(new DynamicAnimation.OnAnimationUpdateListener() { // from class: com.exteragram.messenger.utils.chats.SwipeActionsHelper$$ExternalSyntheticLambda1
+        this.positionSpring = new SpringAnimation(floatValueHolder).setSpring(new SpringForce(0.0f).setStiffness(430.0f).setDampingRatio(0.55f)).addUpdateListener(new DynamicAnimation.OnAnimationUpdateListener() {
             @Override // androidx.dynamicanimation.animation.DynamicAnimation.OnAnimationUpdateListener
             public final void onAnimationUpdate(DynamicAnimation dynamicAnimation, float f, float f2) {
-                SwipeActionsHelper.this.lambda$new$0(dynamicAnimation, f, f2);
+                this.f$0.lambda$new$0(dynamicAnimation, f, f2);
             }
         });
         FloatValueHolder floatValueHolder2 = new FloatValueHolder(0.0f);
         this.visibility = floatValueHolder2;
-        this.visibilitySpring = new SpringAnimation(floatValueHolder2).setMinValue(0.0f).setMaxValue(2000.0f).setSpring(new SpringForce(0.0f).setStiffness(1500.0f).setDampingRatio(1.0f)).addUpdateListener(new DynamicAnimation.OnAnimationUpdateListener() { // from class: com.exteragram.messenger.utils.chats.SwipeActionsHelper$$ExternalSyntheticLambda2
+        this.visibilitySpring = new SpringAnimation(floatValueHolder2).setMinValue(0.0f).setMaxValue(2000.0f).setSpring(new SpringForce(0.0f).setStiffness(1500.0f).setDampingRatio(1.0f)).addUpdateListener(new DynamicAnimation.OnAnimationUpdateListener() {
             @Override // androidx.dynamicanimation.animation.DynamicAnimation.OnAnimationUpdateListener
             public final void onAnimationUpdate(DynamicAnimation dynamicAnimation, float f, float f2) {
-                SwipeActionsHelper.this.lambda$new$1(dynamicAnimation, f, f2);
+                this.f$0.lambda$new$1(dynamicAnimation, f, f2);
             }
         });
         FloatValueHolder floatValueHolder3 = new FloatValueHolder(0.0f);
         this.fill = floatValueHolder3;
-        this.fillSpring = new SpringAnimation(floatValueHolder3).setMinValue(0.0f).setSpring(new SpringForce(0.0f).setStiffness(400.0f).setDampingRatio(0.5f)).addUpdateListener(new DynamicAnimation.OnAnimationUpdateListener() { // from class: com.exteragram.messenger.utils.chats.SwipeActionsHelper$$ExternalSyntheticLambda3
+        this.fillSpring = new SpringAnimation(floatValueHolder3).setMinValue(0.0f).setSpring(new SpringForce(0.0f).setStiffness(400.0f).setDampingRatio(0.5f)).addUpdateListener(new DynamicAnimation.OnAnimationUpdateListener() {
             @Override // androidx.dynamicanimation.animation.DynamicAnimation.OnAnimationUpdateListener
             public final void onAnimationUpdate(DynamicAnimation dynamicAnimation, float f, float f2) {
-                SwipeActionsHelper.this.lambda$new$2(dynamicAnimation, f, f2);
+                this.f$0.lambda$new$2(dynamicAnimation, f, f2);
             }
         });
         FloatValueHolder floatValueHolder4 = new FloatValueHolder(0.0f);
         this.ring = floatValueHolder4;
-        this.ringSpring = new SpringAnimation(floatValueHolder4).setMinValue(0.0f).setSpring(new SpringForce(0.0f).setStiffness(200.0f).setDampingRatio(1.0f)).addUpdateListener(new DynamicAnimation.OnAnimationUpdateListener() { // from class: com.exteragram.messenger.utils.chats.SwipeActionsHelper$$ExternalSyntheticLambda4
+        this.ringSpring = new SpringAnimation(floatValueHolder4).setMinValue(0.0f).setSpring(new SpringForce(0.0f).setStiffness(200.0f).setDampingRatio(1.0f)).addUpdateListener(new DynamicAnimation.OnAnimationUpdateListener() {
             @Override // androidx.dynamicanimation.animation.DynamicAnimation.OnAnimationUpdateListener
             public final void onAnimationUpdate(DynamicAnimation dynamicAnimation, float f, float f2) {
-                SwipeActionsHelper.this.lambda$new$3(dynamicAnimation, f, f2);
+                this.f$0.lambda$new$3(dynamicAnimation, f, f2);
             }
         });
         this.parent = view;
@@ -158,7 +154,6 @@ public class SwipeActionsHelper {
         paint2.setStrokeWidth(AndroidUtilities.dp(2.0f));
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void invalidate() {
         this.parent.invalidate();
     }
@@ -468,25 +463,6 @@ public class SwipeActionsHelper {
         }
     }
 
-    /* JADX WARN: Code duplicated, block: B:24:0x0121  */
-    /* JADX WARN: Code duplicated, block: B:26:0x0127  */
-    /* JADX WARN: Code duplicated, block: B:30:0x013c  */
-    /* JADX WARN: Code duplicated, block: B:33:0x0181  */
-    /* JADX WARN: Code duplicated, block: B:35:0x0187  */
-    /* JADX WARN: Code duplicated, block: B:38:0x019a  */
-    /* JADX WARN: Code duplicated, block: B:47:0x01bf  */
-    /* JADX WARN: Code duplicated, block: B:49:0x01ef  */
-    /* JADX WARN: Code duplicated, block: B:51:0x01f7  */
-    /* JADX WARN: Code duplicated, block: B:70:0x02b1  */
-    /* JADX WARN: Code duplicated, block: B:72:0x02b4  */
-    /* JADX WARN: Code duplicated, block: B:73:0x02bd  */
-    /* JADX WARN: Code duplicated, block: B:75:0x02ca  */
-    /* JADX WARN: Code duplicated, block: B:78:0x02d1 A[ORIG_RETURN, RETURN] */
-    /* JADX WARN: Code duplicated, block: B:79:0x02d2  */
-    /* JADX WARN: Code duplicated, block: B:81:0x02de  */
-    /* JADX WARN: Code duplicated, block: B:82:0x02e1  */
-    /* JADX WARN: Code duplicated, block: B:84:0x02e7  */
-    /* JADX WARN: Code duplicated, block: B:85:0x02ec  */
     private void drawBubble(Canvas canvas, float f, float f2, float f3, float f4, float f5, float f6, float f7, float f8, int i, boolean z) {
         boolean z2;
         boolean z3;
@@ -499,7 +475,7 @@ public class SwipeActionsHelper {
         Paint paint;
         Paint paint2;
         float f14;
-        Canvas canvas2 = canvas;
+        Canvas canvas2;
         Path.Direction direction;
         float f15;
         float f16;
@@ -896,7 +872,7 @@ public class SwipeActionsHelper {
         if (drawable != null) {
             return drawable;
         }
-        Drawable drawable2 = this.parent.getContext().getDrawable(swipeAction.iconRes);
+        Drawable drawable2 = ContextCompat.getDrawable(this.parent.getContext(), swipeAction.iconRes);
         if (drawable2 == null) {
             return null;
         }

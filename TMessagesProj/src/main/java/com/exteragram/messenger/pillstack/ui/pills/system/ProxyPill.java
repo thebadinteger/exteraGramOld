@@ -35,7 +35,7 @@ public class ProxyPill extends BasePill implements NotificationCenter.Notificati
     private final LinearLayout layout;
     private final AnimatedTextView textView;
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill
     public long getRefreshInterval() {
         return 0L;
     }
@@ -66,12 +66,12 @@ public class ProxyPill extends BasePill implements NotificationCenter.Notificati
         onUpdateData(false);
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill
     public int getPillId() {
         return PillType.PROXY.getId();
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill
     public void onUpdateData(boolean z) {
         String string;
         SharedConfig.ProxyInfo proxyInfo;
@@ -106,7 +106,7 @@ public class ProxyPill extends BasePill implements NotificationCenter.Notificati
         updateColors();
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill, android.view.ViewGroup, android.view.View
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
         onUpdateData(true);
@@ -117,7 +117,7 @@ public class ProxyPill extends BasePill implements NotificationCenter.Notificati
         NotificationCenter.getInstance(i).addObserver(this, NotificationCenter.didUpdateConnectionState);
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill, android.view.ViewGroup, android.view.View
     public void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.proxySettingsChanged);
@@ -125,14 +125,14 @@ public class ProxyPill extends BasePill implements NotificationCenter.Notificati
         NotificationCenter.getInstance(this.lastAccount).removeObserver(this, NotificationCenter.didUpdateConnectionState);
     }
 
-    @Override 
+    @Override // org.telegram.messenger.NotificationCenter.NotificationCenterDelegate
     public void didReceivedNotification(int i, int i2, Object... objArr) {
         if (i == NotificationCenter.proxySettingsChanged || i == NotificationCenter.proxyPingUpdated || i == NotificationCenter.didUpdateConnectionState) {
             onUpdateData(true);
         }
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill
     public void onPillClicked() {
         BaseFragment safeLastFragment = LaunchActivity.getSafeLastFragment();
         if (safeLastFragment != null) {
@@ -140,18 +140,18 @@ public class ProxyPill extends BasePill implements NotificationCenter.Notificati
         }
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill
     public boolean onPillLongClicked() {
         final BaseFragment safeLastFragment = LaunchActivity.getSafeLastFragment();
         if (safeLastFragment == null) {
             return false;
         }
-        ItemOptions.makeOptions(safeLastFragment, this).add(R.drawable.msg_settings, LocaleController.getString(R.string.Settings), new Runnable() { 
+        ItemOptions.makeOptions(safeLastFragment, this).add(R.drawable.msg_settings, LocaleController.getString(R.string.Settings), new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 safeLastFragment.presentFragment(new PillStackPreferencesActivity());
             }
-        }).setDrawScrim(false).setDimAlpha(0).show();
+        }).setDrawScrim(false).setDimAlpha(0).setDismissOnMoveOutside(true).show();
         return true;
     }
 
@@ -174,7 +174,7 @@ public class ProxyPill extends BasePill implements NotificationCenter.Notificati
         linearLayout.drawableHotspotChanged(f - linearLayout.getLeft(), f2 - this.layout.getTop());
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill
     public void updateColors() {
         int themedColor;
         boolean zIsProxyEnabled = SharedConfig.isProxyEnabled();

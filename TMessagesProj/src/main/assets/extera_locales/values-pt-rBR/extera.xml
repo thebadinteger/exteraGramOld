@@ -12,8 +12,6 @@
 <resources>
     <string name="Preferences">Configurações do exteraGram</string>
     <!-- Main Menu -->
-    <string name="Links">Links</string>
-    <string name="AboutExteraDescription">Cliente experimental baseado em fontes oficiais do Telegram!</string>
     <string name="Crowdin">Tradução</string>
     <string name="Website">Site</string>
     <string name="Categories">Categorias</string>
@@ -29,7 +27,6 @@
     <string name="LiteBatteryFollowSystemState">Sistema</string>
     <string name="LiteBatteryFollowSystemInfo">Controlado pela Economia de bateria do sistema.</string>
     <!-- Pill Stack -->
-    <string name="PillStackPills">Pill Stack</string>
     <string name="PillStackPillsInfo">Exibir Pills interativas no campo de busca</string>
     <string name="PillStackPillsSettingsInfo">Configure quais pills serão visíveis. Toque para mostrar ou esconder, segure e arraste para alterar a ordem de exibição.</string>
     <string name="PillStackActivePills">Pills Ativas</string>
@@ -45,23 +42,7 @@
     <string name="WeatherPillTopInfo">Configurações do widget do clima para o Pill Stack.</string>
     <string name="PillStackInfiniteScrolling">Rolagem Infinita</string>
     <string name="CryptoPillTargetCurrency">Moeda de destino</string>
-    <string name="CryptoCurrencyUsd">USD</string>
-    <string name="CryptoCurrencyEur">Euro</string>
-    <string name="CryptoCurrencyRub">Rublo Russo</string>
-    <string name="CryptoCurrencyGbp">Libra britânica</string>
-    <string name="CryptoCurrencyKzt">Tenge cazaque</string>
-    <string name="CryptoCurrencyTry">Lira turca</string>
-    <string name="CryptoCurrencyUah">Hryvnia ucraniana</string>
-    <string name="CryptoCurrencyPln">Zloti polonês</string>
-    <string name="CryptoCurrencyAed">Dirham dos UAE</string>
-    <string name="CryptoCurrencyCny">Yuan chinês</string>
-    <string name="CryptoCurrencyJpy">Iene japonês</string>
-    <string name="CryptoCurrencyByn">Rublo bielorrusso</string>
-    <string name="CryptoCurrencyIls">Sheqel novo israelita</string>
-    <string name="CryptoCurrencyCzk">Coroa tcheca</string>
-    <string name="CryptoCurrencyInr">Rupia indiana</string>
     <!-- Proxy -->
-    <string name="ProxyDoNotUseWithVPN">Não use com uma VPN</string>
     <string name="ProxyDisableOn">Desativar proxy</string>
     <string name="ProxyDisableNever">Nunca</string>
     <string name="ProxyDisableAlways">Sempre</string>
@@ -73,8 +54,6 @@
     <string name="CopyIpAddress">Copiar endereço IP</string>
     <string name="IpInfoUnavailable">Não foi possível carregar as informações do endereço IP.</string>
     <string name="IpInfoCountry">País</string>
-    <string name="IpInfoRegion">Região</string>
-    <string name="IpInfoCity">Cidade</string>
     <string name="IpInfoIsp">Provedor</string>
     <string name="IpInfoOrganization">Organização</string>
     <string name="IpInfoDomain">Domínio</string>
@@ -83,11 +62,17 @@
     <string name="TranslationProvider">Provedor de Tradução</string>
     <string name="TranslationTarget">Idioma de Destino</string>
     <string name="TranslationTargetApp">Seguir Aplicativo</string>
+    <string name="ShowTranslateChatButtonLocked">Escolha outro provedor de tradução ou assine o **Telegram Premium**.</string>
     <!-- Formatting & Behavior -->
     <string name="DisableNumberRounding">Desativar arredondamento de números</string>
     <string name="FormatTimeWithSeconds">Formatar a hora com segundos</string>
     <string name="RelativeLastSeen">Visto por Último Relativo</string>
     <string name="InAppVibration">Vibração no App</string>
+    <string name="DisableNotificationDelay">Desativar Atraso da Notificação</string>
+    <string name="AccountNotifications">Contas</string>
+    <string name="AccountNotificationsCount">%1$d de %2$d</string>
+    <string name="AccountNotificationsInfo">Contas não verificadas não mostram notificações enquanto você está usando outra conta.</string>
+    <string name="AccountNotificationsCurrent">Notificações da conta atual são sempre mostradas.</string>
     <string name="FilterZalgo">Filtrar \"Zalgo\"</string>
     <string name="FilterZalgoInfo">Remove símbolos \"%1$s\" em nomes e mensagens.</string>
     <string name="RestartRequired">Reinicie o app para que as alterações tenham efeito.</string>
@@ -98,13 +83,7 @@
     <!-- Speed -->
     <string name="DownloadSpeedBoost">Otimizar velocidade de download</string>
     <string name="UploadSpeedBoost">Otimizar velocidade de upload</string>
-    <string name="Ultra">Ultra</string>
     <string name="SpeedBoostInfo">O Ultra Boost pode causar problemas com o download de arquivos e vídeos de streaming em conexões de Internet lentas.</string>
-    <!-- Maps -->
-    <string name="Maps">Mapas</string>
-    <string name="TermsOfUseYandexMaps">Ao usar o Yandex Maps você concorda com <![CDATA[<a href="https://yandex.ru/legal/maps_termsofuse/">termos de uso</a>]]>.</string>
-    <string name="UseYandexMaps">Usar o Yandex Maps</string>
-    <string name="InstallYandexMaps">Instalar o Yandex Maps?</string>
     <!-- Storage -->
     <string name="StorageSettings">Armazenamento</string>
     <string name="CustomSavePath">Pasta de salvamento personalizada</string>
@@ -153,6 +132,7 @@
     <string name="TabTitleStyleIconsOnly">Apenas Ícones</string>
     <string name="TabTitleStyleTextOnly">Apenas Nomes</string>
     <string name="TabCounter">Contador de notificações</string>
+    <string name="TabCounterUnmuted">Não silenciado</string>
     <string name="HideAllChats">Ocultar a pasta \"%1$s\"</string>
     <string name="FoldersInfo">Os ícones são sincronizados com sua conta.</string>
     <!-- App Navigation -->
@@ -161,7 +141,6 @@
     <string name="NavigationDrawer">Navegação do Menu Lateral</string>
     <string name="NavigationDrawerInfo">Substitui o menu superior direito por um clássico deslizar-para-abrir e um botão de hambúrguer.</string>
     <string name="NavigationDrawerImmersiveAnimation">Animação Imersiva</string>
-    <string name="NavigationDrawerProxyPingShort">%1$d ms</string>
     <string name="MainMenuItems">Itens do Menu</string>
     <string name="MainMenuItemsInfo">Toque para mostrar ou ocultar itens, segure para reordenar. Layout é compartilhado entre o menu e a barra lateral.</string>
     <string name="MainMenuHiddenItems">Itens de Menu Ocultos</string>
@@ -208,16 +187,12 @@
     <!-- App Icons -->
     <string name="IconPack">Pacote de ícones</string>
     <string name="AppIconSunset">Ensolarado</string>
-    <string name="AppIconAurora">Aurora</string>
     <string name="AppIconAmethyst">Ametista</string>
     <string name="AppIconInvincible">Invencível</string>
-    <string name="AppIconCyberpunk">Cyberpunk</string>
-    <string name="AppIconSpace">Space</string>
     <string name="AppIconIceAge">Era do Gelo</string>
-    <string name="AppIconEditor">Editor</string>
     <string name="AppIconOrbit">Órbita</string>
-    <string name="AppIconSus">Impostor</string>
-    <string name="AppIconWinter">Winter</string>
+    <string name="AppIconsApply">Selecionar</string>
+    <string name="AppIconsKeep">Manter esse</string>
     <!-- General Appearance -->
     <string name="Sections">Seções</string>
     <string name="SeparateHeaders">Separar Cabeçalhos</string>
@@ -230,6 +205,7 @@
     <string name="NewLoadingStyle">Estilo do Carregamento</string>
     <string name="NewSliderStyle">Estilo do Slider</string>
     <string name="NewSwitchStyle">Estilo do Switch</string>
+    <string name="NewFabStyle">Botão Flutuante</string>
     <string name="TabletMode">Modo Tablet</string>
     <string name="RemoveMessageTail">Remover a Cauda do Balão de Mensagem</string>
     <string name="GooeyAvatarAnimation">Animação de Avatar \"Pegajosa\"</string>
@@ -238,6 +214,8 @@
     <string name="PredictiveBackIntensity">Intensidade de Volta Preditiva</string>
     <string name="PredictiveBackMax">Máximo</string>
     <string name="PredictiveBackInfo">Ajusta o quão longe a tela se move ao deslizar para trás.</string>
+    <string name="TransitionAnimation">Animação de Transição</string>
+    <string name="TransitionAnimationInfo">AOSP usa a transição de janela padrão do Android; Spring, uma mais suave.</string>
     <!-- Blur & Effects -->
     <string name="BlurOptions">Opções de desfoque</string>
     <string name="GlassOutlineStyle">Contorno de Vidro</string>
@@ -258,6 +236,9 @@
     <string name="StickerShape">Formato dos Stickers</string>
     <string name="StickerShapeRounded">Arredondado</string>
     <string name="StickerShapeRoundedMsg">Mensagem</string>
+    <string name="StickerTimeMode">Hora em Stickers</string>
+    <string name="StickerTimeSide">Ao lado</string>
+    <string name="StickerTimeHidden">Oculto</string>
     <string name="ViewEmojiSet">Ver Conjunto de Emojis</string>
     <string name="UnlimitedRecentStickers">Stickers recentes ilimitados</string>
     <string name="HideReactions">Ocultar Reações</string>
@@ -281,12 +262,14 @@
     <string name="ServicePasteService">Colar Serviço</string>
     <string name="ServicePasteKey">Colar Chave de API</string>
     <string name="DeleteServiceInfo">Tem certeza que deseja excluir **%1$s**?</string>
+    <string name="ServiceAlreadyExists">Serviço já existente</string>
+    <string name="ServiceAlreadyExistsInfo">Alternado para o serviço existente.</string>
+    <string name="ServiceDuplicate">Outro serviço já utiliza esta URL, modelo e chave.</string>
     <!-- AI Roles -->
     <string name="Roles">Funções</string>
     <string name="RolesInfo">Crie funções para suas necessidades!</string>
     <string name="Suggestions">Sugestões</string>
     <string name="RoleName">Nome</string>
-    <string name="RolePrompt">Prompt</string>
     <string name="PromptInfo">Um prompt é o texto inicial dado ao modelo para começar a gerar uma resposta ou continuar um diálogo.</string>
     <string name="NewRole">Nova Função</string>
     <string name="EditRole">Editar Função</string>
@@ -304,6 +287,8 @@
     <string name="InsertResponseAsQuote">Inserir resposta como citação</string>
     <string name="TapToAddApiKey">Toque para adicionar uma chave de API para começar com os recursos de IA.</string>
     <string name="Generate">Gerar</string>
+    <string name="GenerateWithHistory">Com Histórico</string>
+    <string name="GenerateWithPhoto">Com Foto</string>
     <string name="ClearConversationHistoryInfo">Você tem certeza que deseja limpar **todo** o histórico de conversas com a IA?</string>
     <!-- AI Errors -->
     <string name="AIError400">Solicitação Inválida</string>
@@ -324,12 +309,60 @@
     <string name="AIError503Info">O serviço está temporariamente indisponível ou sobrecarregado. Por favor, tente novamente mais tarde.</string>
     <string name="AIError">Erro no Servidor</string>
     <string name="AIErrorInfo">Por favor, tente novamente o sua solicitação após aguardar um tempo.</string>
+    <string name="AIErrorEmpty">Resposta Vazia</string>
+    <string name="AIErrorEmptyInfo">O modelo não retornou nada. Tente novamente ou escolha outro modelo.</string>
+    <string name="AIOnDevice">No Dispositivo</string>
+    <string name="AIErrorOnDevice">Modelo no Dispositivo Indisponível</string>
+    <string name="AIErrorOnDeviceInfo">Este dispositivo não pode executar o modelo. Escolha outro serviço.</string>
+    <string name="AIErrorOnDeviceDownload">Modelo Não Baixado</string>
+    <string name="AIErrorOnDeviceDownloadInfo">O modelo não foi baixado ainda.</string>
+    <string name="AIErrorOnDeviceDownloading">Baixando Modelo</string>
+    <string name="AIErrorOnDeviceDownloadingInfo">O modelo no dispositivo ainda está sendo baixado. Por favor, tente novamente mais tarde.</string>
+    <string name="AIErrorOnDeviceTooLong">Mensagem Muito Longa</string>
+    <string name="AIErrorOnDeviceTooLongInfo">O modelo no dispositivo não consegue processar esta solicitação. Encurte-a ou escolha outro serviço.</string>
+    <string name="AIErrorOnDeviceStopped">Modelo interrompido</string>
+    <string name="AIErrorOnDeviceStoppedInfo">O modelo no dispositivo parou durante a resposta, muitas vezes porque o dispositivo estava com pouca memória. Tente novamente ou escolha um modelo mais claro.</string>
+    <string name="AIOnDeviceDownloadTitle">Baixar Modelo no Dispositivo</string>
+    <string name="AIOnDeviceDownloadInfo">O modelo é baixado uma vez e então executado inteiramente neste dispositivo, sem enviar nada para um servidor. O download é grande e é manipulado pelo sistema, então ele não pode ser interrompido depois de iniciado. Wi-Fi é recomendado.</string>
+    <string name="AIOnDeviceBadgeReady">PRONTO</string>
+    <string name="AIOnDeviceBadgeUnavailable">INDISPONÍVEL</string>
+    <string name="AIOnDeviceNotificationChannel">Modelo de IA no dispositivo</string>
+    <string name="AIOnDeviceNotificationReady">Modelo pronto</string>
+    <string name="AIOnDeviceNotificationReadyInfo">O Gemini Nano foi baixado e agora é executado no seu dispositivo.</string>
+    <string name="AIOnDeviceDownloadStarted">Download iniciado. Ele continua em segundo plano.</string>
+    <string name="AIOnDeviceBadgeDownloading">CARREGANDO</string>
+    <string name="AIOnDeviceRefresh">Atualizar status</string>
+    <string name="AIOnDevicePreviewModel">Visualizar modelo</string>
+    <string name="AIOnDeviceFastModel">Modelo rápido</string>
+    <string name="AIReplaceTelegram">IA do Telegram</string>
+    <string name="AIReplaceTelegramEditorInfo">Traduzir, reajustar e revisar rascunhos</string>
+    <string name="AIReplaceTelegramSummariesInfo">Resumir mensagens e publicações longas</string>
+    <string name="AIOnDeviceManage">Configurações do AICore</string>
+    <string name="AIOnDeviceManageUnavailable">As configurações de sistema para AICore não estão disponíveis neste dispositivo.</string>
+    <string name="AIChangeModel">Alterar</string>
+    <string name="AIAskMore">Pergunte Mais</string>
+    <string name="AIAssistant">Assistente</string>
     <!-- Chat Actions -->
-    <string name="DoubleTap">Toque Duplo</string>
     <string name="DoubleTapIncoming">Mensagens Recebidas</string>
     <string name="DoubleTapOutgoing">Mensagens Enviadas</string>
     <string name="DoubleTapInfo">Algumas ações requerem direitos de administrador no grupo ou canal.</string>
+    <string name="Gestures">Gestos</string>
+    <string name="SwipeActions">Ações ao Deslizar</string>
+    <string name="SwipeActionsInfo">Deslize uma mensagem para a esquerda e, sem levantar o dedo, mova para cima ou para baixo para escolher uma ação.</string>
+    <string name="SwipeActionsBehavior">Comportamento</string>
+    <string name="SwipeActionsLoop">Ações de Loop</string>
+    <string name="SwipeActionsReversed">Rolagem Reversa</string>
+    <string name="SwipeActionsBehaviorInfo">Com looping, a primeira ação vem logo após a última. Rolagem Reversa faz a lista se mover com o dedo.</string>
+    <string name="SwipeActionsEnabled">Ações</string>
+    <string name="SwipeActionsDisabled">Desabilitado</string>
+    <string name="SwipeActionsOrderInfo">Toque em uma ação para ligá-la ou desligá-la, arraste para reordenar. A ação de cima é executada em um simples deslizamento.</string>
+    <string name="SwipeActionsPreviewReply">e se eu acabar apagando sem querer?</string>
+    <string name="SwipeActionsPreviewMessage">o medo é o assassino da mente. Arraste mais devagar</string>
     <string name="BottomButton">Botão Inferior</string>
+    <string name="WidePosts">Posts Amplos</string>
+    <string name="AIFeatures">Recursos de IA</string>
+    <string name="AIFeaturesSummaries">Resumos</string>
+    <string name="AIFeaturesInstantViewSummaries">Resumos de Visualização Instantânea</string>
     <string name="ChannelDiscussNoCaps">Discutir</string>
     <string name="QuickTransitions">Transição rápida ao trocar de Câmera</string>
     <string name="DisableGreetingSticker">Desativar Sticker de Saudação</string>
@@ -341,14 +374,17 @@
     <string name="GroupMessageMenu">Menu de Mensagens do Grupo</string>
     <string name="GroupMessageMenuInfo">O agrupamento move as principais ações para o final do menu de mensagens.</string>
     <string name="GlassMessageMenu">Menu Mensagem de Vidro</string>
+    <string name="GlassMessageMenuInfo">O menu de mensagens, o menu do cabeçalho e a barra de reações ganham efeito de vidro fosco.</string>
     <string name="GlassMessageMenuBlurOff">Os menus de vidro precisam de desfoque, que está atualmente desligado.</string>
     <string name="AddCommaAfterMention">Adicionar vírgula após a menção</string>
+    <string name="InlineMathResultAnnouncement">Resultado: %1$s</string>
     <string name="HideSendAsPeer">Ocultar botão \"Enviar como…\"</string>
     <string name="HideSendAsPeerInfo">Você ainda pode acessar o menu \"Enviar como…\" pressionando longamente o botão Emojis/Stickers/GIFs.</string>
     <string name="ShowPollResultsBeforeVoting">Exibir Resultados Antes da Votação</string>
     <string name="ShowPollResultsBeforeVotingHint">Veja os resultados para cada opção antes de enviar o seu voto.</string>
     <string name="ShowOnlineStatus">Mostrar Indicador Online</string>
     <string name="MessagePreviewDialogMessage">Posso comer vidro e isso não me machuca.</string>
+    <!-- Chat Search -->
     <!-- Voice & Video Recognition -->
     <string name="RecognitionLanguage">Idioma de Reconhecimento</string>
     <string name="RecognitionInfo">Usa a API do Vosk. Funciona sem rede. A qualidade dos textos transcritos pode ter baixa qualidade.</string>
@@ -390,7 +426,6 @@
     <string name="AlwaysSendInHD">Sempre enviar em HD</string>
     <string name="HideCameraTile">Ocultar bloco de câmera instantânea</string>
     <string name="HideCameraTileInfo">O bloco da câmera será substituído por um botão flutuante. Pressionar o botão abrirá a câmera do Telegram, enquanto mantê-lo pressionado abrirá a câmera do sistema.</string>
-    <string name="ShortStandardQuality">SD</string>
     <!-- Playback -->
     <string name="DoubleTapSeekDuration">Duração do intervalo por toque duplo</string>
     <string name="PreferOriginalQuality">Preferir Qualidade Original</string>
@@ -455,7 +490,6 @@
     <string name="BoostyInfo2">Obrigado pelo seu apoio!</string>
     <!-- Plugins -->
     <string name="PluginsNotSupported">Instalação do plugin está disponível apenas na versão **Full** do **exteraGram**.</string>
-    <string name="Plugins">Plugins</string>
     <string name="PluginsEngine">Sistema de Plugins</string>
     <string name="EnablePluginsEngine">Habilitar Sistema de Plugins</string>
     <string name="PluginsInfo">Você pode encontrar plugins em @exteraPlugins.</string>
@@ -465,7 +499,6 @@
     <string name="PluginNotEnabled">Habilite o **Sistema de Plugins** para instalar **%1$s**.</string>
     <string name="PluginInstalled">**%1$s** instalado com sucesso.</string>
     <string name="PluginUpdated">**%1$s** atualizado com sucesso.</string>
-    <string name="PluginInstalledButFailedToEnable">**%1$s** instalado, mas ocorreu um erro ao habilitar.</string>
     <string name="PluginEnableError">Falha ao habilitar **%1$s**.</string>
     <string name="PluginDisableError">Falha ao desabilitar **%1$s**.</string>
     <string name="PluginInstallError">Falha ao instalar **%1$s**.</string>
@@ -473,7 +506,19 @@
     <string name="PluginSourceTrustedInfo">Plugins desta fonte são **verificados** e seguros para usar.</string>
     <string name="PluginSourceUnknown">Fonte desconhecida</string>
     <string name="PluginSourceUnknownInfo">Plugins desta fonte **não são verificados** e podem representar um risco à segurança.</string>
+    <string name="PluginInstallBlocked">Instalação Bloqueada</string>
+    <string name="PluginInstallBlockedInfo">Permitir fontes desconhecidas nas configurações do plugin</string>
     <string name="PluginVersion">Versão</string>
+    <string name="PluginVersionValue">Versão %1$s</string>
+    <string name="PluginRequired">Plugins Necessários</string>
+    <string name="PluginRequiredMissing">Não Instalado</string>
+    <string name="PluginRequiredVersion">Requer versão %1$s</string>
+    <string name="PluginRequiredDisabled">Instalado, mas desativado</string>
+    <string name="PluginRequiredOutdated">Versão %1$s, requer %2$s</string>
+    <string name="PluginRequiredUpdate">Atualizar</string>
+    <string name="PluginRequiredInstalled">Instalado</string>
+    <string name="PluginBundledPackages">Pacotes Agrupados</string>
+    <string name="PluginRequirements">Requisitos</string>
     <string name="PluginNoDescription">Nenhuma descrição fornecida.</string>
     <string name="PluginIsNotResponding">Plugin não está respondendo.</string>
     <string name="PluginIsNotRespondingAlert">%1$s não está respondendo</string>
@@ -484,6 +529,16 @@
     <string name="PluginDeleteInfo">Tem certeza que deseja excluir **%1$s**?</string>
     <string name="ResetPluginSettings">**%1$s** as configurações foram redefinidas.</string>
     <string name="ResetPluginSettingsInfo">Tem certeza de que deseja redefinir as definições **%1$s** para o padrão?</string>
+    <string name="PluginsUnknownSources">Fontes Desconhecidas</string>
+    <string name="PluginsUnknownSourcesInfo">Você está concordando em instalar plugins de fontes desconhecidas. Cada plugin tem:</string>
+    <string name="PluginsUnknownSourcesInfo2">Permitir a instalação de plugins de fontes não verificadas.</string>
+    <string name="PluginsUnknownSourcesAccount">Acesso total à sua conta</string>
+    <string name="PluginsUnknownSourcesAccountInfo">Agir em seu nome: ler, enviar e excluir mensagens.</string>
+    <string name="PluginsUnknownSourcesFiles">Arquivos e dados de apps</string>
+    <string name="PluginsUnknownSourcesFilesInfo">Ler chats em cache, mídia, configurações e dados de autorização.</string>
+    <string name="PluginsUnknownSourcesCode">Código irrestrito</string>
+    <string name="PluginsUnknownSourcesCodeInfo">Executa qualquer código e envia qualquer coisa para qualquer servidor.</string>
+    <string name="PluginsUnknownSourcesWarning">Um plugin malicioso pode assumir a sua conta.</string>
     <string name="PluginsSafeMode">Modo de Segurança</string>
     <string name="PluginsSafeModeShortcut">Iniciar com modo de segurança</string>
     <string name="PluginsSafeModeInfo">O Sistema de Plugin está desativado devido a um erro. Desativar o modo de segurança pode levar a consequências imprevistas.</string>
@@ -497,6 +552,7 @@
     <string name="PluginEngineNotEnabled">Habilite o **Sistema de Plugins** para abrir as configurações de **%1$s**.</string>
     <string name="PluginNotFound">**%1$s** não encontrado.</string>
     <string name="PluginHasNoSettings">**%1$s** não possui configurações.</string>
+    <string name="PluginsPySdkUpdate">Atualização do PySDK</string>
     <string name="PluginsPySdkAutoUpdate">Atualizar Automaticamente</string>
     <string name="PluginsPySdkEnableBetaVersion">Instalar Versões Betas</string>
     <string name="PluginsPySdkCheckUpdates">Verificar Atualizações</string>
@@ -524,6 +580,7 @@
     <string name="FileName">Nome do Arquivo</string>
     <string name="FilePath">Caminho do arquivo</string>
     <string name="Platform">Plataforma</string>
+    <string name="SentFrom">Enviado de %1$s</string>
     <string name="Resolution">Resolução</string>
     <string name="Bitrate">Taxa de Bits</string>
     <string name="Duration">Duração</string>
@@ -541,7 +598,6 @@
     <!-- Login & QR -->
     <string name="LoginQrTitle">Login com QR Code</string>
     <string name="LoginQrSubtitle">Use outro dispositivo para escanear este código QR.</string>
-    <string name="SelectNumber">Selecione um número de telefone</string>
     <string name="WifiConnect">Conectar</string>
     <string name="WifiDisabled">Wi-Fi está desativado.</string>
     <string name="WifiFailed">Falha ao conectar ao Wi-Fi.</string>
@@ -552,6 +608,7 @@
     <string name="PageBlockedDescription">exteraGram impediu a seguinte página de carregar:\n**%1$s**</string>
     <string name="PageBlockedGoBack">Voltar</string>
     <string name="PageBlockedProceed">Avançar</string>
+    <string name="AdBlockFiltersLoading">Carregando Filtros…</string>
     <!-- Other -->
     <string name="SetAsBadge">Definir como Emblema</string>
     <string name="AutoLockInstant">Instantâneo</string>
@@ -622,11 +679,9 @@
     <string name="StickerCornerRadiusSmall">Pequeno</string>
     <string name="StickerCornerRadiusNone">Nenhum</string>
     <!-- Feed -->
-    <string name="Feed">Feed</string>
     <string name="FeedShownChannels">Exibido no feed</string>
     <string name="FeedHiddenChannels">Oculto</string>
     <string name="FeedChannels">Canais</string>
-    <string name="FeedChannelsInfo">Desmarque um canal para ocultar suas publicações do feed. Novos canais são exibidos automaticamente.</string>
     <string name="FeedSettings">Opções do feed</string>
     <string name="FeedNoPosts">Ainda não há postagens.</string>
     <string name="FeedAllChannelsExcluded">Todos os canais são excluídos do feed.</string>
@@ -639,9 +694,11 @@
     <string name="FeedChannelHidden">**%1$s** oculta do feed</string>
     <string name="FeedBottomTab">Exibir em Abas inferiores</string>
     <string name="FeedBottomTabInfo">Exibir o feed como uma aba de navegação inferior no lugar da aba Contatos.</string>
+    <string name="WidePostsInFeed">Publicações Amplas no Feed</string>
     <string name="FeedUnreadCounter">Contador de publicações não lidas</string>
     <string name="HideFeedTab">Ocultar aba do Feed</string>
     <string name="DisableMarkdown">Desativar Markdown</string>
     <string name="EnableMarkdown">Ativar Markdown</string>
+    <!-- Player -->
     <!-- Non-translatable -->
 </resources>

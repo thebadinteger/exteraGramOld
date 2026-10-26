@@ -5,7 +5,6 @@ import com.exteragram.messenger.adblock.data.FilterListMetadata;
 import com.exteragram.messenger.adblock.data.UrlCosmeticResources;
 import org.telegram.messenger.FileLog;
 
-/* JADX INFO: loaded from: classes.dex */
 public class NativeAdBlock {
     private static volatile Boolean loaded;
 

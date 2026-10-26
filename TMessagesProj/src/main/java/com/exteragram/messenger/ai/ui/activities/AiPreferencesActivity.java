@@ -2,83 +2,158 @@ package com.exteragram.messenger.ai.ui.activities;
 
 import android.text.TextUtils;
 import android.view.View;
+import androidx.core.util.Consumer;
 import com.exteragram.messenger.ai.AiConfig;
 import com.exteragram.messenger.ai.AiController;
+import com.exteragram.messenger.plugins.PluginsConstants;
 import com.exteragram.messenger.preferences.BasePreferencesActivity;
 import com.exteragram.messenger.preferences.utils.SettingsRegistry;
 import com.exteragram.messenger.utils.text.LocaleUtils;
-import com.google.android.exoplayer2.util.Consumer;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
+import kotlin.Metadata;
+import kotlin.enums.EnumEntries;
+import kotlin.enums.EnumEntriesKt;
+import kotlin.jvm.internal.MutablePropertyReference0Impl;
+import kotlin.jvm.internal.StringCompanionObject;
+import kotlin.text.StringsKt;
+import okhttp3.internal.url._UrlKt;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.Utilities;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
-import org.telegram.ui.Components.UniversalRecyclerView;
 
-public class AiPreferencesActivity extends BasePreferencesActivity {
-    @Override 
-    public boolean hasWhiteActionBar() {
-        return true;
+@Metadata(d1 = {"\u0000L\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0010\u000e\n\u0000\n\u0002\u0010\u000b\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\b\n\u0000\n\u0002\u0010\u0007\n\u0002\b\u0002\n\u0002\u0010\r\n\u0002\b\u0006\u0018\u00002\u00020\u0001:\u0001\u001eB\u0007¢\u0006\u0004\b\u0002\u0010\u0003J\b\u0010\u0004\u001a\u00020\u0005H\u0016J\b\u0010\u0006\u001a\u00020\u0007H\u0014J\u001e\u0010\b\u001a\u00020\t2\f\u0010\n\u001a\b\u0012\u0004\u0012\u00020\f0\u000b2\u0006\u0010\r\u001a\u00020\u000eH\u0014J0\u0010\u000f\u001a\u00020\t2\u0006\u0010\u0010\u001a\u00020\f2\u0006\u0010\u0011\u001a\u00020\u00122\u0006\u0010\u0013\u001a\u00020\u00142\u0006\u0010\u0015\u001a\u00020\u00162\u0006\u0010\u0017\u001a\u00020\u0016H\u0014J\b\u0010\u0018\u001a\u00020\u0019H\u0002J\b\u0010\u001a\u001a\u00020\fH\u0002J\u0010\u0010\u001b\u001a\u00020\u00192\u0006\u0010\u001c\u001a\u00020\u0014H\u0002J\b\u0010\u001d\u001a\u00020\u0005H\u0002¨\u0006\u001f"}, d2 = {"Lcom/exteragram/messenger/ai/ui/activities/AiPreferencesActivity;", "Lcom/exteragram/messenger/preferences/BasePreferencesActivity;", "<init>", "()V", "getTitle", _UrlKt.FRAGMENT_ENCODE_SET, "needHideTitle", _UrlKt.FRAGMENT_ENCODE_SET, "fillItems", _UrlKt.FRAGMENT_ENCODE_SET, PluginsConstants.Settings.ITEMS, "Ljava/util/ArrayList;", "Lorg/telegram/ui/Components/UItem;", "adapter", "Lorg/telegram/ui/Components/UniversalAdapter;", "onClick", PluginsConstants.Settings.ITEM, PluginsConstants.Settings.VIEW, "Landroid/view/View;", "position", _UrlKt.FRAGMENT_ENCODE_SET, "x", _UrlKt.FRAGMENT_ENCODE_SET, "y", "getHistoryValue", _UrlKt.FRAGMENT_ENCODE_SET, "createTemperatureSliderItem", "formatTemperature", "value", "getEndpointValue", "PreferenceItem", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+public final class AiPreferencesActivity extends BasePreferencesActivity {
+
+    @Metadata(k = 3, mv = {2, 2, 0}, xi = 48)
+    public static final class WhenMappings {
+        public static final int[] $EnumSwitchMapping$0;
+
+        static {
+            int[] iArr = new int[PreferenceItem.values().length];
+            try {
+                iArr[PreferenceItem.ENDPOINT.ordinal()] = 1;
+            } catch (NoSuchFieldError unused) {
+            }
+            try {
+                iArr[PreferenceItem.ROLE.ordinal()] = 2;
+            } catch (NoSuchFieldError unused2) {
+            }
+            try {
+                iArr[PreferenceItem.HISTORY.ordinal()] = 3;
+            } catch (NoSuchFieldError unused3) {
+            }
+            try {
+                iArr[PreferenceItem.RESPONSE_STREAMING.ordinal()] = 4;
+            } catch (NoSuchFieldError unused4) {
+            }
+            try {
+                iArr[PreferenceItem.SHOW_RESPONSE_ONLY.ordinal()] = 5;
+            } catch (NoSuchFieldError unused5) {
+            }
+            try {
+                iArr[PreferenceItem.INSERT_AS_QUOTE.ordinal()] = 6;
+            } catch (NoSuchFieldError unused6) {
+            }
+            try {
+                iArr[PreferenceItem.REPLACE_TELEGRAM_EDITOR.ordinal()] = 7;
+            } catch (NoSuchFieldError unused7) {
+            }
+            try {
+                iArr[PreferenceItem.REPLACE_TELEGRAM_SUMMARIES.ordinal()] = 8;
+            } catch (NoSuchFieldError unused8) {
+            }
+            $EnumSwitchMapping$0 = iArr;
+        }
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
     public boolean needHideTitle() {
         return true;
     }
 
+    @Metadata(d1 = {"\u0000\u0014\n\u0002\u0018\u0002\n\u0002\u0010\u0010\n\u0002\b\f\n\u0002\u0010\b\n\u0002\b\u0003\b\u0086\u0081\u0002\u0018\u00002\b\u0012\u0004\u0012\u00020\u00000\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003R\u0011\u0010\r\u001a\u00020\u000e¢\u0006\b\n\u0000\u001a\u0004\b\u000f\u0010\u0010j\u0002\b\u0004j\u0002\b\u0005j\u0002\b\u0006j\u0002\b\u0007j\u0002\b\bj\u0002\b\tj\u0002\b\nj\u0002\b\u000bj\u0002\b\f¨\u0006\u0011"}, d2 = {"Lcom/exteragram/messenger/ai/ui/activities/AiPreferencesActivity$PreferenceItem;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "(Ljava/lang/String;I)V", "ENDPOINT", "ROLE", "HISTORY", "TEMPERATURE", "RESPONSE_STREAMING", "SHOW_RESPONSE_ONLY", "INSERT_AS_QUOTE", "REPLACE_TELEGRAM_EDITOR", "REPLACE_TELEGRAM_SUMMARIES", "id", _UrlKt.FRAGMENT_ENCODE_SET, "getId", "()I", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
     public enum PreferenceItem {
         ENDPOINT,
         ROLE,
-        SAVE_HISTORY,
-        CLEAR_HISTORY,
+        HISTORY,
         TEMPERATURE,
         RESPONSE_STREAMING,
         SHOW_RESPONSE_ONLY,
-        INSERT_AS_QUOTE;
+        INSERT_AS_QUOTE,
+        REPLACE_TELEGRAM_EDITOR,
+        REPLACE_TELEGRAM_SUMMARIES;
 
-        public int getId() {
-            return ordinal() + 1;
+        private static final EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
+        private final int id = ordinal() + 1;
+
+        public static EnumEntries<PreferenceItem> getEntries() {
+            return $ENTRIES;
+        }
+
+        PreferenceItem() {
+        }
+
+        public final int getId() {
+            return this.id;
         }
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
     public String getTitle() {
         return LocaleController.getString(R.string.AIChat);
     }
 
-    @Override 
-    public void fillItems(ArrayList<UItem> arrayList, UniversalAdapter universalAdapter) {
-        arrayList.add(UItem.asTopView(getTitle(), LocaleController.getString(R.string.AIChatInfo2), "exteraGramPlaceholders", "🤖"));
-        arrayList.add(UItem.asShadow());
-        arrayList.add(UItem.asHeader(LocaleController.getString(R.string.General)));
-        arrayList.add(UItem.asButton(PreferenceItem.ENDPOINT.getId(), R.drawable.msg_language, LocaleController.getString(R.string.Services), getEndpointValue()).prioritizeTitleOverValue(true).setSearchable(this).setLinkAlias("aiServices", this));
-        arrayList.add(UItem.asButton(PreferenceItem.ROLE.getId(), R.drawable.msg_openprofile, LocaleController.getString(R.string.Roles), AiConfig.getSelectedRole()).prioritizeTitleOverValue(true).setSearchable(this).setLinkAlias("aiRoles", this));
-        arrayList.add(UItem.asCheck(PreferenceItem.SAVE_HISTORY.getId(), LocaleController.getString(R.string.MessageHistory), R.drawable.msg_discuss).setChecked(AiConfig.getSaveHistory()).setSearchable(this).setLinkAlias("saveAiHistory", this));
-        if (!AiConfig.getConversationHistory().isEmpty()) {
-            arrayList.add(UItem.asButton(PreferenceItem.CLEAR_HISTORY.getId(), R.drawable.msg_delete, LocaleController.getString(R.string.ClearHistory)).red().setSearchable(this).setLinkAlias("clearAiHistory", this));
+    @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
+    public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
+        CharSequence string;
+        items.add(UItem.asTopView(getTitle(), LocaleController.getString(R.string.AIChatInfo2), "exteraGramPlaceholders", "🤖"));
+        items.add(UItem.asShadow());
+        items.add(UItem.asHeader(LocaleController.getString(R.string.General)));
+        PreferenceItem preferenceItem = PreferenceItem.ENDPOINT;
+        String string2 = LocaleController.getString(R.string.Services);
+        int i = R.drawable.msg_language;
+        String endpointValue = getEndpointValue();
+        Boolean bool = Boolean.TRUE;
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) preferenceItem, (CharSequence) string2, i, (CharSequence) endpointValue, (CharSequence) null, (Boolean) null, false, "aiServices", false, false, bool, 880, (Object) null));
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) PreferenceItem.ROLE, (CharSequence) LocaleController.getString(R.string.Roles), R.drawable.msg_openprofile, (CharSequence) AiConfig.getSelectedRole(), (CharSequence) null, (Boolean) null, false, "aiRoles", false, false, bool, 880, (Object) null));
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) PreferenceItem.HISTORY, (CharSequence) LocaleController.getString(R.string.MessageHistory), R.drawable.msg_discuss, getHistoryValue(), (CharSequence) null, (Boolean) null, false, "aiHistory", false, false, bool, 880, (Object) null));
+        items.add(UItem.asShadow(LocaleController.getString(R.string.HistoryInfo)));
+        items.add(UItem.asHeader(LocaleController.getString(R.string.AIReplaceTelegram)));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) PreferenceItem.REPLACE_TELEGRAM_EDITOR, (CharSequence) LocaleController.getString(R.string.AIFeaturesEditor), AiConfig.getReplaceTelegramEditor$default(0, 1, null), (CharSequence) LocaleController.getString(R.string.AIReplaceTelegramEditorInfo), 0, false, "replaceTelegramEditor", false, 0, 432, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) PreferenceItem.REPLACE_TELEGRAM_SUMMARIES, (CharSequence) LocaleController.getString(R.string.AIFeaturesSummaries), AiConfig.getReplaceTelegramSummaries$default(0, 1, null), (CharSequence) LocaleController.getString(R.string.AIReplaceTelegramSummariesInfo), 0, false, "replaceTelegramSummaries", false, 0, 432, (Object) null).showDivider(false));
+        items.add(UItem.asShadow(LocaleController.getString(R.string.AIReplaceTelegramInfo)));
+        items.add(UItem.asHeader(LocaleController.getString(R.string.AIGeneration)));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) PreferenceItem.RESPONSE_STREAMING, (CharSequence) LocaleController.getString(R.string.ResponseStreaming), AiConfig.getResponseStreaming(), (CharSequence) LocaleController.getString(R.string.ResponseStreamingInfo), 0, false, "responseStreaming", false, 0, 432, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) PreferenceItem.SHOW_RESPONSE_ONLY, (CharSequence) LocaleController.getString(R.string.ShowResponseOnly), AiConfig.getShowResponseOnly(), (CharSequence) null, 0, false, "showResponseOnly", false, 0, 440, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) PreferenceItem.INSERT_AS_QUOTE, (CharSequence) LocaleController.getString(R.string.InsertResponseAsQuote), AiConfig.getInsertAsQuote(), (CharSequence) null, 0, false, "insertResponseAsQuote", false, 0, 440, (Object) null).showDivider(false));
+        items.add(UItem.asShadow());
+        if (SettingsRegistry.markAsNewFeature("aiTemperature")) {
+            string = LocaleUtils.applyNewSpan(LocaleController.getString(R.string.AITemperature));
+        } else {
+            string = LocaleController.getString(R.string.AITemperature);
         }
-        arrayList.add(UItem.asShadow(LocaleController.getString(R.string.HistoryInfo)));
-        arrayList.add(UItem.asHeader(LocaleController.getString(R.string.AIGeneration)));
-        arrayList.add(UItem.asCheck(PreferenceItem.RESPONSE_STREAMING.getId(), LocaleController.getString(R.string.ResponseStreaming), LocaleController.getString(R.string.ResponseStreamingInfo), true).setChecked(AiConfig.getResponseStreaming()).setSearchable(this).setLinkAlias("responseStreaming", this));
-        arrayList.add(UItem.asCheck(PreferenceItem.SHOW_RESPONSE_ONLY.getId(), LocaleController.getString(R.string.ShowResponseOnly)).setChecked(AiConfig.getShowResponseOnly()).setSearchable(this).setLinkAlias("showResponseOnly", this));
-        arrayList.add(UItem.asCheck(PreferenceItem.INSERT_AS_QUOTE.getId(), LocaleController.getString(R.string.InsertResponseAsQuote)).setChecked(AiConfig.getInsertAsQuote()).showDivider(false).setSearchable(this).setLinkAlias("insertResponseAsQuote", this));
-        arrayList.add(UItem.asShadow());
-        arrayList.add(UItem.asHeader(SettingsRegistry.markAsNewFeature("aiTemperature") ? LocaleUtils.applyNewSpan(LocaleController.getString(R.string.AITemperature)) : LocaleController.getString(R.string.AITemperature)));
-        arrayList.add(createTemperatureSliderItem().showDivider(false).setSearchable(this).setLinkAlias("aiTemperature", this));
-        arrayList.add(UItem.asShadow(LocaleController.getString(R.string.AITemperatureInfo)));
+        items.add(UItem.asHeader(string));
+        UItem uItemCreateTemperatureSliderItem = createTemperatureSliderItem();
+        uItemCreateTemperatureSliderItem.showDivider(false);
+        uItemCreateTemperatureSliderItem.setSearchable(this);
+        uItemCreateTemperatureSliderItem.setLinkAlias("aiTemperature", this);
+        items.add(uItemCreateTemperatureSliderItem);
+        items.add(UItem.asShadow(LocaleController.getString(R.string.AITemperatureInfo)));
     }
 
-    @Override 
-    public void onClick(UItem uItem, View view, int i, float f, float f2) {
-        int i2 = uItem.id;
-        if (i2 <= 0 || i2 > PreferenceItem.values().length) {
+    @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
+    public void onClick(UItem item, View view, int position, float x, float y) {
+        int i = item.id;
+        if (i <= 0 || i > PreferenceItem.getEntries().size()) {
             return;
         }
-        switch (AnonymousClass1.$SwitchMap$com$exteragram$messenger$ai$ui$activities$AiPreferencesActivity$PreferenceItem[PreferenceItem.values()[uItem.id - 1].ordinal()]) {
+        switch (WhenMappings.$EnumSwitchMapping$0[PreferenceItem.getEntries().get(item.id - 1).ordinal()]) {
             case 1:
                 presentFragment(new ServicesActivity());
                 break;
@@ -86,104 +161,82 @@ public class AiPreferencesActivity extends BasePreferencesActivity {
                 presentFragment(new RolesActivity());
                 break;
             case 3:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { 
-                    @Override // com.google.android.exoplayer2.util.Consumer
-                    public final void accept(Object obj) {
-                        AiConfig.setSaveHistory(((Boolean) obj).booleanValue());
-                    }
-                });
+                presentFragment(new AiHistoryActivity());
                 break;
             case 4:
-                AiController.clearHistory(this, getResourceProvider(), true, new Runnable() { 
-                    @Override // java.lang.Runnable
-                    public final void run() {
-                        AiPreferencesActivity.this.lambda$onClick$0();
-                    }
-                });
-                break;
-            case 5:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { 
-                    @Override // com.google.android.exoplayer2.util.Consumer
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         AiConfig.setResponseStreaming(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 6:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { 
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 5:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         AiConfig.setShowResponseOnly(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 7:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { 
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 6:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         AiConfig.setInsertAsQuote(((Boolean) obj).booleanValue());
+                    }
+                });
+                break;
+            case 7:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
+                    public final void accept(Object obj) {
+                        AiConfig.setReplaceTelegramEditor(((Boolean) obj).booleanValue());
+                    }
+                });
+                break;
+            case 8:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
+                    public final void accept(Object obj) {
+                        AiConfig.setReplaceTelegramSummaries(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
         }
     }
 
-    public static /* synthetic */ class AnonymousClass1 {
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$ai$ui$activities$AiPreferencesActivity$PreferenceItem;
-
-        static {
-            int[] iArr = new int[PreferenceItem.values().length];
-            $SwitchMap$com$exteragram$messenger$ai$ui$activities$AiPreferencesActivity$PreferenceItem = iArr;
-            try {
-                iArr[PreferenceItem.ENDPOINT.ordinal()] = 1;
-            } catch (NoSuchFieldError unused) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$ai$ui$activities$AiPreferencesActivity$PreferenceItem[PreferenceItem.ROLE.ordinal()] = 2;
-            } catch (NoSuchFieldError unused2) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$ai$ui$activities$AiPreferencesActivity$PreferenceItem[PreferenceItem.SAVE_HISTORY.ordinal()] = 3;
-            } catch (NoSuchFieldError unused3) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$ai$ui$activities$AiPreferencesActivity$PreferenceItem[PreferenceItem.CLEAR_HISTORY.ordinal()] = 4;
-            } catch (NoSuchFieldError unused4) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$ai$ui$activities$AiPreferencesActivity$PreferenceItem[PreferenceItem.RESPONSE_STREAMING.ordinal()] = 5;
-            } catch (NoSuchFieldError unused5) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$ai$ui$activities$AiPreferencesActivity$PreferenceItem[PreferenceItem.SHOW_RESPONSE_ONLY.ordinal()] = 6;
-            } catch (NoSuchFieldError unused6) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$ai$ui$activities$AiPreferencesActivity$PreferenceItem[PreferenceItem.INSERT_AS_QUOTE.ordinal()] = 7;
-            } catch (NoSuchFieldError unused7) {
-            }
+    private final CharSequence getHistoryValue() {
+        if (!AiConfig.getSaveHistory()) {
+            return LocaleController.getString(R.string.BlurOff);
         }
+        int size = AiConfig.getConversationHistory().size();
+        return size == 0 ? LocaleController.getString(R.string.BlockedEmpty) : LocaleController.formatPluralString("messages", size, new Object[0]);
     }
 
-    public /* synthetic */ void lambda$onClick$0() {
-        UniversalAdapter universalAdapter;
-        UniversalRecyclerView universalRecyclerView = this.listView;
-        if (universalRecyclerView == null || (universalAdapter = universalRecyclerView.adapter) == null) {
-            return;
-        }
-        universalAdapter.update(true);
-    }
-
-    private UItem createTemperatureSliderItem() {
-        UItem uItemAsIntSlideView = UItem.asIntSlideView(1, 0, AiConfig.getTemperature(), 20, new Utilities.CallbackReturn() { 
-            @Override 
+    private final UItem createTemperatureSliderItem() {
+        int temperature = AiConfig.getTemperature();
+        Utilities.CallbackReturn callbackReturn = new Utilities.CallbackReturn() {
+            @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
-                return AiPreferencesActivity.this.formatTemperature(((Integer) obj).intValue());
+                return this.f$0.formatTemperature(((Integer) obj).intValue());
             }
-        }, new Utilities.Callback() { 
-            @Override 
+        };
+        final AnonymousClass3 anonymousClass3 = new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Integer.valueOf(AiConfig.getTemperature());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                AiConfig.setTemperature(((Number) obj).intValue());
+            }
+        };
+        UItem uItemAsIntSlideView = UItem.asIntSlideView(1, 0, temperature, 20, callbackReturn, new Utilities.Callback() {
+            @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                AiConfig.setTemperature(((Integer) obj).intValue());
+                anonymousClass3.set((Integer) obj);
             }
         });
         uItemAsIntSlideView.id = PreferenceItem.TEMPERATURE.getId();
@@ -191,15 +244,19 @@ public class AiPreferencesActivity extends BasePreferencesActivity {
         return uItemAsIntSlideView;
     }
 
-    public CharSequence formatTemperature(int i) {
-        return String.format(Locale.US, "%.1f", Float.valueOf(i / 10.0f));
+    public final CharSequence formatTemperature(int value) {
+        StringCompanionObject stringCompanionObject = StringCompanionObject.INSTANCE;
+        return String.format(Locale.US, "%.1f", Arrays.copyOf(new Object[]{Float.valueOf(value / 10.0f)}, 1));
     }
 
-    private String getEndpointValue() {
+    private final String getEndpointValue() {
+        if (AiController.getInstance().getSelected().isOnDevice()) {
+            return AiController.canUseAI() ? LocaleController.getString(R.string.AIOnDevice) : LocaleController.getString(R.string.BlockedEmpty);
+        }
         try {
             String host = new URL(AiController.getInstance().getSelected().getUrl()).getHost();
             if (!TextUtils.isEmpty(host) && AiController.canUseAI()) {
-                return host.contains("generativelanguage.googleapis") ? "Gemini" : host;
+                return StringsKt.contains$default((CharSequence) host, (CharSequence) "generativelanguage.googleapis", false, 2, (Object) null) ? "Gemini" : host;
             }
             return LocaleController.getString(R.string.BlockedEmpty);
         } catch (MalformedURLException unused) {

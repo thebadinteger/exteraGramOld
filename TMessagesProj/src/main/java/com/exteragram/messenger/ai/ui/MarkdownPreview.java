@@ -6,13 +6,12 @@ import android.text.style.TypefaceSpan;
 import java.util.ArrayList;
 import okhttp3.internal.url._UrlKt;
 import org.telegram.messenger.AndroidUtilities;
-import org.telegram.messenger.CodeHighlighting;
 import org.telegram.messenger.FileLog;
 import org.telegram.ui.Components.MarkdownParser;
 import org.telegram.ui.Components.QuoteSpan;
 import org.telegram.ui.iv.RichMessageConvert;
+import org.telegram.utils.code.highlight.CodeHighlighting;
 
-/* JADX INFO: loaded from: classes4.dex */
 public abstract class MarkdownPreview {
     public static CharSequence format(String str) {
         if (TextUtils.isEmpty(str)) {

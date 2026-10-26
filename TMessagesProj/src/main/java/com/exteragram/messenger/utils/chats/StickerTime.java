@@ -6,7 +6,6 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessageObject;
 import org.telegram.ui.ActionBar.Theme;
 
-/* JADX INFO: loaded from: classes4.dex */
 public abstract class StickerTime {
 
     public static final class Row {
@@ -88,7 +87,6 @@ public abstract class StickerTime {
         return row.timeWidth + AndroidUtilities.dp(12.0f) + (row.message.isOutOwner() ? AndroidUtilities.dp(20.0f) : 0);
     }
 
-    /* JADX WARN: Code duplicated, block: B:7:0x0018  */
     private static float getTimeLeft(Row row) {
         boolean z;
         float fDp = AndroidUtilities.dp(8.0f);

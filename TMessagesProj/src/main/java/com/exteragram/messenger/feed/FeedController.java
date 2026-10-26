@@ -4,11 +4,13 @@ import android.util.SparseArray;
 import android.util.SparseIntArray;
 import androidx.collection.LongSparseArray;
 import com.exteragram.messenger.ExteraConfig;
+import com.google.android.gms.cast.MediaError;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
 import org.telegram.messenger.DialogObject;
@@ -24,21 +26,17 @@ import org.telegram.tgnet.TLRPC;
 public class FeedController implements NotificationCenter.NotificationCenterDelegate {
     private static final FeedController[] Instance = new FeedController[16];
     private static final Object[] lockObjects = new Object[16];
+    private Timeline activeTimeline;
     private int attemptRounds;
     private final FeedBackfillCoordinator backfill;
-    private int cachedIncludedChannelCount;
-    private final int closedRefreshGuid;
-    private final Runnable closedRefreshRunnable;
+    private int badgeConfigGeneration;
+    private volatile int channelCacheSession;
     private boolean closedRefreshScheduled;
-    private int configGeneration;
     public final int currentAccount;
-    private SavedScrollPosition drawerScrollPosition;
     private boolean hasChannels;
     private boolean hasIncludedChannels;
     private int heldGuid;
     private int heldLoadIndex;
-    private final ArrayList<int[]> initialLoadWaiters;
-    private boolean initialUnreadScrollPending;
     private final FeedTimelineLoader loader;
     private boolean loading;
     private boolean loadingNewer;
@@ -47,12 +45,23 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
     private int resumedUiClients;
     private int sessionGeneration;
     private int staleEnumerationRetries;
-    private final FeedStore store;
+    private FeedStore store;
     private int uiActiveClients;
     private final FeedUnreadTracker unreadTracker;
+    private final LinkedHashMap<Integer, Timeline> timelines = new LinkedHashMap<>(4, 0.75f, true);
+    private int cachedIncludedChannelCount = -1;
+    private boolean initialUnreadScrollPending = true;
+    private final ArrayList<int[]> initialLoadWaiters = new ArrayList<>();
+    private final int closedRefreshGuid = ConnectionsManager.generateClassGuid();
+    private final Runnable closedRefreshRunnable = new Runnable() {
+        @Override // java.lang.Runnable
+        public final void run() {
+            this.f$0.runClosedRefresh();
+        }
+    };
 
     public interface ChannelsCallback {
-        void onChannels(ArrayList<TLRPC.Chat> arrayList, int i, boolean z, int i2);
+        void onChannels(ArrayList<TLRPC.Chat> arrayList, int i, boolean z, FeedConfig.Snapshot snapshot);
     }
 
     static {
@@ -98,76 +107,166 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         }
     }
 
+    public static final class Timeline {
+        FeedConfig.Snapshot appliedConfig;
+        final int categoryId;
+        SavedScrollPosition scrollPosition;
+        final FeedStore store = new FeedStore();
+
+        public Timeline(int i, FeedConfig.Snapshot snapshot) {
+            this.categoryId = i;
+            this.appliedConfig = snapshot;
+        }
+    }
+
     private FeedController(final int i) {
-        FeedStore feedStore = new FeedStore();
-        this.store = feedStore;
-        this.initialUnreadScrollPending = true;
-        this.initialLoadWaiters = new ArrayList<>();
-        this.closedRefreshGuid = ConnectionsManager.generateClassGuid();
-        this.closedRefreshRunnable = new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda0
-            @Override // java.lang.Runnable
-            public final void run() {
-                FeedController.this.runClosedRefresh();
-            }
-        };
         this.currentAccount = i;
-        this.unreadTracker = new FeedUnreadTracker(i, feedStore.getMessages());
+        Timeline timelineObtainTimeline = obtainTimeline(FeedConfig.getInstance(i).getSelectedCategoryId(), null);
+        this.activeTimeline = timelineObtainTimeline;
+        this.store = timelineObtainTimeline.store;
+        this.badgeConfigGeneration = FeedConfig.getInstance(i).getGeneration();
+        this.unreadTracker = new FeedUnreadTracker(i, this.store.getMessages());
         this.loader = new FeedTimelineLoader(i);
-        this.backfill = new FeedBackfillCoordinator(i, new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda1
+        this.backfill = new FeedBackfillCoordinator(i, new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                FeedController.this.onBackfillRoundFinished();
+                this.f$0.onBackfillRoundFinished();
             }
         });
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda2
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                FeedController.this.lambda$new$0(i);
+                this.f$0.lambda$new$0(i);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$0(int i) {
+    public void lambda$new$0(int i) {
         NotificationCenter.getInstance(i).addObserver(this, NotificationCenter.messagesDidLoad);
         NotificationCenter.getInstance(i).addObserver(this, NotificationCenter.loadingMessagesFailed);
         NotificationCenter.getInstance(i).addObserver(this, NotificationCenter.messagesDeleted);
         NotificationCenter.getInstance(i).addObserver(this, NotificationCenter.historyCleared);
         NotificationCenter.getInstance(i).addObserver(this, NotificationCenter.didReceiveNewMessages);
-        FeedChannelRegistry.getInstance(i).addListener(new FeedChannelRegistry.Listener() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda7
+        FeedChannelRegistry.getInstance(i).addListener(new FeedChannelRegistry.Listener() {
             @Override // com.exteragram.messenger.feed.FeedChannelRegistry.Listener
             public final void onFeedChannelsChanged(HashSet hashSet, HashSet hashSet2) {
-                FeedController.this.onFeedChannelsChanged(hashSet, hashSet2);
+                this.f$0.onFeedChannelsChanged(hashSet, hashSet2);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void onFeedChannelsChanged(HashSet<Long> hashSet, HashSet<Long> hashSet2) {
         this.loader.invalidateChannelCache();
         Iterator<Long> it = hashSet2.iterator();
         while (it.hasNext()) {
             deleteHistory(it.next().longValue(), Integer.MAX_VALUE);
         }
+        if (!hashSet.isEmpty()) {
+            for (Timeline timeline : this.timelines.values()) {
+                if (timeline != this.activeTimeline) {
+                    timeline.appliedConfig = null;
+                }
+            }
+        }
         if (hashSet.isEmpty()) {
-            NotificationCenter.getInstance(this.currentAccount).postNotificationNameOnUIThread(NotificationCenter.feedNeedReload, Boolean.FALSE);
+            NotificationCenter.getInstance(this.currentAccount).lambda$postNotificationNameOnUIThread$1(NotificationCenter.feedNeedReload, Boolean.FALSE);
         } else {
-            reconcileChannelSet(new Utilities.Callback() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda19
+            reconcileChannelSet(new Utilities.Callback() {
                 @Override // org.telegram.messenger.Utilities.Callback
                 public final void run(Object obj) {
-                    FeedController.this.lambda$onFeedChannelsChanged$1((Boolean) obj);
+                    this.f$0.lambda$onFeedChannelsChanged$1((Boolean) obj);
                 }
             });
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$onFeedChannelsChanged$1(Boolean bool) {
-        NotificationCenter.getInstance(this.currentAccount).postNotificationNameOnUIThread(NotificationCenter.feedNeedReload, bool);
+    public void lambda$onFeedChannelsChanged$1(Boolean bool) {
+        NotificationCenter.getInstance(this.currentAccount).lambda$postNotificationNameOnUIThread$1(NotificationCenter.feedNeedReload, bool);
     }
 
     public FeedStore getStore() {
         return this.store;
+    }
+
+    public int getActiveTimelineId() {
+        return this.activeTimeline.categoryId;
+    }
+
+    private Timeline obtainTimeline(int i, Timeline timeline) {
+        Timeline timeline2 = this.timelines.get(Integer.valueOf(i));
+        if (timeline2 != null) {
+            return timeline2;
+        }
+        Timeline timeline3 = new Timeline(i, FeedConfig.getInstance(this.currentAccount).snapshot());
+        this.timelines.put(Integer.valueOf(i), timeline3);
+        Iterator<Timeline> it = this.timelines.values().iterator();
+        while (this.timelines.size() > 3 && it.hasNext()) {
+            Timeline next = it.next();
+            if (next != timeline3 && next != timeline && next != this.activeTimeline) {
+                it.remove();
+                next.store.clear();
+            }
+        }
+        return timeline3;
+    }
+
+    public boolean activateSelectedTimeline() {
+        FeedConfig feedConfig = FeedConfig.getInstance(this.currentAccount);
+        int selectedCategoryId = feedConfig.getSelectedCategoryId();
+        if (this.activeTimeline.categoryId == selectedCategoryId) {
+            return false;
+        }
+        cancelLoads();
+        Timeline timeline = this.activeTimeline;
+        Timeline timelineObtainTimeline = obtainTimeline(selectedCategoryId, timeline);
+        this.activeTimeline = timelineObtainTimeline;
+        FeedStore feedStore = timelineObtainTimeline.store;
+        this.store = feedStore;
+        this.unreadTracker.setTimeline(feedStore.getMessages());
+        trimInactiveTimeline(timeline);
+        FeedConfig.Snapshot snapshot = feedConfig.snapshot();
+        if (snapshot.hasSameFilter(this.activeTimeline.appliedConfig)) {
+            this.activeTimeline.appliedConfig = snapshot;
+        }
+        pruneTimelines();
+        return true;
+    }
+
+    private void pruneTimelines() {
+        int i;
+        FeedConfig.Category category;
+        FeedConfig feedConfig = FeedConfig.getInstance(this.currentAccount);
+        Iterator<Timeline> it = this.timelines.values().iterator();
+        while (it.hasNext()) {
+            Timeline next = it.next();
+            if (next != this.activeTimeline && (i = next.categoryId) != 0 && ((category = feedConfig.getCategory(i)) == null || category.getIsHidden())) {
+                it.remove();
+                next.store.clear();
+            }
+        }
+    }
+
+    private void trimInactiveTimeline(Timeline timeline) {
+        int i;
+        int inactiveCacheCap = getInactiveCacheCap() / 2;
+        SavedScrollPosition savedScrollPosition = timeline.scrollPosition;
+        if (savedScrollPosition != null) {
+            MessageObject message = timeline.store.getMessage(savedScrollPosition.dialogId, savedScrollPosition.messageId);
+            int iIndexOf = message == null ? -1 : timeline.store.getMessages().indexOf(message);
+            if (iIndexOf >= inactiveCacheCap && (i = iIndexOf + 30) <= inactiveCacheCap * 2) {
+                inactiveCacheCap = i;
+            }
+        }
+        timeline.store.trim(inactiveCacheCap);
+    }
+
+    private boolean isTimelineSelected() {
+        return this.activeTimeline.categoryId == FeedConfig.getInstance(this.currentAccount).getSelectedCategoryId();
+    }
+
+    private boolean isConfigApplied() {
+        FeedConfig.Snapshot snapshot = this.activeTimeline.appliedConfig;
+        return snapshot != null && snapshot.getGeneration() == FeedConfig.getInstance(this.currentAccount).getGeneration();
     }
 
     public ArrayList<MessageObject> getMessages() {
@@ -192,6 +291,23 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
 
     public int getIncludedChannelCount() {
         return this.cachedIncludedChannelCount;
+    }
+
+    public boolean selectCategory(int i) {
+        if (!FeedConfig.getInstance(this.currentAccount).selectCategory(i)) {
+            return false;
+        }
+        notifyCategoriesChanged();
+        return true;
+    }
+
+    public void notifyCategoriesChanged() {
+        pruneTimelines();
+        int generation = FeedConfig.getInstance(this.currentAccount).getGeneration();
+        if (this.badgeConfigGeneration != generation) {
+            this.badgeConfigGeneration = generation;
+            NotificationCenter.getInstance(this.currentAccount).lambda$postNotificationNameOnUIThread$1(NotificationCenter.updateInterfaces, Integer.valueOf(MessagesController.UPDATE_MASK_READ_DIALOG_MESSAGE));
+        }
     }
 
     public void setUiActive(boolean z) {
@@ -238,9 +354,10 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
 
     public void clear() {
         this.sessionGeneration++;
-        this.configGeneration = FeedConfig.getInstance(this.currentAccount).getGeneration();
+        this.channelCacheSession++;
+        this.activeTimeline.appliedConfig = FeedConfig.getInstance(this.currentAccount).snapshot();
         this.unreadTracker.clear();
-        this.drawerScrollPosition = null;
+        this.activeTimeline.scrollPosition = null;
         this.store.clear();
         this.loading = false;
         this.loadingNewer = false;
@@ -275,23 +392,34 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
             return 300;
         }
         if (devicePerformanceClass != 2) {
-            return 600;
+            return MediaError.DetailedErrorCode.TEXT_UNKNOWN;
         }
         return 1000;
     }
 
     public void trimForInactiveCache() {
-        if (isUiActive() || this.store.isEmpty()) {
+        if (isUiActive()) {
+            return;
+        }
+        Iterator<Timeline> it = this.timelines.values().iterator();
+        while (it.hasNext()) {
+            Timeline next = it.next();
+            if (next != this.activeTimeline) {
+                it.remove();
+                next.store.clear();
+            }
+        }
+        if (this.store.isEmpty()) {
             return;
         }
         this.store.trim(getInactiveCacheCap());
     }
 
     public boolean isIncludedChannelPost(long j) {
-        if (!DialogObject.isChatDialog(j) || FeedConfig.getInstance(this.currentAccount).isExcluded(j)) {
-            return false;
+        if (DialogObject.isChatDialog(j) && FeedConfig.getInstance(this.currentAccount).isShownInFeed(j)) {
+            return isEligibleChannel(MessagesController.getInstance(this.currentAccount).getChat(Long.valueOf(-j)));
         }
-        return isEligibleChannel(MessagesController.getInstance(this.currentAccount).getChat(Long.valueOf(-j)));
+        return false;
     }
 
     public static boolean isEligibleChannel(TLRPC.Chat chat) {
@@ -327,15 +455,16 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         return this.unreadTracker.countUnreadBelow(arrayList, i);
     }
 
-    public void saveDrawerScrollPosition(long j, int i, int i2) {
-        if (j == 0 || i <= 0) {
+    public void saveScrollPosition(int i, long j, int i2, int i3) {
+        Timeline timeline = this.timelines.get(Integer.valueOf(i));
+        if (timeline == null || j == 0 || i2 <= 0) {
             return;
         }
-        this.drawerScrollPosition = new SavedScrollPosition(j, i, i2);
+        timeline.scrollPosition = new SavedScrollPosition(j, i2, i3);
     }
 
-    public SavedScrollPosition getDrawerScrollPosition() {
-        return this.drawerScrollPosition;
+    public SavedScrollPosition getSavedScrollPosition() {
+        return this.activeTimeline.scrollPosition;
     }
 
     public boolean hasNoSyntheticIds() {
@@ -355,7 +484,9 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
     }
 
     public boolean loadInitial(final int i, final int i2) {
-        ensureCurrentConfig();
+        if (!ensureCurrentConfig()) {
+            return false;
+        }
         final FeedConfig feedConfig = FeedConfig.getInstance(this.currentAccount);
         final int generation = feedConfig.getGeneration();
         final int channelCacheEpoch = this.loader.getChannelCacheEpoch();
@@ -379,29 +510,33 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
             }
             return false;
         }
+        if (!visibleMessages.isEmpty() && isConfigApplied()) {
+            applyReadStateFromDialogs();
+            postFeedResults(i, i2, visibleMessages, 0, true, false);
+            postFeedCount(i);
+            return true;
+        }
         final int i4 = this.sessionGeneration;
-        MessagesStorage.getInstance(this.currentAccount).getStorageQueue().postRunnable(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda18
+        MessagesStorage.getInstance(this.currentAccount).getStorageQueue().postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                FeedController.this.lambda$loadInitial$3(feedConfig, i4, generation, channelCacheEpoch, i, i2, visibleMessages);
+                this.f$0.lambda$loadInitial$3(feedConfig, i4, generation, channelCacheEpoch, i, i2, visibleMessages);
             }
         });
         return true;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$loadInitial$3(final FeedConfig feedConfig, final int i, final int i2, final int i3, final int i4, final int i5, final ArrayList arrayList) {
-        final FeedTimelineLoader.ChannelEnumeration channelEnumerationEnumerateChannels = this.loader.enumerateChannels(feedConfig, i, true);
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda24
+    public void lambda$loadInitial$3(final FeedConfig feedConfig, final int i, final int i2, final int i3, final int i4, final int i5, final ArrayList arrayList) {
+        final FeedTimelineLoader.ChannelEnumeration channelEnumerationEnumerateChannels = this.loader.enumerateChannels(feedConfig, this.channelCacheSession, true);
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                FeedController.this.lambda$loadInitial$2(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, i4, i5, arrayList);
+                this.f$0.lambda$loadInitial$2(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, i4, i5, arrayList);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$loadInitial$2(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, int i4, int i5, ArrayList arrayList) {
+    public void lambda$loadInitial$2(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, int i4, int i5, ArrayList arrayList) {
         if (i != this.sessionGeneration) {
             return;
         }
@@ -415,24 +550,45 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         }
     }
 
-    private void ensureCurrentConfig() {
-        if (this.configGeneration != FeedConfig.getInstance(this.currentAccount).getGeneration()) {
-            applyConfigChange(new Utilities.Callback() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda3
-                @Override // org.telegram.messenger.Utilities.Callback
-                public final void run(Object obj) {
-                    FeedController.this.lambda$ensureCurrentConfig$4((Boolean) obj);
+    private void applyReadStateFromDialogs() {
+        LongSparseArray<TLRPC.Dialog> longSparseArray = MessagesController.getInstance(this.currentAccount).dialogs_dict;
+        for (Long l : this.store.getLoadedDialogIds()) {
+            TLRPC.Dialog dialog = longSparseArray.get(l.longValue());
+            if (dialog != null) {
+                int i = dialog.read_inbox_max_id;
+                if (i <= 0 && dialog.unread_count <= 0) {
+                    i = dialog.top_message;
                 }
-            });
+                this.unreadTracker.applyReadInboxMax(l.longValue(), i);
+            }
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$ensureCurrentConfig$4(Boolean bool) {
-        NotificationCenter.getInstance(this.currentAccount).postNotificationNameOnUIThread(NotificationCenter.feedNeedReload, bool);
+    private boolean ensureCurrentConfig() {
+        if (!isTimelineSelected()) {
+            if (isUiActive()) {
+                return false;
+            }
+            activateSelectedTimeline();
+        }
+        if (isConfigApplied()) {
+            return true;
+        }
+        applyConfigChange(new Utilities.Callback() {
+            @Override // org.telegram.messenger.Utilities.Callback
+            public final void run(Object obj) {
+                this.f$0.lambda$ensureCurrentConfig$4((Boolean) obj);
+            }
+        });
+        return true;
+    }
+
+    public void lambda$ensureCurrentConfig$4(Boolean bool) {
+        NotificationCenter.getInstance(this.currentAccount).lambda$postNotificationNameOnUIThread$1(NotificationCenter.feedNeedReload, bool);
     }
 
     public void markConfigApplied() {
-        this.configGeneration = FeedConfig.getInstance(this.currentAccount).getGeneration();
+        this.activeTimeline.appliedConfig = FeedConfig.getInstance(this.currentAccount).snapshot();
     }
 
     public void applyConfigChange(Utilities.Callback<Boolean> callback) {
@@ -440,15 +596,23 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
     }
 
     private void reconcileChannelSet(final Utilities.Callback<Boolean> callback) {
+        if (!isTimelineSelected()) {
+            if (callback != null) {
+                callback.run(Boolean.FALSE);
+                return;
+            }
+            return;
+        }
         final int i = this.sessionGeneration;
+        final Timeline timeline = this.activeTimeline;
         final FeedConfig feedConfig = FeedConfig.getInstance(this.currentAccount);
         final int generation = feedConfig.getGeneration();
         final int channelCacheEpoch = this.loader.getChannelCacheEpoch();
         if (this.store.isEmpty()) {
-            loadChannels(new ChannelsCallback() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda12
+            loadChannels(new ChannelsCallback() {
                 @Override // com.exteragram.messenger.feed.FeedController.ChannelsCallback
-                public final void onChannels(ArrayList arrayList, int i2, boolean z, int i3) {
-                    FeedController.this.lambda$reconcileChannelSet$5(callback, arrayList, i2, z, i3);
+                public final void onChannels(ArrayList arrayList, int i2, boolean z, FeedConfig.Snapshot snapshot) {
+                    this.f$0.lambda$reconcileChannelSet$5(timeline, callback, arrayList, i2, z, snapshot);
                 }
             });
             return;
@@ -459,32 +623,30 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         final FeedTimelineLoader.Cursor cursor2 = new FeedTimelineLoader.Cursor();
         cursor.set(this.store.getNewestCursor().date, this.store.getNewestCursor().uid, this.store.getNewestCursor().mid);
         cursor2.set(this.store.getOldestCursor().date, this.store.getOldestCursor().uid, this.store.getOldestCursor().mid);
-        MessagesStorage.getInstance(this.currentAccount).getStorageQueue().postRunnable(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda13
+        MessagesStorage.getInstance(this.currentAccount).getStorageQueue().postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                FeedController.this.lambda$reconcileChannelSet$9(feedConfig, i, generation, channelCacheEpoch, callback, loadedDialogIds, hiddenSnapshot, cursor, cursor2);
+                this.f$0.lambda$reconcileChannelSet$9(feedConfig, i, generation, channelCacheEpoch, callback, loadedDialogIds, hiddenSnapshot, cursor, cursor2, timeline);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$reconcileChannelSet$5(Utilities.Callback callback, ArrayList arrayList, int i, boolean z, int i2) {
-        if (!z) {
-            this.configGeneration = i2;
+    public void lambda$reconcileChannelSet$5(Timeline timeline, Utilities.Callback callback, ArrayList arrayList, int i, boolean z, FeedConfig.Snapshot snapshot) {
+        if (!z && timeline == this.activeTimeline) {
+            timeline.appliedConfig = snapshot;
         }
         if (callback != null) {
             callback.run(Boolean.FALSE);
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$reconcileChannelSet$9(final FeedConfig feedConfig, final int i, final int i2, final int i3, final Utilities.Callback callback, HashSet hashSet, HashSet hashSet2, FeedTimelineLoader.Cursor cursor, FeedTimelineLoader.Cursor cursor2) {
-        final FeedTimelineLoader.ChannelEnumeration channelEnumerationEnumerateChannels = this.loader.enumerateChannels(feedConfig, i, true);
+    public void lambda$reconcileChannelSet$9(final FeedConfig feedConfig, final int i, final int i2, final int i3, final Utilities.Callback callback, HashSet hashSet, HashSet hashSet2, FeedTimelineLoader.Cursor cursor, FeedTimelineLoader.Cursor cursor2, final Timeline timeline) {
+        final FeedTimelineLoader.ChannelEnumeration channelEnumerationEnumerateChannels = this.loader.enumerateChannels(feedConfig, this.channelCacheSession, true);
         if (channelEnumerationEnumerateChannels.failed) {
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda21
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    FeedController.this.lambda$reconcileChannelSet$6(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, callback);
+                    this.f$0.lambda$reconcileChannelSet$6(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, callback);
                 }
             });
             return;
@@ -503,26 +665,25 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         }
         final FeedTimelineLoader.WindowPage windowPageLoadChannelWindow = arrayList.isEmpty() ? null : this.loader.loadChannelWindow(arrayList, cursor, cursor2);
         if (windowPageLoadChannelWindow != null && windowPageLoadChannelWindow.failed) {
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda22
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    FeedController.this.lambda$reconcileChannelSet$7(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, callback);
+                    this.f$0.lambda$reconcileChannelSet$7(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, callback);
                 }
             });
             return;
         }
         final ArrayList<MessageObject> arrayListCreateMessageObjects = windowPageLoadChannelWindow != null ? createMessageObjects(windowPageLoadChannelWindow.messages, windowPageLoadChannelWindow.users, windowPageLoadChannelWindow.chats) : null;
         final boolean z = !arrayList.isEmpty();
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda23
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                FeedController.this.lambda$reconcileChannelSet$8(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, callback, windowPageLoadChannelWindow, arrayListCreateMessageObjects, z);
+                this.f$0.lambda$reconcileChannelSet$8(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, callback, timeline, windowPageLoadChannelWindow, arrayListCreateMessageObjects, z);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$reconcileChannelSet$6(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, Utilities.Callback callback) {
+    public void lambda$reconcileChannelSet$6(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, Utilities.Callback callback) {
         if (i != this.sessionGeneration) {
             return;
         }
@@ -533,8 +694,7 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$reconcileChannelSet$7(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, Utilities.Callback callback) {
+    public void lambda$reconcileChannelSet$7(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, Utilities.Callback callback) {
         if (i != this.sessionGeneration) {
             return;
         }
@@ -545,8 +705,7 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$reconcileChannelSet$8(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, Utilities.Callback callback, FeedTimelineLoader.WindowPage windowPage, ArrayList arrayList, boolean z) {
+    public void lambda$reconcileChannelSet$8(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, Utilities.Callback callback, Timeline timeline, FeedTimelineLoader.WindowPage windowPage, ArrayList arrayList, boolean z) {
         if (i != this.sessionGeneration) {
             return;
         }
@@ -555,7 +714,7 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
             return;
         }
         applyEnumeration(channelEnumeration);
-        this.configGeneration = channelEnumeration.configGeneration;
+        timeline.appliedConfig = channelEnumeration.config;
         HashSet<Long> hashSet = new HashSet<>();
         ArrayList<FeedTimelineLoader.ChannelSnapshot> arrayList2 = channelEnumeration.included;
         int size = arrayList2.size();
@@ -592,27 +751,25 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         final FeedConfig feedConfig = FeedConfig.getInstance(this.currentAccount);
         final int generation = feedConfig.getGeneration();
         final int channelCacheEpoch = this.loader.getChannelCacheEpoch();
-        MessagesStorage.getInstance(this.currentAccount).getStorageQueue().postRunnable(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda8
+        MessagesStorage.getInstance(this.currentAccount).getStorageQueue().postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                FeedController.this.lambda$refreshReadState$11(feedConfig, i, generation, channelCacheEpoch, runnable);
+                this.f$0.lambda$refreshReadState$11(feedConfig, i, generation, channelCacheEpoch, runnable);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$refreshReadState$11(final FeedConfig feedConfig, final int i, final int i2, final int i3, final Runnable runnable) {
-        final FeedTimelineLoader.ChannelEnumeration channelEnumerationEnumerateChannels = this.loader.enumerateChannels(feedConfig, i, true);
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda20
+    public void lambda$refreshReadState$11(final FeedConfig feedConfig, final int i, final int i2, final int i3, final Runnable runnable) {
+        final FeedTimelineLoader.ChannelEnumeration channelEnumerationEnumerateChannels = this.loader.enumerateChannels(feedConfig, this.channelCacheSession, true);
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                FeedController.this.lambda$refreshReadState$10(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, runnable);
+                this.f$0.lambda$refreshReadState$10(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, runnable);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$refreshReadState$10(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, Runnable runnable) {
+    public void lambda$refreshReadState$10(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, Runnable runnable) {
         if (i != this.sessionGeneration) {
             return;
         }
@@ -625,8 +782,7 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
     }
 
     public boolean loadMore(int i, int i2) {
-        ensureCurrentConfig();
-        if (this.loading || (this.store.isEndReached() && !this.store.getOldestCursor().isEmpty())) {
+        if (!ensureCurrentConfig() || this.loading || (this.store.isEndReached() && !this.store.getOldestCursor().isEmpty())) {
             return false;
         }
         this.loading = true;
@@ -648,48 +804,46 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         final FeedTimelineLoader.Cursor cursor = new FeedTimelineLoader.Cursor();
         cursor.set(this.store.getOldestCursor().date, this.store.getOldestCursor().uid, this.store.getOldestCursor().mid);
         final HashSet<Long> exhaustedSnapshot = this.backfill.getExhaustedSnapshot();
-        MessagesStorage.getInstance(this.currentAccount).getStorageQueue().postRunnable(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda4
+        MessagesStorage.getInstance(this.currentAccount).getStorageQueue().postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                FeedController.this.lambda$runAttempt$15(feedConfig, i3, generation, channelCacheEpoch, i, i2, cursor, exhaustedSnapshot, zIsEmpty);
+                this.f$0.lambda$runAttempt$15(feedConfig, i3, generation, channelCacheEpoch, i, i2, cursor, exhaustedSnapshot, zIsEmpty);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$runAttempt$15(final FeedConfig feedConfig, final int i, final int i2, final int i3, final int i4, final int i5, FeedTimelineLoader.Cursor cursor, HashSet hashSet, final boolean z) {
-        final FeedTimelineLoader.ChannelEnumeration channelEnumerationEnumerateChannels = this.loader.enumerateChannels(feedConfig, i, false);
+    public void lambda$runAttempt$15(final FeedConfig feedConfig, final int i, final int i2, final int i3, final int i4, final int i5, FeedTimelineLoader.Cursor cursor, HashSet hashSet, final boolean z) {
+        final FeedTimelineLoader.ChannelEnumeration channelEnumerationEnumerateChannels = this.loader.enumerateChannels(feedConfig, this.channelCacheSession, false);
         ArrayList<FeedTimelineLoader.ChannelSnapshot> arrayList = channelEnumerationEnumerateChannels.included;
         if (channelEnumerationEnumerateChannels.failed) {
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda15
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    FeedController.this.lambda$runAttempt$12(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, i4, i5);
+                    this.f$0.lambda$runAttempt$12(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, i4, i5);
                 }
             });
         } else {
             if (arrayList.isEmpty()) {
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda16
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
-                        FeedController.this.lambda$runAttempt$13(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, i4, i5);
+                        this.f$0.lambda$runAttempt$13(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, i4, i5);
                     }
                 });
                 return;
             }
             final FeedTimelineLoader.OlderPage olderPageLoadOlderPage = this.loader.loadOlderPage(arrayList, cursor, hashSet);
             final ArrayList<MessageObject> arrayListCreateMessageObjects = createMessageObjects(olderPageLoadOlderPage.messages, olderPageLoadOlderPage.users, olderPageLoadOlderPage.chats);
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda17
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    FeedController.this.lambda$runAttempt$14(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, olderPageLoadOlderPage, i4, i5, z, arrayListCreateMessageObjects);
+                    this.f$0.lambda$runAttempt$14(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, olderPageLoadOlderPage, i4, i5, z, arrayListCreateMessageObjects);
                 }
             });
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$runAttempt$12(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, int i4, int i5) {
+    public void lambda$runAttempt$12(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, int i4, int i5) {
         if (i != this.sessionGeneration) {
             return;
         }
@@ -704,8 +858,7 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$runAttempt$13(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, int i4, int i5) {
+    public void lambda$runAttempt$13(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, int i4, int i5) {
         if (i != this.sessionGeneration) {
             return;
         }
@@ -733,8 +886,7 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         flushInitialLoadWaiters();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$runAttempt$14(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, FeedTimelineLoader.OlderPage olderPage, int i4, int i5, boolean z, ArrayList arrayList) {
+    public void lambda$runAttempt$14(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, FeedTimelineLoader.OlderPage olderPage, int i4, int i5, boolean z, ArrayList arrayList) {
         int i6;
         if (i != this.sessionGeneration) {
             return;
@@ -794,11 +946,11 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
     }
 
     private void postFeedResults(int i, int i2, ArrayList<MessageObject> arrayList, int i3, boolean z, boolean z2) {
-        NotificationCenter.getInstance(this.currentAccount).postNotificationNameOnUIThread(NotificationCenter.messagesDidLoad, 0L, Integer.valueOf(arrayList.size()), arrayList, Boolean.FALSE, 0, 0, 0, 0, Integer.valueOf(i3), Boolean.TRUE, Integer.valueOf(i), Integer.valueOf(i2), 0, 0, 7, Boolean.valueOf(z), Boolean.valueOf(z2));
+        NotificationCenter.getInstance(this.currentAccount).lambda$postNotificationNameOnUIThread$1(NotificationCenter.messagesDidLoad, 0L, Integer.valueOf(arrayList.size()), arrayList, Boolean.FALSE, 0, 0, 0, 0, Integer.valueOf(i3), Boolean.TRUE, Integer.valueOf(i), Integer.valueOf(i2), 0, 0, 7, Boolean.valueOf(z), Boolean.valueOf(z2));
     }
 
     private void postFeedCount(int i) {
-        NotificationCenter.getInstance(this.currentAccount).postNotificationNameOnUIThread(NotificationCenter.hashtagSearchUpdated, Integer.valueOf(i), Integer.valueOf(this.store.getCount()), Boolean.valueOf(this.store.isEndReached()), 0, 0, 0);
+        NotificationCenter.getInstance(this.currentAccount).lambda$postNotificationNameOnUIThread$1(NotificationCenter.hashtagSearchUpdated, Integer.valueOf(i), Integer.valueOf(this.store.getCount()), Boolean.valueOf(this.store.isEndReached()), 0, 0, 0);
     }
 
     private boolean isEnumerationCurrent(FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i, int i2) {
@@ -852,14 +1004,19 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         ArrayList arrayList = new ArrayList(this.initialLoadWaiters);
         this.initialLoadWaiters.clear();
         ArrayList<MessageObject> visibleMessages = this.store.getVisibleMessages();
-        for (int i = 0; i < arrayList.size(); i++) {
+        int size = arrayList.size();
+        int i = 0;
+        while (i < size) {
+            int i2 = i + 1;
             int[] iArr = (int[]) arrayList.get(i);
-            postFeedResults(iArr[0], iArr[1], visibleMessages, 0, false, z);
-            postFeedCount(iArr[0]);
+            FeedController feedController = this;
+            feedController.postFeedResults(iArr[0], iArr[1], visibleMessages, 0, false, z);
+            feedController.postFeedCount(iArr[0]);
+            this = feedController;
+            i = i2;
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void onBackfillRoundFinished() {
         if (this.loading) {
             runAttempt();
@@ -867,8 +1024,7 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
     }
 
     public boolean loadNewer(int i, int i2) {
-        ensureCurrentConfig();
-        if (this.loadingNewer || this.store.getNewestCursor().isEmpty()) {
+        if (!ensureCurrentConfig() || this.loadingNewer || this.store.getNewestCursor().isEmpty()) {
             return false;
         }
         this.loadingNewer = true;
@@ -883,48 +1039,46 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         final int channelCacheEpoch = this.loader.getChannelCacheEpoch();
         final FeedTimelineLoader.Cursor cursor = new FeedTimelineLoader.Cursor();
         cursor.set(this.store.getNewestCursor().date, this.store.getNewestCursor().uid, this.store.getNewestCursor().mid);
-        MessagesStorage.getInstance(this.currentAccount).getStorageQueue().postRunnable(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda6
+        MessagesStorage.getInstance(this.currentAccount).getStorageQueue().postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                FeedController.this.lambda$runLoadNewer$19(feedConfig, i3, generation, channelCacheEpoch, i, i2, cursor);
+                this.f$0.lambda$runLoadNewer$19(feedConfig, i3, generation, channelCacheEpoch, i, i2, cursor);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$runLoadNewer$19(final FeedConfig feedConfig, final int i, final int i2, final int i3, final int i4, final int i5, FeedTimelineLoader.Cursor cursor) {
-        final FeedTimelineLoader.ChannelEnumeration channelEnumerationEnumerateChannels = this.loader.enumerateChannels(feedConfig, i, false);
+    public void lambda$runLoadNewer$19(final FeedConfig feedConfig, final int i, final int i2, final int i3, final int i4, final int i5, FeedTimelineLoader.Cursor cursor) {
+        final FeedTimelineLoader.ChannelEnumeration channelEnumerationEnumerateChannels = this.loader.enumerateChannels(feedConfig, this.channelCacheSession, false);
         ArrayList<FeedTimelineLoader.ChannelSnapshot> arrayList = channelEnumerationEnumerateChannels.included;
         if (channelEnumerationEnumerateChannels.failed) {
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda9
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    FeedController.this.lambda$runLoadNewer$16(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, i4, i5);
+                    this.f$0.lambda$runLoadNewer$16(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, i4, i5);
                 }
             });
         } else {
             if (arrayList.isEmpty()) {
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda10
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
-                        FeedController.this.lambda$runLoadNewer$17(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, i4, i5);
+                        this.f$0.lambda$runLoadNewer$17(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, i4, i5);
                     }
                 });
                 return;
             }
             final FeedTimelineLoader.NewerPage newerPageLoadNewerPage = this.loader.loadNewerPage(arrayList, cursor);
             final ArrayList<MessageObject> arrayListCreateMessageObjects = createMessageObjects(newerPageLoadNewerPage.messages, newerPageLoadNewerPage.users, newerPageLoadNewerPage.chats);
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda11
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    FeedController.this.lambda$runLoadNewer$18(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, i4, i5, newerPageLoadNewerPage, arrayListCreateMessageObjects);
+                    this.f$0.lambda$runLoadNewer$18(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, i4, i5, newerPageLoadNewerPage, arrayListCreateMessageObjects);
                 }
             });
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$runLoadNewer$16(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, int i4, int i5) {
+    public void lambda$runLoadNewer$16(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, int i4, int i5) {
         if (i != this.sessionGeneration) {
             return;
         }
@@ -936,8 +1090,7 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$runLoadNewer$17(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, int i4, int i5) {
+    public void lambda$runLoadNewer$17(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, int i4, int i5) {
         if (i != this.sessionGeneration) {
             return;
         }
@@ -952,8 +1105,7 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$runLoadNewer$18(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, int i4, int i5, FeedTimelineLoader.NewerPage newerPage, ArrayList arrayList) {
+    public void lambda$runLoadNewer$18(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, int i4, int i5, FeedTimelineLoader.NewerPage newerPage, ArrayList arrayList) {
         if (i != this.sessionGeneration) {
             return;
         }
@@ -1058,33 +1210,28 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         final int i = this.sessionGeneration;
         final int generation = feedConfig.getGeneration();
         final int channelCacheEpoch = this.loader.getChannelCacheEpoch();
-        MessagesStorage.getInstance(this.currentAccount).getStorageQueue().postRunnable(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda5
+        MessagesStorage.getInstance(this.currentAccount).getStorageQueue().postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                FeedController.this.lambda$loadChannels$21(feedConfig, i, z, generation, channelCacheEpoch, channelsCallback);
+                this.f$0.lambda$loadChannels$21(feedConfig, z, i, generation, channelCacheEpoch, channelsCallback);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$loadChannels$21(final FeedConfig feedConfig, final int i, boolean z, final int i2, final int i3, final ChannelsCallback channelsCallback) {
-        final FeedTimelineLoader.ChannelEnumeration channelEnumerationEnumerateChannels = this.loader.enumerateChannels(feedConfig, i, z);
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.feed.FeedController$$ExternalSyntheticLambda14
+    public void lambda$loadChannels$21(final FeedConfig feedConfig, boolean z, final int i, final int i2, final int i3, final ChannelsCallback channelsCallback) {
+        final FeedTimelineLoader.ChannelEnumeration channelEnumerationEnumerateChannels = this.loader.enumerateChannels(feedConfig, this.channelCacheSession, z);
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                FeedController.this.lambda$loadChannels$20(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, channelsCallback);
+                this.f$0.lambda$loadChannels$20(i, channelEnumerationEnumerateChannels, feedConfig, i2, i3, channelsCallback);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$loadChannels$20(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, ChannelsCallback channelsCallback) {
-        if (i != this.sessionGeneration) {
-            return;
-        }
-        if (!isEnumerationCurrent(channelEnumeration, feedConfig, i2, i3)) {
+    public void lambda$loadChannels$20(int i, FeedTimelineLoader.ChannelEnumeration channelEnumeration, FeedConfig feedConfig, int i2, int i3, ChannelsCallback channelsCallback) {
+        if (i != this.sessionGeneration || !isEnumerationCurrent(channelEnumeration, feedConfig, i2, i3)) {
             if (channelsCallback != null) {
-                channelsCallback.onChannels(new ArrayList<>(), 0, true, channelEnumeration.configGeneration);
+                channelsCallback.onChannels(new ArrayList<>(), 0, true, channelEnumeration.config);
             }
         } else {
             applyEnumeration(channelEnumeration);
@@ -1092,30 +1239,55 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
                 MessagesController.getInstance(this.currentAccount).putChats(channelEnumeration.channels, true);
             }
             if (channelsCallback != null) {
-                channelsCallback.onChannels(channelEnumeration.channels, channelEnumeration.included.size(), channelEnumeration.failed, channelEnumeration.configGeneration);
+                channelsCallback.onChannels(channelEnumeration.channels, channelEnumeration.included.size(), channelEnumeration.failed, channelEnumeration.config);
             }
         }
     }
 
     private void pruneStaleExclusions(FeedConfig feedConfig, MessagesController messagesController) {
         HashSet hashSet = null;
+        HashSet hashSet2 = null;
         for (Long l : feedConfig.getExcludedSnapshot()) {
             TLRPC.Chat chat = messagesController.getChat(Long.valueOf(-l.longValue()));
             if (chat != null && !isEligibleChannel(chat)) {
-                if (hashSet == null) {
-                    hashSet = new HashSet();
+                if (hashSet2 == null) {
+                    hashSet2 = new HashSet();
                 }
-                hashSet.add(l);
+                hashSet2.add(l);
             }
         }
-        if (hashSet != null) {
-            feedConfig.removeExcluded(hashSet);
-            markConfigApplied();
+        Iterator<FeedConfig.Category> it = feedConfig.getCategories().iterator();
+        while (it.hasNext()) {
+            for (Long l2 : it.next().getChannels()) {
+                TLRPC.Chat chat2 = messagesController.getChat(Long.valueOf(-l2.longValue()));
+                if (chat2 != null && !isEligibleChannel(chat2)) {
+                    if (hashSet == null) {
+                        hashSet = new HashSet();
+                    }
+                    hashSet.add(l2);
+                }
+            }
         }
+        if (hashSet2 != null) {
+            feedConfig.removeExcluded(hashSet2);
+        }
+        if (hashSet != null) {
+            feedConfig.removeFromCategories(hashSet);
+        }
+        if (hashSet2 == null && hashSet == null) {
+            return;
+        }
+        markConfigApplied();
     }
 
     public void replaceMessage(MessageObject messageObject, MessageObject messageObject2) {
+        MessageObject message;
         this.store.replaceMessage(messageObject, messageObject2);
+        for (Timeline timeline : this.timelines.values()) {
+            if (timeline != this.activeTimeline && (message = timeline.store.getMessage(messageObject2.getDialogId(), messageObject2.getRealId())) != null) {
+                timeline.store.replaceMessage(message, FeedMessageUtils.createReplacementFor(this.currentAccount, message, messageObject2));
+            }
+        }
     }
 
     public ArrayList<Integer> deleteMessages(long j, ArrayList<Integer> arrayList) {
@@ -1123,6 +1295,11 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         ArrayList<Integer> arrayListDeleteMessages = this.store.deleteMessages(j, arrayList, zArr);
         if (zArr[0]) {
             onFeedRowsRemoved();
+        }
+        for (Timeline timeline : this.timelines.values()) {
+            if (timeline != this.activeTimeline) {
+                timeline.store.deleteMessages(j, arrayList, zArr);
+            }
         }
         return arrayListDeleteMessages;
     }
@@ -1132,6 +1309,11 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         ArrayList<Integer> arrayListDeleteHistory = this.store.deleteHistory(j, i, zArr);
         if (zArr[0]) {
             onFeedRowsRemoved();
+        }
+        for (Timeline timeline : this.timelines.values()) {
+            if (timeline != this.activeTimeline) {
+                timeline.store.deleteHistory(j, i, zArr);
+            }
         }
         return arrayListDeleteHistory;
     }
@@ -1147,13 +1329,18 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
 
     public ArrayList<MessageObject> updateViews(LongSparseArray<SparseIntArray> longSparseArray, LongSparseArray<SparseIntArray> longSparseArray2, LongSparseArray<SparseArray<TLRPC.MessageReplies>> longSparseArray3, boolean z) {
         ArrayList<MessageObject> arrayList = new ArrayList<>();
-        updateCounters(longSparseArray, true, arrayList);
-        updateCounters(longSparseArray2, false, arrayList);
+        Iterator<Timeline> it = this.timelines.values().iterator();
+        while (it.hasNext()) {
+            Timeline next = it.next();
+            ArrayList<MessageObject> arrayList2 = next == this.activeTimeline ? arrayList : null;
+            updateCounters(next.store, longSparseArray, true, arrayList2);
+            updateCounters(next.store, longSparseArray2, false, arrayList2);
+        }
         updateReplies(longSparseArray3, z, arrayList);
         return arrayList;
     }
 
-    private void updateCounters(LongSparseArray<SparseIntArray> longSparseArray, boolean z, ArrayList<MessageObject> arrayList) {
+    private void updateCounters(FeedStore feedStore, LongSparseArray<SparseIntArray> longSparseArray, boolean z, ArrayList<MessageObject> arrayList) {
         if (longSparseArray == null) {
             return;
         }
@@ -1161,18 +1348,22 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
             long jKeyAt = longSparseArray.keyAt(i);
             SparseIntArray sparseIntArrayValueAt = longSparseArray.valueAt(i);
             for (int i2 = 0; i2 < sparseIntArrayValueAt.size(); i2++) {
-                MessageObject message = getMessage(jKeyAt, sparseIntArrayValueAt.keyAt(i2));
+                MessageObject message = feedStore.getMessage(jKeyAt, sparseIntArrayValueAt.keyAt(i2));
                 if (message != null) {
                     int iValueAt = sparseIntArrayValueAt.valueAt(i2);
                     TLRPC.Message message2 = message.messageOwner;
                     if (z) {
                         if (iValueAt > message2.views) {
                             message2.views = iValueAt;
-                            addUpdated(arrayList, message);
+                            if (arrayList != null) {
+                                addUpdated(arrayList, message);
+                            }
                         }
                     } else if (iValueAt > message2.forwards) {
                         message2.forwards = iValueAt;
-                        addUpdated(arrayList, message);
+                        if (arrayList != null) {
+                            addUpdated(arrayList, message);
+                        }
                     }
                 }
             }
@@ -1280,7 +1471,6 @@ public class FeedController implements NotificationCenter.NotificationCenterDele
         AndroidUtilities.runOnUIThread(this.closedRefreshRunnable, 1000L);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void runClosedRefresh() {
         this.closedRefreshScheduled = false;
         if (isUiActive() || this.loadingNewer || this.store.isEmpty() || this.store.getNewestCursor().isEmpty()) {

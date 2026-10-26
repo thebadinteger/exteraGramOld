@@ -1,6 +1,7 @@
 package com.exteragram.messenger.export.api;
 
-import com.exteragram.messenger.utils.RecordTag;
+import com.android.tools.r8.RecordTag;
+import com.exteragram.messenger.plugins.PluginsConstants;
 import com.sun.jna.Callback;
 import java.util.Objects;
 
@@ -31,7 +32,7 @@ public final class ApiWrap$HistoryMessageMarkupButton extends RecordTag {
         CopyText
     }
 
-    private /* synthetic */ boolean $record$equals(Object obj) {
+    private boolean $record$equals(Object obj) {
         if (!(obj instanceof ApiWrap$HistoryMessageMarkupButton)) {
             return false;
         }
@@ -39,7 +40,7 @@ public final class ApiWrap$HistoryMessageMarkupButton extends RecordTag {
         return this.buttonId == apiWrap$HistoryMessageMarkupButton.buttonId && Objects.equals(this.type, apiWrap$HistoryMessageMarkupButton.type) && Objects.equals(this.text, apiWrap$HistoryMessageMarkupButton.text) && Objects.equals(this.data, apiWrap$HistoryMessageMarkupButton.data) && Objects.equals(this.forwardText, apiWrap$HistoryMessageMarkupButton.forwardText);
     }
 
-    private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+    private Object[] $record$getFieldsAsObjects() {
         return new Object[]{this.type, this.text, this.data, this.forwardText, Integer.valueOf(this.buttonId)};
     }
 
@@ -68,7 +69,7 @@ public final class ApiWrap$HistoryMessageMarkupButton extends RecordTag {
     }
 
     public final int hashCode() {
-        return java.util.Objects.hash(this.buttonId, this.type, this.text, this.data, this.forwardText);
+        return ApiWrap$java.util.Objects.hash(this.buttonId, this.type, this.text, this.data, this.forwardText);
     }
 
     public String text() {
@@ -94,7 +95,7 @@ public final class ApiWrap$HistoryMessageMarkupButton extends RecordTag {
     public static String TypeToString(ApiWrap$HistoryMessageMarkupButton apiWrap$HistoryMessageMarkupButton) {
         switch (ApiWrap$1.$SwitchMap$com$exteragram$messenger$export$api$ApiWrap$HistoryMessageMarkupButton$Type[apiWrap$HistoryMessageMarkupButton.type.ordinal()]) {
             case 1:
-                return "default";
+                return PluginsConstants.Settings.DEFAULT;
             case 2:
                 return "url";
             case 3:

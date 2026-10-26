@@ -1,8 +1,8 @@
 package com.exteragram.messenger.export.api;
 
-abstract /* synthetic */ class ApiWrap$1 {
-    static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$HistoryMessageMarkupButton$Type;
-    static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$Reaction$Type;
+abstract class ApiWrap$1 {
+    static final int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$HistoryMessageMarkupButton$Type;
+    static final int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$Reaction$Type;
 
     static {
         int[] iArr = new int[ApiWrap$Reaction.Type.values().length];

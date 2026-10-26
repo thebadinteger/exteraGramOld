@@ -20,7 +20,7 @@ public interface BoostySubscriberDao {
         Object L$0;
         Object L$1;
         int label;
-        /* synthetic */ Object result;
+         Object result;
 
         public AnonymousClass1(Continuation continuation) {
             super((Continuation) continuation);
@@ -52,16 +52,7 @@ public interface BoostySubscriberDao {
         }
     }
 
-    /* JADX WARN: Code duplicated, block: B:7:0x0013  */
-    /* JADX WARN: Code restructure failed: missing block: B:20:0x006a, code lost:
-    
-        if (r5.insertAll(r6, r0) == r1) goto L21;
-     */
-    /*
-        Code decompiled incorrectly, please refer to instructions dump.
-        To view partially-correct add '--show-bad-code' argument
-    */
-    static /* synthetic */ Object replaceSubscribers$suspendImpl(BoostySubscriberDao boostySubscriberDao, List<BoostySubscriberDTO> list, Continuation<? super Unit> continuation) {
+    static  Object replaceSubscribers$suspendImpl(BoostySubscriberDao boostySubscriberDao, List<BoostySubscriberDTO> list, Continuation<? super Unit> continuation) {
         AnonymousClass1 continuationImpl;
         if (continuation instanceof AnonymousClass1) {
             continuationImpl = (AnonymousClass1) continuation;

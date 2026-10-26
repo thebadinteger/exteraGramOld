@@ -12,7 +12,6 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.Utilities;
 
-/* JADX INFO: loaded from: classes4.dex */
 public abstract class AppIconController {
     private static List<AppIcon> allIcons;
     private static AppIcon selectedIcon;
@@ -72,7 +71,7 @@ public abstract class AppIconController {
     public static void setIcon(final AppIcon appIcon) {
         selectedIcon = appIcon;
         final List<AppIcon> allIcons2 = getAllIcons();
-        Utilities.globalQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.appicons.AppIconController$$ExternalSyntheticLambda3
+        Utilities.globalQueue.postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 AppIconController.applyIcon(appIcon, allIcons2);
@@ -80,7 +79,6 @@ public abstract class AppIconController {
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public static void applyIcon(AppIcon appIcon, List<AppIcon> list) {
         Context context = ApplicationLoader.applicationContext;
         PackageManager packageManager = context.getPackageManager();
@@ -95,21 +93,20 @@ public abstract class AppIconController {
     public static void fixLauncherIconIfNeeded() {
         final List<AppIcon> allIcons2 = getAllIcons();
         final AppIcon defaultIcon = getDefaultIcon();
-        Utilities.globalQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.appicons.AppIconController$$ExternalSyntheticLambda0
+        Utilities.globalQueue.postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                AppIconController.m1105$r8$lambda$5uIc0UfuYcxsOt72Pr_KfKeTK8(allIcons2, defaultIcon);
+                AppIconController.m1117$r8$lambda$5uIc0UfuYcxsOt72Pr_KfKeTK8(allIcons2, defaultIcon);
             }
         });
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$5uIc0UfuYc-xsOt72Pr_KfKeTK8, reason: not valid java name */
-    public static /* synthetic */ void m1105$r8$lambda$5uIc0UfuYcxsOt72Pr_KfKeTK8(List list, final AppIcon appIcon) {
+    public static void m1117$r8$lambda$5uIc0UfuYcxsOt72Pr_KfKeTK8(List list, final AppIcon appIcon) {
         Iterator it = list.iterator();
         while (it.hasNext()) {
             final AppIcon appIcon2 = (AppIcon) it.next();
             if (isEnabled(appIcon2)) {
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.appicons.AppIconController$$ExternalSyntheticLambda1
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
                         AppIconController.selectedIcon = appIcon2;
@@ -123,7 +120,7 @@ public abstract class AppIconController {
                 return;
             }
         }
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.appicons.AppIconController$$ExternalSyntheticLambda2
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 AppIconController.selectedIcon = appIcon;

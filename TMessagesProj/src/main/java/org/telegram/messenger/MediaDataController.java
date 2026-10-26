@@ -8,6 +8,8 @@
 
 package org.telegram.messenger;
 
+import com.exteragram.messenger.utils.chats.ChatSearchLocalFilter;
+
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -3670,6 +3672,7 @@ public class MediaDataController extends BaseController {
     private int messagesLocalSearchCount;
     private int[] messagesSearchCount = new int[]{0, 0};
     private boolean[] messagesSearchEndReached = new boolean[]{false, false};
+    private final ChatSearchLocalFilter searchLocalFilter = new ChatSearchLocalFilter(currentAccount);
     public ArrayList<MessageObject> searchResultMessages = new ArrayList<>();
     public ArrayList<MessageObject> searchServerResultMessages = new ArrayList<>();
     public ArrayList<MessageObject> searchLocalResultMessages = new ArrayList<>();
@@ -3783,7 +3786,19 @@ public class MediaDataController extends BaseController {
         return searchResultMessages;
     }
 
+    
+    public boolean isSearchCountApproximate() {
+        if (searchLocalFilter != null && searchLocalFilter.isActive()) {
+            boolean[] zArr = messagesSearchEndReached;
+            if (!zArr[0] || (lastMergeDialogId != 0 && !zArr[1])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void clearFoundMessageObjects() {
+        if (searchLocalFilter != null) searchLocalFilter.reset();
         searchResultMessages.clear();
         searchServerResultMessages.clear();
         searchLocalResultMessages.clear();
@@ -3791,6 +3806,25 @@ public class MediaDataController extends BaseController {
 
     public boolean isMessageFound(int messageId, boolean mergeDialog) {
         return searchServerResultMessagesMap[mergeDialog ? 1 : 0].indexOfKey(messageId) >= 0;
+    }
+
+    
+    private TLRPC.MessagesFilter lastSearchFilter;
+
+    public void searchMessagesInChat(String query, long dialogId, long mergeDialogId, int guid, int direction, long replyMessageId, TLRPC.User user, TLRPC.Chat chat, ReactionsLayoutInBubble.VisibleReaction reaction, TLRPC.MessagesFilter messagesFilter) {
+        lastSearchFilter = messagesFilter;
+        if (searchLocalFilter != null) {
+            searchLocalFilter.setFilter(messagesFilter);
+        }
+        searchMessagesInChat(query, dialogId, mergeDialogId, guid, direction, replyMessageId, false, user, chat, true, reaction);
+    }
+
+    public void searchMessagesInChat(String query, long dialogId, long mergeDialogId, int guid, int direction, long replyMessageId, boolean internal, TLRPC.User user, TLRPC.Chat chat, boolean jumpToMessage, ReactionsLayoutInBubble.VisibleReaction reaction, TLRPC.MessagesFilter messagesFilter) {
+        lastSearchFilter = messagesFilter;
+        if (searchLocalFilter != null) {
+            searchLocalFilter.setFilter(messagesFilter);
+        }
+        searchMessagesInChat(query, dialogId, mergeDialogId, guid, direction, replyMessageId, internal, user, chat, jumpToMessage, reaction);
     }
 
     public void searchMessagesInChat(String query, long dialogId, long mergeDialogId, int guid, int direction, long replyMessageId, TLRPC.User user, TLRPC.Chat chat, ReactionsLayoutInBubble.VisibleReaction reaction) {
@@ -3987,6 +4021,9 @@ public class MediaDataController extends BaseController {
         req.limit = 21;
         req.q = query != null ? query : "";
         req.offset_id = max_id;
+        if (searchLocalFilter != null) {
+            searchLocalFilter.applyTo(req, direction == 1);
+        }
         if (user != null) {
             req.from_id = MessagesController.getInputPeer(user);
             req.flags |= 1;
@@ -4090,7 +4127,7 @@ public class MediaDataController extends BaseController {
                                 searchServerResultMessagesMap[queryWithDialogFinal == dialogId ? 0 : 1].put(messageObject.getId(), messageObject);
                             }
                             updateSearchResults();
-                            messagesSearchEndReached[queryWithDialogFinal == dialogId ? 0 : 1] = res.messages.size() < req.limit;
+                            messagesSearchEndReached[queryWithDialogFinal == dialogId ? 0 : 1] = searchLocalFilter != null ? searchLocalFilter.isEndReached(queryWithDialogFinal == dialogId ? 0 : 1, res.messages.size() < req.limit) : res.messages.size() < req.limit;
                             messagesSearchCount[queryWithDialogFinal == dialogId ? 0 : 1] = res instanceof TLRPC.TL_messages_messagesSlice || res instanceof TLRPC.TL_messages_channelMessages ? res.count : res.messages.size();
                             if (searchServerResultMessages.isEmpty()) {
                                 getNotificationCenter().postNotificationName(NotificationCenter.chatSearchResultsAvailable, guid, 0, getMask(), (long) 0, 0, 0, jumpToMessage);
@@ -4170,6 +4207,9 @@ public class MediaDataController extends BaseController {
                 req.add_offset = -count;
             } else {
                 req.offset_id = max_id;
+        if (searchLocalFilter != null) {
+            searchLocalFilter.applyTo(req, direction == 1);
+        }
             }
             if (tag != null) {
                 req.flags |= 8;

@@ -13,7 +13,6 @@
     <string name="Preferences">exteraGram 偏好設定</string>
     <!-- Main Menu -->
     <string name="Links">連結</string>
-    <string name="AboutExteraDescription">以官方來源為基礎的實驗性 Telegram 用戶端！</string>
     <string name="Crowdin">翻譯</string>
     <string name="Categories">類別</string>
     <!-- Appearance -->
@@ -81,7 +80,6 @@
     <string name="UnlimitedRecentStickers">無限制最近貼圖</string>
     <string name="HideReactions">隱藏心情回應</string>
     <string name="HideReactionsInfo">心情回應將會被完全移除。</string>
-    <string name="DoubleTap">輕觸兩下</string>
     <string name="DoubleTapIncoming">傳入訊息</string>
     <string name="DoubleTapOutgoing">傳出訊息</string>
     <string name="DoubleTapInfo">部分聊天或頻道的部分動作需要管理員權限</string>

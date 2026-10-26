@@ -17,7 +17,7 @@ public final class CachedRemoteSet {
 
     public CachedRemoteSet(String str, Set<Long> set) {
         this.remoteKey = str;
-        this.defaultSet = java.util.Collections.unmodifiableSet(set);
+        this.defaultSet = new java.util.HashSet<>(set);
         initializeListener();
     }
 
@@ -27,10 +27,10 @@ public final class CachedRemoteSet {
         }
         RemoteUtils.initCached();
         if (RemoteUtils.sharedPreferences != null) {
-            SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() { 
+            SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
                 @Override // android.content.SharedPreferences.OnSharedPreferenceChangeListener
                 public final void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String str) {
-                    CachedRemoteSet.this.lambda$initializeListener$0(sharedPreferences, str);
+                    this.f$0.lambda$initializeListener$0(sharedPreferences, str);
                 }
             };
             this.changeListener = onSharedPreferenceChangeListener;
@@ -39,7 +39,7 @@ public final class CachedRemoteSet {
         }
     }
 
-    public /* synthetic */ void lambda$initializeListener$0(SharedPreferences sharedPreferences, String str) {
+    public void lambda$initializeListener$0(SharedPreferences sharedPreferences, String str) {
         if (this.remoteKey.equals(str)) {
             this.cachedValues = null;
         }

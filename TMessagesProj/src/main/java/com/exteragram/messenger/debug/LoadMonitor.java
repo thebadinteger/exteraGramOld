@@ -18,8 +18,6 @@ import com.chaquo.python.internal.Common;
 import com.exteragram.messenger.plugins.PluginsConstants;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.nio.charset.StandardCharsets;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -80,7 +78,6 @@ import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.ForegroundDetector;
 import org.telegram.ui.LaunchActivity;
 
-/* JADX INFO: loaded from: classes4.dex */
 @Metadata(d1 = {"\u0000®\u0001\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0002\n\u0002\u0010\u000b\n\u0000\n\u0002\u0010\u0002\n\u0002\b\u0002\n\u0002\u0010\b\n\u0002\b\u0005\n\u0002\u0010\u000e\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\t\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\f\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\b\n\u0002\u0010$\n\u0002\b\u0006\n\u0002\u0010 \n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\b\n\u0002\u0010\u0011\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u001e\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0012\bÆ\u0002\u0018\u00002\u00020\u0001:\b\u0087\u0001\u0088\u0001\u0089\u0001\u008a\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\u0015\u0010\u0007\u001a\u00020\u00062\u0006\u0010\u0005\u001a\u00020\u0004¢\u0006\u0004\b\u0007\u0010\bJ\r\u0010\n\u001a\u00020\t¢\u0006\u0004\b\n\u0010\u000bJ\u0015\u0010\r\u001a\u00020\u00062\u0006\u0010\f\u001a\u00020\t¢\u0006\u0004\b\r\u0010\u000eJ\r\u0010\u0010\u001a\u00020\u000f¢\u0006\u0004\b\u0010\u0010\u0011J\u000f\u0010\u0013\u001a\u0004\u0018\u00010\u0012¢\u0006\u0004\b\u0013\u0010\u0014J\r\u0010\u0016\u001a\u00020\u0015¢\u0006\u0004\b\u0016\u0010\u0017J\u001b\u0010\u001a\u001a\u00020\u00062\f\u0010\u0019\u001a\b\u0012\u0004\u0012\u00020\u00060\u0018¢\u0006\u0004\b\u001a\u0010\u001bJ\u0015\u0010\u001e\u001a\u00020\u00062\u0006\u0010\u001d\u001a\u00020\u001c¢\u0006\u0004\b\u001e\u0010\u001fJ\u0015\u0010 \u001a\u00020\u00062\u0006\u0010\u001d\u001a\u00020\u001c¢\u0006\u0004\b \u0010\u001fJ\u000f\u0010!\u001a\u00020\u0006H\u0007¢\u0006\u0004\b!\u0010\u0003J\u001f\u0010#\u001a\u00020\u00062\u0006\u0010\u001d\u001a\u00020\u001c2\u0006\u0010\"\u001a\u00020\u0012H\u0002¢\u0006\u0004\b#\u0010$J\u000f\u0010%\u001a\u00020\u0006H\u0002¢\u0006\u0004\b%\u0010\u0003J\u000f\u0010&\u001a\u00020\tH\u0002¢\u0006\u0004\b&\u0010\u000bJ\u0011\u0010'\u001a\u0004\u0018\u00010\u0004H\u0002¢\u0006\u0004\b'\u0010(J\u000f\u0010*\u001a\u00020)H\u0002¢\u0006\u0004\b*\u0010+J\u000f\u0010,\u001a\u00020\u0015H\u0002¢\u0006\u0004\b,\u0010\u0017J\u000f\u0010-\u001a\u00020\u0015H\u0002¢\u0006\u0004\b-\u0010\u0017J+\u00101\u001a\u001e\u0012\u0004\u0012\u00020\t\u0012\u0004\u0012\u00020/0.j\u000e\u0012\u0004\u0012\u00020\t\u0012\u0004\u0012\u00020/`0H\u0002¢\u0006\u0004\b1\u00102J\u0019\u00104\u001a\u0004\u0018\u00010/2\u0006\u00103\u001a\u00020\u000fH\u0002¢\u0006\u0004\b4\u00105J\u0017\u00107\u001a\u00020\u00152\u0006\u00106\u001a\u00020\u0015H\u0002¢\u0006\u0004\b7\u00108JS\u0010<\u001a\u001e\u0012\u0004\u0012\u00020\u000f\u0012\u0004\u0012\u00020\u00150.j\u000e\u0012\u0004\u0012\u00020\u000f\u0012\u0004\u0012\u00020\u0015`02\u0012\u0010:\u001a\u000e\u0012\u0004\u0012\u00020\t\u0012\u0004\u0012\u00020/092\u0012\u0010;\u001a\u000e\u0012\u0004\u0012\u00020\t\u0012\u0004\u0012\u00020/09H\u0002¢\u0006\u0004\b<\u0010=J=\u0010B\u001a\u0014\u0012\u0010\u0012\u000e\u0012\u0004\u0012\u00020\u000f\u0012\u0004\u0012\u00020\u00150A0@2\u0012\u0010>\u001a\u000e\u0012\u0004\u0012\u00020\u000f\u0012\u0004\u0012\u00020\u0015092\u0006\u0010?\u001a\u00020\tH\u0002¢\u0006\u0004\bB\u0010CJ3\u0010F\u001a\u00020E2\u0018\u0010>\u001a\u0014\u0012\u0010\u0012\u000e\u0012\u0004\u0012\u00020\u000f\u0012\u0004\u0012\u00020\u00150A0@2\b\b\u0002\u0010D\u001a\u00020\u0004H\u0002¢\u0006\u0004\bF\u0010GJ\u0019\u0010I\u001a\u0004\u0018\u00010\u000f2\u0006\u0010H\u001a\u00020\u000fH\u0002¢\u0006\u0004\bI\u0010JJ\u001d\u0010L\u001a\u00020\u00062\f\u0010K\u001a\b\u0012\u0004\u0012\u00020\u000f0@H\u0002¢\u0006\u0004\bL\u0010MJ\u001f\u0010Q\u001a\u0004\u0018\u00010\u000f2\f\u0010P\u001a\b\u0012\u0004\u0012\u00020O0NH\u0002¢\u0006\u0004\bQ\u0010RJ\u0011\u0010T\u001a\u0004\u0018\u00010SH\u0002¢\u0006\u0004\bT\u0010UJ\u001f\u0010X\u001a\u00020\u000f2\u0006\u0010V\u001a\u00020\u000f2\u0006\u0010W\u001a\u00020\tH\u0002¢\u0006\u0004\bX\u0010YJ\u0017\u0010[\u001a\u00020)2\u0006\u0010Z\u001a\u00020SH\u0002¢\u0006\u0004\b[\u0010\\J\u0017\u0010^\u001a\u00020)2\u0006\u0010]\u001a\u00020\u000fH\u0002¢\u0006\u0004\b^\u0010_J\u001f\u0010a\u001a\u00020\u00122\u0006\u0010`\u001a\u00020)2\u0006\u0010]\u001a\u00020\u000fH\u0002¢\u0006\u0004\ba\u0010bJ\u0017\u0010d\u001a\u00020\u000f2\u0006\u0010c\u001a\u00020\u0015H\u0002¢\u0006\u0004\bd\u0010eJ\u001f\u0010h\u001a\u00020\u000f2\u0006\u0010f\u001a\u00020\u00152\u0006\u0010g\u001a\u00020\u0015H\u0002¢\u0006\u0004\bh\u0010iJI\u0010l\u001a\u00020\u000f2\u0006\u0010g\u001a\u00020\u00152\u0006\u0010f\u001a\u00020\u00152\u0006\u0010j\u001a\u00020\u00152\u0006\u0010k\u001a\u00020\u00152\u0018\u0010>\u001a\u0014\u0012\u0010\u0012\u000e\u0012\u0004\u0012\u00020\u000f\u0012\u0004\u0012\u00020\u00150A0@H\u0002¢\u0006\u0004\bl\u0010mR\u001a\u0010n\u001a\b\u0012\u0004\u0012\u00020\u000f0N8\u0002X\u0082\u0004¢\u0006\u0006\n\u0004\bn\u0010oR\"\u0010q\u001a\u0010\u0012\f\u0012\n p*\u0004\u0018\u00010\u000f0\u000f0N8\u0002X\u0082\u0004¢\u0006\u0006\n\u0004\bq\u0010oR\u0018\u0010s\u001a\u0004\u0018\u00010r8\u0002@\u0002X\u0082\u000e¢\u0006\u0006\n\u0004\bs\u0010tR\u0018\u0010v\u001a\u0004\u0018\u00010u8\u0002@\u0002X\u0082\u000e¢\u0006\u0006\n\u0004\bv\u0010wR\u001e\u0010z\u001a\n\u0012\u0004\u0012\u00020y\u0018\u00010x8\u0002@\u0002X\u0082\u000e¢\u0006\u0006\n\u0004\bz\u0010{RH\u0010|\u001a6\u0012\u0004\u0012\u00020\u000f\u0012\u0010\u0012\u000e\u0012\u0004\u0012\u00020\t\u0012\u0004\u0012\u00020\u000f090.j\u001a\u0012\u0004\u0012\u00020\u000f\u0012\u0010\u0012\u000e\u0012\u0004\u0012\u00020\t\u0012\u0004\u0012\u00020\u000f09`08\u0002X\u0082\u0004¢\u0006\u0006\n\u0004\b|\u0010}R0\u0010~\u001a\u001e\u0012\u0004\u0012\u00020\u000f\u0012\u0004\u0012\u00020\u000f0.j\u000e\u0012\u0004\u0012\u00020\u000f\u0012\u0004\u0012\u00020\u000f`08\u0002X\u0082\u0004¢\u0006\u0006\n\u0004\b~\u0010}R0\u0010\u007f\u001a\u001e\u0012\u0004\u0012\u00020\u000f\u0012\u0004\u0012\u00020\t0.j\u000e\u0012\u0004\u0012\u00020\u000f\u0012\u0004\u0012\u00020\t`08\u0002X\u0082\u0004¢\u0006\u0006\n\u0004\b\u007f\u0010}R\u001f\u0010\u0083\u0001\u001a\u00020\u00128FX\u0086\u0084\u0002¢\u0006\u000f\n\u0006\b\u0080\u0001\u0010\u0081\u0001\u001a\u0005\b\u0082\u0001\u0010\u0014R\u001f\u0010\u0086\u0001\u001a\u00020\u00158BX\u0082\u0084\u0002¢\u0006\u000f\n\u0006\b\u0084\u0001\u0010\u0081\u0001\u001a\u0005\b\u0085\u0001\u0010\u0017¨\u0006\u008b\u0001"}, d2 = {"Lcom/exteragram/messenger/debug/LoadMonitor;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", _UrlKt.FRAGMENT_ENCODE_SET, "enabled", _UrlKt.FRAGMENT_ENCODE_SET, "setEnabled", "(Z)V", _UrlKt.FRAGMENT_ENCODE_SET, "getCpuPercent", "()I", "percent", "setCpuPercent", "(I)V", _UrlKt.FRAGMENT_ENCODE_SET, "getSummary", "()Ljava/lang/String;", "Ljava/io/File;", "getLastReport", "()Ljava/io/File;", _UrlKt.FRAGMENT_ENCODE_SET, "getReportsSize", "()J", "Lkotlin/Function0;", "onDone", "deleteReports", "(Lkotlin/jvm/functions/Function0;)V", "Landroid/app/Activity;", "activity", "shareLastReport", "(Landroid/app/Activity;)V", "captureAndShare", "init", "file", "share", "(Landroid/app/Activity;Ljava/io/File;)V", "showPendingAlert", "currentState", "isPlugged", "()Ljava/lang/Boolean;", "Lorg/json/JSONObject;", "batteryJson", "()Lorg/json/JSONObject;", "uidRxBytes", "uidTxBytes", "Ljava/util/HashMap;", "Lcom/exteragram/messenger/debug/LoadMonitor$ThreadStat;", "Lkotlin/collections/HashMap;", "readThreads", "()Ljava/util/HashMap;", "stat", "parseStat", "(Ljava/lang/String;)Lcom/exteragram/messenger/debug/LoadMonitor$ThreadStat;", "ticks", "ticksToMs", "(J)J", _UrlKt.FRAGMENT_ENCODE_SET, "previous", "current", "threadDeltas", "(Ljava/util/Map;Ljava/util/Map;)Ljava/util/HashMap;", "threads", "limit", _UrlKt.FRAGMENT_ENCODE_SET, "Lkotlin/Pair;", "topThreads", "(Ljava/util/Map;I)Ljava/util/List;", "withOrigin", "Lorg/json/JSONArray;", "threadsJson", "(Ljava/util/List;Z)Lorg/json/JSONArray;", "name", "originOf", "(Ljava/lang/String;)Ljava/lang/String;", "names", "resolveOrigins", "(Ljava/util/List;)V", _UrlKt.FRAGMENT_ENCODE_SET, "Ljava/lang/StackTraceElement;", "trace", "appFrame", "([Ljava/lang/StackTraceElement;)Ljava/lang/String;", "Landroid/os/health/HealthStats;", "takeHealthStats", "()Landroid/os/health/HealthStats;", "dataType", PluginsConstants.Settings.KEY, "healthKeyName", "(Ljava/lang/String;I)Ljava/lang/String;", "stats", "healthJson", "(Landroid/os/health/HealthStats;)Lorg/json/JSONObject;", "trigger", "baseReport", "(Ljava/lang/String;)Lorg/json/JSONObject;", "report", "writeReport", "(Lorg/json/JSONObject;Ljava/lang/String;)Ljava/io/File;", "ms", "formatDuration", "(J)Ljava/lang/String;", "cpuMs", "wallMs", "formatPercent", "(JJ)Ljava/lang/String;", "rxBytes", "txBytes", "describeEpisode", "(JJJJLjava/util/List;)Ljava/lang/String;", "STATE_NAMES", "[Ljava/lang/String;", "kotlin.jvm.PlatformType", "SKIPPED_FRAMES", "Lcom/exteragram/messenger/debug/LoadMonitor$Sampler;", "sampler", "Lcom/exteragram/messenger/debug/LoadMonitor$Sampler;", "Lcom/exteragram/messenger/debug/LoadMonitor$PendingAlert;", "pendingAlert", "Lcom/exteragram/messenger/debug/LoadMonitor$PendingAlert;", "Ljava/lang/ref/WeakReference;", "Lorg/telegram/ui/ActionBar/AlertDialog;", "alertRef", "Ljava/lang/ref/WeakReference;", "healthKeyNames", "Ljava/util/HashMap;", "threadOrigins", "originAttempts", "reportsDir$delegate", "Lkotlin/Lazy;", "getReportsDir", "reportsDir", "clockTicks$delegate", "getClockTicks", "clockTicks", "ThreadStat", "PendingAlert", "Episode", "Sampler", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
 @SourceDebugExtension({"SMAP\nLoadMonitor.kt\nKotlin\n*S Kotlin\n*F\n+ 1 LoadMonitor.kt\ncom/exteragram/messenger/debug/LoadMonitor\n+ 2 _Arrays.kt\nkotlin/collections/ArraysKt___ArraysKt\n+ 3 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n+ 4 fake.kt\nkotlin/jvm/internal/FakeKt\n+ 5 Maps.kt\nkotlin/collections/MapsKt__MapsKt\n*L\n1#1,696:1\n3938#2:697\n4474#2,2:698\n13213#2,2:723\n3938#2:728\n4474#2,2:729\n3938#2:745\n4474#2,2:746\n14048#2,2:751\n2045#3,14:700\n1080#3:715\n1586#3:716\n1661#3,3:717\n777#3:720\n873#3,2:721\n1205#3,2:731\n1282#3,4:733\n1586#3:741\n1661#3,3:742\n1080#3:748\n1915#3,2:749\n1#4:714\n410#5,3:725\n413#5,4:737\n*S KotlinDebug\n*F\n+ 1 LoadMonitor.kt\ncom/exteragram/messenger/debug/LoadMonitor\n*L\n130#1:697\n130#1:698,2\n291#1:723,2\n308#1:728\n308#1:729,2\n417#1:745\n417#1:746,2\n137#1:751,2\n131#1:700,14\n253#1:715\n253#1:716\n253#1:717,3\n271#1:720\n271#1:721,2\n309#1:731,2\n309#1:733,4\n382#1:741\n382#1:742,3\n418#1:748\n420#1:749,2\n304#1:725,3\n304#1:737,4\n*E\n"})
 public final class LoadMonitor {
@@ -94,16 +91,14 @@ public final class LoadMonitor {
     private static final HashMap<String, String> threadOrigins = new HashMap<>();
     private static final HashMap<String, Integer> originAttempts = new HashMap<>();
 
-    /* JADX INFO: renamed from: reportsDir$delegate, reason: from kotlin metadata */
-    private static final Lazy reportsDir = LazyKt.lazy(new Function0() { // from class: com.exteragram.messenger.debug.LoadMonitor$$ExternalSyntheticLambda0
+    private static final Lazy reportsDir = LazyKt.lazy(new Function0() {
         @Override // kotlin.jvm.functions.Function0
         public final Object invoke() {
             return DebugFilesKt.debugFilesDir("loadreports");
         }
     });
 
-    /* JADX INFO: renamed from: clockTicks$delegate, reason: from kotlin metadata */
-    private static final Lazy clockTicks = LazyKt.lazy(new Function0() { // from class: com.exteragram.messenger.debug.LoadMonitor$$ExternalSyntheticLambda1
+    private static final Lazy clockTicks = LazyKt.lazy(new Function0() {
         @Override // kotlin.jvm.functions.Function0
         public final Object invoke() {
             return Long.valueOf(LoadMonitor.$r8$lambda$HqwllwjZJtclxFPulNWPmnOfRKg());
@@ -175,18 +170,32 @@ public final class LoadMonitor {
 
     public final File getLastReport() {
         File[] fileArrListFiles = getReportsDir().listFiles();
+        Object next = null;
         if (fileArrListFiles == null) {
             return null;
         }
-        File lastFile = null;
+        ArrayList arrayList = new ArrayList();
         for (File file : fileArrListFiles) {
-            if (file.getName().endsWith(".json")) {
-                if (lastFile == null || file.lastModified() > lastFile.lastModified()) {
-                    lastFile = file;
-                }
+            if (StringsKt.endsWith$default(file.getName(), ".json", false, 2, (Object) null)) {
+                arrayList.add(file);
             }
         }
-        return lastFile;
+        Iterator it = arrayList.iterator();
+        if (it.hasNext()) {
+            next = it.next();
+            if (it.hasNext()) {
+                long jLastModified = ((File) next).lastModified();
+                do {
+                    Object next2 = it.next();
+                    long jLastModified2 = ((File) next2).lastModified();
+                    if (jLastModified < jLastModified2) {
+                        next = next2;
+                        jLastModified = jLastModified2;
+                    }
+                } while (it.hasNext());
+            }
+        }
+        return (File) next;
     }
 
     public final long getReportsSize() {
@@ -201,23 +210,25 @@ public final class LoadMonitor {
     }
 
     public final void deleteReports(final Function0<Unit> onDone) {
-        if (onDone != null) {
-            deleteReports(() -> onDone.invoke());
-        } else {
-            deleteReports((Runnable) null);
-        }
+        Utilities.globalQueue.postRunnable(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                LoadMonitor.$r8$lambda$NdeRMlyzkcIMr7a3YcyRA_FFvjU(onDone);
+            }
+        });
     }
 
-    public final void deleteReports(final Runnable onDone) {
-        Utilities.globalQueue.postRunnable(() -> {
-            File[] fileArrListFiles = INSTANCE.getReportsDir().listFiles();
-            if (fileArrListFiles != null) {
-                for (File file : fileArrListFiles) {
-                    file.delete();
-                }
+    public static void $r8$lambda$NdeRMlyzkcIMr7a3YcyRA_FFvjU(final Function0 function0) {
+        File[] fileArrListFiles = INSTANCE.getReportsDir().listFiles();
+        if (fileArrListFiles != null) {
+            for (File file : fileArrListFiles) {
+                file.delete();
             }
-            if (onDone != null) {
-                AndroidUtilities.runOnUIThread(onDone);
+        }
+        AndroidUtilities.runOnUIThread(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                function0.invoke();
             }
         });
     }
@@ -230,40 +241,56 @@ public final class LoadMonitor {
     }
 
     public final void captureAndShare(final Activity activity) {
+        DispatchQueue queue;
         final Sampler sampler2 = sampler;
-        DispatchQueue queue = (sampler2 != null && sampler2.getQueue() != null) ? sampler2.getQueue() : Utilities.globalQueue;
-        queue.postRunnable(() -> {
-            File reportFile = null;
-            Throwable error = null;
-            try {
-                JSONObject json = (sampler2 != null) ? sampler2.captureReport("manual") : null;
-                if (json == null) {
-                    json = INSTANCE.baseReport("manual");
-                }
-                reportFile = INSTANCE.writeReport(json, "manual");
-            } catch (Throwable th) {
-                error = th;
+        if (sampler2 == null || (queue = sampler2.getQueue()) == null) {
+            queue = Utilities.globalQueue;
+        }
+        queue.postRunnable(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                LoadMonitor.$r8$lambda$G5I7fuj0kLwvbL4wsMtBJkoYexs(sampler2, activity);
             }
-            final File finalFile = reportFile;
-            final Throwable finalError = error;
-            AndroidUtilities.runOnUIThread(() -> {
-                if (finalFile != null) {
-                    INSTANCE.share(activity, finalFile);
-                }
-                if (finalError != null) {
-                    FileLog.e(finalError);
-                    BulletinFactory.global().createSimpleBulletin(R.raw.error, "Load report failed: " + finalError).show();
-                }
-            });
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
+    public static void $r8$lambda$G5I7fuj0kLwvbL4wsMtBJkoYexs(Sampler sampler2, final Activity activity) {
+        final Object objM2406constructorimpl;
+        JSONObject jSONObjectBaseReport;
+        LoadMonitor loadMonitor = INSTANCE;
+        try {
+            Result.Companion companion = Result.INSTANCE;
+            if (sampler2 == null || (jSONObjectBaseReport = sampler2.captureReport("manual")) == null) {
+                jSONObjectBaseReport = loadMonitor.baseReport("manual");
+            }
+            objM2406constructorimpl = Result.m2406constructorimpl(loadMonitor.writeReport(jSONObjectBaseReport, "manual"));
+        } catch (Throwable th) {
+            Result.Companion companion2 = Result.INSTANCE;
+            objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th));
+        }
+        AndroidUtilities.runOnUIThread(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                LoadMonitor.$r8$lambda$yclvq93EyksPCxohhOabqVuRpcY(objM2406constructorimpl, activity);
+            }
+        });
+    }
+
+    public static void $r8$lambda$yclvq93EyksPCxohhOabqVuRpcY(Object obj, Activity activity) {
+        if (Result.m2413isSuccessimpl(obj)) {
+            INSTANCE.share(activity, (File) obj);
+        }
+        Throwable thM2409exceptionOrNullimpl = Result.m2409exceptionOrNullimpl(obj);
+        if (thM2409exceptionOrNullimpl != null) {
+            FileLog.e(thM2409exceptionOrNullimpl);
+            BulletinFactory.global().createSimpleBulletin(R.raw.error, "Load report failed: " + thM2409exceptionOrNullimpl).show();
+        }
+    }
+
     public final void share(Activity activity, File file) {
         DebugFilesKt.shareDebugFile(activity, file, "application/json", "Share load report");
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final void showPendingAlert() {
         AlertDialog alertDialog;
         final PendingAlert pendingAlert2 = pendingAlert;
@@ -277,12 +304,12 @@ public final class LoadMonitor {
         WeakReference<AlertDialog> weakReference = alertRef;
         if (weakReference == null || (alertDialog = weakReference.get()) == null || !alertDialog.isShowing()) {
             pendingAlert = null;
-            AlertDialog alertDialogCreate = new AlertDialog.Builder(launchActivity).setTitle("High background load").setMessage(pendingAlert2.getMessage()).setPositiveButton("Share", new AlertDialog.OnButtonClickListener() { // from class: com.exteragram.messenger.debug.LoadMonitor$$ExternalSyntheticLambda2
+            AlertDialog alertDialogCreate = new AlertDialog.Builder(launchActivity).setTitle("High background load").setMessage(pendingAlert2.getMessage()).setPositiveButton("Share", new AlertDialog.OnButtonClickListener() {
                 @Override // org.telegram.ui.ActionBar.AlertDialog.OnButtonClickListener
                 public final void onClick(AlertDialog alertDialog2, int i) {
                     LoadMonitor.INSTANCE.share(launchActivity, pendingAlert2.getFile());
                 }
-            }).setNeutralButton("Turn off", new AlertDialog.OnButtonClickListener() { // from class: com.exteragram.messenger.debug.LoadMonitor$$ExternalSyntheticLambda3
+            }).setNeutralButton("Turn off", new AlertDialog.OnButtonClickListener() {
                 @Override // org.telegram.ui.ActionBar.AlertDialog.OnButtonClickListener
                 public final void onClick(AlertDialog alertDialog2, int i) {
                     LoadMonitor.INSTANCE.setEnabled(false);
@@ -297,7 +324,6 @@ public final class LoadMonitor {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final int currentState() {
         Object systemService = ApplicationLoader.applicationContext.getSystemService("power");
         PowerManager powerManager = systemService instanceof PowerManager ? (PowerManager) systemService : null;
@@ -312,37 +338,37 @@ public final class LoadMonitor {
         return i ^ 1;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final Boolean isPlugged() {
+        Object objM2406constructorimpl;
+        Boolean boolValueOf;
         try {
+            Result.Companion companion = Result.INSTANCE;
             Intent intentRegisterReceiver = ApplicationLoader.applicationContext.registerReceiver(null, new IntentFilter("android.intent.action.BATTERY_CHANGED"));
             if (intentRegisterReceiver != null) {
-                return Boolean.valueOf(intentRegisterReceiver.getIntExtra("plugged", 0) != 0);
+                boolValueOf = Boolean.valueOf(intentRegisterReceiver.getIntExtra("plugged", 0) != 0);
+            } else {
+                boolValueOf = null;
             }
+            objM2406constructorimpl = Result.m2406constructorimpl(boolValueOf);
         } catch (Throwable th) {
+            Result.Companion companion2 = Result.INSTANCE;
+            objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th));
         }
-        return null;
+        return (Boolean) (Result.m2412isFailureimpl(objM2406constructorimpl) ? null : objM2406constructorimpl);
     }
 
     public final JSONObject batteryJson() {
-        try {
-            return new JSONObject().put("level", LiteMode.getBatteryLevel()).put("plugged", isPlugged());
-        } catch (JSONException e) {
-            return new JSONObject();
-        }
+        return new JSONObject().put("level", LiteMode.getBatteryLevel()).put("plugged", isPlugged());
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final long uidRxBytes() {
         return TrafficStats.getUidRxBytes(Process.myUid());
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final long uidTxBytes() {
         return TrafficStats.getUidTxBytes(Process.myUid());
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final HashMap<Integer, ThreadStat> readThreads() {
         ThreadStat stat;
         HashMap<Integer, ThreadStat> map = new HashMap<>();
@@ -377,29 +403,29 @@ public final class LoadMonitor {
     }
 
     private final ThreadStat parseStat(String stat) {
-        int iIndexOf = stat.indexOf('(');
-        int iLastIndexOf = stat.lastIndexOf(')');
-        if (iIndexOf < 0 || iLastIndexOf <= iIndexOf || iLastIndexOf + 2 >= stat.length()) {
+        int i;
+        Long longOrNull;
+        int iIndexOf$default = StringsKt.indexOf$default((CharSequence) stat, '(', 0, false, 6, (Object) null);
+        int iLastIndexOf$default = StringsKt.lastIndexOf$default((CharSequence) stat, ')', 0, false, 6, (Object) null);
+        if (iIndexOf$default < 0 || iLastIndexOf$default <= iIndexOf$default || (i = iLastIndexOf$default + 2) >= stat.length()) {
             return null;
         }
-        String[] parts = stat.substring(iLastIndexOf + 2).split(" ");
-        if (parts.length < 13) {
+        List listSplit$default = StringsKt.split$default((CharSequence) stat.substring(i), new char[]{' '}, false, 0, 6, (Object) null);
+        if (listSplit$default.size() < 13 || (longOrNull = StringsKt.toLongOrNull((String) listSplit$default.get(11))) == null) {
             return null;
         }
-        try {
-            long utime = Long.parseLong(parts[11]);
-            long stime = Long.parseLong(parts[12]);
-            return new ThreadStat(stat.substring(iIndexOf + 1, iLastIndexOf), utime + stime);
-        } catch (Exception e) {
-            return null;
+        long jLongValue = longOrNull.longValue();
+        Long longOrNull2 = StringsKt.toLongOrNull((String) listSplit$default.get(12));
+        if (longOrNull2 != null) {
+            return new ThreadStat(stat.substring(iIndexOf$default + 1, iLastIndexOf$default), jLongValue + longOrNull2.longValue());
         }
+        return null;
     }
 
     private final long ticksToMs(long ticks) {
         return (ticks * 1000) / getClockTicks();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final HashMap<String, Long> threadDeltas(Map<Integer, ThreadStat> previous, Map<Integer, ThreadStat> current) {
         HashMap<String, Long> map = new HashMap<>();
         for (Map.Entry<Integer, ThreadStat> entry : current.entrySet()) {
@@ -417,30 +443,26 @@ public final class LoadMonitor {
     }
 
     public final List<Pair<String, Long>> topThreads(Map<String, Long> threads, int limit) {
-        List<Map.Entry<String, Long>> list = new ArrayList<>(threads.entrySet());
-        list.sort((e1, e2) -> Long.compare(e2.getValue(), e1.getValue()));
-        if (list.size() > limit) {
-            list = list.subList(0, limit);
+        List<Map.Entry> listTake = CollectionsKt.take(CollectionsKt.sortedWith(threads.entrySet(), new Comparator() {
+            @Override // java.util.Comparator
+            public final int compare(T t, T t2) {
+                return ComparisonsKt.compareValues((Long) ((Map.Entry) t2).getValue(), (Long) ((Map.Entry) t).getValue());
+            }
+        }), limit);
+        ArrayList arrayList = new ArrayList(CollectionsKt.collectionSizeOrDefault(listTake, 10));
+        for (Map.Entry entry : listTake) {
+            arrayList.add(TuplesKt.to(entry.getKey(), entry.getValue()));
         }
-        ArrayList<Pair<String, Long>> result = new ArrayList<>(list.size());
-        for (Map.Entry<String, Long> entry : list) {
-            result.add(new Pair<>(entry.getKey(), entry.getValue()));
-        }
-        return result;
+        return arrayList;
     }
 
-    public static /* synthetic */ JSONArray threadsJson$default(LoadMonitor loadMonitor, List list, boolean z, int i, Object obj) {
+    public static JSONArray threadsJson$default(LoadMonitor loadMonitor, List list, boolean z, int i, Object obj) {
         if ((i & 2) != 0) {
             z = false;
         }
-        try {
-            return loadMonitor.threadsJson(list, z);
-        } catch (JSONException e) {
-            return new JSONArray();
-        }
+        return loadMonitor.threadsJson(list, z);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final JSONArray threadsJson(List<Pair<String, Long>> threads, boolean withOrigin) throws JSONException {
         JSONArray jSONArray = new JSONArray();
         for (Pair<String, Long> pair : threads) {
@@ -454,7 +476,6 @@ public final class LoadMonitor {
         return jSONArray;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final String originOf(String name) {
         String str;
         HashMap<String, String> map = threadOrigins;
@@ -464,108 +485,168 @@ public final class LoadMonitor {
         return str;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    /* JADX WARN: Code duplicated, block: B:20:0x0045  */
     public final void resolveOrigins(List<String> names) {
-        ArrayList<String> arrayList = new ArrayList<>();
+        ArrayList arrayList;
+        Object objM2406constructorimpl;
+        String strAppFrame;
         synchronized (threadOrigins) {
-            for (String str : names) {
-                if (!"<unattributed>".equals(str) && !threadOrigins.containsKey(str)) {
-                    Integer num = originAttempts.get(str);
-                    if ((num != null ? num.intValue() : 0) < 8) {
-                        arrayList.add(str);
+            try {
+                arrayList = new ArrayList();
+                Iterator<T> it = names.iterator();
+                while (true) {
+                    boolean z = true;
+                    if (!it.hasNext()) {
+                        break;
+                    }
+                    Object next = it.next();
+                    String str = (String) next;
+                    if (Intrinsics.areEqual(str, "<unattributed>") || threadOrigins.containsKey(str)) {
+                        z = false;
+                    } else {
+                        Integer num = originAttempts.get(str);
+                        if ((num != null ? num.intValue() : 0) >= 8) {
+                            z = false;
+                        }
+                    }
+                    if (z) {
+                        arrayList.add(next);
                     }
                 }
+            } catch (Throwable th) {
+                throw th;
             }
         }
         if (arrayList.isEmpty()) {
             return;
         }
-        Map<Thread, StackTraceElement[]> map = null;
         try {
-            map = Thread.getAllStackTraces();
-        } catch (Throwable th) {
+            Result.Companion companion = Result.INSTANCE;
+            objM2406constructorimpl = Result.m2406constructorimpl(Thread.getAllStackTraces());
+        } catch (Throwable th2) {
+            Result.Companion companion2 = Result.INSTANCE;
+            objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th2));
         }
+        if (Result.m2412isFailureimpl(objM2406constructorimpl)) {
+            objM2406constructorimpl = null;
+        }
+        Map map = (Map) objM2406constructorimpl;
         if (map == null) {
             return;
         }
         synchronized (threadOrigins) {
-            for (String str2 : arrayList) {
-                Integer num2 = originAttempts.get(str2);
-                originAttempts.put(str2, Integer.valueOf((num2 != null ? num2.intValue() : 0) + 1));
-            }
-            for (Map.Entry<Thread, StackTraceElement[]> entry : map.entrySet()) {
-                Thread thread = entry.getKey();
-                StackTraceElement[] stackTraceElementArr = entry.getValue();
-                String name = thread.getName();
-                String strTake = name.length() > 15 ? name.substring(0, 15) : name;
-                if (arrayList.contains(strTake)) {
-                    if (!threadOrigins.containsKey(strTake)) {
-                        String strAppFrame = appFrame(stackTraceElementArr);
-                        if (strAppFrame != null) {
-                            threadOrigins.put(strTake, strAppFrame);
+            try {
+                int size = arrayList.size();
+                int i = 0;
+                while (i < size) {
+                    Object obj = arrayList.get(i);
+                    i++;
+                    String str2 = (String) obj;
+                    HashMap<String, Integer> map2 = originAttempts;
+                    Integer num2 = map2.get(str2);
+                    map2.put(str2, Integer.valueOf((num2 != null ? num2.intValue() : 0) + 1));
+                }
+                for (Map.Entry entry : map.entrySet()) {
+                    Thread thread = (Thread) entry.getKey();
+                    StackTraceElement[] stackTraceElementArr = (StackTraceElement[]) entry.getValue();
+                    String strTake = StringsKt.take(thread.getName(), 15);
+                    if (arrayList.contains(strTake)) {
+                        HashMap<String, String> map3 = threadOrigins;
+                        if (!map3.containsKey(strTake) && (strAppFrame = INSTANCE.appFrame(stackTraceElementArr)) != null) {
+                            map3.put(strTake, strAppFrame);
                         }
                     }
                 }
+                Unit unit = Unit.INSTANCE;
+            } catch (Throwable th3) {
+                throw th3;
             }
         }
     }
 
     private final String appFrame(StackTraceElement[] trace) {
         for (StackTraceElement stackTraceElement : trace) {
-            String className = stackTraceElement.getClassName();
-            boolean skipped = false;
-            for (String skip : SKIPPED_FRAMES) {
-                if (className.startsWith(skip)) {
-                    skipped = true;
+            String[] strArr = SKIPPED_FRAMES;
+            int length = strArr.length;
+            int i = 0;
+            while (true) {
+                if (i >= length) {
+                    return StringsKt.substringAfterLast$default(stackTraceElement.getClassName(), '.', (String) null, 2, (Object) null) + "." + stackTraceElement.getMethodName() + ":" + stackTraceElement.getLineNumber();
+                }
+                if (StringsKt.startsWith$default(stackTraceElement.getClassName(), strArr[i], false, 2, (Object) null)) {
                     break;
                 }
-            }
-            if (!skipped) {
-                int lastDot = className.lastIndexOf('.');
-                String simpleName = (lastDot >= 0 && lastDot + 1 < className.length()) ? className.substring(lastDot + 1) : className;
-                return simpleName + "." + stackTraceElement.getMethodName() + ":" + stackTraceElement.getLineNumber();
+                i++;
             }
         }
         return null;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final HealthStats takeHealthStats() {
+        Object objM2406constructorimpl;
         try {
+            Result.Companion companion = Result.INSTANCE;
             Object systemService = ApplicationLoader.applicationContext.getSystemService("systemhealth");
-            if (systemService instanceof SystemHealthManager) {
-                return ((SystemHealthManager) systemService).takeMyUidSnapshot();
-            }
+            SystemHealthManager systemHealthManager = systemService instanceof SystemHealthManager ? (SystemHealthManager) systemService : null;
+            objM2406constructorimpl = Result.m2406constructorimpl(systemHealthManager != null ? systemHealthManager.takeMyUidSnapshot() : null);
         } catch (Throwable th) {
-            FileLog.e(th);
+            Result.Companion companion2 = Result.INSTANCE;
+            objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th));
         }
-        return null;
+        Throwable thM2409exceptionOrNullimpl = Result.m2409exceptionOrNullimpl(objM2406constructorimpl);
+        if (thM2409exceptionOrNullimpl != null) {
+            FileLog.e(thM2409exceptionOrNullimpl);
+        }
+        return (HealthStats) (Result.m2412isFailureimpl(objM2406constructorimpl) ? null : objM2406constructorimpl);
     }
 
     private final String healthKeyName(String dataType, int key) {
-        synchronized (healthKeyNames) {
-            Map<Integer, String> map = healthKeyNames.get(dataType);
-            if (map == null) {
-                map = new HashMap<>();
-                try {
-                    String className = dataType.contains(".") ? dataType : "android.os.health." + dataType;
-                    Field[] fields = Class.forName(className).getFields();
-                    for (Field field : fields) {
-                        if (Modifier.isStatic(field.getModifiers()) && field.getType() == Integer.TYPE) {
-                            map.put(Integer.valueOf(field.getInt(null)), field.getName());
+        Object objM2406constructorimpl;
+        Map<Integer, String> map;
+        HashMap<String, Map<Integer, String>> map2 = healthKeyNames;
+        synchronized (map2) {
+            try {
+                Map<Integer, String> map3 = map2.get(dataType);
+                if (map3 == null) {
+                    try {
+                        Result.Companion companion = Result.INSTANCE;
+                        int i = 0;
+                        Field[] fields = Class.forName(StringsKt.contains$default((CharSequence) dataType, '.', false, 2, (Object) null) ? dataType : "android.os.health." + dataType).getFields();
+                        ArrayList arrayList = new ArrayList();
+                        for (Field field : fields) {
+                            if (Modifier.isStatic(field.getModifiers()) && Intrinsics.areEqual(field.getType(), Integer.TYPE)) {
+                                arrayList.add(field);
+                            }
                         }
+                        LinkedHashMap linkedHashMap = new LinkedHashMap(RangesKt.coerceAtLeast(MapsKt.mapCapacity(CollectionsKt.collectionSizeOrDefault(arrayList, 10)), 16));
+                        int size = arrayList.size();
+                        while (i < size) {
+                            Object obj = arrayList.get(i);
+                            i++;
+                            Field field2 = (Field) obj;
+                            Pair pair = TuplesKt.to(Integer.valueOf(field2.getInt(null)), field2.getName());
+                            linkedHashMap.put(pair.getFirst(), pair.getSecond());
+                        }
+                        objM2406constructorimpl = Result.m2406constructorimpl(linkedHashMap);
+                    } catch (Throwable th) {
+                        Result.Companion companion2 = Result.INSTANCE;
+                        objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th));
                     }
-                } catch (Throwable th) {
+                    Map mapEmptyMap = MapsKt.emptyMap();
+                    if (Result.m2412isFailureimpl(objM2406constructorimpl)) {
+                        objM2406constructorimpl = mapEmptyMap;
+                    }
+                    map3 = (Map) objM2406constructorimpl;
+                    map2.put(dataType, map3);
                 }
-                healthKeyNames.put(dataType, map);
+                map = map3;
+            } catch (Throwable th2) {
+                throw th2;
             }
-            String str = map.get(Integer.valueOf(key));
-            return str == null ? String.valueOf(key) : str;
         }
+        String str = map.get(Integer.valueOf(key));
+        return str == null ? String.valueOf(key) : str;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final JSONObject healthJson(HealthStats stats) throws JSONException {
         String dataType = stats.getDataType();
         JSONObject jSONObjectPut = new JSONObject().put("type", dataType);
@@ -631,7 +712,6 @@ public final class LoadMonitor {
         return jSONObjectPut;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final JSONObject baseReport(String trigger) throws JSONException {
         Context context = ApplicationLoader.applicationContext;
         Object systemService = context.getSystemService("power");
@@ -643,9 +723,11 @@ public final class LoadMonitor {
             map.put(name, Long.valueOf((l != null ? l.longValue() : 0L) + ticksToMs(threadStat.getTicks())));
         }
         List<Pair<String, Long>> list = topThreads(map, 30);
-        List<String> arrayList = new ArrayList<>();
-        for (Pair<String, Long> pair : list) {
-            arrayList.add(pair.getFirst());
+        List<Pair<String, Long>> list2 = list;
+        List<String> arrayList = new ArrayList<>(CollectionsKt.collectionSizeOrDefault(list2, 10));
+        Iterator<T> it = list2.iterator();
+        while (it.hasNext()) {
+            arrayList.add((String) ((Pair) it.next()).getFirst());
         }
         resolveOrigins(arrayList);
         JSONObject jSONObjectPut = new JSONObject().put("format", 1).put("trigger", trigger).put("createdAt", System.currentTimeMillis()).put(Common.ASSET_APP, new JSONObject().put("version", BuildVars.BUILD_VERSION_STRING).put("code", BuildVars.BUILD_VERSION).put(BuildConfig.BUILD_TYPE, BuildVars.DEBUG_VERSION)).put("device", new JSONObject().put("manufacturer", Build.MANUFACTURER).put("model", Build.MODEL).put("sdk", Build.VERSION.SDK_INT).put("cores", Runtime.getRuntime().availableProcessors())).put("battery", batteryJson());
@@ -659,34 +741,35 @@ public final class LoadMonitor {
         return jSONObjectPut3.put("healthNow", healthStatsTakeHealthStats != null ? INSTANCE.healthJson(healthStatsTakeHealthStats) : null);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final File writeReport(JSONObject report, String trigger) {
+        List listDrop;
         getReportsDir().mkdirs();
         File file = new File(getReportsDir(), "load_" + BuildVars.BUILD_VERSION_STRING + "_" + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date()) + "_" + trigger + ".json");
-        try (FileOutputStream fos = new FileOutputStream(file)) {
-            fos.write(report.toString(1).getBytes(StandardCharsets.UTF_8));
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
+        FilesKt.writeText$default(file, report.toString(1), null, 2, null);
         File[] fileArrListFiles = getReportsDir().listFiles();
         if (fileArrListFiles != null) {
-            ArrayList<File> jsonFiles = new ArrayList<>();
+            ArrayList arrayList = new ArrayList();
             for (File file2 : fileArrListFiles) {
-                if (file2.getName().endsWith(".json")) {
-                    jsonFiles.add(file2);
+                if (StringsKt.endsWith$default(file2.getName(), ".json", false, 2, (Object) null)) {
+                    arrayList.add(file2);
                 }
             }
-            jsonFiles.sort((f1, f2) -> Long.compare(f2.lastModified(), f1.lastModified()));
-            if (jsonFiles.size() > 10) {
-                for (int i = 10; i < jsonFiles.size(); i++) {
-                    jsonFiles.get(i).delete();
+            List listSortedWith = CollectionsKt.sortedWith(arrayList, new Comparator() {
+                @Override // java.util.Comparator
+                public final int compare(T t, T t2) {
+                    return ComparisonsKt.compareValues(Long.valueOf(((File) t2).lastModified()), Long.valueOf(((File) t).lastModified()));
+                }
+            });
+            if (listSortedWith != null && (listDrop = CollectionsKt.drop(listSortedWith, 10)) != null) {
+                Iterator it = listDrop.iterator();
+                while (it.hasNext()) {
+                    ((File) it.next()).delete();
                 }
             }
         }
         return file;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final String formatDuration(long ms) {
         long j = ms / 1000;
         if (ms < 1000) {
@@ -706,32 +789,33 @@ public final class LoadMonitor {
         return String.format(Locale.US, "%.1f%%", Arrays.copyOf(new Object[]{Double.valueOf(wallMs > 0 ? (cpuMs * 100.0d) / wallMs : 0.0d)}, 1));
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public final String describeEpisode(long wallMs, long cpuMs, long rxBytes, long txBytes, List<Pair<String, Long>> threads) {
         StringBuilder sb = new StringBuilder();
         sb.append("In " + formatDuration(wallMs) + " in the background, the app used " + formatPercent(cpuMs, wallMs) + " of one core: ");
-        sb.append(formatDuration(cpuMs)).append(" of CPU");
+        String duration = formatDuration(cpuMs);
+        StringBuilder sb2 = new StringBuilder();
+        sb2.append(duration);
+        sb2.append(" of CPU");
+        sb.append(sb2.toString());
         if (rxBytes >= 0 && txBytes >= 0) {
             sb.append(", " + AndroidUtilities.formatFileSize(rxBytes) + " received, " + AndroidUtilities.formatFileSize(txBytes) + " sent");
         }
         sb.append('.');
         if (!threads.isEmpty()) {
             sb.append("\n\nBusiest threads: ");
-            StringBuilder threadsStr = new StringBuilder();
-            for (int i = 0; i < threads.size(); i++) {
-                if (i > 0) threadsStr.append(", ");
-                Pair<String, Long> p = threads.get(i);
-                threadsStr.append(p.getFirst()).append(" ").append(formatDuration(p.getSecond().longValue()));
-            }
-            sb.append(threadsStr);
+            sb.append(CollectionsKt.joinToString$default(threads, ", ", null, null, 0, null, new Function1() {
+                @Override // kotlin.jvm.functions.Function1
+                public final Object invoke(Object obj) {
+                    return LoadMonitor.m1261$r8$lambda$EvWZU_AiIxct8eo7VUHXa2A0bw((Pair) obj);
+                }
+            }, 30, null));
             sb.append('.');
         }
         sb.append("\n\nThe report holds thread names, traffic counters and battery stats, no message content.");
         return sb.toString();
     }
 
-        /* JADX INFO: renamed from: $r8$lambda$EvWZU_-AiIxct8eo7VUHXa2A0bw, reason: not valid java name */
-    public static CharSequence m1237$r8$lambda$EvWZU_AiIxct8eo7VUHXa2A0bw(Pair pair) {
+    public static CharSequence m1261$r8$lambda$EvWZU_AiIxct8eo7VUHXa2A0bw(Pair pair) {
         return pair.getFirst() + " " + INSTANCE.formatDuration(((Number) pair.getSecond()).longValue());
     }
 
@@ -851,18 +935,20 @@ public final class LoadMonitor {
         private JSONObject startBattery;
         private HealthStats startHealth;
         private final long startedAt;
-        private String summary;
-        private final long[] txBytes;
-        private final long[] wallMs;
+        private volatile String summary;
         private final HashMap<String, long[]> threadMs;
         private HashMap<Integer, ThreadStat> threads;
+        private final long[] txBytes;
+        private final long[] wallMs;
 
         public Sampler() {
             DispatchQueue dispatchQueue = new DispatchQueue("loadMonitorQueue");
             this.queue = dispatchQueue;
-            this.sampleRunnable = () -> {
-                sample();
-                scheduleNext();
+            this.sampleRunnable = new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() throws JSONException {
+                    LoadMonitor.Sampler.$r8$lambda$kogUcZhXgMzzA6XabLRzcV5MgzI(this.f$0);
+                }
             };
             this.startedAt = System.currentTimeMillis();
             this.lastRxBytes = -1L;
@@ -878,20 +964,18 @@ public final class LoadMonitor {
             if (foregroundDetector != null) {
                 foregroundDetector.addListener(this);
             }
-            AndroidUtilities.runOnUIThread(() -> {
-                this.observers = NotificationCenter.getGlobalInstance().createObserversGroup(this).add(NotificationCenter.screenStateChanged);
+            AndroidUtilities.runOnUIThread(new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() {
+                    LoadMonitor.Sampler sampler = this.f$0;
+                    sampler.observers = NotificationCenter.getGlobalInstance().createObserversGroup(sampler).add(NotificationCenter.screenStateChanged);
+                }
             });
-            dispatchQueue.postRunnable(() -> {
-                this.startHealth = recentHealthStats();
-                LoadMonitor loadMonitor = LoadMonitor.INSTANCE;
-                this.startBattery = loadMonitor.batteryJson();
-                this.lastRealtime = SystemClock.elapsedRealtime();
-                this.lastCpuMs = Process.getElapsedCpuTime();
-                this.lastRxBytes = loadMonitor.uidRxBytes();
-                this.lastTxBytes = loadMonitor.uidTxBytes();
-                this.threads = loadMonitor.readThreads();
-                updateState();
-                scheduleNext();
+            dispatchQueue.postRunnable(new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() {
+                    LoadMonitor.Sampler.$r8$lambda$glfliRZC8QH3MoG1_ZtmW_f9wTg(this.f$0);
+                }
             });
         }
 
@@ -899,8 +983,26 @@ public final class LoadMonitor {
             return this.queue;
         }
 
+        public static void $r8$lambda$kogUcZhXgMzzA6XabLRzcV5MgzI(Sampler sampler) throws JSONException {
+            sampler.sample();
+            sampler.scheduleNext();
+        }
+
         public final String getSummary() {
             return this.summary;
+        }
+
+        public static void $r8$lambda$glfliRZC8QH3MoG1_ZtmW_f9wTg(Sampler sampler) {
+            sampler.startHealth = sampler.recentHealthStats();
+            LoadMonitor loadMonitor = LoadMonitor.INSTANCE;
+            sampler.startBattery = loadMonitor.batteryJson();
+            sampler.lastRealtime = SystemClock.elapsedRealtime();
+            sampler.lastCpuMs = Process.getElapsedCpuTime();
+            sampler.lastRxBytes = loadMonitor.uidRxBytes();
+            sampler.lastTxBytes = loadMonitor.uidTxBytes();
+            sampler.threads = loadMonitor.readThreads();
+            sampler.updateState();
+            sampler.scheduleNext();
         }
 
         public final void stop() {
@@ -908,31 +1010,59 @@ public final class LoadMonitor {
             if (foregroundDetector != null) {
                 foregroundDetector.removeListener(this);
             }
-            AndroidUtilities.runOnUIThread(() -> {
-                if (this.observers != null) {
-                    this.observers.removeAllObservers();
-                    this.observers = null;
+            AndroidUtilities.runOnUIThread(new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() {
+                    LoadMonitor.Sampler.m1263$r8$lambda$EVTY6NAYOMQOkky9ZN8dYzdoOw(this.f$0);
                 }
             });
             this.queue.cleanupQueue();
             this.queue.recycle();
         }
 
-        @Override
+        public static void m1263$r8$lambda$EVTY6NAYOMQOkky9ZN8dYzdoOw(Sampler sampler) {
+            NotificationCenter.ObserversGroup observersGroup = sampler.observers;
+            if (observersGroup != null) {
+                observersGroup.removeAllObservers();
+            }
+            sampler.observers = null;
+        }
+
+        @Override // org.telegram.ui.Components.ForegroundDetector.Listener
         public void onBecameForeground() {
-            this.queue.postRunnable(this::sample);
-            AndroidUtilities.runOnUIThread(() -> LoadMonitor.INSTANCE.showPendingAlert(), 1000L);
+            this.queue.postRunnable(new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() throws JSONException {
+                    this.f$0.sample();
+                }
+            });
+            AndroidUtilities.runOnUIThread(new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() {
+                    LoadMonitor.INSTANCE.showPendingAlert();
+                }
+            }, 1000L);
         }
 
-        @Override
+        @Override // org.telegram.ui.Components.ForegroundDetector.Listener
         public void onBecameBackground() {
-            this.queue.postRunnable(this::sample);
+            this.queue.postRunnable(new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() throws JSONException {
+                    this.f$0.sample();
+                }
+            });
         }
 
-        @Override
+        @Override // org.telegram.messenger.NotificationCenter.NotificationCenterDelegate
         public void didReceivedNotification(int id, int account, Object... args) {
             if (id == NotificationCenter.screenStateChanged) {
-                this.queue.postRunnable(this::sample);
+                this.queue.postRunnable(new Runnable() {
+                    @Override // java.lang.Runnable
+                    public final void run() throws JSONException {
+                        this.f$0.sample();
+                    }
+                });
             }
         }
 
@@ -941,84 +1071,288 @@ public final class LoadMonitor {
             this.queue.postRunnable(this.sampleRunnable, 60000L);
         }
 
-        public final void sample() {
-            try {
-                long jElapsedRealtime = SystemClock.elapsedRealtime();
-                long elapsedCpuTime = Process.getElapsedCpuTime();
-                LoadMonitor loadMonitor = LoadMonitor.INSTANCE;
-                long jUidRxBytes = loadMonitor.uidRxBytes();
-                long jUidTxBytes = loadMonitor.uidTxBytes();
-                HashMap<Integer, ThreadStat> currentThreads = loadMonitor.readThreads();
-                int i2 = this.lastState;
-                long j5 = jElapsedRealtime - this.lastRealtime;
-                long j6 = elapsedCpuTime - this.lastCpuMs;
-                long j2 = (jUidRxBytes >= 0 && this.lastRxBytes >= 0) ? (jUidRxBytes - this.lastRxBytes) : 0L;
-                long j4 = (jUidTxBytes >= 0 && this.lastTxBytes >= 0) ? (jUidTxBytes - this.lastTxBytes) : 0L;
-
-                HashMap<String, Long> mapThreadDeltas = loadMonitor.threadDeltas(this.threads, currentThreads);
-                long sumThreads = 0;
-                for (Long v : mapThreadDeltas.values()) {
-                    if (v != null) sumThreads += v;
+        public final void sample() throws JSONException {
+            long j;
+            long j2;
+            long j3;
+            long j4;
+            HashMap mapThreadDeltas;
+            long jSumOfLong;
+            ArrayList arrayList;
+            ArrayList arrayList2;
+            int size;
+            int i;
+            String str;
+            HashMap<String, long[]> map;
+            long[] jArr;
+            long jElapsedRealtime = SystemClock.elapsedRealtime();
+            long elapsedCpuTime = Process.getElapsedCpuTime();
+            LoadMonitor loadMonitor = LoadMonitor.INSTANCE;
+            long jUidRxBytes = loadMonitor.uidRxBytes();
+            long jUidTxBytes = loadMonitor.uidTxBytes();
+            HashMap<Integer, ThreadStat> threads = loadMonitor.readThreads();
+            int i2 = this.lastState;
+            long j5 = jElapsedRealtime - this.lastRealtime;
+            long j6 = elapsedCpuTime - this.lastCpuMs;
+            if (jUidRxBytes >= 0) {
+                j = jUidTxBytes;
+                long j7 = this.lastRxBytes;
+                j2 = j7 >= 0 ? jUidRxBytes - j7 : 0L;
+                if (j >= 0) {
+                    j3 = jUidRxBytes;
+                    long j8 = this.lastTxBytes;
+                    j4 = j8 >= 0 ? j - j8 : 0L;
+                    mapThreadDeltas = loadMonitor.threadDeltas(this.threads, threads);
+                    jSumOfLong = j6 - CollectionsKt.sumOfLong(mapThreadDeltas.values());
+                    if (jSumOfLong > 0) {
+                        mapThreadDeltas.put("<unattributed>", Long.valueOf(jSumOfLong));
+                    }
+                    List list = loadMonitor.topThreads(mapThreadDeltas, 3);
+                    arrayList = new ArrayList();
+                    for (Object obj : list) {
+                        if (((Number) ((Pair) obj).getSecond()).longValue() >= 200) {
+                            arrayList.add(obj);
+                        }
+                    }
+                    arrayList2 = new ArrayList(CollectionsKt.collectionSizeOrDefault(arrayList, 10));
+                    size = arrayList.size();
+                    i = 0;
+                    while (i < size) {
+                        Object obj2 = arrayList.get(i);
+                        i++;
+                        arrayList2.add((String) ((Pair) obj2).getFirst());
+                    }
+                    loadMonitor.resolveOrigins(arrayList2);
+                    long[] jArr2 = this.wallMs;
+                    jArr2[i2] = jArr2[i2] + j5;
+                    long[] jArr3 = this.cpuMs;
+                    jArr3[i2] = jArr3[i2] + j6;
+                    long[] jArr4 = this.rxBytes;
+                    jArr4[i2] = jArr4[i2] + j2;
+                    long[] jArr5 = this.txBytes;
+                    jArr5[i2] = jArr5[i2] + j4;
+                    for (Map.Entry entry : mapThreadDeltas.entrySet()) {
+                        str = (String) entry.getKey();
+                        long jLongValue = ((Number) entry.getValue()).longValue();
+                        map = this.threadMs;
+                        jArr = map.get(str);
+                        if (jArr == null) {
+                            jArr = new long[LoadMonitor.STATE_NAMES.length];
+                            map.put(str, jArr);
+                        }
+                        long[] jArr6 = jArr;
+                        jArr6[i2] = jArr6[i2] + jLongValue;
+                    }
+                    if (j5 >= 1000) {
+                        ArrayDeque<JSONObject> arrayDeque = this.samples;
+                        JSONObject jSONObjectPut = new JSONObject().put("t", System.currentTimeMillis()).put("state", LoadMonitor.STATE_NAMES[i2]).put("wallMs", j5).put("cpuMs", j6).put("rxBytes", j2).put("txBytes", j4);
+                        LoadMonitor loadMonitor2 = LoadMonitor.INSTANCE;
+                        arrayDeque.addLast(jSONObjectPut.put("plugged", loadMonitor2.isPlugged()).put("threads", LoadMonitor.threadsJson$default(loadMonitor2, loadMonitor2.topThreads(mapThreadDeltas, 3), false, 2, null)));
+                        while (this.samples.size() > 240) {
+                            this.samples.removeFirst();
+                        }
+                    }
+                    this.lastRealtime = jElapsedRealtime;
+                    this.lastCpuMs = elapsedCpuTime;
+                    long j9 = j3;
+                    this.lastRxBytes = j9;
+                    long j10 = j;
+                    this.lastTxBytes = j10;
+                    this.threads = threads;
+                    this.summary = LoadMonitor.INSTANCE.formatDuration(ArraysKt.sum(this.cpuMs)) + " CPU, " + AndroidUtilities.formatFileSize(ArraysKt.sum(this.rxBytes) + ArraysKt.sum(this.txBytes));
+                    checkEpisode(jElapsedRealtime, elapsedCpuTime, j9, j10, threads);
+                    updateState();
                 }
-                long jSumOfLong = j6 - sumThreads;
+                j3 = jUidRxBytes;
+                mapThreadDeltas = loadMonitor.threadDeltas(this.threads, threads);
+                jSumOfLong = j6 - CollectionsKt.sumOfLong(mapThreadDeltas.values());
                 if (jSumOfLong > 0) {
                     mapThreadDeltas.put("<unattributed>", Long.valueOf(jSumOfLong));
                 }
-                List<Pair<String, Long>> top = loadMonitor.topThreads(mapThreadDeltas, 3);
-                ArrayList<String> origins = new ArrayList<>();
-                for (Pair<String, Long> p : top) {
-                    if (((Number) p.getSecond()).longValue() >= 200) {
-                        origins.add((String) p.getFirst());
+                List list2 = loadMonitor.topThreads(mapThreadDeltas, 3);
+                arrayList = new ArrayList();
+                while (r4.hasNext()) {
+                    if (((Number) ((Pair) obj).getSecond()).longValue() >= 200) {
+                        arrayList.add(obj);
                     }
                 }
-                loadMonitor.resolveOrigins(origins);
-
-                this.wallMs[i2] += j5;
-                this.cpuMs[i2] += j6;
-                this.rxBytes[i2] += j2;
-                this.txBytes[i2] += j4;
-
-                for (Map.Entry<String, Long> entry : mapThreadDeltas.entrySet()) {
-                    String str = entry.getKey();
-                    long jLongValue = entry.getValue().longValue();
-                    long[] jArr = this.threadMs.computeIfAbsent(str, k -> new long[LoadMonitor.STATE_NAMES.length]);
-                    jArr[i2] += jLongValue;
+                arrayList2 = new ArrayList(CollectionsKt.collectionSizeOrDefault(arrayList, 10));
+                size = arrayList.size();
+                i = 0;
+                while (i < size) {
+                    Object obj3 = arrayList.get(i);
+                    i++;
+                    arrayList2.add((String) ((Pair) obj3).getFirst());
                 }
-
+                loadMonitor.resolveOrigins(arrayList2);
+                long[] jArr7 = this.wallMs;
+                jArr7[i2] = jArr7[i2] + j5;
+                long[] jArr8 = this.cpuMs;
+                jArr8[i2] = jArr8[i2] + j6;
+                long[] jArr9 = this.rxBytes;
+                jArr9[i2] = jArr9[i2] + j2;
+                long[] jArr10 = this.txBytes;
+                jArr10[i2] = jArr10[i2] + j4;
+                while (r1.hasNext()) {
+                    str = (String) entry.getKey();
+                    long jLongValue2 = ((Number) entry.getValue()).longValue();
+                    map = this.threadMs;
+                    jArr = map.get(str);
+                    if (jArr == null) {
+                        jArr = new long[LoadMonitor.STATE_NAMES.length];
+                        map.put(str, jArr);
+                    }
+                    long[] jArr11 = jArr;
+                    jArr11[i2] = jArr11[i2] + jLongValue2;
+                }
                 if (j5 >= 1000) {
-                    JSONObject jSONObjectPut = new JSONObject()
-                            .put("t", System.currentTimeMillis())
-                            .put("state", LoadMonitor.STATE_NAMES[i2])
-                            .put("wallMs", j5)
-                            .put("cpuMs", j6)
-                            .put("rxBytes", j2)
-                            .put("txBytes", j4)
-                            .put("plugged", loadMonitor.isPlugged())
-                            .put("threads", loadMonitor.threadsJson(loadMonitor.topThreads(mapThreadDeltas, 3), false));
-                    this.samples.addLast(jSONObjectPut);
+                    ArrayDeque<JSONObject> arrayDeque2 = this.samples;
+                    JSONObject jSONObjectPut2 = new JSONObject().put("t", System.currentTimeMillis()).put("state", LoadMonitor.STATE_NAMES[i2]).put("wallMs", j5).put("cpuMs", j6).put("rxBytes", j2).put("txBytes", j4);
+                    LoadMonitor loadMonitor3 = LoadMonitor.INSTANCE;
+                    arrayDeque2.addLast(jSONObjectPut2.put("plugged", loadMonitor3.isPlugged()).put("threads", LoadMonitor.threadsJson$default(loadMonitor3, loadMonitor3.topThreads(mapThreadDeltas, 3), false, 2, null)));
                     while (this.samples.size() > 240) {
                         this.samples.removeFirst();
                     }
                 }
                 this.lastRealtime = jElapsedRealtime;
                 this.lastCpuMs = elapsedCpuTime;
-                this.lastRxBytes = jUidRxBytes;
-                this.lastTxBytes = jUidTxBytes;
-                this.threads = currentThreads;
-
-                long totalCpu = 0;
-                for (long v : this.cpuMs) totalCpu += v;
-                long totalRx = 0;
-                for (long v : this.rxBytes) totalRx += v;
-                long totalTx = 0;
-                for (long v : this.txBytes) totalTx += v;
-
-                this.summary = loadMonitor.formatDuration(totalCpu) + " CPU, " + AndroidUtilities.formatFileSize(totalRx + totalTx);
-                checkEpisode(jElapsedRealtime, elapsedCpuTime, jUidRxBytes, jUidTxBytes, currentThreads);
+                long j11 = j3;
+                this.lastRxBytes = j11;
+                long j12 = j;
+                this.lastTxBytes = j12;
+                this.threads = threads;
+                this.summary = LoadMonitor.INSTANCE.formatDuration(ArraysKt.sum(this.cpuMs)) + " CPU, " + AndroidUtilities.formatFileSize(ArraysKt.sum(this.rxBytes) + ArraysKt.sum(this.txBytes));
+                checkEpisode(jElapsedRealtime, elapsedCpuTime, j11, j12, threads);
                 updateState();
-            } catch (Exception e) {
-                FileLog.e(e);
             }
+            j = jUidTxBytes;
+            if (j >= 0) {
+                j3 = jUidRxBytes;
+                long j13 = this.lastTxBytes;
+                if (j13 >= 0) {
+                }
+                mapThreadDeltas = loadMonitor.threadDeltas(this.threads, threads);
+                jSumOfLong = j6 - CollectionsKt.sumOfLong(mapThreadDeltas.values());
+                if (jSumOfLong > 0) {
+                    mapThreadDeltas.put("<unattributed>", Long.valueOf(jSumOfLong));
+                }
+                List list3 = loadMonitor.topThreads(mapThreadDeltas, 3);
+                arrayList = new ArrayList();
+                while (r4.hasNext()) {
+                    if (((Number) ((Pair) obj).getSecond()).longValue() >= 200) {
+                        arrayList.add(obj);
+                    }
+                }
+                arrayList2 = new ArrayList(CollectionsKt.collectionSizeOrDefault(arrayList, 10));
+                size = arrayList.size();
+                i = 0;
+                while (i < size) {
+                    Object obj4 = arrayList.get(i);
+                    i++;
+                    arrayList2.add((String) ((Pair) obj4).getFirst());
+                }
+                loadMonitor.resolveOrigins(arrayList2);
+                long[] jArr12 = this.wallMs;
+                jArr12[i2] = jArr12[i2] + j5;
+                long[] jArr13 = this.cpuMs;
+                jArr13[i2] = jArr13[i2] + j6;
+                long[] jArr14 = this.rxBytes;
+                jArr14[i2] = jArr14[i2] + j2;
+                long[] jArr15 = this.txBytes;
+                jArr15[i2] = jArr15[i2] + j4;
+                while (r1.hasNext()) {
+                    str = (String) entry.getKey();
+                    long jLongValue3 = ((Number) entry.getValue()).longValue();
+                    map = this.threadMs;
+                    jArr = map.get(str);
+                    if (jArr == null) {
+                        jArr = new long[LoadMonitor.STATE_NAMES.length];
+                        map.put(str, jArr);
+                    }
+                    long[] jArr16 = jArr;
+                    jArr16[i2] = jArr16[i2] + jLongValue3;
+                }
+                if (j5 >= 1000) {
+                    ArrayDeque<JSONObject> arrayDeque3 = this.samples;
+                    JSONObject jSONObjectPut3 = new JSONObject().put("t", System.currentTimeMillis()).put("state", LoadMonitor.STATE_NAMES[i2]).put("wallMs", j5).put("cpuMs", j6).put("rxBytes", j2).put("txBytes", j4);
+                    LoadMonitor loadMonitor4 = LoadMonitor.INSTANCE;
+                    arrayDeque3.addLast(jSONObjectPut3.put("plugged", loadMonitor4.isPlugged()).put("threads", LoadMonitor.threadsJson$default(loadMonitor4, loadMonitor4.topThreads(mapThreadDeltas, 3), false, 2, null)));
+                    while (this.samples.size() > 240) {
+                        this.samples.removeFirst();
+                    }
+                }
+                this.lastRealtime = jElapsedRealtime;
+                this.lastCpuMs = elapsedCpuTime;
+                long j14 = j3;
+                this.lastRxBytes = j14;
+                long j15 = j;
+                this.lastTxBytes = j15;
+                this.threads = threads;
+                this.summary = LoadMonitor.INSTANCE.formatDuration(ArraysKt.sum(this.cpuMs)) + " CPU, " + AndroidUtilities.formatFileSize(ArraysKt.sum(this.rxBytes) + ArraysKt.sum(this.txBytes));
+                checkEpisode(jElapsedRealtime, elapsedCpuTime, j14, j15, threads);
+                updateState();
+            }
+            j3 = jUidRxBytes;
+            mapThreadDeltas = loadMonitor.threadDeltas(this.threads, threads);
+            jSumOfLong = j6 - CollectionsKt.sumOfLong(mapThreadDeltas.values());
+            if (jSumOfLong > 0) {
+                mapThreadDeltas.put("<unattributed>", Long.valueOf(jSumOfLong));
+            }
+            List list4 = loadMonitor.topThreads(mapThreadDeltas, 3);
+            arrayList = new ArrayList();
+            while (r4.hasNext()) {
+                if (((Number) ((Pair) obj).getSecond()).longValue() >= 200) {
+                    arrayList.add(obj);
+                }
+            }
+            arrayList2 = new ArrayList(CollectionsKt.collectionSizeOrDefault(arrayList, 10));
+            size = arrayList.size();
+            i = 0;
+            while (i < size) {
+                Object obj5 = arrayList.get(i);
+                i++;
+                arrayList2.add((String) ((Pair) obj5).getFirst());
+            }
+            loadMonitor.resolveOrigins(arrayList2);
+            long[] jArr17 = this.wallMs;
+            jArr17[i2] = jArr17[i2] + j5;
+            long[] jArr18 = this.cpuMs;
+            jArr18[i2] = jArr18[i2] + j6;
+            long[] jArr19 = this.rxBytes;
+            jArr19[i2] = jArr19[i2] + j2;
+            long[] jArr110 = this.txBytes;
+            jArr110[i2] = jArr110[i2] + j4;
+            while (r1.hasNext()) {
+                str = (String) entry.getKey();
+                long jLongValue4 = ((Number) entry.getValue()).longValue();
+                map = this.threadMs;
+                jArr = map.get(str);
+                if (jArr == null) {
+                    jArr = new long[LoadMonitor.STATE_NAMES.length];
+                    map.put(str, jArr);
+                }
+                long[] jArr111 = jArr;
+                jArr111[i2] = jArr111[i2] + jLongValue4;
+            }
+            if (j5 >= 1000) {
+                ArrayDeque<JSONObject> arrayDeque4 = this.samples;
+                JSONObject jSONObjectPut4 = new JSONObject().put("t", System.currentTimeMillis()).put("state", LoadMonitor.STATE_NAMES[i2]).put("wallMs", j5).put("cpuMs", j6).put("rxBytes", j2).put("txBytes", j4);
+                LoadMonitor loadMonitor5 = LoadMonitor.INSTANCE;
+                arrayDeque4.addLast(jSONObjectPut4.put("plugged", loadMonitor5.isPlugged()).put("threads", LoadMonitor.threadsJson$default(loadMonitor5, loadMonitor5.topThreads(mapThreadDeltas, 3), false, 2, null)));
+                while (this.samples.size() > 240) {
+                    this.samples.removeFirst();
+                }
+            }
+            this.lastRealtime = jElapsedRealtime;
+            this.lastCpuMs = elapsedCpuTime;
+            long j16 = j3;
+            this.lastRxBytes = j16;
+            long j17 = j;
+            this.lastTxBytes = j17;
+            this.threads = threads;
+            this.summary = LoadMonitor.INSTANCE.formatDuration(ArraysKt.sum(this.cpuMs)) + " CPU, " + AndroidUtilities.formatFileSize(ArraysKt.sum(this.rxBytes) + ArraysKt.sum(this.txBytes));
+            checkEpisode(jElapsedRealtime, elapsedCpuTime, j16, j17, threads);
+            updateState();
         }
 
         private final void updateState() {
@@ -1032,6 +1366,7 @@ public final class LoadMonitor {
         }
 
         private final void checkEpisode(long now, long cpu, long rx, long tx, Map<Integer, ThreadStat> current) {
+            Object objM2406constructorimpl;
             Episode episode = this.episode;
             if (episode == null) {
                 return;
@@ -1047,12 +1382,21 @@ public final class LoadMonitor {
                 return;
             }
             episode.setReported(true);
-            File file = null;
             try {
-                file = loadMonitor.writeReport(buildReport("background"), "background");
+                Result.Companion companion = Result.INSTANCE;
+                objM2406constructorimpl = Result.m2406constructorimpl(loadMonitor.writeReport(buildReport("background"), "background"));
             } catch (Throwable th) {
-                FileLog.e(th);
+                Result.Companion companion2 = Result.INSTANCE;
+                objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th));
             }
+            Throwable thM2409exceptionOrNullimpl = Result.m2409exceptionOrNullimpl(objM2406constructorimpl);
+            if (thM2409exceptionOrNullimpl != null) {
+                FileLog.e(thM2409exceptionOrNullimpl);
+            }
+            if (Result.m2412isFailureimpl(objM2406constructorimpl)) {
+                objM2406constructorimpl = null;
+            }
+            File file = (File) objM2406constructorimpl;
             if (file == null) {
                 return;
             }
@@ -1061,14 +1405,25 @@ public final class LoadMonitor {
             if (tx >= 0 && episode.getTxBytes() >= 0) {
                 txBytes = tx - episode.getTxBytes();
             }
-            LoadMonitor.pendingAlert = new PendingAlert(file, loadMonitor.describeEpisode(startRealtime, cpuMs, rxBytes, txBytes, loadMonitor.topThreads(loadMonitor.threadDeltas(episode.getThreads(), current), 3)));
+            LoadMonitor loadMonitor2 = LoadMonitor.INSTANCE;
+            LoadMonitor.pendingAlert = new PendingAlert(file, loadMonitor2.describeEpisode(startRealtime, cpuMs, rxBytes, txBytes, loadMonitor2.topThreads(loadMonitor2.threadDeltas(episode.getThreads(), current), 3)));
+            ForegroundDetector foregroundDetector = ForegroundDetector.getInstance();
+            if (foregroundDetector == null || !foregroundDetector.isForeground()) {
+                return;
+            }
+            AndroidUtilities.runOnUIThread(new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() {
+                    LoadMonitor.INSTANCE.showPendingAlert();
+                }
+            });
         }
 
         private final HealthStats recentHealthStats() {
-            long elapsedRealtime = SystemClock.elapsedRealtime();
-            if (this.recentHealth == null || elapsedRealtime - this.recentHealthRealtime >= 30000) {
-                this.recentHealthRealtime = elapsedRealtime;
+            long jElapsedRealtime = SystemClock.elapsedRealtime();
+            if (this.recentHealth == null || jElapsedRealtime - this.recentHealthRealtime > 60000) {
                 this.recentHealth = LoadMonitor.INSTANCE.takeHealthStats();
+                this.recentHealthRealtime = jElapsedRealtime;
             }
             return this.recentHealth;
         }
@@ -1086,29 +1441,27 @@ public final class LoadMonitor {
                 jSONObject.put(LoadMonitor.STATE_NAMES[i], new JSONObject().put("wallMs", this.wallMs[i]).put("cpuMs", this.cpuMs[i]).put("rxBytes", this.rxBytes[i]).put("txBytes", this.txBytes[i]));
             }
             JSONArray jSONArray = new JSONArray();
-            List<Map.Entry<String, long[]>> sortedThreads = new ArrayList<>(this.threadMs.entrySet());
-            sortedThreads.sort((e1, e2) -> {
-                long sum1 = 0;
-                for (long v : e1.getValue()) sum1 += v;
-                long sum2 = 0;
-                for (long v : e2.getValue()) sum2 += v;
-                return Long.compare(sum2, sum1);
-            });
-            if (sortedThreads.size() > 30) {
-                sortedThreads = sortedThreads.subList(0, 30);
-            }
-            for (Map.Entry<String, long[]> entry : sortedThreads) {
-                String str = entry.getKey();
-                long[] jArr = entry.getValue();
-                long sum = 0;
-                for (long v : jArr) sum += v;
-                JSONObject jSONObjectPut = new JSONObject().put("name", str).put("cpuMs", sum).put("at", LoadMonitor.INSTANCE.originOf(str));
-                for (int i2 = 0; i2 < LoadMonitor.STATE_NAMES.length; i2++) {
+            Iterator it = CollectionsKt.take(CollectionsKt.sortedWith(this.threadMs.entrySet(), new Comparator() {
+                @Override // java.util.Comparator
+                public final int compare(T t, T t2) {
+                    return ComparisonsKt.compareValues(Long.valueOf(ArraysKt.sum((long[]) ((Map.Entry) t2).getValue())), Long.valueOf(ArraysKt.sum((long[]) ((Map.Entry) t).getValue())));
+                }
+            }), 30).iterator();
+            while (it.hasNext()) {
+                Map.Entry entry = (Map.Entry) it.next();
+                String str = (String) entry.getKey();
+                long[] jArr = (long[]) entry.getValue();
+                JSONObject jSONObjectPut = new JSONObject().put("name", str).put("cpuMs", ArraysKt.sum(jArr)).put("at", LoadMonitor.INSTANCE.originOf(str));
+                int length2 = LoadMonitor.STATE_NAMES.length;
+                int i2 = 0;
+                while (i2 < length2) {
                     jSONObjectPut.put(LoadMonitor.STATE_NAMES[i2], jArr[i2]);
+                    i2++;
+                    it = it;
                 }
                 jSONArray.put(jSONObjectPut);
             }
-            jSONObjectBaseReport.put("monitor", new JSONObject().put("startedAt", this.startedAt).put("sampleIntervalMs", 60000L).put("batteryAtStart", this.startBattery).put("states", jSONObject).put("threads", jSONArray).put("samples", new JSONArray(this.samples)));
+            jSONObjectBaseReport.put("monitor", new JSONObject().put("startedAt", this.startedAt).put("sampleIntervalMs", 60000L).put("batteryAtStart", this.startBattery).put("states", jSONObject).put("threads", jSONArray).put("samples", new JSONArray((Collection) this.samples)));
             Episode episode = this.episode;
             if (episode != null) {
                 long jElapsedRealtime = SystemClock.elapsedRealtime();
@@ -1116,17 +1469,17 @@ public final class LoadMonitor {
                 LoadMonitor loadMonitor = LoadMonitor.INSTANCE;
                 long jUidRxBytes = loadMonitor.uidRxBytes();
                 long jUidTxBytes = loadMonitor.uidTxBytes();
-                HashMap<Integer, ThreadStat> readThreads = loadMonitor.readThreads();
-                long startRealtime = jElapsedRealtime - episode.getStartRealtime();
-                long cpuMs = elapsedCpuTime - episode.getCpuMs();
-                long rxBytes = (jUidRxBytes < 0 || episode.getRxBytes() < 0) ? -1L : jUidRxBytes - episode.getRxBytes();
-                long txBytes = (jUidTxBytes < 0 || episode.getTxBytes() < 0) ? -1L : jUidTxBytes - episode.getTxBytes();
-                JSONObject jSONObjectEpisode = new JSONObject().put("startedAt", episode.getStartedAt()).put("wallMs", startRealtime).put("cpuMs", cpuMs).put("rxBytes", rxBytes).put("txBytes", txBytes).put("threads", loadMonitor.threadsJson(loadMonitor.topThreads(loadMonitor.threadDeltas(episode.getThreads(), readThreads), 10), false));
+                JSONObject jSONObjectPut2 = new JSONObject().put("startedAt", episode.getStartedAt()).put("wallMs", jElapsedRealtime - episode.getStartRealtime()).put("cpuMs", elapsedCpuTime - episode.getCpuMs());
+                long txBytes = -1;
+                JSONObject jSONObjectPut3 = jSONObjectPut2.put("rxBytes", (jUidRxBytes < 0 || episode.getRxBytes() < 0) ? -1L : jUidRxBytes - episode.getRxBytes());
+                if (jUidTxBytes >= 0 && episode.getTxBytes() >= 0) {
+                    txBytes = jUidTxBytes - episode.getTxBytes();
+                }
+                jSONObjectBaseReport.put("episode", jSONObjectPut3.put("txBytes", txBytes).put("threads", loadMonitor.threadsJson(loadMonitor.topThreads(loadMonitor.threadDeltas(episode.getThreads(), loadMonitor.readThreads()), 30), true)));
                 HealthStats health = episode.getHealth();
                 if (health != null) {
-                    jSONObjectEpisode.put("healthEpisodeStart", loadMonitor.healthJson(health));
+                    jSONObjectBaseReport.put("healthEpisodeStart", loadMonitor.healthJson(health));
                 }
-                jSONObjectBaseReport.put("episode", jSONObjectEpisode);
             }
             HealthStats healthStats = this.startHealth;
             if (healthStats != null) {

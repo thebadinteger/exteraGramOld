@@ -18,8 +18,10 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import androidx.core.content.ContextCompat;
 import androidx.core.widget.NestedScrollView;
 import com.exteragram.messenger.ExteraConfig;
+import com.exteragram.messenger.plugins.PluginsConstants;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.DocumentObject;
@@ -42,16 +44,21 @@ import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 public class UpdateAppAlertDialog extends BottomSheet {
     private final int accountNum;
     protected final TLRPC.TL_help_appUpdate appUpdate;
+    private final int bottomContentHeight;
+    protected final TextView changelogTextView;
+    protected final ButtonWithCounterView doneButton;
     protected final LinearLayout linearLayout;
     private final int[] location;
+    protected final TextView messageTextView;
     private int scrollOffsetY;
     private final NestedScrollView scrollView;
     private final View shadow;
     private AnimatorSet shadowAnimation;
     private final Drawable shadowDrawable;
     protected final TextView textView;
-    protected TextView messageTextView;
-    protected SpoilersTextView changelogTextView;
+
+    public void addContentBeforeDoneButton(FrameLayout frameLayout) {
+    }
 
     public int getExtraBottomContentHeight() {
         return 0;
@@ -61,21 +68,20 @@ public class UpdateAppAlertDialog extends BottomSheet {
         return true;
     }
 
-    public void addContentBeforeDoneButton(FrameLayout frameLayout) {
-    }
-
     public UpdateAppAlertDialog(Activity activity, TLRPC.TL_help_appUpdate tL_help_appUpdate, int i) {
         super(activity, false);
         this.location = new int[2];
         this.appUpdate = tL_help_appUpdate;
         this.accountNum = i;
+        int extraBottomContentHeight = (hasSecondaryButton() ? 130 : 72) + getExtraBottomContentHeight();
+        this.bottomContentHeight = extraBottomContentHeight;
         fixNavigationBar();
         setApplyTopPadding(false);
         setApplyBottomPadding(false);
-        Drawable drawableMutate = activity.getResources().getDrawable(R.drawable.sheet_shadow_round).mutate();
+        Drawable drawableMutate = ContextCompat.getDrawable(activity, R.drawable.sheet_shadow_round).mutate();
         this.shadowDrawable = drawableMutate;
         drawableMutate.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_dialogBackground), PorterDuff.Mode.MULTIPLY));
-        FrameLayout frameLayout = new FrameLayout(activity) { 
+        FrameLayout frameLayout = new FrameLayout(activity) {
             @Override // android.view.View
             public void setTranslationY(float f) {
                 super.setTranslationY(f);
@@ -84,8 +90,8 @@ public class UpdateAppAlertDialog extends BottomSheet {
 
             @Override // android.view.ViewGroup
             public boolean onInterceptTouchEvent(MotionEvent motionEvent) {
-                if (motionEvent.getAction() == 0 && UpdateAppAlertDialog.this.scrollOffsetY != 0 && motionEvent.getY() < UpdateAppAlertDialog.this.scrollOffsetY) {
-                    UpdateAppAlertDialog.this.dismiss();
+                if (motionEvent.getAction() == 0 && UpdateAppAlertDialog.this.scrollOffsetY != 0 && motionEvent.getY() < UpdateAppAlertDialog.this.scrollOffsetY && UpdateAppAlertDialog.this.canDismissWithTouchOutside()) {
+                    UpdateAppAlertDialog.this.lambda$new$0();
                     return true;
                 }
                 return super.onInterceptTouchEvent(motionEvent);
@@ -99,13 +105,13 @@ public class UpdateAppAlertDialog extends BottomSheet {
 
             @Override // android.view.View
             public void onDraw(Canvas canvas) {
-                UpdateAppAlertDialog.this.shadowDrawable.setBounds(0, (int) ((UpdateAppAlertDialog.this.scrollOffsetY - UpdateAppAlertDialog.this.getBackgroundPaddingTop()) - getTranslationY()), getMeasuredWidth(), getMeasuredHeight());
+                UpdateAppAlertDialog.this.shadowDrawable.setBounds(0, (int) ((UpdateAppAlertDialog.this.scrollOffsetY - ((BottomSheet) UpdateAppAlertDialog.this).backgroundPaddingTop) - getTranslationY()), getMeasuredWidth(), getMeasuredHeight());
                 UpdateAppAlertDialog.this.shadowDrawable.draw(canvas);
             }
         };
         frameLayout.setWillNotDraw(false);
         this.containerView = frameLayout;
-        NestedScrollView nestedScrollView = new NestedScrollView(activity) { 
+        NestedScrollView nestedScrollView = new NestedScrollView(activity) {
             private boolean ignoreLayout;
 
             @Override // androidx.core.widget.NestedScrollView, android.widget.FrameLayout, android.view.View
@@ -153,7 +159,7 @@ public class UpdateAppAlertDialog extends BottomSheet {
         nestedScrollView.setWillNotDraw(false);
         nestedScrollView.setClipToPadding(false);
         nestedScrollView.setVerticalScrollBarEnabled(false);
-        frameLayout.addView(nestedScrollView, LayoutHelper.createFrame(-1, -1.0f, 51, 0.0f, 0.0f, 0.0f, 130.0f));
+        frameLayout.addView(nestedScrollView, LayoutHelper.createFrame(-1, -1.0f, 51, 0.0f, 0.0f, 0.0f, extraBottomContentHeight));
         LinearLayout linearLayout = new LinearLayout(activity);
         this.linearLayout = linearLayout;
         linearLayout.setOrientation(1);
@@ -163,9 +169,9 @@ public class UpdateAppAlertDialog extends BottomSheet {
             SvgHelper.SvgDrawable svgThumb = DocumentObject.getSvgThumb(tL_help_appUpdate.sticker.thumbs, Theme.key_windowBackgroundGray, 1.0f);
             ImageLocation forDocument = ImageLocation.getForDocument(FileLoader.getClosestPhotoSizeWithSize(tL_help_appUpdate.sticker.thumbs, 90), tL_help_appUpdate.sticker);
             if (svgThumb != null) {
-                backupImageView.setImage(ImageLocation.getForDocument(tL_help_appUpdate.sticker), "250_250", svgThumb, 0, "update");
+                backupImageView.setImage(ImageLocation.getForDocument(tL_help_appUpdate.sticker), "250_250", svgThumb, 0, PluginsConstants.UPDATE);
             } else {
-                backupImageView.setImage(ImageLocation.getForDocument(tL_help_appUpdate.sticker), "250_250", forDocument, (String) null, 0, "update");
+                backupImageView.setImage(ImageLocation.getForDocument(tL_help_appUpdate.sticker), "250_250", forDocument, (String) null, 0, PluginsConstants.UPDATE);
             }
             linearLayout.addView(backupImageView, LayoutHelper.createLinear(160, 160, 49, 17, 8, 17, 0));
         }
@@ -186,7 +192,7 @@ public class UpdateAppAlertDialog extends BottomSheet {
         textView2.setMovementMethod(new AndroidUtilities.LinkMovementMethodMy());
         int i3 = Theme.key_dialogTextLink;
         textView2.setLinkTextColor(Theme.getColor(i3));
-        textView2.setText(LocaleController.formatString("AppUpdateVersionAndSize", R.string.AppUpdateVersionAndSize, tL_help_appUpdate.version, AndroidUtilities.formatFileSize(tL_help_appUpdate.document.size)));
+        textView2.setText(LocaleController.formatString(R.string.AppUpdateVersionAndSize, tL_help_appUpdate.version, AndroidUtilities.formatFileSize(tL_help_appUpdate.document.size)));
         textView2.setGravity(49);
         linearLayout.addView(textView2, LayoutHelper.createLinear(-2, -2, 49, 23, 0, 23, 5));
         SpoilersTextView spoilersTextView = new SpoilersTextView(getContext());
@@ -207,7 +213,7 @@ public class UpdateAppAlertDialog extends BottomSheet {
         spoilersTextView.setGravity(51);
         linearLayout.addView(spoilersTextView, LayoutHelper.createLinear(-2, -2, 51, 23, 15, 23, 0));
         FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(-1, AndroidUtilities.getShadowHeight(), 83);
-        layoutParams.bottomMargin = AndroidUtilities.dp(127.0f);
+        layoutParams.bottomMargin = AndroidUtilities.dp(extraBottomContentHeight - 3);
         View view = new View(activity);
         this.shadow = view;
         view.setBackgroundColor(Theme.getColor(Theme.key_dialogShadowLine));
@@ -216,33 +222,44 @@ public class UpdateAppAlertDialog extends BottomSheet {
         frameLayout.addView(view, layoutParams);
         addContentBeforeDoneButton(frameLayout);
         ButtonWithCounterView buttonWithCounterView = new ButtonWithCounterView(activity, true, null);
+        this.doneButton = buttonWithCounterView;
         buttonWithCounterView.setRound();
         buttonWithCounterView.setText(getDoneButtonText(), false);
-        buttonWithCounterView.setOnClickListener(new View.OnClickListener() { 
+        buttonWithCounterView.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view2) {
-                UpdateAppAlertDialog.this.onDone();
+                this.f$0.lambda$new$0(view2);
             }
         });
-        frameLayout.addView(buttonWithCounterView, LayoutHelper.createFrame(-1, 48.0f, 83, 22.0f, 14.0f, 22.0f, 64.0f));
+        frameLayout.addView(buttonWithCounterView, LayoutHelper.createFrame(-1, 48.0f, 83, 22.0f, 14.0f, 22.0f, (hasSecondaryButton() ? 64 : 8) + getExtraBottomContentHeight()));
         addContentAfterDoneButton(frameLayout);
     }
 
+    public void lambda$new$0(View view) {
+        onDone();
+    }
+
     public void addContentAfterDoneButton(FrameLayout frameLayout) {
-        addRemindLaterButton(frameLayout, new Runnable() {
-            @Override
-            public final void run() {
-                ExteraConfig.setUpdateScheduleTimestamp(System.currentTimeMillis());
-                UpdateAppAlertDialog.this.dismiss();
-            }
-        });
+        if (hasSecondaryButton()) {
+            addRemindLaterButton(frameLayout, new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() {
+                    this.f$0.lambda$addContentAfterDoneButton$1();
+                }
+            });
+        }
+    }
+
+    public void lambda$addContentAfterDoneButton$1() {
+        ExteraConfig.setUpdateScheduleTimestamp(System.currentTimeMillis());
+        lambda$new$0();
     }
 
     public void addRemindLaterButton(FrameLayout frameLayout, final Runnable runnable) {
         ButtonWithCounterView buttonWithCounterView = new ButtonWithCounterView(getContext(), false, null);
         buttonWithCounterView.setRound();
         buttonWithCounterView.setText(LocaleController.getString(R.string.AppUpdateRemindMeLater), false);
-        buttonWithCounterView.setOnClickListener(new View.OnClickListener() { 
+        buttonWithCounterView.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 runnable.run();
@@ -263,9 +280,9 @@ public class UpdateAppAlertDialog extends BottomSheet {
         if (FileLoader.getInstance(this.currentAccount).getPathToAttach(SharedConfig.pendingAppUpdate.document, true).exists()) {
             ApplicationLoader.applicationLoaderInstance.openApkInstall((Activity) getContext(), SharedConfig.pendingAppUpdate.document);
         } else {
-            FileLoader.getInstance(this.accountNum).loadFile(this.appUpdate.document, "update", 1, 1);
+            FileLoader.getInstance(this.accountNum).loadFile(this.appUpdate.document, PluginsConstants.UPDATE, 1, 1);
         }
-        dismiss();
+        lambda$new$0();
     }
 
     private void runShadowAnimation(final boolean z) {
@@ -284,7 +301,7 @@ public class UpdateAppAlertDialog extends BottomSheet {
         this.shadowAnimation = animatorSet2;
         animatorSet2.playTogether(ObjectAnimator.ofFloat(this.shadow, (Property<View, Float>) View.ALPHA, z ? 1.0f : 0.0f));
         this.shadowAnimation.setDuration(150L);
-        this.shadowAnimation.addListener(new AnimatorListenerAdapter() { 
+        this.shadowAnimation.addListener(new AnimatorListenerAdapter() {
             @Override // android.animation.AnimatorListenerAdapter, android.animation.Animator.AnimatorListener
             public void onAnimationEnd(Animator animator) {
                 if (UpdateAppAlertDialog.this.shadowAnimation == null || !UpdateAppAlertDialog.this.shadowAnimation.equals(animator)) {
@@ -310,7 +327,7 @@ public class UpdateAppAlertDialog extends BottomSheet {
     public void updateLayout() {
         this.linearLayout.getChildAt(0).getLocationInWindow(this.location);
         int iMax = Math.max(this.location[1] - AndroidUtilities.dp(24.0f), 0);
-        runShadowAnimation(((float) (this.location[1] + this.linearLayout.getMeasuredHeight())) > ((float) (this.container.getMeasuredHeight() - AndroidUtilities.dp(113.0f))) + this.containerView.getTranslationY());
+        runShadowAnimation(((float) (this.location[1] + this.linearLayout.getMeasuredHeight())) > ((float) (this.container.getMeasuredHeight() - AndroidUtilities.dp((float) (this.bottomContentHeight + (-17))))) + this.containerView.getTranslationY());
         if (this.scrollOffsetY != iMax) {
             this.scrollOffsetY = iMax;
             this.scrollView.invalidate();

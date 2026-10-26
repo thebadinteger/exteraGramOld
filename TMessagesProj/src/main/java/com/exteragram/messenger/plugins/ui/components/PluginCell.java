@@ -8,15 +8,16 @@ import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import com.android.dx.rop.code.RegisterSpec;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.plugins.Plugin;
+import com.exteragram.messenger.plugins.PluginsConstants;
 import com.exteragram.messenger.plugins.PluginsController;
 import com.exteragram.messenger.utils.AppUtils;
 import com.exteragram.messenger.utils.text.LocaleUtils;
@@ -46,7 +47,7 @@ import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.UniversalRecyclerView;
 import org.telegram.ui.LaunchActivity;
 
-@Metadata(d1 = {"\u0000\u008a\u0001\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0000\n\u0002\u0010\u0002\n\u0002\b\u0003\n\u0002\u0010\b\n\u0002\b\u0010\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\b\n\u0002\u0010\u0011\n\u0002\u0010\u0000\n\u0002\b\u0003\b\u0007\u0018\u00002\u00020\u00012\u00020\u0002:\u0001HB\u000f\u0012\u0006\u0010\u0003\u001a\u00020\u0004¢\u0006\u0004\b\u0005\u0010\u0006J\u000e\u0010 \u001a\u00020!2\u0006\u0010\"\u001a\u00020\u001fJ\u0018\u0010#\u001a\u00020!2\u0006\u0010$\u001a\u00020%2\u0006\u0010&\u001a\u00020%H\u0014J\b\u0010'\u001a\u00020!H\u0002J\u001a\u0010(\u001a\u00020!2\b\u0010\u001a\u001a\u0004\u0018\u00010\u001b2\b\u0010\u001c\u001a\u0004\u0018\u00010\u001dJ\b\u0010)\u001a\u00020!H\u0002J\b\u0010*\u001a\u00020!H\u0002J\b\u0010+\u001a\u00020!H\u0002J\b\u0010,\u001a\u00020!H\u0002J\u0016\u0010-\u001a\u00020!2\u0006\u0010.\u001a\u00020\u001f2\u0006\u0010/\u001a\u00020\u001fJ\u000e\u00100\u001a\u00020!2\u0006\u00101\u001a\u00020\u001fJ*\u00102\u001a\u00020\u00132\u0006\u0010\u0003\u001a\u00020\u00042\b\b\u0001\u00103\u001a\u00020%2\u0006\u00104\u001a\u00020\u001f2\u0006\u00105\u001a\u000206H\u0002J\u0010\u00107\u001a\u00020!2\u0006\u00108\u001a\u000209H\u0002J\b\u0010:\u001a\u00020%H\u0002J\u0010\u0010;\u001a\n =*\u0004\u0018\u00010<0<H\u0002J\b\u0010>\u001a\u00020!H\u0002J\b\u0010?\u001a\u00020!H\u0014J\b\u0010@\u001a\u00020!H\u0014J5\u0010A\u001a\u00020!2\u0006\u0010B\u001a\u00020%2\u0006\u0010C\u001a\u00020%2\u0016\u0010D\u001a\f\u0012\b\b\u0001\u0012\u0004\u0018\u00010F0E\"\u0004\u0018\u00010FH\u0016¢\u0006\u0002\u0010GR\u000e\u0010\u0007\u001a\u00020\bX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\t\u001a\u00020\nX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u000b\u001a\u00020\fX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\r\u001a\u00020\fX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u000e\u001a\u00020\u000fX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0010\u001a\u00020\u0011X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0012\u001a\u00020\u0013X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0014\u001a\u00020\u0013X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0015\u001a\u00020\u0013X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0016\u001a\u00020\u0013X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0017\u001a\u00020\u0013X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0018\u001a\u00020\u0019X\u0082\u0004¢\u0006\u0002\n\u0000R\u0010\u0010\u001a\u001a\u0004\u0018\u00010\u001bX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u001c\u001a\u0004\u0018\u00010\u001dX\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\u001e\u001a\u00020\u001fX\u0082\u000e¢\u0006\u0002\n\u0000¨\u0006I"}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/PluginCell;", "Landroid/widget/FrameLayout;", "Lorg/telegram/messenger/NotificationCenter$NotificationCenterDelegate;", "context", "Landroid/content/Context;", "<init>", "(Landroid/content/Context;)V", "imageView", "Lorg/telegram/ui/Components/BackupImageView;", "pluginNameView", "Landroid/widget/TextView;", "subtitleView", "Lorg/telegram/ui/Components/EffectsTextView;", "descriptionView", "requirementsLayout", "Lcom/exteragram/messenger/plugins/ui/components/PluginRequirementsView;", "checkBox", "Lorg/telegram/ui/Components/Switch;", "settingsButton", "Landroid/widget/ImageView;", "shareButton", "openInButton", "deleteButton", "pinButton", "headerLayout", "Landroid/widget/LinearLayout;", "plugin", "Lcom/exteragram/messenger/plugins/Plugin;", "pluginCellDelegate", "Lcom/exteragram/messenger/plugins/ui/components/PluginCellDelegate;", "compactMode", _UrlKt.FRAGMENT_ENCODE_SET, "setCompact", _UrlKt.FRAGMENT_ENCODE_SET, "compact", "onMeasure", "widthMeasureSpec", _UrlKt.FRAGMENT_ENCODE_SET, "heightMeasureSpec", "updateLayout", "set", "bindNotRespondingState", "updateDeleteButton", "bindErrorState", "bindNormalState", "setChecked", "checked", "animated", "setPinned", "pinned", "createButton", "iconResId", "isRed", "onClickListener", "Landroid/view/View$OnClickListener;", "applyClickAnimation", "view", "Landroid/view/View;", "getPluginIconRadiusDp", "createPluginIconOutlineProvider", "Landroid/view/ViewOutlineProvider;", "kotlin.jvm.PlatformType", "updatePluginIconOutlineProvider", "onAttachedToWindow", "onDetachedFromWindow", "didReceivedNotification", "id", "account", "args", _UrlKt.FRAGMENT_ENCODE_SET, _UrlKt.FRAGMENT_ENCODE_SET, "(II[Ljava/lang/Object;)V", "Factory", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+@Metadata(d1 = {"\u0000\u008a\u0001\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0000\n\u0002\u0010\u0002\n\u0002\b\u0003\n\u0002\u0010\b\n\u0002\b\u0010\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\b\n\u0002\u0010\u0011\n\u0002\u0010\u0000\n\u0002\b\u0003\b\u0007\u0018\u00002\u00020\u00012\u00020\u0002:\u0001HB\u000f\u0012\u0006\u0010\u0003\u001a\u00020\u0004¢\u0006\u0004\b\u0005\u0010\u0006J\u000e\u0010 \u001a\u00020!2\u0006\u0010\"\u001a\u00020\u001fJ\u0018\u0010#\u001a\u00020!2\u0006\u0010$\u001a\u00020%2\u0006\u0010&\u001a\u00020%H\u0014J\b\u0010'\u001a\u00020!H\u0002J\u001a\u0010(\u001a\u00020!2\b\u0010\u001a\u001a\u0004\u0018\u00010\u001b2\b\u0010\u001c\u001a\u0004\u0018\u00010\u001dJ\b\u0010)\u001a\u00020!H\u0002J\b\u0010*\u001a\u00020!H\u0002J\b\u0010+\u001a\u00020!H\u0002J\b\u0010,\u001a\u00020!H\u0002J\u0016\u0010-\u001a\u00020!2\u0006\u0010.\u001a\u00020\u001f2\u0006\u0010/\u001a\u00020\u001fJ\u000e\u00100\u001a\u00020!2\u0006\u00101\u001a\u00020\u001fJ*\u00102\u001a\u00020\u00132\u0006\u0010\u0003\u001a\u00020\u00042\b\b\u0001\u00103\u001a\u00020%2\u0006\u00104\u001a\u00020\u001f2\u0006\u00105\u001a\u000206H\u0002J\u0010\u00107\u001a\u00020!2\u0006\u00108\u001a\u000209H\u0002J\b\u0010:\u001a\u00020%H\u0002J\u0010\u0010;\u001a\n =*\u0004\u0018\u00010<0<H\u0002J\b\u0010>\u001a\u00020!H\u0002J\b\u0010?\u001a\u00020!H\u0014J\b\u0010@\u001a\u00020!H\u0014J5\u0010A\u001a\u00020!2\u0006\u0010B\u001a\u00020%2\u0006\u0010C\u001a\u00020%2\u0016\u0010D\u001a\f\u0012\b\b\u0001\u0012\u0004\u0018\u00010F0E\"\u0004\u0018\u00010FH\u0016¢\u0006\u0002\u0010GR\u000e\u0010\u0007\u001a\u00020\bX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\t\u001a\u00020\nX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u000b\u001a\u00020\fX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\r\u001a\u00020\fX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u000e\u001a\u00020\u000fX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0010\u001a\u00020\u0011X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0012\u001a\u00020\u0013X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0014\u001a\u00020\u0013X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0015\u001a\u00020\u0013X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0016\u001a\u00020\u0013X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0017\u001a\u00020\u0013X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0018\u001a\u00020\u0019X\u0082\u0004¢\u0006\u0002\n\u0000R\u0010\u0010\u001a\u001a\u0004\u0018\u00010\u001bX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u001c\u001a\u0004\u0018\u00010\u001dX\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\u001e\u001a\u00020\u001fX\u0082\u000e¢\u0006\u0002\n\u0000¨\u0006I"}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/PluginCell;", "Landroid/widget/FrameLayout;", "Lorg/telegram/messenger/NotificationCenter$NotificationCenterDelegate;", "context", "Landroid/content/Context;", "<init>", "(Landroid/content/Context;)V", "imageView", "Lorg/telegram/ui/Components/BackupImageView;", "pluginNameView", "Landroid/widget/TextView;", "subtitleView", "Lorg/telegram/ui/Components/EffectsTextView;", "descriptionView", "requirementsLayout", "Lcom/exteragram/messenger/plugins/ui/components/PluginRequirementsView;", "checkBox", "Lorg/telegram/ui/Components/Switch;", "settingsButton", "Landroid/widget/ImageView;", "shareButton", "openInButton", "deleteButton", "pinButton", "headerLayout", "Landroid/widget/LinearLayout;", "plugin", "Lcom/exteragram/messenger/plugins/Plugin;", "pluginCellDelegate", "Lcom/exteragram/messenger/plugins/ui/components/PluginCellDelegate;", "compactMode", _UrlKt.FRAGMENT_ENCODE_SET, "setCompact", _UrlKt.FRAGMENT_ENCODE_SET, "compact", "onMeasure", "widthMeasureSpec", _UrlKt.FRAGMENT_ENCODE_SET, "heightMeasureSpec", "updateLayout", "set", "bindNotRespondingState", "updateDeleteButton", "bindErrorState", "bindNormalState", "setChecked", "checked", "animated", "setPinned", "pinned", "createButton", "iconResId", "isRed", "onClickListener", "Landroid/view/View$OnClickListener;", "applyClickAnimation", PluginsConstants.Settings.VIEW, "Landroid/view/View;", "getPluginIconRadiusDp", "createPluginIconOutlineProvider", "Landroid/view/ViewOutlineProvider;", "kotlin.jvm.PlatformType", "updatePluginIconOutlineProvider", "onAttachedToWindow", "onDetachedFromWindow", "didReceivedNotification", "id", "account", "args", _UrlKt.FRAGMENT_ENCODE_SET, _UrlKt.FRAGMENT_ENCODE_SET, "(II[Ljava/lang/Object;)V", "Factory", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
 @SuppressLint({"ViewConstructor"})
 public final class PluginCell extends FrameLayout implements NotificationCenter.NotificationCenterDelegate {
     private final Switch checkBox;
@@ -65,7 +66,6 @@ public final class PluginCell extends FrameLayout implements NotificationCenter.
     private final ImageView shareButton;
     private final EffectsTextView subtitleView;
 
-    /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
     public PluginCell(Context context) {
         super(context);
         setClickable(false);
@@ -124,43 +124,43 @@ public final class PluginCell extends FrameLayout implements NotificationCenter.
         linearLayout.addView(view, LayoutHelper.createLinear(-1, 1.0f / AndroidUtilities.density, 0, 0, 12, 0, 8));
         LinearLayout linearLayout4 = new LinearLayout(context);
         linearLayout4.setOrientation(0);
-        ImageView imageViewCreateButton = createButton(context, R.drawable.msg_share, false, new View.OnClickListener() { // from class: com.exteragram.messenger.plugins.ui.components.PluginCell$$ExternalSyntheticLambda0
+        ImageView imageViewCreateButton = createButton(context, R.drawable.msg_share, false, new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view2) {
-                PluginCell.$r8$lambda$gPhyRoTYC0gInhhjd5k0po863gM(PluginCell.this, view2);
+                PluginCell.$r8$lambda$gPhyRoTYC0gInhhjd5k0po863gM(this.f$0, view2);
             }
         });
         this.shareButton = imageViewCreateButton;
         linearLayout4.addView(imageViewCreateButton, LayoutHelper.createFrame(40, 40.0f, 51, 0.0f, 0.0f, 8.0f, 0.0f));
-        ImageView imageViewCreateButton2 = createButton(context, R.drawable.msg_openin, false, new View.OnClickListener() { // from class: com.exteragram.messenger.plugins.ui.components.PluginCell$$ExternalSyntheticLambda1
+        ImageView imageViewCreateButton2 = createButton(context, R.drawable.msg_openin, false, new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view2) {
-                PluginCell.$r8$lambda$TkTsTkgHS2XoNteC2HxEG9EpXDk(PluginCell.this, view2);
+                PluginCell.$r8$lambda$TkTsTkgHS2XoNteC2HxEG9EpXDk(this.f$0, view2);
             }
         });
         this.openInButton = imageViewCreateButton2;
         linearLayout4.addView(imageViewCreateButton2, LayoutHelper.createFrame(40, 40.0f, 51, 0.0f, 0.0f, 8.0f, 0.0f));
-        ImageView imageViewCreateButton3 = createButton(context, R.drawable.msg_pin, false, new View.OnClickListener() { // from class: com.exteragram.messenger.plugins.ui.components.PluginCell$$ExternalSyntheticLambda2
+        ImageView imageViewCreateButton3 = createButton(context, R.drawable.msg_pin, false, new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view2) {
-                PluginCell.m1358$r8$lambda$miXUx0RJdhvQyk3TfMBgG7YnBI(PluginCell.this, view2);
+                PluginCell.m1964$r8$lambda$miXUx0RJdhvQyk3TfMBgG7YnBI(this.f$0, view2);
             }
         });
         this.pinButton = imageViewCreateButton3;
         linearLayout4.addView(imageViewCreateButton3, LayoutHelper.createFrame(40, 40.0f, 51, 0.0f, 0.0f, 8.0f, 0.0f));
-        ImageView imageViewCreateButton4 = createButton(context, R.drawable.msg_settings, false, new View.OnClickListener() { // from class: com.exteragram.messenger.plugins.ui.components.PluginCell$$ExternalSyntheticLambda3
+        ImageView imageViewCreateButton4 = createButton(context, R.drawable.msg_settings, false, new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view2) {
-                PluginCell.$r8$lambda$vFaf3kpNKKpdG19431rjWCjd68Y(PluginCell.this, view2);
+                PluginCell.$r8$lambda$vFaf3kpNKKpdG19431rjWCjd68Y(this.f$0, view2);
             }
         });
         imageViewCreateButton4.setVisibility(8);
         this.settingsButton = imageViewCreateButton4;
         linearLayout4.addView(imageViewCreateButton4, LayoutHelper.createFrame(40, 40.0f, 51, 0.0f, 0.0f, 8.0f, 0.0f));
-        ImageView imageViewCreateButton5 = createButton(context, R.drawable.msg_delete, true, new View.OnClickListener() { // from class: com.exteragram.messenger.plugins.ui.components.PluginCell$$ExternalSyntheticLambda4
+        ImageView imageViewCreateButton5 = createButton(context, R.drawable.msg_delete, true, new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view2) {
-                PluginCell.m1359$r8$lambda$txZU19WGsUHbCEQUldGESo9Wwc(PluginCell.this, view2);
+                PluginCell.m1965$r8$lambda$txZU19WGsUHbCEQUldGESo9Wwc(this.f$0, view2);
             }
         });
         this.deleteButton = imageViewCreateButton5;
@@ -191,8 +191,7 @@ public final class PluginCell extends FrameLayout implements NotificationCenter.
         }
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$miXUx0RJdhvQyk3T-fMBgG7YnBI, reason: not valid java name */
-    public static void m1358$r8$lambda$miXUx0RJdhvQyk3TfMBgG7YnBI(PluginCell pluginCell, View view) {
+    public static void m1964$r8$lambda$miXUx0RJdhvQyk3TfMBgG7YnBI(PluginCell pluginCell, View view) {
         PluginCellDelegate pluginCellDelegate = pluginCell.pluginCellDelegate;
         if (pluginCellDelegate != null) {
             pluginCellDelegate.pinPlugin(pluginCell);
@@ -206,8 +205,7 @@ public final class PluginCell extends FrameLayout implements NotificationCenter.
         }
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$txZU1-9WGsUHbCEQUldGESo9Wwc, reason: not valid java name */
-    public static void m1359$r8$lambda$txZU19WGsUHbCEQUldGESo9Wwc(PluginCell pluginCell, View view) {
+    public static void m1965$r8$lambda$txZU19WGsUHbCEQUldGESo9Wwc(PluginCell pluginCell, View view) {
         PluginCellDelegate pluginCellDelegate = pluginCell.pluginCellDelegate;
         if (pluginCellDelegate != null) {
             pluginCellDelegate.deletePlugin();
@@ -232,33 +230,30 @@ public final class PluginCell extends FrameLayout implements NotificationCenter.
         if (plugin == null) {
             return;
         }
-        View childAt = this.headerLayout.getChildAt(1);
-        LinearLayout linearLayout = (LinearLayout) childAt;
+        LinearLayout linearLayout = (LinearLayout) this.headerLayout.getChildAt(1);
         this.headerLayout.setOrientation(!this.compactMode ? 1 : 0);
-        ViewGroup.LayoutParams layoutParams = this.imageView.getLayoutParams();
-        LinearLayout.LayoutParams layoutParams2 = (LinearLayout.LayoutParams) layoutParams;
-        layoutParams2.rightMargin = this.compactMode ? AndroidUtilities.dp(16.0f) : 0;
-        layoutParams2.bottomMargin = this.compactMode ? 0 : AndroidUtilities.dp(12.0f);
-        layoutParams2.width = this.compactMode ? AndroidUtilities.dp(49.0f) : AndroidUtilities.dp(56.0f);
-        layoutParams2.height = this.compactMode ? AndroidUtilities.dp(49.0f) : AndroidUtilities.dp(56.0f);
-        ViewGroup.LayoutParams layoutParams3 = linearLayout.getLayoutParams();
-        LinearLayout.LayoutParams layoutParams4 = (LinearLayout.LayoutParams) layoutParams3;
+        LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) this.imageView.getLayoutParams();
+        layoutParams.rightMargin = this.compactMode ? AndroidUtilities.dp(16.0f) : 0;
+        layoutParams.bottomMargin = this.compactMode ? 0 : AndroidUtilities.dp(12.0f);
+        layoutParams.width = this.compactMode ? AndroidUtilities.dp(49.0f) : AndroidUtilities.dp(56.0f);
+        layoutParams.height = this.compactMode ? AndroidUtilities.dp(49.0f) : AndroidUtilities.dp(56.0f);
+        LinearLayout.LayoutParams layoutParams2 = (LinearLayout.LayoutParams) linearLayout.getLayoutParams();
         boolean z = this.compactMode;
-        layoutParams4.gravity = z ? 16 : 3;
+        layoutParams2.gravity = z ? 16 : 3;
         this.pluginNameView.setSingleLine(z);
         this.subtitleView.setSingleLine(this.compactMode);
         final int iDp = ((!this.compactMode || plugin.hasError()) && (this.compactMode || (plugin.getPack() != null && plugin.getIndex() >= 0) || plugin.hasError())) ? 0 : AndroidUtilities.dp(61.0f);
         this.pluginNameView.setPadding(0, 0, iDp, 0);
-        this.pluginNameView.post(new Runnable() { // from class: com.exteragram.messenger.plugins.ui.components.PluginCell$$ExternalSyntheticLambda7
+        this.pluginNameView.post(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                PluginCell.$r8$lambda$DDJoJMGrt7paL1pOJFoOkItIZSA(PluginCell.this, iDp);
+                PluginCell.$r8$lambda$y2vqhelF7XUBHwvSinOwdrg10bo(this.f$0, iDp);
             }
         });
         requestLayout();
     }
 
-    public static void $r8$lambda$DDJoJMGrt7paL1pOJFoOkItIZSA(PluginCell pluginCell, int i) {
+    public static void $r8$lambda$y2vqhelF7XUBHwvSinOwdrg10bo(PluginCell pluginCell, int i) {
         EffectsTextView effectsTextView = pluginCell.subtitleView;
         if (pluginCell.pluginNameView.getLineCount() > 1) {
             i = 0;
@@ -267,7 +262,7 @@ public final class PluginCell extends FrameLayout implements NotificationCenter.
     }
 
     public final void set(Plugin plugin, final PluginCellDelegate pluginCellDelegate) {
-        String string;
+        String str;
         if (plugin == null || pluginCellDelegate == null) {
             return;
         }
@@ -287,11 +282,11 @@ public final class PluginCell extends FrameLayout implements NotificationCenter.
         this.pluginNameView.setText(plugin.getName());
         EffectsTextView effectsTextView = this.subtitleView;
         if (this.compactMode) {
-            string = "v";
+            str = RegisterSpec.PREFIX;
         } else {
-            string = LocaleController.getString(R.string.PluginVersion) + ' ';
+            str = LocaleController.getString(R.string.PluginVersion) + " ";
         }
-        effectsTextView.setText(new SpannableStringBuilder(string).append((CharSequence) plugin.getVersion()).append((CharSequence) " • ").append(LocaleUtils.formatWithUsernames(plugin.getAuthor())));
+        effectsTextView.setText(new SpannableStringBuilder(str).append((CharSequence) plugin.getVersion()).append((CharSequence) " • ").append(LocaleUtils.formatWithUsernames(plugin.getAuthor())));
         if (plugin.getIsNotResponding()) {
             bindNotRespondingState();
         } else if (plugin.hasError()) {
@@ -302,10 +297,10 @@ public final class PluginCell extends FrameLayout implements NotificationCenter.
         this.requirementsLayout.setRequirements(plugin.getRequirements());
         updateLayout();
         this.checkBox.setChecked(plugin.isEnabled(), false);
-        this.checkBox.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.plugins.ui.components.PluginCell$$ExternalSyntheticLambda6
+        this.checkBox.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                pluginCellDelegate.togglePlugin(PluginCell.this);
+                pluginCellDelegate.togglePlugin(this);
             }
         });
         AndroidUtilities.updateViewVisibilityAnimated(this.settingsButton, plugin.isEnabled() && companion.getInstance().hasPluginSettings(plugin.getId()), 0.5f, true, false);
@@ -314,7 +309,7 @@ public final class PluginCell extends FrameLayout implements NotificationCenter.
     private final void bindNotRespondingState() {
         this.descriptionView.setText(LocaleController.getString(R.string.PluginIsNotResponding));
         this.descriptionView.setTextColor(Theme.getColor(Theme.key_text_RedRegular));
-        this.descriptionView.setTypeface(AndroidUtilities.getTypeface("fonts/rmono.ttf"));
+        this.descriptionView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MONO));
         this.descriptionView.setTextSize(1, 12.0f);
         this.descriptionView.setOnClickListener(null);
         this.checkBox.setVisibility(8);
@@ -348,19 +343,19 @@ public final class PluginCell extends FrameLayout implements NotificationCenter.
         Throwable error = plugin.getError();
         effectsTextView.setText(error != null ? error.getLocalizedMessage() : null);
         this.descriptionView.setTextColor(Theme.getColor(Theme.key_text_RedRegular));
-        this.descriptionView.setTypeface(AndroidUtilities.getTypeface("fonts/rmono.ttf"));
+        this.descriptionView.setTypeface(AndroidUtilities.getTypeface(AndroidUtilities.TYPEFACE_ROBOTO_MONO));
         this.descriptionView.setTextSize(1, 12.0f);
-        this.descriptionView.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.plugins.ui.components.PluginCell$$ExternalSyntheticLambda8
+        this.descriptionView.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                PluginCell.$r8$lambda$6rpDPmjlQ6jnFtZWLEsa5Bv1A4Q(plugin, view);
+                PluginCell.$r8$lambda$NpWdx7yMfEnXZdYKD0YE3NuqgTE(plugin, view);
             }
         });
         this.checkBox.setVisibility(8);
         updateDeleteButton();
     }
 
-    public static void $r8$lambda$6rpDPmjlQ6jnFtZWLEsa5Bv1A4Q(Plugin plugin, View view) {
+    public static void $r8$lambda$NpWdx7yMfEnXZdYKD0YE3NuqgTE(Plugin plugin, View view) {
         if (AndroidUtilities.addToClipboard(AppUtils.stackTraceToString(plugin.getError()))) {
             BulletinFactory.of(LaunchActivity.getSafeLastFragment()).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
         }
@@ -406,15 +401,15 @@ public final class PluginCell extends FrameLayout implements NotificationCenter.
     }
 
     private final void applyClickAnimation(View view) {
-        view.setOnTouchListener(new View.OnTouchListener() { // from class: com.exteragram.messenger.plugins.ui.components.PluginCell$$ExternalSyntheticLambda5
+        view.setOnTouchListener(new View.OnTouchListener() {
             @Override // android.view.View.OnTouchListener
             public final boolean onTouch(View view2, MotionEvent motionEvent) {
-                return PluginCell.$r8$lambda$GNS5TyJK00U1k_uT5XN4XND2ouo(view2, motionEvent);
+                return PluginCell.m1966$r8$lambda$ws7ImX_AXdMw58mZnvhtanEhYQ(view2, motionEvent);
             }
         });
     }
 
-    public static boolean $r8$lambda$GNS5TyJK00U1k_uT5XN4XND2ouo(View view, MotionEvent motionEvent) {
+    public static boolean m1966$r8$lambda$ws7ImX_AXdMw58mZnvhtanEhYQ(View view, MotionEvent motionEvent) {
         int action = motionEvent.getAction();
         if (action == 0) {
             view.setPressed(true);
@@ -479,10 +474,9 @@ public final class PluginCell extends FrameLayout implements NotificationCenter.
         }
     }
 
-    @Metadata(d1 = {"\u0000N\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\b\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0007\u0018\u0000 \u001f2\b\u0012\u0004\u0012\u00020\u00020\u0001:\u0001\u001fB\u0007¢\u0006\u0004\b\u0003\u0010\u0004J2\u0010\u0005\u001a\u00020\u00022\u0006\u0010\u0006\u001a\u00020\u00072\u0006\u0010\b\u001a\u00020\t2\u0006\u0010\n\u001a\u00020\u000b2\u0006\u0010\f\u001a\u00020\u000b2\b\u0010\r\u001a\u0004\u0018\u00010\u000eH\u0016J0\u0010\u000f\u001a\u00020\u00102\u0006\u0010\u0011\u001a\u00020\u00122\u0006\u0010\u0013\u001a\u00020\u00142\u0006\u0010\u0015\u001a\u00020\u00162\u0006\u0010\u0017\u001a\u00020\u00182\u0006\u0010\b\u001a\u00020\u0019H\u0016J\u0019\u0010\u001a\u001a\u00020\u00162\u0006\u0010\u001b\u001a\u00020\u00142\u0006\u0010\u001c\u001a\u00020\u0014H\u0096\u0002J\u0018\u0010\u001d\u001a\u00020\u00162\u0006\u0010\u001b\u001a\u00020\u00142\u0006\u0010\u001c\u001a\u00020\u0014H\u0016J\b\u0010\u001e\u001a\u00020\u0016H\u0016¨\u0006 "}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/PluginCell$Factory;", "Lorg/telegram/ui/Components/UItem$UItemFactory;", "Lcom/exteragram/messenger/plugins/ui/components/PluginCell;", "<init>", "()V", "createView", "context", "Landroid/content/Context;", "listView", "Lorg/telegram/ui/Components/RecyclerListView;", "currentAccount", _UrlKt.FRAGMENT_ENCODE_SET, "classGuid", "resourcesProvider", "Lorg/telegram/ui/ActionBar/Theme$ResourcesProvider;", "bindView", _UrlKt.FRAGMENT_ENCODE_SET, "view", "Landroid/view/View;", "item", "Lorg/telegram/ui/Components/UItem;", "divider", _UrlKt.FRAGMENT_ENCODE_SET, "adapter", "Lorg/telegram/ui/Components/UniversalAdapter;", "Lorg/telegram/ui/Components/UniversalRecyclerView;", "equals", "a", "b", "contentsEquals", "isClickable", "Companion", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+    @Metadata(d1 = {"\u0000N\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\b\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0007\u0018\u0000 \u001f2\b\u0012\u0004\u0012\u00020\u00020\u0001:\u0001\u001fB\u0007¢\u0006\u0004\b\u0003\u0010\u0004J2\u0010\u0005\u001a\u00020\u00022\u0006\u0010\u0006\u001a\u00020\u00072\u0006\u0010\b\u001a\u00020\t2\u0006\u0010\n\u001a\u00020\u000b2\u0006\u0010\f\u001a\u00020\u000b2\b\u0010\r\u001a\u0004\u0018\u00010\u000eH\u0016J0\u0010\u000f\u001a\u00020\u00102\u0006\u0010\u0011\u001a\u00020\u00122\u0006\u0010\u0013\u001a\u00020\u00142\u0006\u0010\u0015\u001a\u00020\u00162\u0006\u0010\u0017\u001a\u00020\u00182\u0006\u0010\b\u001a\u00020\u0019H\u0016J\u0019\u0010\u001a\u001a\u00020\u00162\u0006\u0010\u001b\u001a\u00020\u00142\u0006\u0010\u001c\u001a\u00020\u0014H\u0096\u0002J\u0018\u0010\u001d\u001a\u00020\u00162\u0006\u0010\u001b\u001a\u00020\u00142\u0006\u0010\u001c\u001a\u00020\u0014H\u0016J\b\u0010\u001e\u001a\u00020\u0016H\u0016¨\u0006 "}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/PluginCell$Factory;", "Lorg/telegram/ui/Components/UItem$UItemFactory;", "Lcom/exteragram/messenger/plugins/ui/components/PluginCell;", "<init>", "()V", "createView", "context", "Landroid/content/Context;", "listView", "Lorg/telegram/ui/Components/RecyclerListView;", "currentAccount", _UrlKt.FRAGMENT_ENCODE_SET, "classGuid", "resourcesProvider", "Lorg/telegram/ui/ActionBar/Theme$ResourcesProvider;", "bindView", _UrlKt.FRAGMENT_ENCODE_SET, PluginsConstants.Settings.VIEW, "Landroid/view/View;", PluginsConstants.Settings.ITEM, "Lorg/telegram/ui/Components/UItem;", PluginsConstants.Settings.TYPE_DIVIDER, _UrlKt.FRAGMENT_ENCODE_SET, "adapter", "Lorg/telegram/ui/Components/UniversalAdapter;", "Lorg/telegram/ui/Components/UniversalRecyclerView;", "equals", "a", "b", "contentsEquals", "isClickable", "Companion", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
     public static final class Factory extends UItem.UItemFactory<PluginCell> {
 
-        /* JADX INFO: renamed from: Companion, reason: from kotlin metadata */
         public static final Companion INSTANCE = new Companion(null);
 
         @JvmStatic
@@ -491,7 +485,7 @@ public final class PluginCell extends FrameLayout implements NotificationCenter.
         }
 
         @Override // org.telegram.ui.Components.UItem.UItemFactory
-        public boolean isClickable() {
+        public boolean getIsClickableValue() {
             return false;
         }
 
@@ -536,7 +530,7 @@ public final class PluginCell extends FrameLayout implements NotificationCenter.
 
         @Metadata(d1 = {"\u0000\u001e\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\b\u0086\u0003\u0018\u00002\u00020\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\u0018\u0010\u0004\u001a\u00020\u00052\u0006\u0010\u0006\u001a\u00020\u00072\u0006\u0010\b\u001a\u00020\tH\u0007¨\u0006\n"}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/PluginCell$Factory$Companion;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "asPlugin", "Lorg/telegram/ui/Components/UItem;", "plugin", "Lcom/exteragram/messenger/plugins/Plugin;", "pluginCellDelegate", "Lcom/exteragram/messenger/plugins/ui/components/PluginCellDelegate;", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
         public static final class Companion {
-            public /* synthetic */ Companion(DefaultConstructorMarker defaultConstructorMarker) {
+            public Companion(DefaultConstructorMarker defaultConstructorMarker) {
                 this();
             }
 

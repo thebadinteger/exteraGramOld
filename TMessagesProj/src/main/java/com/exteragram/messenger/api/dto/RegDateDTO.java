@@ -12,7 +12,7 @@ public final /* data */ class RegDateDTO {
     private final RegDateFlag flag;
     private final long timestamp;
 
-    public static /* synthetic */ RegDateDTO copy$default(RegDateDTO regDateDTO, long j, double d, RegDateFlag regDateFlag, String str, int i, Object obj) {
+    public static RegDateDTO copy$default(RegDateDTO regDateDTO, long j, double d, RegDateFlag regDateFlag, String str, int i, Object obj) {
         if ((i & 1) != 0) {
             j = regDateDTO.timestamp;
         }
@@ -31,19 +31,19 @@ public final /* data */ class RegDateDTO {
         return regDateDTO.copy(j2, d2, regDateFlag2, str);
     }
 
-    public final long component1() {
+    public final long getTimestamp() {
         return this.timestamp;
     }
 
-    public final double component2() {
+    public final double getAccuracy() {
         return this.accuracy;
     }
 
-    public final RegDateFlag component3() {
+    public final RegDateFlag getFlag() {
         return this.flag;
     }
 
-    public final String component4() {
+    public final String getDate() {
         return this.date;
     }
 
@@ -67,7 +67,7 @@ public final /* data */ class RegDateDTO {
     }
 
     public String toString() {
-        return "RegDateDTO(timestamp=" + this.timestamp + ", accuracy=" + this.accuracy + ", flag=" + this.flag + ", date=" + this.date + ')';
+        return "RegDateDTO(timestamp=" + this.timestamp + ", accuracy=" + this.accuracy + ", flag=" + this.flag + ", date=" + this.date + ")";
     }
 
     public RegDateDTO(long j, double d, RegDateFlag regDateFlag, String str) {

@@ -45,7 +45,6 @@ import org.telegram.ui.Components.Premium.LimitReachedBottomSheet;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.LoginActivity;
 
-/* JADX INFO: loaded from: classes4.dex */
 @Metadata(d1 = {"\u0000Z\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010 \n\u0002\u0010\b\n\u0002\b\u0003\n\u0002\u0010\u0002\n\u0002\b\u0002\n\u0002\u0010\u000b\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0004\bÆ\u0002\u0018\u00002\u00020\u0001:\u0001&B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J!\u0010\b\u001a\b\u0012\u0004\u0012\u00020\u00070\u00062\n\b\u0002\u0010\u0005\u001a\u0004\u0018\u00010\u0004H\u0007¢\u0006\u0004\b\b\u0010\tJ\u0017\u0010\f\u001a\u00020\u000b2\u0006\u0010\n\u001a\u00020\u0007H\u0007¢\u0006\u0004\b\f\u0010\rJ\u000f\u0010\u000f\u001a\u00020\u000eH\u0007¢\u0006\u0004\b\u000f\u0010\u0010J\u0011\u0010\u0011\u001a\u0004\u0018\u00010\u0007H\u0007¢\u0006\u0004\b\u0011\u0010\u0012J\u001b\u0010\u0015\u001a\u00020\u000b2\n\b\u0002\u0010\u0014\u001a\u0004\u0018\u00010\u0013H\u0007¢\u0006\u0004\b\u0015\u0010\u0016JA\u0010\u001f\u001a\u00020\u001e2\u0006\u0010\u0018\u001a\u00020\u00172\b\u0010\u001a\u001a\u0004\u0018\u00010\u00192\u0006\u0010\n\u001a\u00020\u00072\u0006\u0010\u001b\u001a\u00020\u000e2\u0006\u0010\u001c\u001a\u00020\u000e2\u0006\u0010\u001d\u001a\u00020\u000eH\u0007¢\u0006\u0004\b\u001f\u0010 J\u001f\u0010$\u001a\u00020#2\u0006\u0010\u0014\u001a\u00020\u00132\u0006\u0010\"\u001a\u00020!H\u0007¢\u0006\u0004\b$\u0010%¨\u0006'"}, d2 = {"Lcom/exteragram/messenger/utils/ui/AccountsUiHelper;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "Ljava/util/function/IntPredicate;", "filter", _UrlKt.FRAGMENT_ENCODE_SET, _UrlKt.FRAGMENT_ENCODE_SET, "activated", "(Ljava/util/function/IntPredicate;)Ljava/util/List;", "account", _UrlKt.FRAGMENT_ENCODE_SET, "switchTo", "(I)V", _UrlKt.FRAGMENT_ENCODE_SET, "hasFreeSlot", "()Z", "freeSlotWithinLimit", "()Ljava/lang/Integer;", "Lorg/telegram/ui/ActionBar/BaseFragment;", "fragment", "add", "(Lorg/telegram/ui/ActionBar/BaseFragment;)V", "Landroid/content/Context;", "context", "Lorg/telegram/ui/ActionBar/Theme$ResourcesProvider;", "resourcesProvider", "selected", "top", "bottom", "Landroid/widget/LinearLayout;", "row", "(Landroid/content/Context;Lorg/telegram/ui/ActionBar/Theme$ResourcesProvider;IZZZ)Landroid/widget/LinearLayout;", "Landroid/view/View;", "anchor", "Lcom/exteragram/messenger/utils/ui/AccountsUiHelper$Builder;", "menu", "(Lorg/telegram/ui/ActionBar/BaseFragment;Landroid/view/View;)Lcom/exteragram/messenger/utils/ui/AccountsUiHelper$Builder;", "Builder", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
 @SourceDebugExtension({"SMAP\nAccountsUiHelper.kt\nKotlin\n*S Kotlin\n*F\n+ 1 AccountsUiHelper.kt\ncom/exteragram/messenger/utils/ui/AccountsUiHelper\n+ 2 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n*L\n1#1,261:1\n777#2:262\n873#2,2:263\n1068#2:265\n*S KotlinDebug\n*F\n+ 1 AccountsUiHelper.kt\ncom/exteragram/messenger/utils/ui/AccountsUiHelper\n*L\n60#1:262\n60#1:263,2\n61#1:265\n*E\n"})
 public final class AccountsUiHelper {
@@ -66,7 +65,7 @@ public final class AccountsUiHelper {
     private AccountsUiHelper() {
     }
 
-    public static /* synthetic */ List activated$default(IntPredicate intPredicate, int i, Object obj) {
+    public static List activated$default(IntPredicate intPredicate, int i, Object obj) {
         if ((i & 1) != 0) {
             intPredicate = null;
         }
@@ -84,10 +83,9 @@ public final class AccountsUiHelper {
                 arrayList.add(num);
             }
         }
-        return CollectionsKt.sortedWith(arrayList, new Comparator() { // from class: com.exteragram.messenger.utils.ui.AccountsUiHelper$activated$$inlined$sortedBy$1
-            /* JADX WARN: Multi-variable type inference failed */
+        return CollectionsKt.sortedWith(arrayList, new Comparator() {
             @Override // java.util.Comparator
-            public final int compare(Object t, Object t2) {
+            public final int compare(T t, T t2) {
                 return ComparisonsKt.compareValues(Integer.valueOf(UserConfig.getInstance(((Number) t).intValue()).loginTime), Integer.valueOf(UserConfig.getInstance(((Number) t2).intValue()).loginTime));
             }
         });
@@ -127,7 +125,7 @@ public final class AccountsUiHelper {
         return null;
     }
 
-    public static /* synthetic */ void add$default(BaseFragment baseFragment, int i, Object obj) {
+    public static void add$default(BaseFragment baseFragment, int i, Object obj) {
         if ((i & 1) != 0) {
             baseFragment = null;
         }
@@ -156,7 +154,7 @@ public final class AccountsUiHelper {
         }
         LaunchActivity launchActivity = LaunchActivity.instance;
         if (launchActivity != null) {
-            launchActivity.presentFragment(new LoginActivity(numFreeSlotWithinLimit.intValue()));
+            launchActivity.lambda$runLinkRequest$108(new LoginActivity(numFreeSlotWithinLimit.intValue()));
         }
     }
 
@@ -169,7 +167,7 @@ public final class AccountsUiHelper {
         TLRPC.User currentUser = UserConfig.getInstance(account).getCurrentUser();
         AvatarDrawable avatarDrawable = new AvatarDrawable();
         avatarDrawable.setInfo(currentUser);
-        FrameLayout frameLayout = new FrameLayout(context) { // from class: com.exteragram.messenger.utils.ui.AccountsUiHelper$row$avatarContainer$1
+        FrameLayout frameLayout = new FrameLayout(context) {
             private final Paint selectedPaint = new Paint(1);
 
             @Override // android.view.ViewGroup, android.view.View
@@ -179,7 +177,7 @@ public final class AccountsUiHelper {
                     this.selectedPaint.setStyle(Paint.Style.STROKE);
                     this.selectedPaint.setStrokeWidth(AndroidUtilities.dp(1.33f));
                     this.selectedPaint.setColor(Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider));
-                    float avatarCorners$default = ExteraConfig.getAvatarCorners(34.0f);
+                    float avatarCorners$default = ExteraConfig.getAvatarCorners$default(34.0f, false, false, 6, null);
                     float fDp = AndroidUtilities.dp(1.0f);
                     canvas2 = canvas;
                     canvas2.drawRoundRect(fDp, fDp, getWidth() - fDp, getHeight() - fDp, avatarCorners$default, avatarCorners$default, this.selectedPaint);
@@ -195,7 +193,7 @@ public final class AccountsUiHelper {
             backupImageView.setScaleX(0.833f);
             backupImageView.setScaleY(0.833f);
         }
-        backupImageView.setRoundRadius((int) ExteraConfig.getAvatarCorners(32.0f));
+        backupImageView.setRoundRadius(ExteraConfig.getAvatarCorners$default(32.0f, false, false, 6, null));
         backupImageView.getImageReceiver().setCurrentAccount(account);
         backupImageView.setForUserOrChat(currentUser, avatarDrawable);
         frameLayout.addView(backupImageView, LayoutHelper.createLinear(32, 32, 17, 1, 1, 1, 1));
@@ -224,7 +222,7 @@ public final class AccountsUiHelper {
         private boolean fromBottom;
         private View touchRelayView;
         private boolean withAddAccount = true;
-        private IntConsumer onSelected = new IntConsumer() { // from class: com.exteragram.messenger.utils.ui.AccountsUiHelper$Builder$$ExternalSyntheticLambda0
+        private IntConsumer onSelected = new IntConsumer() {
             @Override // java.util.function.IntConsumer
             public final void accept(int i) {
                 AccountsUiHelper.switchTo(i);
@@ -286,7 +284,7 @@ public final class AccountsUiHelper {
             if (!list.isEmpty()) {
                 View view = this.touchRelayView;
                 if (view != null) {
-                    view.setOnTouchListener(new View.OnTouchListener() { // from class: com.exteragram.messenger.utils.ui.AccountsUiHelper$Builder$$ExternalSyntheticLambda1
+                    view.setOnTouchListener(new View.OnTouchListener() {
                         @Override // android.view.View.OnTouchListener
                         public final boolean onTouch(View view2, MotionEvent motionEvent) {
                             return AccountsUiHelper.Builder.$r8$lambda$TmpqVMKRLharwB3hGMfpHrV48R0(itemOptionsMakeOptions, view2, motionEvent);
@@ -307,10 +305,10 @@ public final class AccountsUiHelper {
                     boolean z2 = currentAccount == iIntValue;
                     boolean z3 = this.fromBottom;
                     LinearLayout linearLayoutRow = AccountsUiHelper.row(context, resourceProvider, iIntValue, z2, z3 && i3 == 0, !z3 && i3 == list.size() - 1);
-                    linearLayoutRow.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.utils.ui.AccountsUiHelper$Builder$$ExternalSyntheticLambda2
+                    linearLayoutRow.setOnClickListener(new View.OnClickListener() {
                         @Override // android.view.View.OnClickListener
                         public final void onClick(View view2) {
-                            AccountsUiHelper.Builder.m1812$r8$lambda$8fbiyZvUjU4na0DcLlI4yRK74U(currentAccount, iIntValue, itemOptionsMakeOptions, Builder.this, view2);
+                            AccountsUiHelper.Builder.m2176$r8$lambda$8fbiyZvUjU4na0DcLlI4yRK74U(currentAccount, iIntValue, itemOptionsMakeOptions, this, view2);
                         }
                     });
                     itemOptionsMakeOptions.addView(linearLayoutRow, LayoutHelper.createLinear(230, 48));
@@ -339,8 +337,7 @@ public final class AccountsUiHelper {
             return false;
         }
 
-        /* JADX INFO: renamed from: $r8$lambda$8fbiyZvUjU4na0DcLlI4yRK7-4U, reason: not valid java name */
-        public static void m1812$r8$lambda$8fbiyZvUjU4na0DcLlI4yRK74U(int i, int i2, ItemOptions itemOptions, Builder builder, View view) {
+        public static void m2176$r8$lambda$8fbiyZvUjU4na0DcLlI4yRK74U(int i, int i2, ItemOptions itemOptions, Builder builder, View view) {
             if (i != i2) {
                 itemOptions.dismiss();
                 builder.onSelected.accept(i2);
@@ -348,10 +345,10 @@ public final class AccountsUiHelper {
         }
 
         private final void addAccountItem(ItemOptions options) {
-            options.add(R.drawable.msg_addbot, LocaleController.getString(R.string.AddAccount), new Runnable() { // from class: com.exteragram.messenger.utils.ui.AccountsUiHelper$Builder$$ExternalSyntheticLambda3
+            options.add(R.drawable.msg_addbot, LocaleController.getString(R.string.AddAccount), new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    AccountsUiHelper.add(Builder.this.fragment);
+                    AccountsUiHelper.add(this.f$0.fragment);
                 }
             });
         }

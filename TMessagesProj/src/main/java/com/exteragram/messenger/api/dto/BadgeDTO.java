@@ -14,7 +14,7 @@ public final /* data */ class BadgeDTO {
     @SerializedName("text")
     private String text;
 
-    public static /* synthetic */ BadgeDTO copy$default(BadgeDTO badgeDTO, long j, String str, int i, Object obj) {
+    public static BadgeDTO copy$default(BadgeDTO badgeDTO, long j, String str, int i, Object obj) {
         if ((i & 1) != 0) {
             j = badgeDTO.documentId;
         }
@@ -54,12 +54,20 @@ public final /* data */ class BadgeDTO {
     }
 
     public String toString() {
-        return "BadgeDTO(documentId=" + this.documentId + ", text=" + this.text + ')';
+        return "BadgeDTO(documentId=" + this.documentId + ", text=" + this.text + ")";
     }
 
     public BadgeDTO(long j, String str) {
         this.documentId = j;
         this.text = str;
+    }
+
+    public final long getDocumentId() {
+        return this.documentId;
+    }
+
+    public final String getText() {
+        return this.text;
     }
 
     public final void setText(String str) {

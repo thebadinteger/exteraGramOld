@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Outline;
 import android.graphics.RectF;
 import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
@@ -17,7 +16,6 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.view.View;
-import android.view.ViewOutlineProvider;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -26,8 +24,8 @@ import android.widget.TextView;
 import androidx.core.content.ContextCompat;
 import com.exteragram.messenger.utils.system.SystemUtils;
 import com.exteragram.messenger.utils.text.LocaleUtils;
+import com.google.android.gms.cast.MediaError;
 import com.google.zxing.EncodeHintType;
-import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -42,8 +40,10 @@ import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LinkifyPort;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.TelegramQRCodeWriter;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.browser.Browser;
+import org.telegram.messenger.utils.ViewOutlineProviderImpl;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.RequestDelegate;
 import org.telegram.tgnet.TLObject;
@@ -72,12 +72,12 @@ public class QRCodeSheet extends BottomSheet {
     private String wifiAuthType;
 
     public QRCodeSheet(final BaseFragment baseFragment, String str) {
-        super(baseFragment.getParentActivity(), false, baseFragment.getResourceProvider());
         final int i;
         CharSequence textWithIcon;
         CharSequence charSequence;
         String str2;
-        String strEnsureUrlHasHttps = str;
+        super(baseFragment.getParentActivity(), false, baseFragment.getResourceProvider());
+        final String strEnsureUrlHasHttps = str;
         this.TEXT_TYPE_LINK = 0;
         this.TEXT_TYPE_TEXT = 1;
         this.TEXT_TYPE_AUTH_TOKEN = 2;
@@ -115,7 +115,7 @@ public class QRCodeSheet extends BottomSheet {
         LinearLayout linearLayout = new LinearLayout(parentActivity);
         linearLayout.setOrientation(1);
         frameLayout.addView(linearLayout);
-        linearLayout.addView(new View(baseFragment.getParentActivity()) { // from class: com.exteragram.messenger.components.QRCodeSheet.1
+        linearLayout.addView(new View(baseFragment.getParentActivity()) {
             @Override // android.view.View
             public void onDraw(Canvas canvas) {
                 super.onDraw(canvas);
@@ -137,19 +137,14 @@ public class QRCodeSheet extends BottomSheet {
             ImageView imageView = new ImageView(parentActivity);
             ScaleStateListAnimator.apply(imageView, 0.03f, 1.2f);
             imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-            imageView.setOutlineProvider(new ViewOutlineProvider() { // from class: com.exteragram.messenger.components.QRCodeSheet.2
-                @Override // android.view.ViewOutlineProvider
-                public void getOutline(View view, Outline outline) {
-                    outline.setRoundRect(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight(), AndroidUtilities.dp(12.0f));
-                }
-            });
+            imageView.setOutlineProvider(ViewOutlineProviderImpl.boundsWithRoundRect(AndroidUtilities.dp(12.0f)));
             imageView.setClipToOutline(true);
             final Bitmap bitmapCreateQR = createQR(strEnsureUrlHasHttps);
             imageView.setImageBitmap(bitmapCreateQR);
-            imageView.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.components.QRCodeSheet$$ExternalSyntheticLambda1
+            imageView.setOnClickListener(new View.OnClickListener() {
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
-                    QRCodeSheet.this.lambda$new$0(bitmapCreateQR, parentActivity, view);
+                    this.f$0.lambda$new$0(bitmapCreateQR, parentActivity, view);
                 }
             });
             linearLayout.addView(imageView, LayoutHelper.createLinear(200, 200, 1, 18, 20, 18, 10));
@@ -172,13 +167,13 @@ public class QRCodeSheet extends BottomSheet {
         } else {
             textView.setText(i == 2 ? LocaleController.getString(R.string.AreYouSureToLogin) : strEnsureUrlHasHttps);
         }
-        final String finalUrl = i == 0 ? LocaleUtils.ensureUrlHasHttps(strEnsureUrlHasHttps) : strEnsureUrlHasHttps;
+        strEnsureUrlHasHttps = i == 0 ? LocaleUtils.ensureUrlHasHttps(strEnsureUrlHasHttps) : strEnsureUrlHasHttps;
         if (i != 2) {
             textView.setBackground(Theme.createSelectorDrawable(Theme.multAlpha(getThemedColor(i2), Theme.isCurrentThemeDark() ? 0.2f : 0.15f), 7, AndroidUtilities.dp(8.0f)));
-            textView.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.components.QRCodeSheet$$ExternalSyntheticLambda2
+            textView.setOnClickListener(new View.OnClickListener() {
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
-                    QRCodeSheet.this.lambda$new$1(finalUrl, view);
+                    this.f$0.lambda$new$1(strEnsureUrlHasHttps, view);
                 }
             });
         }
@@ -189,10 +184,10 @@ public class QRCodeSheet extends BottomSheet {
         ButtonWithCounterView buttonWithCounterView = new ButtonWithCounterView(parentActivity, baseFragment.getResourceProvider());
         buttonWithCounterView.setRound();
         buttonWithCounterView.setText(charSequence, false);
-        buttonWithCounterView.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.components.QRCodeSheet$$ExternalSyntheticLambda3
+        buttonWithCounterView.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                QRCodeSheet.this.lambda$new$2(i, baseFragment, finalUrl, view);
+                this.f$0.lambda$new$2(i, baseFragment, strEnsureUrlHasHttps, view);
             }
         });
         if (i == 2) {
@@ -204,10 +199,10 @@ public class QRCodeSheet extends BottomSheet {
         buttonWithCounterView2.setRound();
         buttonWithCounterView2.setText(textWithIcon, false);
         buttonWithCounterView2.setFilled(true);
-        buttonWithCounterView2.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.components.QRCodeSheet$$ExternalSyntheticLambda4
+        buttonWithCounterView2.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                QRCodeSheet.this.lambda$new$6(i, finalUrl, baseFragment, view);
+                this.f$0.lambda$new$6(i, strEnsureUrlHasHttps, baseFragment, view);
             }
         });
         linearLayout2.addView(buttonWithCounterView2, LayoutHelper.createLinear(0, -1, 1.0f));
@@ -216,25 +211,21 @@ public class QRCodeSheet extends BottomSheet {
         setCustomView(scrollView);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$0(Bitmap bitmap, Activity activity, View view) {
+    public void lambda$new$0(Bitmap bitmap, Activity activity, View view) {
         if (bitmap != null) {
             copyQR(bitmap, activity);
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$1(String str, View view) {
+    public void lambda$new$1(String str, View view) {
         if (AndroidUtilities.addToClipboard(str)) {
             showCopyBulletin(true);
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    /* JADX WARN: Code duplicated, block: B:18:0x0029  */
-    public /* synthetic */ void lambda$new$2(int i, BaseFragment baseFragment, String str, View view) {
+    public void lambda$new$2(int i, BaseFragment baseFragment, String str, View view) {
         if (i == 2) {
-            dismiss();
+            lambda$new$0();
             return;
         }
         if (i == 0) {
@@ -243,26 +234,25 @@ public class QRCodeSheet extends BottomSheet {
             if (i == 3) {
                 Browser.openUrl(baseFragment.getParentActivity(), Uri.parse(str));
             } else if (i == 4) {
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.components.QRCodeSheet$$ExternalSyntheticLambda7
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
-                        QRCodeSheet.this.connectToWifi();
+                        this.f$0.connectToWifi();
                     }
                 }, 750L);
             }
         } else if (AndroidUtilities.addToClipboard(str)) {
             showCopyBulletin(false);
         }
-        dismiss();
+        lambda$new$0();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$6(int i, final String str, final BaseFragment baseFragment, View view) {
+    public void lambda$new$6(int i, final String str, final BaseFragment baseFragment, View view) {
         if (i == 2) {
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.components.QRCodeSheet$$ExternalSyntheticLambda6
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    QRCodeSheet.this.lambda$new$5(str, baseFragment);
+                    this.f$0.lambda$new$5(str, baseFragment);
                 }
             }, 750L);
         } else {
@@ -270,29 +260,28 @@ public class QRCodeSheet extends BottomSheet {
                 Intent intent = new Intent("android.intent.action.SEND");
                 intent.setType("text/plain");
                 intent.putExtra("android.intent.extra.TEXT", str);
-                baseFragment.startActivityForResult(Intent.createChooser(intent, LocaleController.getString(R.string.QrCode)), 500);
+                baseFragment.startActivityForResult(Intent.createChooser(intent, LocaleController.getString(R.string.QrCode)), MediaError.DetailedErrorCode.SEGMENT_UNKNOWN);
             } catch (Exception e) {
                 FileLog.e(e);
             }
         }
-        dismiss();
+        lambda$new$0();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$5(String str, final BaseFragment baseFragment) {
+    public void lambda$new$5(String str, final BaseFragment baseFragment) {
         try {
             byte[] bArrDecode = Base64.decode(str.substring(17).replaceAll("/", "_").replaceAll("\\+", "-"), 8);
             TLRPC.TL_auth_acceptLoginToken tL_auth_acceptLoginToken = new TLRPC.TL_auth_acceptLoginToken();
             tL_auth_acceptLoginToken.token = bArrDecode;
-            ConnectionsManager.getInstance(UserConfig.selectedAccount).sendRequest(tL_auth_acceptLoginToken, new RequestDelegate() { // from class: com.exteragram.messenger.components.QRCodeSheet$$ExternalSyntheticLambda10
+            ConnectionsManager.getInstance(UserConfig.selectedAccount).sendRequest(tL_auth_acceptLoginToken, new RequestDelegate() {
                 @Override // org.telegram.tgnet.RequestDelegate
                 public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
-                    QRCodeSheet.this.lambda$new$3(tLObject, tL_error);
+                    this.f$0.lambda$new$3(tLObject, tL_error);
                 }
             });
         } catch (Exception e) {
             FileLog.e("Failed to pass qr code auth", e);
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.components.QRCodeSheet$$ExternalSyntheticLambda11
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
                     AlertsCreator.showSimpleAlert(baseFragment, LocaleController.getString(R.string.AuthAnotherClient), LocaleController.getString(R.string.ErrorOccurred));
@@ -301,9 +290,8 @@ public class QRCodeSheet extends BottomSheet {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$3(TLObject tLObject, TLRPC.TL_error tL_error) {
-        dismiss();
+    public void lambda$new$3(TLObject tLObject, TLRPC.TL_error tL_error) {
+        lambda$new$0();
     }
 
     private Spanned getTextWithIcon(String str) {
@@ -319,7 +307,7 @@ public class QRCodeSheet extends BottomSheet {
             HashMap map = new HashMap();
             map.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.M);
             map.put(EncodeHintType.MARGIN, 0);
-            return new QRCodeWriter().encode(str, 768, 768, map, null, 1.0f, -1, -16777216);
+            return new TelegramQRCodeWriter().encode(str, 768, 768, map, null, 1.0f, -1, -16777216, false);
         } catch (Exception e) {
             FileLog.e(e);
             return null;
@@ -339,10 +327,10 @@ public class QRCodeSheet extends BottomSheet {
             fileOutputStream.flush();
             fileOutputStream.close();
             file.setReadable(true, false);
-            SystemUtils.addFileToClipboard(file, new Runnable() { // from class: com.exteragram.messenger.components.QRCodeSheet$$ExternalSyntheticLambda5
+            SystemUtils.addFileToClipboard(file, new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    QRCodeSheet.this.lambda$copyQR$7();
+                    this.f$0.lambda$copyQR$7();
                 }
             });
         } catch (IOException e) {
@@ -350,8 +338,7 @@ public class QRCodeSheet extends BottomSheet {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$copyQR$7() {
+    public void lambda$copyQR$7() {
         BulletinFactory.of(getContainer(), null).createCopyBulletin(LocaleController.getString(R.string.PhotoCopied), this.resourcesProvider).show();
     }
 
@@ -371,7 +358,6 @@ public class QRCodeSheet extends BottomSheet {
         return str.replace("\\\\", "\\").replace("\\;", ";").replace("\\:", ":").replace("\\,", ",").replace("\\\"", "\"");
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void connectToWifi() {
         if (TextUtils.isEmpty(this.ssid)) {
             showErrorBulletin(LocaleController.getString(R.string.WifiFailed));
@@ -399,7 +385,7 @@ public class QRCodeSheet extends BottomSheet {
     }
 
     private void connectWifiModern(WifiManager wifiManager) {
-        WifiNetworkSuggestion.Builder isAppInteractionRequired = new WifiNetworkSuggestion.Builder().setSsid(this.ssid).setIsAppInteractionRequired(true);
+        WifiNetworkSuggestion.Builder isAppInteractionRequired = new android.net.wifi.WifiNetworkSuggestion.Builder().setSsid(this.ssid).setIsAppInteractionRequired(true);
         if (!TextUtils.isEmpty(this.password)) {
             if ("WPA".equalsIgnoreCase(this.wifiAuthType)) {
                 isAppInteractionRequired.setWpa2Passphrase(this.password);
@@ -444,31 +430,29 @@ public class QRCodeSheet extends BottomSheet {
         showErrorBulletin(LocaleController.getString(R.string.WifiFailed));
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$showErrorBulletin$8(String str) {
+    public void lambda$showErrorBulletin$8(String str) {
         BulletinFactory.of(this.fragment).createErrorBulletin(str).show();
     }
 
     private void showErrorBulletin(final String str) {
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.components.QRCodeSheet$$ExternalSyntheticLambda9
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                QRCodeSheet.this.lambda$showErrorBulletin$8(str);
+                this.f$0.lambda$showErrorBulletin$8(str);
             }
         });
     }
 
     private void showCopyBulletin(final boolean z) {
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.components.QRCodeSheet$$ExternalSyntheticLambda8
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                QRCodeSheet.this.lambda$showCopyBulletin$9(z);
+                this.f$0.lambda$showCopyBulletin$9(z);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$showCopyBulletin$9(boolean z) {
-        (z ? BulletinFactory.of(getContainer(), null) : BulletinFactory.of(this.fragment)).createCopyBulletin(LocaleController.formatString("TextCopied", R.string.TextCopied, new Object[0])).show();
+    public void lambda$showCopyBulletin$9(boolean z) {
+        (z ? BulletinFactory.of(getContainer(), null) : BulletinFactory.of(this.fragment)).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
     }
 }

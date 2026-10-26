@@ -3,12 +3,10 @@ package com.exteragram.messenger.drawer;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.LinearGradient;
-import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
@@ -19,7 +17,6 @@ import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewOutlineProvider;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -30,10 +27,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.api.dto.BadgeDTO;
 import com.exteragram.messenger.badges.BadgesController;
+import com.exteragram.messenger.utils.ui.AccountsUiHelper;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.function.ToLongFunction;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.DialogObject;
@@ -41,9 +37,9 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.utils.ViewOutlineProviderImpl;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
-import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.SimpleTextView;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
@@ -52,10 +48,7 @@ import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.CombinedDrawable;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
-import org.telegram.ui.Components.Premium.LimitReachedBottomSheet;
 import org.telegram.ui.Components.Premium.PremiumGradient;
-import org.telegram.ui.LaunchActivity;
-import org.telegram.ui.LoginActivity;
 
 public class DrawerAccountPickerView extends FrameLayout {
     private final ArrayList<Integer> accounts;
@@ -99,7 +92,8 @@ public class DrawerAccountPickerView extends FrameLayout {
         Paint paint = new Paint(1);
         this.clipMaskPaint = paint;
         this.bgRect = new RectF();
-        this.cornerRadius = AndroidUtilities.dp(16.0f);
+        float fDp = AndroidUtilities.dp(16.0f);
+        this.cornerRadius = fDp;
         Paint paint2 = new Paint();
         this.topGradientPaint = paint2;
         Paint paint3 = new Paint();
@@ -112,7 +106,7 @@ public class DrawerAccountPickerView extends FrameLayout {
         PorterDuff.Mode mode = PorterDuff.Mode.DST_OUT;
         paint2.setXfermode(new PorterDuffXfermode(mode));
         paint3.setXfermode(new PorterDuffXfermode(mode));
-        FrameLayout frameLayout = new FrameLayout(context) { 
+        FrameLayout frameLayout = new FrameLayout(context) {
             @Override // android.widget.FrameLayout, android.view.View
             public void onMeasure(int i, int i2) {
                 int itemCount = DrawerAccountPickerView.this.adapter.getItemCount();
@@ -169,12 +163,7 @@ public class DrawerAccountPickerView extends FrameLayout {
             }
         };
         this.clipWrapper = frameLayout;
-        frameLayout.setOutlineProvider(new ViewOutlineProvider() { 
-            @Override // android.view.ViewOutlineProvider
-            public void getOutline(View view, Outline outline) {
-                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), DrawerAccountPickerView.this.cornerRadius);
-            }
-        });
+        frameLayout.setOutlineProvider(ViewOutlineProviderImpl.boundsWithRoundRect(fDp));
         frameLayout.setClipToOutline(true);
         addView(frameLayout, LayoutHelper.createFrame(-1, 0.0f, 48, 12.0f, 0.0f, 12.0f, 0.0f));
         AccountAdapter accountAdapter = new AccountAdapter();
@@ -186,7 +175,7 @@ public class DrawerAccountPickerView extends FrameLayout {
         final int iDp = AndroidUtilities.dp(4.0f);
         recyclerView.setPadding(iDp, iDp, iDp, iDp);
         recyclerView.setClipToPadding(false);
-        recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() { 
+        recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
             @Override // androidx.recyclerview.widget.RecyclerView.ItemDecoration
             public void getItemOffsets(Rect rect, View view, RecyclerView recyclerView2, RecyclerView.State state) {
                 int childAdapterPosition = recyclerView2.getChildAdapterPosition(view);
@@ -199,20 +188,20 @@ public class DrawerAccountPickerView extends FrameLayout {
         });
         recyclerView.setOverScrollMode(2);
         recyclerView.setVerticalScrollBarEnabled(false);
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() { 
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override // androidx.recyclerview.widget.RecyclerView.OnScrollListener
             public void onScrolled(RecyclerView recyclerView2, int i, int i2) {
                 DrawerAccountPickerView.this.clipWrapper.invalidate();
             }
         });
         frameLayout.addView(recyclerView, LayoutHelper.createFrame(-1, -2.0f));
-        final RecyclerView.ChildDrawingOrderCallback childDrawingOrderCallback = new RecyclerView.ChildDrawingOrderCallback() { 
+        final RecyclerView.ChildDrawingOrderCallback childDrawingOrderCallback = new RecyclerView.ChildDrawingOrderCallback() {
             @Override // androidx.recyclerview.widget.RecyclerView.ChildDrawingOrderCallback
             public final int onGetChildDrawingOrder(int i, int i2) {
-                return DrawerAccountPickerView.this.lambda$new$0(i, i2);
+                return this.f$0.lambda$new$0(i, i2);
             }
         };
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.Callback() { 
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.Callback() {
             @Override // androidx.recyclerview.widget.ItemTouchHelper.Callback
             public boolean isLongPressDragEnabled() {
                 return false;
@@ -284,7 +273,7 @@ public class DrawerAccountPickerView extends FrameLayout {
         setVisibility(8);
     }
 
-    private int lambda$new$0(int i, int i2) {
+    public int lambda$new$0(int i, int i2) {
         int iIndexOfChild;
         View view = this.draggingItemView;
         if (view != null && (iIndexOfChild = this.recyclerView.indexOfChild(view)) >= 0) {
@@ -313,17 +302,7 @@ public class DrawerAccountPickerView extends FrameLayout {
     public void loadAccounts(BadgeDTO badgeDTO) {
         this.badgeOverride = badgeDTO;
         this.accounts.clear();
-        for (int i = 0; i < 16; i++) {
-            if (UserConfig.getInstance(i).isClientActivated()) {
-                this.accounts.add(Integer.valueOf(i));
-            }
-        }
-        this.accounts.sort(Comparator.comparingLong(new ToLongFunction() {
-            @Override
-            public final long applyAsLong(Object obj) {
-                return UserConfig.getInstance(((Integer) obj).intValue()).loginTime;
-            }
-        }));
+        this.accounts.addAll(AccountsUiHelper.activated());
         this.adapter.notifyDataSetChanged();
     }
 
@@ -369,20 +348,20 @@ public class DrawerAccountPickerView extends FrameLayout {
         valueAnimatorOfInt.setDuration(250L);
         valueAnimatorOfInt.setInterpolator(CubicBezierInterpolator.DEFAULT);
         valueAnimatorOfInt.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
+            @Override // android.animation.ValueAnimator.AnimatorUpdateListener
             public final void onAnimationUpdate(ValueAnimator valueAnimator2) {
-                DrawerAccountPickerView.this.lambda$setExpanded$2(valueAnimator2);
+                this.f$0.lambda$setExpanded$1(valueAnimator2);
             }
         });
         valueAnimatorOfInt.addListener(new AnimatorListenerAdapter() {
             private boolean cancelled;
 
-            @Override
+            @Override // android.animation.AnimatorListenerAdapter, android.animation.Animator.AnimatorListener
             public void onAnimationCancel(Animator animator) {
                 this.cancelled = true;
             }
 
-            @Override
+            @Override // android.animation.AnimatorListenerAdapter, android.animation.Animator.AnimatorListener
             public void onAnimationEnd(Animator animator) {
                 if (this.cancelled || DrawerAccountPickerView.this.expandAnimator != animator) {
                     return;
@@ -403,7 +382,7 @@ public class DrawerAccountPickerView extends FrameLayout {
         valueAnimatorOfInt.start();
     }
 
-    public void lambda$setExpanded$2(ValueAnimator valueAnimator) {
+    public void lambda$setExpanded$1(ValueAnimator valueAnimator) {
         this.currentAnimatedHeight = ((Integer) valueAnimator.getAnimatedValue()).intValue();
         this.clipWrapper.requestLayout();
     }
@@ -437,48 +416,8 @@ public class DrawerAccountPickerView extends FrameLayout {
         this.recyclerView.stopScroll();
     }
 
-    public void openAddAccountFlow() {
-        BaseFragment safeLastFragment;
-        Activity activityFindActivity = AndroidUtilities.findActivity(getContext());
-        LaunchActivity launchActivity = activityFindActivity instanceof LaunchActivity ? (LaunchActivity) activityFindActivity : LaunchActivity.instance;
-        if (launchActivity == null) {
-            return;
-        }
-        Integer availableAccountForAdd = getAvailableAccountForAdd();
-        if (availableAccountForAdd != null) {
-            launchActivity.presentFragment(new LoginActivity(availableAccountForAdd.intValue()));
-        } else {
-            if (UserConfig.hasPremiumOnAccounts() || (safeLastFragment = LaunchActivity.getSafeLastFragment()) == null) {
-                return;
-            }
-            safeLastFragment.showDialog(new LimitReachedBottomSheet(safeLastFragment, launchActivity, 7, safeLastFragment.getCurrentAccount(), null));
-        }
-    }
-
-    private int freeAccountsForAdd() {
-        int i = 0;
-        for (int i2 = 0; i2 < 16; i2++) {
-            if (!UserConfig.getInstance(i2).isClientActivated()) {
-                i++;
-            }
-        }
-        return !UserConfig.hasPremiumOnAccounts() ? i - 8 : i;
-    }
-
-    private Integer getAvailableAccountForAdd() {
-        if (freeAccountsForAdd() <= 0) {
-            return null;
-        }
-        for (int i = 15; i >= 0; i--) {
-            if (!UserConfig.getInstance(i).isClientActivated()) {
-                return Integer.valueOf(i);
-            }
-        }
-        return null;
-    }
-
     public boolean canAddAccount() {
-        return getAvailableAccountForAdd() != null;
+        return AccountsUiHelper.freeSlotWithinLimit() != null;
     }
 
     public static Drawable createAccountItemRippleDrawable() {
@@ -521,10 +460,10 @@ public class DrawerAccountPickerView extends FrameLayout {
         @Override // androidx.recyclerview.widget.RecyclerView.Adapter
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
             if (i == 1) {
-                return new RecyclerView.ViewHolder(new AddAccountView(viewGroup.getContext())) { 
+                return new RecyclerView.ViewHolder(new AddAccountView(viewGroup.getContext())) {
                 };
             }
-            return new RecyclerView.ViewHolder(new AccountRowView(viewGroup.getContext())) { 
+            return new RecyclerView.ViewHolder(new AccountRowView(viewGroup.getContext())) {
             };
         }
 
@@ -547,34 +486,31 @@ public class DrawerAccountPickerView extends FrameLayout {
                 AccountRowView accountRowView = (AccountRowView) view;
                 final Integer num = (Integer) DrawerAccountPickerView.this.accounts.get(i);
                 accountRowView.bind(num.intValue(), num.intValue() == UserConfig.selectedAccount ? DrawerAccountPickerView.this.badgeOverride : null);
-                accountRowView.setOnClickListener(new View.OnClickListener() { 
+                accountRowView.setOnClickListener(new View.OnClickListener() {
                     @Override // android.view.View.OnClickListener
                     public final void onClick(View view2) {
-                        AccountAdapter.this.lambda$bindAccountViewHolder$0(num, view2);
+                        this.f$0.lambda$bindAccountViewHolder$0(num, view2);
                     }
                 });
-                accountRowView.setOnLongClickListener(new View.OnLongClickListener() { 
+                accountRowView.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override // android.view.View.OnLongClickListener
                     public final boolean onLongClick(View view2) {
-                        return AccountAdapter.this.lambda$bindAccountViewHolder$1(num, viewHolder, view2);
+                        return this.f$0.lambda$bindAccountViewHolder$1(num, viewHolder, view2);
                     }
                 });
             }
         }
 
-        private void lambda$bindAccountViewHolder$0(Integer num, View view) {
+        public void lambda$bindAccountViewHolder$0(Integer num, View view) {
             if (num.intValue() != UserConfig.selectedAccount) {
                 if (DrawerAccountPickerView.this.onAccountSelected != null) {
                     DrawerAccountPickerView.this.onAccountSelected.run();
                 }
-                Context context = DrawerAccountPickerView.this.getContext();
-                if (context instanceof LaunchActivity) {
-                    ((LaunchActivity) context).switchToAccount(num.intValue(), true);
-                }
+                AccountsUiHelper.switchTo(num.intValue());
             }
         }
 
-        private boolean lambda$bindAccountViewHolder$1(Integer num, RecyclerView.ViewHolder viewHolder, View view) {
+        public boolean lambda$bindAccountViewHolder$1(Integer num, RecyclerView.ViewHolder viewHolder, View view) {
             int iIntValue = num.intValue();
             int i = UserConfig.selectedAccount;
             DrawerAccountPickerView drawerAccountPickerView = DrawerAccountPickerView.this;
@@ -595,9 +531,9 @@ public class DrawerAccountPickerView extends FrameLayout {
                 ((AddAccountView) view).updateColors();
             }
             viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
+                @Override // android.view.View.OnClickListener
                 public final void onClick(View view2) {
-                    AccountAdapter.this.lambda$bindAddAccountViewHolder$2(view2);
+                    this.f$0.lambda$bindAddAccountViewHolder$2(view2);
                 }
             });
         }
@@ -606,11 +542,10 @@ public class DrawerAccountPickerView extends FrameLayout {
             if (DrawerAccountPickerView.this.onAccountSelected != null) {
                 DrawerAccountPickerView.this.onAccountSelected.run();
             }
-            final DrawerAccountPickerView drawerAccountPickerView = DrawerAccountPickerView.this;
-            AndroidUtilities.runOnUIThread(new Runnable() { 
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    drawerAccountPickerView.openAddAccountFlow();
+                    AccountsUiHelper.add();
                 }
             }, 150L);
         }
@@ -801,7 +736,7 @@ public class DrawerAccountPickerView extends FrameLayout {
             if (drawable2 != null) {
                 drawable2.mutate();
             }
-            CombinedDrawable combinedDrawable = new CombinedDrawable(drawable, drawable2) { 
+            CombinedDrawable combinedDrawable = new CombinedDrawable(drawable, drawable2) {
                 @Override // org.telegram.ui.Components.CombinedDrawable, android.graphics.drawable.Drawable
                 public void setColorFilter(ColorFilter colorFilter) {
                 }

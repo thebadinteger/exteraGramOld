@@ -16,9 +16,12 @@ import android.widget.ScrollView;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
-import com.exteragram.messenger.ExteraConfig;
+import com.exteragram.messenger.utils.JpegFingerprint;
 import com.exteragram.messenger.utils.MediaUtils;
+import com.exteragram.messenger.utils.Mp4Fingerprint;
+import com.exteragram.messenger.utils.OpusFingerprint;
 import com.exteragram.messenger.utils.chats.ChatUtils;
+import com.google.android.gms.cast.MediaError;
 import com.google.zxing.Dimension;
 import java.io.File;
 import java.text.DecimalFormat;
@@ -30,7 +33,6 @@ import java.util.Objects;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.ContactsController;
-import org.telegram.messenger.DispatchQueue;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
@@ -55,8 +57,11 @@ public abstract class MessageDetailsPopupWrapper {
     private final BaseFragment fragment;
     private String[] geo;
     private long ownerId;
+    private JpegFingerprint photoFingerprint;
     private final Theme.ResourcesProvider resourcesProvider;
+    private Mp4Fingerprint roundVideoFingerprint;
     public LinearLayout swipeBack;
+    private OpusFingerprint voiceFingerprint;
     private final int SET_OWNER = 0;
     private final int FILE_PATH = 1;
     private final int LOCATION = 2;
@@ -69,13 +74,11 @@ public abstract class MessageDetailsPopupWrapper {
 
     public abstract void copy(String str);
 
-    /* JADX WARN: Code duplicated, block: B:134:0x03d0  */
-    public MessageDetailsPopupWrapper(final BaseFragment baseFragment, final PopupSwipeBackLayout popupSwipeBackLayout, final MessageObject messageObject, Theme.ResourcesProvider resourcesProvider) {
+    public MessageDetailsPopupWrapper(final BaseFragment baseFragment, final PopupSwipeBackLayout popupSwipeBackLayout, MessageObject messageObject, Theme.ResourcesProvider resourcesProvider) {
         int i;
         int i2;
-        char c2;
-        ScrollView scrollView = null;
-        boolean z = false;
+        ScrollView scrollView;
+        final boolean z;
         TLRPC.InputStickerSet inputStickerSet;
         int i3;
         final MessageObject messageObject2 = messageObject;
@@ -86,7 +89,7 @@ public abstract class MessageDetailsPopupWrapper {
         LinearLayout linearLayout = new LinearLayout(parentActivity);
         this.swipeBack = linearLayout;
         linearLayout.setOrientation(1);
-        ScrollView scrollView2 = new ScrollView(parentActivity) { // from class: com.exteragram.messenger.components.MessageDetailsPopupWrapper.1
+        ScrollView scrollView2 = new ScrollView(parentActivity) {
             final AnimatedFloat alphaFloat = new AnimatedFloat(this, 350, CubicBezierInterpolator.EASE_OUT_QUINT);
             Drawable topShadowDrawable;
             private boolean wasCanScrollVertically;
@@ -125,7 +128,7 @@ public abstract class MessageDetailsPopupWrapper {
         actionBarMenuSubItem.setItemHeight(44);
         actionBarMenuSubItem.setTextAndIcon(LocaleController.getString(R.string.Back), R.drawable.msg_arrow_back);
         actionBarMenuSubItem.getTextView().setPadding(LocaleController.isRTL ? 0 : AndroidUtilities.dp(40.0f), 0, LocaleController.isRTL ? AndroidUtilities.dp(40.0f) : 0, 0);
-        actionBarMenuSubItem.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.components.MessageDetailsPopupWrapper$$ExternalSyntheticLambda0
+        actionBarMenuSubItem.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 popupSwipeBackLayout.closeForeground();
@@ -195,7 +198,7 @@ public abstract class MessageDetailsPopupWrapper {
         boolean z3 = messageObject2.isVideo() || messageObject2.isRoundVideo() || messageObject2.isVideoSticker() || messageObject2.isGif();
         boolean zIsPhotoAsDocument = isPhotoAsDocument(messageObject2);
         boolean z4 = zIsPhotoAsDocument || messageObject2.isPhoto() || messageObject2.isSticker();
-        if (z4 && !TextUtils.isEmpty(this.filePath)) {
+        if ((z4 || messageObject2.isVoice() || messageObject2.isRoundVideo()) && !TextUtils.isEmpty(this.filePath)) {
             arrayList.add(new Item(5, R.drawable.menu_devices, LocaleController.getString(R.string.Platform), LocaleController.getString(R.string.NumberUnknown)));
         }
         if (z3 || z4) {
@@ -246,7 +249,7 @@ public abstract class MessageDetailsPopupWrapper {
                 final ActionBarMenuSubItem actionBarMenuSubItem2 = new ActionBarMenuSubItem((Context) baseFragment.getParentActivity(), false, false, resourcesProvider);
                 actionBarMenuSubItem2.setTextAndIcon(item.title, item.resId);
                 actionBarMenuSubItem2.setMinimumWidth(AndroidUtilities.dp(196.0f));
-                actionBarMenuSubItem2.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.components.MessageDetailsPopupWrapper$$ExternalSyntheticLambda1
+                actionBarMenuSubItem2.setOnClickListener(new View.OnClickListener() {
                     @Override // android.view.View.OnClickListener
                     public final void onClick(View view) {
                         popupSwipeBackLayout.closeForeground();
@@ -268,7 +271,7 @@ public abstract class MessageDetailsPopupWrapper {
                 int i11 = item.id;
                 boolean z5 = z3;
                 if (i11 == 0 && this.ownerId > 0) {
-                    ChatUtils.getInstance().searchUserById(Long.valueOf(this.ownerId), new Utilities.Callback() { // from class: com.exteragram.messenger.components.MessageDetailsPopupWrapper$$ExternalSyntheticLambda2
+                    ChatUtils.getInstance().searchUserById(Long.valueOf(this.ownerId), new Utilities.Callback() {
                         @Override // org.telegram.messenger.Utilities.Callback
                         public final void run(Object obj) {
                             MessageDetailsPopupWrapper.$r8$lambda$dE2BmWFMp3ZO7Tcpe0bsPv1CgxY(item, actionBarMenuSubItem2, (TLRPC.User) obj);
@@ -276,43 +279,42 @@ public abstract class MessageDetailsPopupWrapper {
                     });
                 } else {
                     if (i11 == 2) {
-                        ChatUtils.utilsQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.components.MessageDetailsPopupWrapper$$ExternalSyntheticLambda3
+                        ChatUtils.utilsQueue.postRunnable(new Runnable() {
                             @Override // java.lang.Runnable
                             public final void run() {
-                                MessageDetailsPopupWrapper.this.lambda$new$4(actionBarMenuSubItem2, item);
+                                this.f$0.lambda$new$4(actionBarMenuSubItem2, item);
                             }
                         });
                     } else if (i11 == 3) {
-                        ChatUtils.utilsQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.components.MessageDetailsPopupWrapper$$ExternalSyntheticLambda4
+                        ChatUtils.utilsQueue.postRunnable(new Runnable() {
                             @Override // java.lang.Runnable
                             public final void run() {
-                                MessageDetailsPopupWrapper.this.lambda$new$6(messageObject2, actionBarMenuSubItem2, item);
+                                this.f$0.lambda$new$6(messageObject2, actionBarMenuSubItem2, item);
                             }
                         });
-                        c2 = 5;
                         scrollView = scrollView3;
                         z = z5;
                     } else if (i11 == 4) {
-                        DispatchQueue dispatchQueue = ChatUtils.utilsQueue;
                         scrollView = scrollView3;
-                        final boolean zFinal = z5;
-                        Runnable runnable = new Runnable() { // from class: com.exteragram.messenger.components.MessageDetailsPopupWrapper$$ExternalSyntheticLambda5
+                        z = z5;
+                        linearLayout2 = linearLayout2;
+                        item = item;
+                        ChatUtils.utilsQueue.postRunnable(new Runnable() {
                             @Override // java.lang.Runnable
                             public final void run() {
-                                MessageDetailsPopupWrapper.this.lambda$new$8(zFinal, messageObject2, actionBarMenuSubItem2, item);
+                                this.f$0.lambda$new$8(z, messageObject2, actionBarMenuSubItem2, item);
                             }
-                        };
-                        dispatchQueue.postRunnable(runnable);
-                        c2 = 5;
+                        });
                     } else {
-                        c2 = 5;
+                        linearLayout2 = linearLayout2;
+                        item = item;
                         scrollView = scrollView3;
                         z = z5;
                         if (i11 == 5) {
-                            ChatUtils.utilsQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.components.MessageDetailsPopupWrapper$$ExternalSyntheticLambda6
+                            ChatUtils.utilsQueue.postRunnable(new Runnable() {
                                 @Override // java.lang.Runnable
-                                public final void run() {
-                                    MessageDetailsPopupWrapper.this.lambda$new$10(actionBarMenuSubItem2, item);
+                                public final void run() throws Throwable {
+                                    this.f$0.lambda$new$10(messageObject2, actionBarMenuSubItem2, item);
                                 }
                             });
                         }
@@ -320,47 +322,54 @@ public abstract class MessageDetailsPopupWrapper {
                     actionBarMenuSubItem2.setTag(item);
                     final Item item2 = item;
                     final boolean z6 = z;
-                    ActionBarMenuSubItem actionBarMenuSubItem3 = actionBarMenuSubItem2;
                     final boolean z7 = z4;
-                    actionBarMenuSubItem3.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.components.MessageDetailsPopupWrapper$$ExternalSyntheticLambda7
+                    ArrayList arrayList3 = arrayList;
+                    final MessageObject messageObject3 = messageObject2;
+                    actionBarMenuSubItem2.setOnClickListener(new View.OnClickListener() {
                         @Override // android.view.View.OnClickListener
                         public final void onClick(View view) {
-                            MessageDetailsPopupWrapper.this.lambda$new$11(item2, activity, z7, z6, messageObject, baseFragment, view);
+                            this.f$0.lambda$new$11(item2, activity, z7, z6, messageObject3, baseFragment, view);
                         }
                     });
-                    actionBarMenuSubItem3.setOnLongClickListener(new View.OnLongClickListener() { // from class: com.exteragram.messenger.components.MessageDetailsPopupWrapper$$ExternalSyntheticLambda8
+                    actionBarMenuSubItem2.setOnLongClickListener(new View.OnLongClickListener() {
                         @Override // android.view.View.OnLongClickListener
                         public final boolean onLongClick(View view) {
-                            return MessageDetailsPopupWrapper.this.lambda$new$12(item2, view);
+                            return this.f$0.lambda$new$12(item2, view);
                         }
                     });
+                    messageObject2 = messageObject;
                     z3 = z6;
+                    arrayList = arrayList3;
+                    linearLayout2 = linearLayout2;
                     parentActivity = activity;
                     i8 = i2;
                     z4 = z7;
                     scrollView2 = scrollView;
                 }
-                c2 = 5;
                 scrollView = scrollView3;
                 z = z5;
                 actionBarMenuSubItem2.setTag(item);
                 final Item item3 = item;
                 final boolean z8 = z;
-                ActionBarMenuSubItem actionBarMenuSubItem4 = actionBarMenuSubItem2;
                 final boolean z9 = z4;
-                actionBarMenuSubItem4.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.components.MessageDetailsPopupWrapper$$ExternalSyntheticLambda7
+                ArrayList arrayList4 = arrayList;
+                final MessageObject messageObject4 = messageObject2;
+                actionBarMenuSubItem2.setOnClickListener(new View.OnClickListener() {
                     @Override // android.view.View.OnClickListener
                     public final void onClick(View view) {
-                        MessageDetailsPopupWrapper.this.lambda$new$11(item3, activity, z9, z8, messageObject, baseFragment, view);
+                        this.f$0.lambda$new$11(item3, activity, z9, z8, messageObject4, baseFragment, view);
                     }
                 });
-                actionBarMenuSubItem4.setOnLongClickListener(new View.OnLongClickListener() { // from class: com.exteragram.messenger.components.MessageDetailsPopupWrapper$$ExternalSyntheticLambda8
+                actionBarMenuSubItem2.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override // android.view.View.OnLongClickListener
                     public final boolean onLongClick(View view) {
-                        return MessageDetailsPopupWrapper.this.lambda$new$12(item3, view);
+                        return this.f$0.lambda$new$12(item3, view);
                     }
                 });
+                messageObject2 = messageObject;
                 z3 = z8;
+                arrayList = arrayList4;
+                linearLayout2 = linearLayout2;
                 parentActivity = activity;
                 i8 = i2;
                 z4 = z9;
@@ -375,7 +384,7 @@ public abstract class MessageDetailsPopupWrapper {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$dE2BmWFMp3ZO7Tcpe0bsPv1CgxY(Item item, ActionBarMenuSubItem actionBarMenuSubItem, TLRPC.User user) {
+    public static void $r8$lambda$dE2BmWFMp3ZO7Tcpe0bsPv1CgxY(Item item, ActionBarMenuSubItem actionBarMenuSubItem, TLRPC.User user) {
         if (user != null) {
             if (!TextUtils.isEmpty(UserObject.getPublicUsername(user))) {
                 item.subtitle = "@" + UserObject.getPublicUsername(user);
@@ -386,19 +395,17 @@ public abstract class MessageDetailsPopupWrapper {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$4(final ActionBarMenuSubItem actionBarMenuSubItem, final Item item) {
+    public void lambda$new$4(final ActionBarMenuSubItem actionBarMenuSubItem, final Item item) {
         this.geo = getLatLongFromPhoto(new File(this.filePath));
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.components.MessageDetailsPopupWrapper$$ExternalSyntheticLambda10
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                MessageDetailsPopupWrapper.this.lambda$new$3(actionBarMenuSubItem, item);
+                this.f$0.lambda$new$3(actionBarMenuSubItem, item);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$3(ActionBarMenuSubItem actionBarMenuSubItem, Item item) {
+    public void lambda$new$3(ActionBarMenuSubItem actionBarMenuSubItem, Item item) {
         if (this.geo != null) {
             actionBarMenuSubItem.setSubtext(this.geo[0] + ", " + this.geo[1]);
             item.subtitle = this.geo[0] + ", " + this.geo[1];
@@ -407,10 +414,9 @@ public abstract class MessageDetailsPopupWrapper {
         actionBarMenuSubItem.setVisibility(8);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$6(MessageObject messageObject, final ActionBarMenuSubItem actionBarMenuSubItem, final Item item) {
+    public void lambda$new$6(MessageObject messageObject, final ActionBarMenuSubItem actionBarMenuSubItem, final Item item) {
         final int bitrate = getBitrate(messageObject, this.filePath);
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.components.MessageDetailsPopupWrapper$$ExternalSyntheticLambda11
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 MessageDetailsPopupWrapper.$r8$lambda$f_aN3ZZNn5AFFp878etwVxDefTs(bitrate, actionBarMenuSubItem, item);
@@ -418,7 +424,7 @@ public abstract class MessageDetailsPopupWrapper {
         });
     }
 
-    public static /* synthetic */ void $r8$lambda$f_aN3ZZNn5AFFp878etwVxDefTs(int i, ActionBarMenuSubItem actionBarMenuSubItem, Item item) {
+    public static void $r8$lambda$f_aN3ZZNn5AFFp878etwVxDefTs(int i, ActionBarMenuSubItem actionBarMenuSubItem, Item item) {
         if (i > 0) {
             actionBarMenuSubItem.setSubtext(i + " Kbps");
             item.subtitle = i + " Kbps";
@@ -427,11 +433,10 @@ public abstract class MessageDetailsPopupWrapper {
         actionBarMenuSubItem.setVisibility(8);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$8(boolean z, MessageObject messageObject, final ActionBarMenuSubItem actionBarMenuSubItem, final Item item) {
+    public void lambda$new$8(boolean z, MessageObject messageObject, final ActionBarMenuSubItem actionBarMenuSubItem, final Item item) {
         String str = this.filePath;
         final Dimension videoResolution = z ? getVideoResolution(messageObject, str) : getPhotoResolution(messageObject, str);
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.components.MessageDetailsPopupWrapper$$ExternalSyntheticLambda12
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 MessageDetailsPopupWrapper.$r8$lambda$nKLUxPKKYKjJIhJVpxjuwM7e7_4(videoResolution, actionBarMenuSubItem, item);
@@ -439,7 +444,7 @@ public abstract class MessageDetailsPopupWrapper {
         });
     }
 
-    public static /* synthetic */ void $r8$lambda$nKLUxPKKYKjJIhJVpxjuwM7e7_4(Dimension dimension, ActionBarMenuSubItem actionBarMenuSubItem, Item item) {
+    public static void $r8$lambda$nKLUxPKKYKjJIhJVpxjuwM7e7_4(Dimension dimension, ActionBarMenuSubItem actionBarMenuSubItem, Item item) {
         if (dimension != null) {
             actionBarMenuSubItem.setSubtext(dimension.toString());
             item.subtitle = dimension.toString();
@@ -448,19 +453,34 @@ public abstract class MessageDetailsPopupWrapper {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$10(final ActionBarMenuSubItem actionBarMenuSubItem, final Item item) {
-        final String photoPlatform = MediaUtils.getPhotoPlatform(this.filePath);
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.components.MessageDetailsPopupWrapper$$ExternalSyntheticLambda9
+    public void lambda$new$10(MessageObject messageObject, final ActionBarMenuSubItem actionBarMenuSubItem, final Item item) throws Throwable {
+        final String photoPlatform;
+        if (messageObject.isVoice()) {
+            OpusFingerprint opusFingerprint = OpusFingerprint.parse(this.filePath);
+            this.voiceFingerprint = opusFingerprint;
+            photoPlatform = MediaUtils.getVoicePlatform(opusFingerprint);
+        } else {
+            boolean zIsRoundVideo = messageObject.isRoundVideo();
+            String str = this.filePath;
+            if (zIsRoundVideo) {
+                Mp4Fingerprint mp4Fingerprint = Mp4Fingerprint.parse(str);
+                this.roundVideoFingerprint = mp4Fingerprint;
+                photoPlatform = MediaUtils.getRoundVideoPlatform(mp4Fingerprint);
+            } else {
+                JpegFingerprint jpegFingerprint = JpegFingerprint.parse(str);
+                this.photoFingerprint = jpegFingerprint;
+                photoPlatform = MediaUtils.getPhotoPlatform(jpegFingerprint);
+            }
+        }
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                MessageDetailsPopupWrapper.m963$r8$lambda$8KY68BRgfBrUh0xLJdGa54yNS4(photoPlatform, actionBarMenuSubItem, item);
+                MessageDetailsPopupWrapper.m1222$r8$lambda$8KY68BRgfBrUh0xLJdGa54yNS4(photoPlatform, actionBarMenuSubItem, item);
             }
         });
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$8KY68BRgfBrUh0xLJ-dGa54yNS4, reason: not valid java name */
-    public static /* synthetic */ void m963$r8$lambda$8KY68BRgfBrUh0xLJdGa54yNS4(String str, ActionBarMenuSubItem actionBarMenuSubItem, Item item) {
+    public static void m1222$r8$lambda$8KY68BRgfBrUh0xLJdGa54yNS4(String str, ActionBarMenuSubItem actionBarMenuSubItem, Item item) {
         if (!TextUtils.isEmpty(str)) {
             actionBarMenuSubItem.setSubtext(str);
             item.subtitle = str;
@@ -469,8 +489,7 @@ public abstract class MessageDetailsPopupWrapper {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$11(Item item, Activity activity, boolean z, boolean z2, MessageObject messageObject, BaseFragment baseFragment, View view) {
+    public void lambda$new$11(Item item, Activity activity, boolean z, boolean z2, MessageObject messageObject, BaseFragment baseFragment, View view) {
         closeMenu();
         if (item.id == 1 && !TextUtils.isEmpty(this.filePath)) {
             try {
@@ -488,7 +507,7 @@ public abstract class MessageDetailsPopupWrapper {
                 intent2.setFlags(1);
                 intent2.putExtra("android.intent.extra.STREAM", uriForFile);
                 intent2.setDataAndType(uriForFile, messageObject.getMimeType());
-                activity.startActivityForResult(Intent.createChooser(intent2, LocaleController.getString(R.string.ShareFile)), 500);
+                activity.startActivityForResult(Intent.createChooser(intent2, LocaleController.getString(R.string.ShareFile)), MediaError.DetailedErrorCode.SEGMENT_UNKNOWN);
                 return;
             } catch (IllegalArgumentException e) {
                 FileLog.e(e);
@@ -507,31 +526,41 @@ public abstract class MessageDetailsPopupWrapper {
             return;
         }
         if (i == 2) {
-            String str = ExteraConfig.canUseYandexMaps() ? "http://maps.yandex.ru/?text=%s,%s" : "https://maps.google.com/?q=%s,%s";
             Activity parentActivity = baseFragment.getParentActivity();
             String[] strArr = this.geo;
-            Browser.openUrl(parentActivity, String.format(str, strArr[0], strArr[1]));
-            return;
-        }
-        String str2 = item.subtitle;
-        if (str2 == null) {
-            str2 = item.title;
-        }
-        copy(str2);
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ boolean lambda$new$12(Item item, View view) {
-        String strValueOf;
-        if (item.id == 1 && !TextUtils.isEmpty(this.filePath)) {
-            strValueOf = this.filePath;
-        } else if (item.id == 0) {
-            strValueOf = String.valueOf(this.ownerId);
+            Browser.openUrl(parentActivity, String.format("https://maps.google.com/?q=%s,%s", strArr[0], strArr[1]));
         } else {
             String str = item.subtitle;
-            strValueOf = str != null ? str : item.title;
+            if (str == null) {
+                str = item.title;
+            }
+            copy(str);
         }
-        copy(strValueOf);
+    }
+
+    public boolean lambda$new$12(Item item, View view) {
+        String strDescribe;
+        Mp4Fingerprint mp4Fingerprint;
+        OpusFingerprint opusFingerprint;
+        JpegFingerprint jpegFingerprint;
+        if (item.id == 1 && !TextUtils.isEmpty(this.filePath)) {
+            strDescribe = this.filePath;
+        } else {
+            int i = item.id;
+            if (i == 0) {
+                strDescribe = String.valueOf(this.ownerId);
+            } else if (i == 5 && (jpegFingerprint = this.photoFingerprint) != null) {
+                strDescribe = jpegFingerprint.describe();
+            } else if (i == 5 && (opusFingerprint = this.voiceFingerprint) != null) {
+                strDescribe = opusFingerprint.vendor;
+            } else if (i == 5 && (mp4Fingerprint = this.roundVideoFingerprint) != null) {
+                strDescribe = mp4Fingerprint.describe();
+            } else {
+                String str = item.subtitle;
+                strDescribe = str != null ? str : item.title;
+            }
+        }
+        copy(strDescribe);
         return true;
     }
 
@@ -698,10 +727,11 @@ public abstract class MessageDetailsPopupWrapper {
                 Objects.requireNonNull(strExtractMetadata2);
                 i2 = Integer.parseInt(strExtractMetadata2);
             } catch (Exception e) {
+                e = e;
                 FileLog.e(e);
             }
         } catch (Exception e2) {
-            FileLog.e(e2);
+            e = e2;
             i = 0;
         }
         try {
@@ -809,7 +839,7 @@ public abstract class MessageDetailsPopupWrapper {
         }
         if (z) {
             long j = ((long) i) * 1000;
-            return LocaleController.formatString("formatDateAtTime", R.string.formatDateAtTime, LocaleController.getInstance().getFormatterYear().format(new Date(j)), LocaleController.getInstance().getFormatterDayWithSeconds().format(new Date(j)));
+            return LocaleController.formatString(R.string.formatDateAtTime, LocaleController.getInstance().getFormatterYear().format(new Date(j)), LocaleController.getInstance().getFormatterDayWithSeconds().format(new Date(j)));
         }
         return LocaleController.formatDateAudio(i, true);
     }

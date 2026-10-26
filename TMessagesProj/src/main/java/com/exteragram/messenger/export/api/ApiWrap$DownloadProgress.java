@@ -1,6 +1,6 @@
 package com.exteragram.messenger.export.api;
 
-import com.exteragram.messenger.utils.RecordTag;
+import com.android.tools.r8.RecordTag;
 import java.util.Objects;
 import okhttp3.internal.url._UrlKt;
 
@@ -11,7 +11,7 @@ public final class ApiWrap$DownloadProgress extends RecordTag {
     private final long ready;
     private final long total;
 
-    private /* synthetic */ boolean $record$equals(Object obj) {
+    private boolean $record$equals(Object obj) {
         if (!(obj instanceof ApiWrap$DownloadProgress)) {
             return false;
         }
@@ -19,7 +19,7 @@ public final class ApiWrap$DownloadProgress extends RecordTag {
         return this.itemIndex == apiWrap$DownloadProgress.itemIndex && this.randomId == apiWrap$DownloadProgress.randomId && this.ready == apiWrap$DownloadProgress.ready && this.total == apiWrap$DownloadProgress.total && Objects.equals(this.path, apiWrap$DownloadProgress.path);
     }
 
-    private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+    private Object[] $record$getFieldsAsObjects() {
         return new Object[]{Long.valueOf(this.randomId), this.path, Integer.valueOf(this.itemIndex), Long.valueOf(this.ready), Long.valueOf(this.total)};
     }
 
@@ -36,7 +36,7 @@ public final class ApiWrap$DownloadProgress extends RecordTag {
     }
 
     public final int hashCode() {
-        return java.util.Objects.hash(this.itemIndex, this.randomId, this.ready, this.total, this.path);
+        return ApiWrap$java.util.Objects.hash(this.itemIndex, this.randomId, this.ready, this.total, this.path);
     }
 
     public int itemIndex() {

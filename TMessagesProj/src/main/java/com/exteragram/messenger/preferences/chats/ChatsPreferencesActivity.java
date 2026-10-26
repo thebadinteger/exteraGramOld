@@ -2,33 +2,51 @@ package com.exteragram.messenger.preferences.chats;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
+import android.text.SpannableStringBuilder;
 import android.view.View;
+import androidx.core.content.ContextCompat;
+import androidx.core.util.Consumer;
 import com.exteragram.messenger.CameraType;
 import com.exteragram.messenger.ExteraConfig;
+import com.exteragram.messenger.StickerTimeMode;
 import com.exteragram.messenger.VideoMessagesCamera;
 import com.exteragram.messenger.ai.AiController;
 import com.exteragram.messenger.ai.ui.activities.AiPreferencesActivity;
 import com.exteragram.messenger.camera.CameraXSession;
+import com.exteragram.messenger.plugins.PluginsConstants;
 import com.exteragram.messenger.preferences.BasePreferencesActivity;
 import com.exteragram.messenger.preferences.SwitchGroup;
 import com.exteragram.messenger.preferences.chats.components.DoubleTapCell;
 import com.exteragram.messenger.preferences.chats.components.MessagesPreviewCell;
 import com.exteragram.messenger.preferences.chats.components.SliderPreviewCell;
 import com.exteragram.messenger.preferences.chats.components.StickerShapeCell;
+import com.exteragram.messenger.preferences.components.AltSeekbar;
 import com.exteragram.messenger.speech.VoiceRecognitionController;
 import com.exteragram.messenger.speech.ui.RecognitionModelDialogs;
-import com.exteragram.messenger.utils.chats.DoubleTapUtils;
 import com.exteragram.messenger.translator.TranslatorUtils;
+import com.exteragram.messenger.utils.ExtensionsKt;
+import com.exteragram.messenger.utils.chats.DoubleTapUtils;
+import com.exteragram.messenger.utils.chats.SwipeAction;
 import com.exteragram.messenger.utils.ui.PopupUtils;
-import com.google.android.exoplayer2.util.Consumer;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.BooleanSupplier;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Predicate;
+import kotlin.Metadata;
+import kotlin.Unit;
+import kotlin.collections.CollectionsKt;
+import kotlin.enums.EnumEntries;
+import kotlin.enums.EnumEntriesKt;
+import kotlin.jvm.functions.Function0;
+import kotlin.jvm.internal.DefaultConstructorMarker;
+import kotlin.jvm.internal.Intrinsics;
+import kotlin.jvm.internal.MutablePropertyReference0Impl;
+import kotlin.jvm.internal.SourceDebugExtension;
+import kotlin.ranges.RangesKt;
+import okhttp3.internal.url._UrlKt;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
@@ -38,336 +56,722 @@ import org.telegram.ui.ActionBar.ActionBarMenuItem;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.TextCell;
+import org.telegram.ui.Components.ColoredImageSpan;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Stories.recorder.DualCameraView;
 import org.telegram.ui.ThemeActivity;
 
-public class ChatsPreferencesActivity extends BasePreferencesActivity {
-    private CharSequence[] bottomButton;
-    private CharSequence[] cameraType;
+@Metadata(d1 = {"\u0000\u008c\u0001\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0010\u0011\n\u0002\u0010\r\n\u0002\b\t\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\b\n\u0002\u0010\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000e\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0010\b\n\u0000\n\u0002\u0010\u0007\n\u0002\b\u0004\n\u0002\u0010\u000b\n\u0002\b\u0003\n\u0002\u0010 \n\u0002\u0018\u0002\n\u0002\b\u0006\u0018\u0000 E2\u00020\u0001:\u0002EFB\u0007¢\u0006\u0004\b\u0002\u0010\u0003J\b\u0010\"\u001a\u00020#H\u0014J\u0010\u0010$\u001a\u00020%2\u0006\u0010&\u001a\u00020'H\u0014J\b\u0010(\u001a\u00020)H\u0016J\b\u0010*\u001a\u00020\u0006H\u0002J\u001e\u0010+\u001a\u00020#2\f\u0010,\u001a\b\u0012\u0004\u0012\u00020.0-2\u0006\u0010/\u001a\u000200H\u0014J0\u00101\u001a\u00020#2\u0006\u00102\u001a\u00020.2\u0006\u00103\u001a\u00020%2\u0006\u00104\u001a\u0002052\u0006\u00106\u001a\u0002072\u0006\u00108\u001a\u000207H\u0014J\b\u00109\u001a\u00020#H\u0002J\u0012\u0010:\u001a\u0004\u0018\u00010\u00142\u0006\u0010;\u001a\u00020<H\u0002J\b\u0010=\u001a\u00020<H\u0002J\u0010\u0010>\u001a\u00020#2\u0006\u00102\u001a\u00020.H\u0002J\b\u0010D\u001a\u00020#H\u0002R\u0016\u0010\u0004\u001a\b\u0012\u0004\u0012\u00020\u00060\u0005X\u0082.¢\u0006\u0004\n\u0002\u0010\u0007R\u0016\u0010\b\u001a\b\u0012\u0004\u0012\u00020\u00060\u0005X\u0082.¢\u0006\u0004\n\u0002\u0010\u0007R\u0016\u0010\t\u001a\b\u0012\u0004\u0012\u00020\u00060\u0005X\u0082.¢\u0006\u0004\n\u0002\u0010\u0007R\u0016\u0010\n\u001a\b\u0012\u0004\u0012\u00020\u00060\u0005X\u0082.¢\u0006\u0004\n\u0002\u0010\u0007R\u0016\u0010\u000b\u001a\b\u0012\u0004\u0012\u00020\u00060\u0005X\u0082.¢\u0006\u0004\n\u0002\u0010\u0007R\u0016\u0010\f\u001a\b\u0012\u0004\u0012\u00020\u00060\u0005X\u0082.¢\u0006\u0004\n\u0002\u0010\u0007R\u0016\u0010\r\u001a\b\u0012\u0004\u0012\u00020\u00060\u0005X\u0082.¢\u0006\u0004\n\u0002\u0010\u0007R\u0016\u0010\u000e\u001a\b\u0012\u0004\u0012\u00020\u00060\u0005X\u0082.¢\u0006\u0004\n\u0002\u0010\u0007R\u0010\u0010\u000f\u001a\u0004\u0018\u00010\u0010X\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u0011\u001a\u0004\u0018\u00010\u0012X\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u0013\u001a\u0004\u0018\u00010\u0014X\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u0015\u001a\u0004\u0018\u00010\u0016X\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u0017\u001a\u0004\u0018\u00010\u0018X\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\u0019\u001a\u00020\u001aX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u001b\u001a\u00020\u001aX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u001c\u001a\u00020\u001aX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u001d\u001a\u00020\u001aX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u001e\u001a\u00020\u001aX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u001f\u001a\u00020\u001aX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010 \u001a\u00020\u001aX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010!\u001a\u00020\u001aX\u0082\u0004¢\u0006\u0002\n\u0000R\u001a\u0010?\u001a\b\u0012\u0004\u0012\u00020A0@8BX\u0082\u0004¢\u0006\u0006\u001a\u0004\bB\u0010C¨\u0006G"}, d2 = {"Lcom/exteragram/messenger/preferences/chats/ChatsPreferencesActivity;", "Lcom/exteragram/messenger/preferences/BasePreferencesActivity;", "<init>", "()V", "stickerTimeModes", _UrlKt.FRAGMENT_ENCODE_SET, _UrlKt.FRAGMENT_ENCODE_SET, "[Ljava/lang/CharSequence;", "doubleTapActions", "doubleTapOutActions", "bottomButtonOptions", "videoMessagesCameraOptions", "doubleTapSeekDurationOptions", "cameraTypeOptions", "recognitionLanguageOptions", "resetItem", "Lorg/telegram/ui/ActionBar/ActionBarMenuItem;", "stickerSizeCell", "Lcom/exteragram/messenger/preferences/chats/components/SliderPreviewCell;", "doubleTapCell", "Lcom/exteragram/messenger/preferences/chats/components/DoubleTapCell;", "stickerShapeCell", "Lcom/exteragram/messenger/preferences/chats/components/StickerShapeCell;", "messagesPreviewCell", "Lcom/exteragram/messenger/preferences/chats/components/MessagesPreviewCell;", "replyElements", "Lcom/exteragram/messenger/preferences/SwitchGroup;", "hideReactions", "widePosts", "aiFeatures", "quickTransitions", "messageMenu", "cameraSettings", "pauseOnMinimize", "initializeOptionStrings", _UrlKt.FRAGMENT_ENCODE_SET, "createView", "Landroid/view/View;", "context", "Landroid/content/Context;", "getTitle", _UrlKt.FRAGMENT_ENCODE_SET, "swipeActionsValue", "fillItems", PluginsConstants.Settings.ITEMS, "Ljava/util/ArrayList;", "Lorg/telegram/ui/Components/UItem;", "adapter", "Lorg/telegram/ui/Components/UniversalAdapter;", "onClick", PluginsConstants.Settings.ITEM, PluginsConstants.Settings.VIEW, "position", _UrlKt.FRAGMENT_ENCODE_SET, "x", _UrlKt.FRAGMENT_ENCODE_SET, "y", "updateReplySettings", "handleDoubleTapActionButtonClick", "outOwner", _UrlKt.FRAGMENT_ENCODE_SET, "isSeamlessSwitchingAvailable", "handleSpeechRecognitionLanguageClick", "downloadedRecognitionModels", _UrlKt.FRAGMENT_ENCODE_SET, "Lcom/exteragram/messenger/speech/VoiceRecognitionController$RecognitionModel;", "getDownloadedRecognitionModels", "()Ljava/util/List;", "handleDeleteRecognitionModelClick", "Companion", "ChatsItem", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+@SourceDebugExtension({"SMAP\nChatsPreferencesActivity.kt\nKotlin\n*S Kotlin\n*F\n+ 1 ChatsPreferencesActivity.kt\ncom/exteragram/messenger/preferences/chats/ChatsPreferencesActivity\n+ 2 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n+ 3 ArraysJVM.kt\nkotlin/collections/ArraysKt__ArraysJVMKt\n+ 4 SharedPreferences.kt\nandroidx/core/content/SharedPreferencesKt\n*L\n1#1,568:1\n1586#2:569\n1661#2,3:570\n2792#2,3:599\n296#2,2:602\n37#3,2:573\n41#4,12:575\n41#4,12:587\n*S KotlinDebug\n*F\n+ 1 ChatsPreferencesActivity.kt\ncom/exteragram/messenger/preferences/chats/ChatsPreferencesActivity\n*L\n259#1:569\n259#1:570,3\n546#1:599,3\n549#1:602,2\n261#1:573,2\n401#1:575,12\n212#1:587,12\n*E\n"})
+public final class ChatsPreferencesActivity extends BasePreferencesActivity {
+    private static final List<String> languageCodes = CollectionsKt.listOf((Object[]) new String[]{"none", "en", "es", "zh", "hi", "fa", "fr", "ru", "pt", "de", "ja", "ko", "it", "uk", "gu", "pl", "nl", "tr", "vi", "cs", "uz", "eo", "kk", "tg", "ca"});
+    private final SwitchGroup aiFeatures;
+    private CharSequence[] bottomButtonOptions;
+    private final SwitchGroup cameraSettings;
+    private CharSequence[] cameraTypeOptions;
     private CharSequence[] doubleTapActions;
     private DoubleTapCell doubleTapCell;
     private CharSequence[] doubleTapOutActions;
-    private CharSequence[] doubleTapSeekDuration;
+    private CharSequence[] doubleTapSeekDurationOptions;
+    private final SwitchGroup hideReactions;
+    private final SwitchGroup messageMenu;
     private MessagesPreviewCell messagesPreviewCell;
+    private final SwitchGroup pauseOnMinimize;
+    private final SwitchGroup quickTransitions;
     private CharSequence[] recognitionLanguageOptions;
+    private final SwitchGroup replyElements;
     private ActionBarMenuItem resetItem;
     private StickerShapeCell stickerShapeCell;
     private SliderPreviewCell stickerSizeCell;
-    private CharSequence[] videoMessagesCamera;
-    private final List<String> languageCodes = Arrays.asList("none", "en", "es", "zh", "hi", "fa", "fr", "ru", "pt", "de", "ja", "ko", "it", "uk", "gu", "pl", "nl", "tr", "vi", "cs", "uz", "eo", "kk", "tg", "ca");
-    private final SwitchGroup replyElements = SwitchGroup.of(this, ChatsItem.REPLY_ELEMENTS.getId(), R.string.RepliesTitle).searchable().linkAlias("replyElements").onChanged(new Runnable() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda12
-        @Override // java.lang.Runnable
-        public final void run() {
-            ChatsPreferencesActivity.this.updateReplySettings();
-        }
-    }).add(ChatsItem.REPLY_COLORS.getId(), R.string.BackgroundColors, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda23
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getReplyColors();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda34
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setReplyColors(z);
-        }
-    }).add(ChatsItem.REPLY_EMOJI.getId(), R.string.Emoji, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda45
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getReplyEmoji();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda56
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setReplyEmoji(z);
-        }
-    }).add(ChatsItem.REPLY_BACKGROUND.getId(), R.string.ReplyBackground, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda58
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getReplyBackground();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda59
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setReplyBackground(z);
-        }
-    });
-    private final SwitchGroup hideReactions = SwitchGroup.of(this, ChatsItem.HIDE_REACTIONS.getId(), R.string.HideReactions).searchable().linkAlias("hideReactions").onChanged(new Runnable() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda12
-        @Override // java.lang.Runnable
-        public final void run() {
-            ChatsPreferencesActivity.this.updateReplySettings();
-        }
-    }).add(ChatsItem.CHANNELS.getId(), R.string.ChannelsTab, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda60
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getHideReactionsInChannels();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda2
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setHideReactionsInChannels(z);
-        }
-    }).add(ChatsItem.GROUPS.getId(), R.string.SaveToGalleryGroups, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda3
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getHideReactionsInGroups();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda4
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setHideReactionsInGroups(z);
-        }
-    }).add(ChatsItem.PRIVATE_CHATS.getId(), R.string.PrivateChats, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda5
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getHideReactionsInPrivateChats();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda6
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setHideReactionsInPrivateChats(z);
-        }
-    });
-    private final SwitchGroup aiFeatures = SwitchGroup.of(this, ChatsItem.AI_FEATURES.getId(), R.string.AIFeatures).searchable().linkAlias("aiFeatures").onChanged(new Runnable() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda7
-        @Override // java.lang.Runnable
-        public final void run() {
-            ChatsPreferencesActivity.this.lambda$new$0();
-        }
-    }).add(ChatsItem.AI_FEATURES_EDITOR.getId(), R.string.AIFeaturesEditor, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda8
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getTelegramAiEditor();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda9
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setTelegramAiEditor(z);
-        }
-    }).add(ChatsItem.AI_FEATURES_SUMMARIES.getId(), R.string.AIFeaturesSummaries, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda10
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getTelegramAiSummaries();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda11
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setTelegramAiSummaries(z);
-        }
-    });
-    private final SwitchGroup quickTransitions = SwitchGroup.of(this, ChatsItem.QUICK_TRANSITIONS.getId(), R.string.QuickTransitions).searchable().linkAlias("quickTransitions").add(ChatsItem.QUICK_TRANSITION_FOR_CHANNELS.getId(), R.string.FilterChannels, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda13
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getQuickTransitionForChannels();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda14
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setQuickTransitionForChannels(z);
-        }
-    }).add(ChatsItem.QUICK_TRANSITION_FOR_TOPICS.getId(), R.string.Topics, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda15
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getQuickTransitionForTopics();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda16
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setQuickTransitionForTopics(z);
-        }
-    });
-    private final SwitchGroup messageMenu = SwitchGroup.of(this, ChatsItem.MESSAGE_MENU.getId(), R.string.MessageMenu).searchable().linkAlias("messageMenu").onChanged(new Runnable() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda17
-        @Override // java.lang.Runnable
-        public final void run() {
-            ChatsPreferencesActivity.this.lambda$new$1();
-        }
-    }).add(ChatsItem.COPY_PHOTO.getId(), R.string.CopyPhoto, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda18
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getShowCopyPhotoButton();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda19
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setShowCopyPhotoButton(z);
-        }
-    }).add(ChatsItem.SAVE.getId(), R.string.Save, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda20
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getShowSaveMessageButton();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda21
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setShowSaveMessageButton(z);
-        }
-    }).add(ChatsItem.REPEAT.getId(), R.string.Repeat, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda22
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getShowRepeatMessageButton();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda24
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setShowRepeatMessageButton(z);
-        }
-    }).add(ChatsItem.CLEAR.getId(), R.string.Clear, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda25
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getShowClearButton();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda26
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setShowClearButton(z);
-        }
-    }).add(ChatsItem.HISTORY.getId(), R.string.MessageHistory, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda27
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getShowHistoryButton();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda28
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setShowHistoryButton(z);
-        }
-    }).add(ChatsItem.REPORT.getId(), R.string.ReportChat, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda29
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getShowReportButton();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda30
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setShowReportButton(z);
-        }
-    }).addIf(new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda31
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return AiController.canUseAI();
-        }
-    }, ChatsItem.GENERATE.getId(), R.string.Generate, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda32
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getShowGenerateButton();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda33
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setShowGenerateButton(z);
-        }
-    }).add(ChatsItem.DETAILS.getId(), R.string.Details, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda35
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getShowDetailsButton();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda36
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setShowDetailsButton(z);
-        }
-    });
-    private final SwitchGroup cameraSettings = SwitchGroup.of(this, ChatsItem.CAMERA_SETTINGS.getId(), R.string.ExtendedSettings).searchable().linkAlias("cameraSettings").addIf(new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda37
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ChatsPreferencesActivity.this.isSeamlessSwitchingAvailable();
-        }
-    }, ChatsItem.DUAL_CAMERA.getId(), R.string.SeamlessSwitching, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda38
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ChatsPreferencesActivity.this.lambda$new$2();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda39
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            MessagesController.getGlobalMainSettings().edit().putBoolean("rounddual_available", z).apply();
-        }
-    }).add(ChatsItem.EXTENDED_FRAMES_PER_SECOND.getId(), R.string.ExtendedFramesPerSecond, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda40
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getExtendedFramesPerSecond();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda41
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setExtendedFramesPerSecond(z);
-        }
-    }).add(ChatsItem.CAMERA_STABILIZATION.getId(), R.string.CameraStabilization, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda42
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getCameraStabilization();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda43
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setCameraStabilization(z);
-        }
-    }).addIf(new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda44
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ChatsPreferencesActivity.m1412$r8$lambda$3LfeAnZVD07vGUJo1G_RZjKxoQ();
-        }
-    }, ChatsItem.CAMERA_MIRROR_MODE.getId(), R.string.CameraMirrorMode, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda46
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getCameraMirrorMode();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda47
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setCameraMirrorMode(z);
-        }
-    }).addIf(new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda48
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ChatsPreferencesActivity.m1417$r8$lambda$UOInYKzZDncxkVBq_FgzaD5Dv8();
-        }
-    }, ChatsItem.START_WITH_WIDE_ANGLE_CAMERA.getId(), R.string.StartWithWideAngleCamera, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda49
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getStartWithWideAngleCamera();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda50
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setStartWithWideAngleCamera(z);
-        }
-    }).markNew("Camera-ExtendedSettings-StartWithWideAngle");
-    private final SwitchGroup pauseOnMinimize = SwitchGroup.of(this, ChatsItem.PAUSE_ON_MINIMIZE.getId(), R.string.PauseOnMinimize).searchable().linkAlias("pauseOnMinimize").add(ChatsItem.PAUSE_ON_MINIMIZE_VIDEO.getId(), R.string.PauseOnMinimizeVideo, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda51
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getPauseOnMinimizeVideo();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda52
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setPauseOnMinimizeVideo(z);
-        }
-    }).add(ChatsItem.PAUSE_ON_MINIMIZE_VOICE.getId(), R.string.PauseOnMinimizeVoice, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda53
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getPauseOnMinimizeVoice();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda54
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setPauseOnMinimizeVoice(z);
-        }
-    }).add(ChatsItem.PAUSE_ON_MINIMIZE_ROUND.getId(), R.string.PauseOnMinimizeRound, new BooleanSupplier() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda55
-        @Override // java.util.function.BooleanSupplier
-        public final boolean getAsBoolean() {
-            return ExteraConfig.getPauseOnMinimizeRound();
-        }
-    }, new SwitchGroup.Setter() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda57
-        @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
-        public final void set(boolean z) {
-            ExteraConfig.setPauseOnMinimizeRound(z);
-        }
-    });
+    private CharSequence[] stickerTimeModes;
+    private CharSequence[] videoMessagesCameraOptions;
+    private final SwitchGroup widePosts;
 
+    @Metadata(k = 3, mv = {2, 2, 0}, xi = 48)
+    public static final class WhenMappings {
+        public static final int[] $EnumSwitchMapping$0;
+
+        static {
+            int[] iArr = new int[ChatsItem.values().length];
+            try {
+                iArr[ChatsItem.STICKER_TIME.ordinal()] = 1;
+            } catch (NoSuchFieldError unused) {
+            }
+            try {
+                iArr[ChatsItem.REPLY_ELEMENTS.ordinal()] = 2;
+            } catch (NoSuchFieldError unused2) {
+            }
+            try {
+                iArr[ChatsItem.REPLY_COLORS.ordinal()] = 3;
+            } catch (NoSuchFieldError unused3) {
+            }
+            try {
+                iArr[ChatsItem.REPLY_EMOJI.ordinal()] = 4;
+            } catch (NoSuchFieldError unused4) {
+            }
+            try {
+                iArr[ChatsItem.REPLY_BACKGROUND.ordinal()] = 5;
+            } catch (NoSuchFieldError unused5) {
+            }
+            try {
+                iArr[ChatsItem.AI.ordinal()] = 6;
+            } catch (NoSuchFieldError unused6) {
+            }
+            try {
+                iArr[ChatsItem.INLINE_MATH_RESULT.ordinal()] = 7;
+            } catch (NoSuchFieldError unused7) {
+            }
+            try {
+                iArr[ChatsItem.CHAT_SETTINGS.ordinal()] = 8;
+            } catch (NoSuchFieldError unused8) {
+            }
+            try {
+                iArr[ChatsItem.UNLIMITED_RECENT_STICKERS.ordinal()] = 9;
+            } catch (NoSuchFieldError unused9) {
+            }
+            try {
+                iArr[ChatsItem.HIDE_REACTIONS.ordinal()] = 10;
+            } catch (NoSuchFieldError unused10) {
+            }
+            try {
+                iArr[ChatsItem.CHANNELS.ordinal()] = 11;
+            } catch (NoSuchFieldError unused11) {
+            }
+            try {
+                iArr[ChatsItem.GROUPS.ordinal()] = 12;
+            } catch (NoSuchFieldError unused12) {
+            }
+            try {
+                iArr[ChatsItem.PRIVATE_CHATS.ordinal()] = 13;
+            } catch (NoSuchFieldError unused13) {
+            }
+            try {
+                iArr[ChatsItem.DOUBLE_TAP_ACTION.ordinal()] = 14;
+            } catch (NoSuchFieldError unused14) {
+            }
+            try {
+                iArr[ChatsItem.DOUBLE_TAP_ACTION_OUT_OWNER.ordinal()] = 15;
+            } catch (NoSuchFieldError unused15) {
+            }
+            try {
+                iArr[ChatsItem.SWIPE_ACTIONS.ordinal()] = 16;
+            } catch (NoSuchFieldError unused16) {
+            }
+            try {
+                iArr[ChatsItem.BOTTOM_BUTTON.ordinal()] = 17;
+            } catch (NoSuchFieldError unused17) {
+            }
+            try {
+                iArr[ChatsItem.WIDE_POSTS.ordinal()] = 18;
+            } catch (NoSuchFieldError unused18) {
+            }
+            try {
+                iArr[ChatsItem.WIDE_POSTS_FEED.ordinal()] = 19;
+            } catch (NoSuchFieldError unused19) {
+            }
+            try {
+                iArr[ChatsItem.WIDE_POSTS_CHANNELS.ordinal()] = 20;
+            } catch (NoSuchFieldError unused20) {
+            }
+            try {
+                iArr[ChatsItem.AI_FEATURES.ordinal()] = 21;
+            } catch (NoSuchFieldError unused21) {
+            }
+            try {
+                iArr[ChatsItem.AI_FEATURES_EDITOR.ordinal()] = 22;
+            } catch (NoSuchFieldError unused22) {
+            }
+            try {
+                iArr[ChatsItem.AI_FEATURES_SUMMARIES.ordinal()] = 23;
+            } catch (NoSuchFieldError unused23) {
+            }
+            try {
+                iArr[ChatsItem.AI_FEATURES_INSTANT_VIEW_SUMMARIES.ordinal()] = 24;
+            } catch (NoSuchFieldError unused24) {
+            }
+            try {
+                iArr[ChatsItem.ADMIN_SHORTCUTS.ordinal()] = 25;
+            } catch (NoSuchFieldError unused25) {
+            }
+            try {
+                iArr[ChatsItem.QUICK_TRANSITIONS.ordinal()] = 26;
+            } catch (NoSuchFieldError unused26) {
+            }
+            try {
+                iArr[ChatsItem.QUICK_TRANSITION_FOR_CHANNELS.ordinal()] = 27;
+            } catch (NoSuchFieldError unused27) {
+            }
+            try {
+                iArr[ChatsItem.QUICK_TRANSITION_FOR_TOPICS.ordinal()] = 28;
+            } catch (NoSuchFieldError unused28) {
+            }
+            try {
+                iArr[ChatsItem.DISABLE_GREETING_STICKER.ordinal()] = 29;
+            } catch (NoSuchFieldError unused29) {
+            }
+            try {
+                iArr[ChatsItem.HIDE_KEYBOARD_ON_SCROLL.ordinal()] = 30;
+            } catch (NoSuchFieldError unused30) {
+            }
+            try {
+                iArr[ChatsItem.ADD_COMMA_AFTER_MENTION.ordinal()] = 31;
+            } catch (NoSuchFieldError unused31) {
+            }
+            try {
+                iArr[ChatsItem.HIDE_SEND_AS_PEER.ordinal()] = 32;
+            } catch (NoSuchFieldError unused32) {
+            }
+            try {
+                iArr[ChatsItem.REPLACE_EDITED_WITH_ICON.ordinal()] = 33;
+            } catch (NoSuchFieldError unused33) {
+            }
+            try {
+                iArr[ChatsItem.SHOW_ONLINE_STATUS.ordinal()] = 34;
+            } catch (NoSuchFieldError unused34) {
+            }
+            try {
+                iArr[ChatsItem.SHOW_FORWARDS_COUNT.ordinal()] = 35;
+            } catch (NoSuchFieldError unused35) {
+            }
+            try {
+                iArr[ChatsItem.REMOVE_MESSAGE_TAIL.ordinal()] = 36;
+            } catch (NoSuchFieldError unused36) {
+            }
+            try {
+                iArr[ChatsItem.SHOW_RESULTS_BEFORE_VOTING.ordinal()] = 37;
+            } catch (NoSuchFieldError unused37) {
+            }
+            try {
+                iArr[ChatsItem.HIDE_SHARE_BUTTON.ordinal()] = 38;
+            } catch (NoSuchFieldError unused38) {
+            }
+            try {
+                iArr[ChatsItem.MESSAGE_MENU.ordinal()] = 39;
+            } catch (NoSuchFieldError unused39) {
+            }
+            try {
+                iArr[ChatsItem.COPY_PHOTO.ordinal()] = 40;
+            } catch (NoSuchFieldError unused40) {
+            }
+            try {
+                iArr[ChatsItem.SAVE.ordinal()] = 41;
+            } catch (NoSuchFieldError unused41) {
+            }
+            try {
+                iArr[ChatsItem.REPEAT.ordinal()] = 42;
+            } catch (NoSuchFieldError unused42) {
+            }
+            try {
+                iArr[ChatsItem.CLEAR.ordinal()] = 43;
+            } catch (NoSuchFieldError unused43) {
+            }
+            try {
+                iArr[ChatsItem.HISTORY.ordinal()] = 44;
+            } catch (NoSuchFieldError unused44) {
+            }
+            try {
+                iArr[ChatsItem.REPORT.ordinal()] = 45;
+            } catch (NoSuchFieldError unused45) {
+            }
+            try {
+                iArr[ChatsItem.GENERATE.ordinal()] = 46;
+            } catch (NoSuchFieldError unused46) {
+            }
+            try {
+                iArr[ChatsItem.DETAILS.ordinal()] = 47;
+            } catch (NoSuchFieldError unused47) {
+            }
+            try {
+                iArr[ChatsItem.GROUP_MESSAGE_MENU.ordinal()] = 48;
+            } catch (NoSuchFieldError unused48) {
+            }
+            try {
+                iArr[ChatsItem.SPEECH_RECOGNITION_LANGUAGE.ordinal()] = 49;
+            } catch (NoSuchFieldError unused49) {
+            }
+            try {
+                iArr[ChatsItem.POST_PROCESSING_WITH_AI.ordinal()] = 50;
+            } catch (NoSuchFieldError unused50) {
+            }
+            try {
+                iArr[ChatsItem.DELETE_RECOGNITION_MODEL.ordinal()] = 51;
+            } catch (NoSuchFieldError unused51) {
+            }
+            try {
+                iArr[ChatsItem.CAMERA_TYPE.ordinal()] = 52;
+            } catch (NoSuchFieldError unused52) {
+            }
+            try {
+                iArr[ChatsItem.CAMERA_SETTINGS.ordinal()] = 53;
+            } catch (NoSuchFieldError unused53) {
+            }
+            try {
+                iArr[ChatsItem.DUAL_CAMERA.ordinal()] = 54;
+            } catch (NoSuchFieldError unused54) {
+            }
+            try {
+                iArr[ChatsItem.EXTENDED_FRAMES_PER_SECOND.ordinal()] = 55;
+            } catch (NoSuchFieldError unused55) {
+            }
+            try {
+                iArr[ChatsItem.CAMERA_STABILIZATION.ordinal()] = 56;
+            } catch (NoSuchFieldError unused56) {
+            }
+            try {
+                iArr[ChatsItem.CAMERA_MIRROR_MODE.ordinal()] = 57;
+            } catch (NoSuchFieldError unused57) {
+            }
+            try {
+                iArr[ChatsItem.START_WITH_WIDE_ANGLE_CAMERA.ordinal()] = 58;
+            } catch (NoSuchFieldError unused58) {
+            }
+            try {
+                iArr[ChatsItem.VIDEO_MESSAGES_CAMERA.ordinal()] = 59;
+            } catch (NoSuchFieldError unused59) {
+            }
+            try {
+                iArr[ChatsItem.REMEMBER_LAST_USED_CAMERA.ordinal()] = 60;
+            } catch (NoSuchFieldError unused60) {
+            }
+            try {
+                iArr[ChatsItem.ZOOM_SLIDER.ordinal()] = 61;
+            } catch (NoSuchFieldError unused61) {
+            }
+            try {
+                iArr[ChatsItem.STATIC_ZOOM.ordinal()] = 62;
+            } catch (NoSuchFieldError unused62) {
+            }
+            try {
+                iArr[ChatsItem.ALWAYS_SEND_IN_HD.ordinal()] = 63;
+            } catch (NoSuchFieldError unused63) {
+            }
+            try {
+                iArr[ChatsItem.HIDE_CAMERA_TILE.ordinal()] = 64;
+            } catch (NoSuchFieldError unused64) {
+            }
+            try {
+                iArr[ChatsItem.DOUBLE_TAP_SEEK_DURATION.ordinal()] = 65;
+            } catch (NoSuchFieldError unused65) {
+            }
+            try {
+                iArr[ChatsItem.PREFER_ORIGINAL_QUALITY.ordinal()] = 66;
+            } catch (NoSuchFieldError unused66) {
+            }
+            try {
+                iArr[ChatsItem.SWIPE_TO_PIP.ordinal()] = 67;
+            } catch (NoSuchFieldError unused67) {
+            }
+            try {
+                iArr[ChatsItem.UNMUTE_WITH_VOLUME_BUTTONS.ordinal()] = 68;
+            } catch (NoSuchFieldError unused68) {
+            }
+            try {
+                iArr[ChatsItem.PAUSE_ON_MINIMIZE.ordinal()] = 69;
+            } catch (NoSuchFieldError unused69) {
+            }
+            try {
+                iArr[ChatsItem.PAUSE_ON_MINIMIZE_VIDEO.ordinal()] = 70;
+            } catch (NoSuchFieldError unused70) {
+            }
+            try {
+                iArr[ChatsItem.PAUSE_ON_MINIMIZE_VOICE.ordinal()] = 71;
+            } catch (NoSuchFieldError unused71) {
+            }
+            try {
+                iArr[ChatsItem.PAUSE_ON_MINIMIZE_ROUND.ordinal()] = 72;
+            } catch (NoSuchFieldError unused72) {
+            }
+            $EnumSwitchMapping$0 = iArr;
+        }
+    }
+
+    public ChatsPreferencesActivity() {
+        int i = 40;
+        DefaultConstructorMarker defaultConstructorMarker = null;
+        CharSequence charSequence = null;
+        SwitchGroup switchGroup = new SwitchGroup(this, ChatsItem.REPLY_ELEMENTS, R.string.RepliesTitle, charSequence, "replyElements", false, i, defaultConstructorMarker);
+        switchGroup.onChanged(new ChatsPreferencesActivity$replyElements$1$1(this));
+        SwitchGroup.add$default(switchGroup, ChatsItem.REPLY_COLORS, R.string.BackgroundColors, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getReplyColors());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setReplyColors(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.add$default(switchGroup, ChatsItem.REPLY_EMOJI, R.string.Emoji, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getReplyEmoji());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setReplyEmoji(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.add$default(switchGroup, ChatsItem.REPLY_BACKGROUND, R.string.ReplyBackground, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getReplyBackground());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setReplyBackground(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        this.replyElements = switchGroup;
+        SwitchGroup switchGroup2 = new SwitchGroup(this, ChatsItem.HIDE_REACTIONS, R.string.HideReactions, charSequence, "hideReactions", false, i, defaultConstructorMarker);
+        switchGroup2.onChanged(new ChatsPreferencesActivity$hideReactions$1$1(this));
+        SwitchGroup.add$default(switchGroup2, ChatsItem.CHANNELS, R.string.ChannelsTab, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getHideReactionsInChannels());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setHideReactionsInChannels(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.add$default(switchGroup2, ChatsItem.GROUPS, R.string.SaveToGalleryGroups, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getHideReactionsInGroups());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setHideReactionsInGroups(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.add$default(switchGroup2, ChatsItem.PRIVATE_CHATS, R.string.PrivateChats, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getHideReactionsInPrivateChats());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setHideReactionsInPrivateChats(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        this.hideReactions = switchGroup2;
+        SwitchGroup switchGroup3 = new SwitchGroup(this, ChatsItem.WIDE_POSTS, R.string.WidePosts, null, "widePosts", false, 40, defaultConstructorMarker);
+        switchGroup3.onChanged(new Function0() {
+            @Override // kotlin.jvm.functions.Function0
+            public final Object invoke() {
+                return ChatsPreferencesActivity.m2035$r8$lambda$DhYH9Loy50Ur_v1N0SzJKvErw(this.f$0);
+            }
+        });
+        SwitchGroup.add$default(switchGroup3, ChatsItem.WIDE_POSTS_FEED, R.string.Feed, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getWidePostsInFeed());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setWidePostsInFeed(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.add$default(switchGroup3, ChatsItem.WIDE_POSTS_CHANNELS, R.string.ChannelsTab, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getWidePostsInChannels());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setWidePostsInChannels(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        this.widePosts = switchGroup3;
+        SwitchGroup switchGroup4 = new SwitchGroup(this, ChatsItem.AI_FEATURES, R.string.AIFeatures, null, "aiFeatures", false, 40, defaultConstructorMarker);
+        switchGroup4.onChanged(new Function0() {
+            @Override // kotlin.jvm.functions.Function0
+            public final Object invoke() {
+                return ChatsPreferencesActivity.$r8$lambda$aa1yxM530VFz38JNCenQ6qK8Bvw(this.f$0);
+            }
+        });
+        SwitchGroup.add$default(switchGroup4, ChatsItem.AI_FEATURES_EDITOR, R.string.AIFeaturesEditor, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getTelegramAiEditor());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setTelegramAiEditor(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.add$default(switchGroup4, ChatsItem.AI_FEATURES_SUMMARIES, R.string.AIFeaturesSummaries, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getTelegramAiSummaries());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setTelegramAiSummaries(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.add$default(switchGroup4, ChatsItem.AI_FEATURES_INSTANT_VIEW_SUMMARIES, R.string.AIFeaturesInstantViewSummaries, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getTelegramAiInstantViewSummaries());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setTelegramAiInstantViewSummaries(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        this.aiFeatures = switchGroup4;
+        SwitchGroup switchGroup5 = new SwitchGroup(this, ChatsItem.QUICK_TRANSITIONS, R.string.QuickTransitions, null, "quickTransitions", false, 40, defaultConstructorMarker);
+        SwitchGroup.add$default(switchGroup5, ChatsItem.QUICK_TRANSITION_FOR_CHANNELS, R.string.FilterChannels, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getQuickTransitionForChannels());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setQuickTransitionForChannels(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.add$default(switchGroup5, ChatsItem.QUICK_TRANSITION_FOR_TOPICS, R.string.Topics, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getQuickTransitionForTopics());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setQuickTransitionForTopics(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        this.quickTransitions = switchGroup5;
+        SwitchGroup switchGroup6 = new SwitchGroup(this, ChatsItem.MESSAGE_MENU, R.string.MessageMenu, null, "messageMenu", false, 40, defaultConstructorMarker);
+        switchGroup6.onChanged(new Function0() {
+            @Override // kotlin.jvm.functions.Function0
+            public final Object invoke() {
+                return ChatsPreferencesActivity.$r8$lambda$aTj7CImeY3w9zA5fuudmfkAIdbA(this.f$0);
+            }
+        });
+        SwitchGroup.add$default(switchGroup6, ChatsItem.COPY_PHOTO, R.string.CopyPhoto, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getShowCopyPhotoButton());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setShowCopyPhotoButton(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.add$default(switchGroup6, ChatsItem.SAVE, R.string.Save, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getShowSaveMessageButton());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setShowSaveMessageButton(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.add$default(switchGroup6, ChatsItem.REPEAT, R.string.Repeat, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getShowRepeatMessageButton());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setShowRepeatMessageButton(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.add$default(switchGroup6, ChatsItem.CLEAR, R.string.Clear, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getShowClearButton());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setShowClearButton(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.add$default(switchGroup6, ChatsItem.HISTORY, R.string.MessageHistory, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getShowHistoryButton());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setShowHistoryButton(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.add$default(switchGroup6, ChatsItem.REPORT, R.string.ReportChat, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getShowReportButton());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setShowReportButton(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.addIf$default(switchGroup6, new BooleanSupplier() {
+            @Override // java.util.function.BooleanSupplier
+            public final boolean getAsBoolean() {
+                return AiController.canUseAI();
+            }
+        }, ChatsItem.GENERATE, R.string.Generate, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getShowGenerateButton());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setShowGenerateButton(((Boolean) obj).booleanValue());
+            }
+        }, null, 16, null);
+        SwitchGroup.add$default(switchGroup6, ChatsItem.DETAILS, R.string.Details, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getShowDetailsButton());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setShowDetailsButton(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        this.messageMenu = switchGroup6;
+        SwitchGroup switchGroup7 = new SwitchGroup(this, ChatsItem.CAMERA_SETTINGS, R.string.ExtendedSettings, null, "cameraSettings", false, 40, defaultConstructorMarker);
+        SwitchGroup.addIf$default(switchGroup7, new BooleanSupplier() {
+            @Override // java.util.function.BooleanSupplier
+            public final boolean getAsBoolean() {
+                return this.f$0.isSeamlessSwitchingAvailable();
+            }
+        }, ChatsItem.DUAL_CAMERA, R.string.SeamlessSwitching, new BooleanSupplier() {
+            @Override // java.util.function.BooleanSupplier
+            public final boolean getAsBoolean() {
+                return DualCameraView.roundDualAvailableStatic(this.f$0.getContext());
+            }
+        }, new SwitchGroup.Setter() {
+            @Override // com.exteragram.messenger.preferences.SwitchGroup.Setter
+            public final void set(boolean z) {
+                ChatsPreferencesActivity.$r8$lambda$SIECvH1woGtCA1yKWk5reWi9U30(z);
+            }
+        }, null, 32, null);
+        SwitchGroup.add$default(switchGroup7, ChatsItem.EXTENDED_FRAMES_PER_SECOND, R.string.ExtendedFramesPerSecond, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getExtendedFramesPerSecond());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setExtendedFramesPerSecond(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.add$default(switchGroup7, ChatsItem.CAMERA_STABILIZATION, R.string.CameraStabilization, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getCameraStabilization());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setCameraStabilization(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.addIf$default(switchGroup7, new BooleanSupplier() {
+            @Override // java.util.function.BooleanSupplier
+            public final boolean getAsBoolean() {
+                return ChatsPreferencesActivity.m2034$r8$lambda$3bAEwhc4N0xTYjnM3bIRxyA8OI();
+            }
+        }, ChatsItem.CAMERA_MIRROR_MODE, R.string.CameraMirrorMode, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getCameraMirrorMode());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setCameraMirrorMode(((Boolean) obj).booleanValue());
+            }
+        }, null, 16, null);
+        SwitchGroup.addIf$default(switchGroup7, new BooleanSupplier() {
+            @Override // java.util.function.BooleanSupplier
+            public final boolean getAsBoolean() {
+                return ChatsPreferencesActivity.$r8$lambda$FaZY3S7n_AQyadXG2RJ9uhDMbLM();
+            }
+        }, ChatsItem.START_WITH_WIDE_ANGLE_CAMERA, R.string.StartWithWideAngleCamera, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getStartWithWideAngleCamera());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setStartWithWideAngleCamera(((Boolean) obj).booleanValue());
+            }
+        }, null, 16, null);
+        switchGroup7.markNew("Camera-ExtendedSettings-StartWithWideAngle");
+        this.cameraSettings = switchGroup7;
+        SwitchGroup switchGroup8 = new SwitchGroup(this, ChatsItem.PAUSE_ON_MINIMIZE, R.string.PauseOnMinimize, null, "pauseOnMinimize", false, 40, null);
+        SwitchGroup.add$default(switchGroup8, ChatsItem.PAUSE_ON_MINIMIZE_VIDEO, R.string.PauseOnMinimizeVideo, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getPauseOnMinimizeVideo());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setPauseOnMinimizeVideo(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.add$default(switchGroup8, ChatsItem.PAUSE_ON_MINIMIZE_VOICE, R.string.PauseOnMinimizeVoice, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getPauseOnMinimizeVoice());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setPauseOnMinimizeVoice(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        SwitchGroup.add$default(switchGroup8, ChatsItem.PAUSE_ON_MINIMIZE_ROUND, R.string.PauseOnMinimizeRound, new MutablePropertyReference0Impl() {
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KProperty0
+            public Object get() {
+                return Boolean.valueOf(ExteraConfig.getPauseOnMinimizeRound());
+            }
+
+            @Override // kotlin.jvm.internal.MutablePropertyReference0Impl, kotlin.reflect.KMutableProperty0
+            public void set(Object obj) {
+                ExteraConfig.setPauseOnMinimizeRound(((Boolean) obj).booleanValue());
+            }
+        }, null, 8, null);
+        this.pauseOnMinimize = switchGroup8;
+    }
+
+    @Metadata(d1 = {"\u0000\u0014\n\u0002\u0018\u0002\n\u0002\u0010\u0010\n\u0002\bO\n\u0002\u0010\b\n\u0002\b\u0003\b\u0086\u0081\u0002\u0018\u00002\b\u0012\u0004\u0012\u00020\u00000\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003R\u0011\u0010P\u001a\u00020Q¢\u0006\b\n\u0000\u001a\u0004\bR\u0010Sj\u0002\b\u0004j\u0002\b\u0005j\u0002\b\u0006j\u0002\b\u0007j\u0002\b\bj\u0002\b\tj\u0002\b\nj\u0002\b\u000bj\u0002\b\fj\u0002\b\rj\u0002\b\u000ej\u0002\b\u000fj\u0002\b\u0010j\u0002\b\u0011j\u0002\b\u0012j\u0002\b\u0013j\u0002\b\u0014j\u0002\b\u0015j\u0002\b\u0016j\u0002\b\u0017j\u0002\b\u0018j\u0002\b\u0019j\u0002\b\u001aj\u0002\b\u001bj\u0002\b\u001cj\u0002\b\u001dj\u0002\b\u001ej\u0002\b\u001fj\u0002\b j\u0002\b!j\u0002\b\"j\u0002\b#j\u0002\b$j\u0002\b%j\u0002\b&j\u0002\b'j\u0002\b(j\u0002\b)j\u0002\b*j\u0002\b+j\u0002\b,j\u0002\b-j\u0002\b.j\u0002\b/j\u0002\b0j\u0002\b1j\u0002\b2j\u0002\b3j\u0002\b4j\u0002\b5j\u0002\b6j\u0002\b7j\u0002\b8j\u0002\b9j\u0002\b:j\u0002\b;j\u0002\b<j\u0002\b=j\u0002\b>j\u0002\b?j\u0002\b@j\u0002\bAj\u0002\bBj\u0002\bCj\u0002\bDj\u0002\bEj\u0002\bFj\u0002\bGj\u0002\bHj\u0002\bIj\u0002\bJj\u0002\bKj\u0002\bLj\u0002\bMj\u0002\bNj\u0002\bO¨\u0006T"}, d2 = {"Lcom/exteragram/messenger/preferences/chats/ChatsPreferencesActivity$ChatsItem;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "(Ljava/lang/String;I)V", "STICKER_SIZE", "STICKER_TIME", "REPLY_ELEMENTS", "REPLY_COLORS", "REPLY_EMOJI", "REPLY_BACKGROUND", "STICKER_SHAPE", "AI", "CHAT_SETTINGS", "UNLIMITED_RECENT_STICKERS", "HIDE_REACTIONS", "DOUBLE_TAP", "DOUBLE_TAP_ACTION", "DOUBLE_TAP_ACTION_OUT_OWNER", "SWIPE_ACTIONS", "BOTTOM_BUTTON", "WIDE_POSTS", "WIDE_POSTS_FEED", "WIDE_POSTS_CHANNELS", "AI_FEATURES", "AI_FEATURES_EDITOR", "AI_FEATURES_SUMMARIES", "AI_FEATURES_INSTANT_VIEW_SUMMARIES", "ADMIN_SHORTCUTS", "QUICK_TRANSITIONS", "QUICK_TRANSITION_FOR_CHANNELS", "QUICK_TRANSITION_FOR_TOPICS", "DISABLE_GREETING_STICKER", "HIDE_KEYBOARD_ON_SCROLL", "ADD_COMMA_AFTER_MENTION", "INLINE_MATH_RESULT", "HIDE_SEND_AS_PEER", "MESSAGES_PREVIEW", "REMOVE_MESSAGE_TAIL", "REPLACE_EDITED_WITH_ICON", "SHOW_ONLINE_STATUS", "HIDE_SHARE_BUTTON", "SHOW_RESULTS_BEFORE_VOTING", "MESSAGE_MENU", "COPY_PHOTO", "SAVE", "REPEAT", "CLEAR", "HISTORY", "REPORT", "GENERATE", "DETAILS", "GROUP_MESSAGE_MENU", "GROUPS", "CHANNELS", "PRIVATE_CHATS", "SPEECH_RECOGNITION_LANGUAGE", "POST_PROCESSING_WITH_AI", "DELETE_RECOGNITION_MODEL", "CAMERA_TYPE", "CAMERA_SETTINGS", "DUAL_CAMERA", "EXTENDED_FRAMES_PER_SECOND", "CAMERA_STABILIZATION", "CAMERA_MIRROR_MODE", "VIDEO_MESSAGES_CAMERA", "REMEMBER_LAST_USED_CAMERA", "START_WITH_WIDE_ANGLE_CAMERA", "ZOOM_SLIDER", "STATIC_ZOOM", "ALWAYS_SEND_IN_HD", "HIDE_CAMERA_TILE", "DOUBLE_TAP_SEEK_DURATION", "PREFER_ORIGINAL_QUALITY", "SWIPE_TO_PIP", "UNMUTE_WITH_VOLUME_BUTTONS", "PAUSE_ON_MINIMIZE", "PAUSE_ON_MINIMIZE_VIDEO", "PAUSE_ON_MINIMIZE_VOICE", "PAUSE_ON_MINIMIZE_ROUND", "SHOW_FORWARDS_COUNT", "id", _UrlKt.FRAGMENT_ENCODE_SET, "getId", "()I", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
     public enum ChatsItem {
         STICKER_SIZE,
-        HIDE_STICKER_TIME,
+        STICKER_TIME,
         REPLY_ELEMENTS,
         REPLY_COLORS,
         REPLY_EMOJI,
@@ -380,10 +784,15 @@ public class ChatsPreferencesActivity extends BasePreferencesActivity {
         DOUBLE_TAP,
         DOUBLE_TAP_ACTION,
         DOUBLE_TAP_ACTION_OUT_OWNER,
+        SWIPE_ACTIONS,
         BOTTOM_BUTTON,
+        WIDE_POSTS,
+        WIDE_POSTS_FEED,
+        WIDE_POSTS_CHANNELS,
         AI_FEATURES,
         AI_FEATURES_EDITOR,
         AI_FEATURES_SUMMARIES,
+        AI_FEATURES_INSTANT_VIEW_SUMMARIES,
         ADMIN_SHORTCUTS,
         QUICK_TRANSITIONS,
         QUICK_TRANSITION_FOR_CHANNELS,
@@ -391,12 +800,12 @@ public class ChatsPreferencesActivity extends BasePreferencesActivity {
         DISABLE_GREETING_STICKER,
         HIDE_KEYBOARD_ON_SCROLL,
         ADD_COMMA_AFTER_MENTION,
+        INLINE_MATH_RESULT,
         HIDE_SEND_AS_PEER,
         MESSAGES_PREVIEW,
         REMOVE_MESSAGE_TAIL,
         REPLACE_EDITED_WITH_ICON,
         SHOW_ONLINE_STATUS,
-        SHOW_FORWARDS_COUNT,
         HIDE_SHARE_BUTTON,
         SHOW_RESULTS_BEFORE_VOTING,
         MESSAGE_MENU,
@@ -409,7 +818,6 @@ public class ChatsPreferencesActivity extends BasePreferencesActivity {
         GENERATE,
         DETAILS,
         GROUP_MESSAGE_MENU,
-        MESSAGE_REACTIONS,
         GROUPS,
         CHANNELS,
         PRIVATE_CHATS,
@@ -436,127 +844,142 @@ public class ChatsPreferencesActivity extends BasePreferencesActivity {
         PAUSE_ON_MINIMIZE,
         PAUSE_ON_MINIMIZE_VIDEO,
         PAUSE_ON_MINIMIZE_VOICE,
-        PAUSE_ON_MINIMIZE_ROUND;
+        PAUSE_ON_MINIMIZE_ROUND,
+        SHOW_FORWARDS_COUNT;
 
-        public int getId() {
-            return ordinal() + 1;
+        private static final EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
+        private final int id = ordinal() + 1;
+
+        public static EnumEntries<ChatsItem> getEntries() {
+            return $ENTRIES;
+        }
+
+        ChatsItem() {
+        }
+
+        public final int getId() {
+            return this.id;
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$0() {
-        this.parentLayout.rebuildFragments(0);
+    public static Unit m2035$r8$lambda$DhYH9Loy50Ur_v1N0SzJKvErw(ChatsPreferencesActivity chatsPreferencesActivity) {
+        chatsPreferencesActivity.parentLayout.rebuildFragments(AndroidUtilities.isTablet() ? 1 : 0);
+        return Unit.INSTANCE;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$1() {
-        this.parentLayout.rebuildFragments(0);
+    public static Unit $r8$lambda$aa1yxM530VFz38JNCenQ6qK8Bvw(ChatsPreferencesActivity chatsPreferencesActivity) {
+        chatsPreferencesActivity.parentLayout.rebuildFragments(0);
+        return Unit.INSTANCE;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ boolean lambda$new$2() {
-        return DualCameraView.roundDualAvailableStatic(getContext());
+    public static Unit $r8$lambda$aTj7CImeY3w9zA5fuudmfkAIdbA(ChatsPreferencesActivity chatsPreferencesActivity) {
+        chatsPreferencesActivity.parentLayout.rebuildFragments(0);
+        return Unit.INSTANCE;
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$3LfeAnZVD07vGUJo1G_RZj-KxoQ, reason: not valid java name */
-    public static /* synthetic */ boolean m1412$r8$lambda$3LfeAnZVD07vGUJo1G_RZjKxoQ() {
+    public static void $r8$lambda$SIECvH1woGtCA1yKWk5reWi9U30(boolean z) {
+        SharedPreferences.Editor editorEdit = MessagesController.getGlobalMainSettings().edit();
+        editorEdit.putBoolean("rounddual_available", z);
+        editorEdit.apply();
+    }
+
+    public static boolean m2034$r8$lambda$3bAEwhc4N0xTYjnM3bIRxyA8OI() {
         return ExteraConfig.getCameraType() != CameraType.CAMERA_2;
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$UOInYKzZD-ncxkVBq_FgzaD5Dv8, reason: not valid java name */
-    public static /* synthetic */ boolean m1417$r8$lambda$UOInYKzZDncxkVBq_FgzaD5Dv8() {
+    public static boolean $r8$lambda$FaZY3S7n_AQyadXG2RJ9uhDMbLM() {
         return ExteraConfig.getCameraType() == CameraType.CAMERA_X;
     }
 
     @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
     public void initializeOptionStrings() {
+        this.stickerTimeModes = new CharSequence[]{LocaleController.getString(R.string.Default), LocaleController.getString(R.string.StickerTimeSide), LocaleController.getString(R.string.StickerTimeHidden)};
         this.doubleTapActions = DoubleTapUtils.getDoubleTapActions(false);
         this.doubleTapOutActions = DoubleTapUtils.getDoubleTapActions(true);
-        this.bottomButton = new CharSequence[]{LocaleController.getString(R.string.Hide), LocaleController.getString(R.string.ChannelMuteNoCaps), LocaleController.getString(R.string.ChannelDiscussNoCaps)};
-        this.videoMessagesCamera = new CharSequence[]{LocaleController.getString(R.string.VideoMessagesCameraFront), LocaleController.getString(R.string.VideoMessagesCameraRear), LocaleController.getString(R.string.VideoMessagesCameraAsk)};
-        this.doubleTapSeekDuration = new CharSequence[]{LocaleController.formatPluralString("Seconds", 5, new Object[0]), LocaleController.formatPluralString("Seconds", 10, new Object[0]), LocaleController.formatPluralString("Seconds", 15, new Object[0]), LocaleController.formatPluralString("Seconds", 30, new Object[0])};
-        this.cameraType = new CharSequence[]{"Camera 1", "Camera 2", "Camera X"};
-        this.recognitionLanguageOptions = (CharSequence[]) this.languageCodes.stream().map(new Function() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda61
-            @Override // java.util.function.Function
-            public final Object apply(Object obj) {
-                return RecognitionModelDialogs.getRecognitionLanguageOption((String) obj);
-            }
-        }).toArray(new IntFunction() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda62
-            @Override // java.util.function.IntFunction
-            public final Object apply(int i) {
-                return ChatsPreferencesActivity.m1416$r8$lambda$SntQBoO9_Jh32I0muzcxatdfKY(i);
-            }
-        });
-    }
-
-    /* JADX INFO: renamed from: $r8$lambda$SntQBoO9_Jh32I0muz-cxatdfKY, reason: not valid java name */
-    public static /* synthetic */ CharSequence[] m1416$r8$lambda$SntQBoO9_Jh32I0muzcxatdfKY(int i) {
-        return new CharSequence[i];
+        this.bottomButtonOptions = new CharSequence[]{LocaleController.getString(R.string.Hide), LocaleController.getString(R.string.ChannelMuteNoCaps), LocaleController.getString(R.string.ChannelDiscussNoCaps)};
+        this.videoMessagesCameraOptions = new CharSequence[]{LocaleController.getString(R.string.VideoMessagesCameraFront), LocaleController.getString(R.string.VideoMessagesCameraRear), LocaleController.getString(R.string.VideoMessagesCameraAsk)};
+        this.doubleTapSeekDurationOptions = new CharSequence[]{LocaleController.formatPluralString("Seconds", 5, new Object[0]), LocaleController.formatPluralString("Seconds", 10, new Object[0]), LocaleController.formatPluralString("Seconds", 15, new Object[0]), LocaleController.formatPluralString("Seconds", 30, new Object[0])};
+        this.cameraTypeOptions = new CharSequence[]{"Camera 1", "Camera 2", "Camera X"};
+        List<String> list = languageCodes;
+        ArrayList arrayList = new ArrayList(CollectionsKt.collectionSizeOrDefault(list, 10));
+        Iterator<T> it = list.iterator();
+        while (it.hasNext()) {
+            arrayList.add(RecognitionModelDialogs.getRecognitionLanguageOption((String) it.next()));
+        }
+        this.recognitionLanguageOptions = (CharSequence[]) arrayList.toArray(new CharSequence[0]);
     }
 
     @Override // com.exteragram.messenger.preferences.BasePreferencesActivity, org.telegram.ui.ActionBar.BaseFragment
     public View createView(Context context) {
-        this.stickerSizeCell = new SliderPreviewCell(this.parentLayout, context, ChatsItem.STICKER_SIZE.getId(), 4, 20, ExteraConfig.getStickerSize(), LocaleController.getString(R.string.StickerSize), LocaleController.getString(R.string.StickerSizeLeft), LocaleController.getString(R.string.StickerSizeRight), false).setListener(new SliderPreviewCell.OnSliderChangedListener() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda0
+        SliderPreviewCell sliderPreviewCell = new SliderPreviewCell(this.parentLayout, context, ChatsItem.STICKER_SIZE.getId(), 4, 20, ExteraConfig.getStickerSize(), LocaleController.getString(R.string.StickerSize), LocaleController.getString(R.string.StickerSizeLeft), LocaleController.getString(R.string.StickerSizeRight), false);
+        sliderPreviewCell.setListener(new SliderPreviewCell.OnSliderChangedListener() {
             @Override // com.exteragram.messenger.preferences.chats.components.SliderPreviewCell.OnSliderChangedListener
             public final void onChanged(float f) {
-                ChatsPreferencesActivity.this.lambda$createView$7(f);
+                ChatsPreferencesActivity.$r8$lambda$Zyay2o4VkHEizG1V7GsE0WSPGh4(this.f$0, f);
             }
         });
-        this.stickerShapeCell = new StickerShapeCell(context) { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity.1
+        this.stickerSizeCell = sliderPreviewCell;
+        this.stickerShapeCell = new StickerShapeCell(context) {
             @Override // com.exteragram.messenger.preferences.chats.components.StickerShapeCell
             public void updateStickerPreview() {
-                ChatsPreferencesActivity.this.getParentLayout().rebuildFragments(0);
-                ChatsPreferencesActivity.this.stickerSizeCell.invalidate();
+                ((BaseFragment) this).parentLayout.rebuildFragments(0);
+                SliderPreviewCell sliderPreviewCell2 = this.stickerSizeCell;
+                if (sliderPreviewCell2 != null) {
+                    sliderPreviewCell2.invalidate();
+                }
             }
         };
         this.doubleTapCell = new DoubleTapCell(context);
         this.messagesPreviewCell = new MessagesPreviewCell(context, this.parentLayout, 1);
         View viewCreateView = super.createView(context);
         ActionBarMenuItem actionBarMenuItemAddItem = this.actionBar.createMenu().addItem(0, R.drawable.msg_reset);
-        this.resetItem = actionBarMenuItemAddItem;
         actionBarMenuItemAddItem.setContentDescription(LocaleController.getString(R.string.Reset));
-        this.resetItem.setVisibility(ExteraConfig.getStickerSize() == 12.0f ? 8 : 0);
-        this.resetItem.setTag(null);
-        this.resetItem.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda1
+        actionBarMenuItemAddItem.setVisibility(ExteraConfig.getStickerSize() == 12.0f ? 8 : 0);
+        actionBarMenuItemAddItem.setTag(null);
+        actionBarMenuItemAddItem.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                ChatsPreferencesActivity.this.lambda$createView$9(view);
+                ChatsPreferencesActivity.m2037$r8$lambda$KS8V5vv1M6Glb4i2Hv8jWzQKs(this.f$0, view);
             }
         });
-        this.fragmentView = viewCreateView;
+        this.resetItem = actionBarMenuItemAddItem;
         return viewCreateView;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$createView$7(float f) {
+    public static void $r8$lambda$Zyay2o4VkHEizG1V7GsE0WSPGh4(ChatsPreferencesActivity chatsPreferencesActivity, float f) {
         ExteraConfig.setStickerSize(f);
-        ActionBarMenuItem actionBarMenuItem = this.resetItem;
+        ActionBarMenuItem actionBarMenuItem = chatsPreferencesActivity.resetItem;
         if (actionBarMenuItem == null || actionBarMenuItem.getVisibility() == 0) {
             return;
         }
-        AndroidUtilities.updateViewVisibilityAnimated(this.resetItem, true, 0.5f, true);
+        AndroidUtilities.updateViewVisibilityAnimated(actionBarMenuItem, true, 0.5f, true);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$createView$9(View view) {
-        AndroidUtilities.updateViewVisibilityAnimated(this.resetItem, false, 0.5f, true);
+    public static void m2037$r8$lambda$KS8V5vv1M6Glb4i2Hv8jWzQKs(final ChatsPreferencesActivity chatsPreferencesActivity, View view) {
+        AndroidUtilities.updateViewVisibilityAnimated(view, false, 0.5f, true);
         ValueAnimator valueAnimatorOfFloat = ValueAnimator.ofFloat(ExteraConfig.getStickerSize(), 12.0f);
         valueAnimatorOfFloat.setDuration(200L);
-        valueAnimatorOfFloat.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda91
+        valueAnimatorOfFloat.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override // android.animation.ValueAnimator.AnimatorUpdateListener
             public final void onAnimationUpdate(ValueAnimator valueAnimator) {
-                ChatsPreferencesActivity.this.lambda$createView$8(valueAnimator);
+                ChatsPreferencesActivity.$r8$lambda$Sf9ddikJ8W132h_hhZTZGz2P0lc(this.f$0, valueAnimator);
             }
         });
         valueAnimatorOfFloat.start();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$createView$8(ValueAnimator valueAnimator) {
+    public static void $r8$lambda$Sf9ddikJ8W132h_hhZTZGz2P0lc(ChatsPreferencesActivity chatsPreferencesActivity, ValueAnimator valueAnimator) {
+        AltSeekbar altSeekbar;
         float fFloatValue = ((Float) valueAnimator.getAnimatedValue()).floatValue();
         ExteraConfig.setStickerSize(fFloatValue);
-        this.stickerSizeCell.seekBar.setProgress(fFloatValue);
-        this.stickerSizeCell.invalidate();
+        SliderPreviewCell sliderPreviewCell = chatsPreferencesActivity.stickerSizeCell;
+        if (sliderPreviewCell != null && (altSeekbar = sliderPreviewCell.seekBar) != null) {
+            altSeekbar.setProgress(fFloatValue);
+        }
+        SliderPreviewCell sliderPreviewCell2 = chatsPreferencesActivity.stickerSizeCell;
+        if (sliderPreviewCell2 != null) {
+            sliderPreviewCell2.invalidate();
+        }
     }
 
     @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
@@ -564,774 +987,633 @@ public class ChatsPreferencesActivity extends BasePreferencesActivity {
         return LocaleController.getString(R.string.SearchAllChatsShort);
     }
 
-    @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
-    public void fillItems(ArrayList<UItem> arrayList, UniversalAdapter universalAdapter) {
-        arrayList.add(UItem.asCustom(ChatsItem.STICKER_SIZE.getId(), this.stickerSizeCell).setLinkAlias("stickerSize", this));
-        arrayList.add(UItem.asCheck(ChatsItem.HIDE_STICKER_TIME.getId(), LocaleController.getString(R.string.StickerTime)).setChecked(ExteraConfig.getHideStickerTime()).setSearchable(this).setLinkAlias("hideStickerTime", this));
-        this.replyElements.fill(arrayList);
-        arrayList.add(UItem.asShadow());
-        arrayList.add(UItem.asHeader(LocaleController.getString(R.string.StickerShape)));
-        arrayList.add(UItem.asCustom(ChatsItem.STICKER_SHAPE.getId(), this.stickerShapeCell).setLinkAlias("stickerShape", this));
-        arrayList.add(UItem.asShadow());
-        arrayList.add(UItem.asButtonWithSubtext(ChatsItem.AI.getId(), R.drawable.ai_chat, LocaleController.getString(R.string.AIChat), LocaleController.getString(R.string.AIChatInfo), 64, 60).setSearchable(this).setLinkAlias("aiChat", this));
-        arrayList.add(UItem.asButtonWithSubtext(ChatsItem.CHAT_SETTINGS.getId(), R.drawable.msg_discussion, LocaleController.getString(R.string.ChatSettings), LocaleController.getString(R.string.ChatSettingsInfo), 64, 60).setLinkAlias("chatSettings", this));
-        arrayList.add(UItem.asShadow());
-        arrayList.add(UItem.asHeader(LocaleController.getString(R.string.StickersName)));
-        arrayList.add(UItem.asCheck(ChatsItem.UNLIMITED_RECENT_STICKERS.getId(), LocaleController.getString(R.string.UnlimitedRecentStickers)).setChecked(ExteraConfig.getUnlimitedRecentStickers()).setSearchable(this).setLinkAlias("unlimitedRecentStickers", this));
-        this.hideReactions.fill(arrayList);
-        arrayList.add(UItem.asShadow(LocaleController.getString(R.string.HideReactionsInfo)));
-        arrayList.add(UItem.asHeader(LocaleController.getString(R.string.DoubleTap)));
-        arrayList.add(UItem.asCustom(ChatsItem.DOUBLE_TAP.getId(), this.doubleTapCell));
-        arrayList.add(UItem.asButton(ChatsItem.DOUBLE_TAP_ACTION.getId(), LocaleController.getString(R.string.DoubleTapIncoming), DoubleTapUtils.getDoubleTapActionLabel(ExteraConfig.getDoubleTapAction(), false)).setSearchable(this).setLinkAlias("doubleTapIncoming", this));
-        arrayList.add(UItem.asButton(ChatsItem.DOUBLE_TAP_ACTION_OUT_OWNER.getId(), LocaleController.getString(R.string.DoubleTapOutgoing), DoubleTapUtils.getDoubleTapActionLabel(ExteraConfig.getDoubleTapActionOutOwner(), true)).setSearchable(this).setLinkAlias("doubleTapOutgoing", this));
-        arrayList.add(UItem.asShadow(LocaleController.getString(R.string.DoubleTapInfo)));
-        arrayList.add(UItem.asHeader(LocaleController.getString(R.string.MainTabsChats)));
-        arrayList.add(UItem.asButton(ChatsItem.BOTTOM_BUTTON.getId(), LocaleController.getString(R.string.BottomButton), this.bottomButton[ExteraConfig.getBottomButton()]).setSearchable(this).setLinkAlias("bottomButton", this));
-        this.aiFeatures.fill(arrayList);
-        arrayList.add(UItem.asCheck(ChatsItem.ADMIN_SHORTCUTS.getId(), LocaleController.getString(R.string.AdminShortcuts)).setChecked(ExteraConfig.getQuickAdminShortcuts()).setSearchable(this).setLinkAlias("adminShortcuts", this));
-        this.quickTransitions.fill(arrayList);
-        arrayList.add(UItem.asCheck(ChatsItem.DISABLE_GREETING_STICKER.getId(), LocaleController.getString(R.string.DisableGreetingSticker)).setChecked(ExteraConfig.getDisableGreetingSticker()).setSearchable(this).setLinkAlias("disableGreetingSticker", this));
-        arrayList.add(UItem.asCheck(ChatsItem.HIDE_KEYBOARD_ON_SCROLL.getId(), LocaleController.getString(R.string.HideKeyboardOnScroll)).setChecked(ExteraConfig.getHideKeyboardOnScroll()).setSearchable(this).setLinkAlias("hideKeyboardOnScroll", this));
-        arrayList.add(UItem.asCheck(ChatsItem.ADD_COMMA_AFTER_MENTION.getId(), LocaleController.getString(R.string.AddCommaAfterMention)).setChecked(ExteraConfig.getAddCommaAfterMention()).setSearchable(this).setLinkAlias("addCommaAfterMention", this));
-        arrayList.add(UItem.asCheck(ChatsItem.HIDE_SEND_AS_PEER.getId(), LocaleController.getString(R.string.HideSendAsPeer)).setChecked(ExteraConfig.getHideSendAsPeer()).setSearchable(this).setLinkAlias("hideSendAsPeer", this));
-        arrayList.add(UItem.asShadow(LocaleController.getString(R.string.HideSendAsPeerInfo)));
-        arrayList.add(UItem.asHeader(LocaleController.getString(R.string.MessagesChartTitle)));
-        arrayList.add(UItem.asCustom(ChatsItem.MESSAGES_PREVIEW.getId(), this.messagesPreviewCell));
-        arrayList.add(UItem.asCheck(ChatsItem.REMOVE_MESSAGE_TAIL.getId(), LocaleController.getString(R.string.RemoveMessageTail)).setChecked(ExteraConfig.getRemoveMessageTail()).setSearchable(this).setLinkAlias("removeMessageTail", this));
-        arrayList.add(UItem.asCheck(ChatsItem.REPLACE_EDITED_WITH_ICON.getId(), LocaleController.formatString(R.string.ReplaceEditedWithIcon, LocaleController.getString(R.string.EditedMessage))).setChecked(ExteraConfig.getReplaceEditedWithIcon()).setSearchable(this).setLinkAlias("replaceEditedWithIcon", this));
-        arrayList.add(UItem.asCheck(ChatsItem.SHOW_ONLINE_STATUS.getId(), LocaleController.getString(R.string.ShowOnlineStatus)).setChecked(ExteraConfig.getShowOnlineStatus()).setSearchable(this).setLinkAlias("showOnlineStatus", this));
-        arrayList.add(UItem.asCheck(ChatsItem.SHOW_FORWARDS_COUNT.getId(), LocaleController.getString(R.string.ShowForwardsCount)).setChecked(ExteraConfig.getShowForwardsCount()).setSearchable(this).setLinkAlias("showForwardsCount", this));
-        arrayList.add(UItem.asCheck(ChatsItem.HIDE_SHARE_BUTTON.getId(), LocaleController.formatString(R.string.HideShareButton, LocaleController.getString(R.string.ShareFile))).setChecked(ExteraConfig.getHideShareButton()).setSearchable(this).setLinkAlias("hideShareButton", this));
-        arrayList.add(UItem.asCheck(ChatsItem.SHOW_RESULTS_BEFORE_VOTING.getId(), LocaleController.getString(R.string.ShowPollResultsBeforeVoting), LocaleController.getString(R.string.ShowPollResultsBeforeVotingHint), true).setChecked(ExteraConfig.getShowResultsBeforeVoting()).setSearchable(this).setLinkAlias("showResultsBeforeVoting", this));
-        this.messageMenu.fill(arrayList);
-        arrayList.add(UItem.asCheck(ChatsItem.GROUP_MESSAGE_MENU.getId(), LocaleController.getString(R.string.GroupMessageMenu)).setChecked(ExteraConfig.getGroupMessageMenu()).setSearchable(this).setLinkAlias("groupMessageMenu", this));
-        arrayList.add(UItem.asShadow(LocaleController.getString(R.string.GroupMessageMenuInfo)));
-        arrayList.add(UItem.asHeader(LocaleController.getString(R.string.PremiumPreviewVoiceToText)));
-        arrayList.add(UItem.asButton(ChatsItem.SPEECH_RECOGNITION_LANGUAGE.getId(), LocaleController.getString(R.string.RecognitionLanguage), TranslatorUtils.getLanguageTitleSystem(ExteraConfig.getRecognitionLanguage())).setSearchable(this).setLinkAlias("recognitionLanguage", this));
-        if (AiController.canUseAI() && VoiceRecognitionController.isCustomRecognitionEnabled()) {
-            arrayList.add(UItem.asCheck(ChatsItem.POST_PROCESSING_WITH_AI.getId(), LocaleController.getString(R.string.PostProcessingWithAi), LocaleController.getString(R.string.PostProcessingWithAiInfo), true).setChecked(ExteraConfig.getPostprocessingWithAi()).setSearchable(this).setLinkAlias("postprocessingWithAi", this));
+    private final CharSequence swipeActionsValue() {
+        List<SwipeAction> listEnabled = SwipeAction.enabled();
+        if (listEnabled.isEmpty()) {
+            return LocaleController.getString(R.string.Disable);
         }
-        if (!getDownloadedRecognitionModels().isEmpty()) {
-            arrayList.add(UItem.asButton(ChatsItem.DELETE_RECOGNITION_MODEL.getId(), R.drawable.msg_delete, LocaleController.getString(R.string.DeleteRecognitionModel)).red().setSearchable(this).setLinkAlias("deleteRecognitionModel", this));
-        }
-        arrayList.add(UItem.asShadow(LocaleController.getString(R.string.RecognitionInfo)));
-        arrayList.add(UItem.asHeader(LocaleController.getString(R.string.VoipCamera)));
-        arrayList.add(UItem.asButton(ChatsItem.CAMERA_TYPE.getId(), LocaleController.getString(R.string.CameraType), this.cameraType[ExteraConfig.getCameraType().ordinal()]).setSearchable(this).setLinkAlias("cameraType", this));
-        if (ExteraConfig.getCameraType() != CameraType.CAMERA_1) {
-            this.cameraSettings.fill(arrayList);
-            if (!isSeamlessSwitchingAvailable()) {
-                MessagesController.getGlobalMainSettings().edit().putBoolean("rounddual_available", false).apply();
+        SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder();
+        int iCoerceAtMost = RangesKt.coerceAtMost(listEnabled.size(), 5);
+        for (int i = 0; i < iCoerceAtMost; i++) {
+            if (i > 0) {
+                spannableStringBuilder.append(' ');
+            }
+            Drawable drawable = ContextCompat.getDrawable(getContext(), listEnabled.get(i).iconRes);
+            if (drawable != null) {
+                int length = spannableStringBuilder.length();
+                spannableStringBuilder.append('*');
+                ColoredImageSpan coloredImageSpan = new ColoredImageSpan(drawable.mutate());
+                coloredImageSpan.setSize(AndroidUtilities.dp(18.0f));
+                spannableStringBuilder.setSpan(coloredImageSpan, length, spannableStringBuilder.length(), 33);
             }
         }
-        arrayList.add(UItem.asButton(ChatsItem.VIDEO_MESSAGES_CAMERA.getId(), LocaleController.getString(R.string.VideoMessagesCamera), this.videoMessagesCamera[ExteraConfig.getVideoMessagesCamera().ordinal()]).setSearchable(this).setLinkAlias("videoMessagesCamera", this));
-        if (ExteraConfig.getVideoMessagesCamera() != VideoMessagesCamera.ASK) {
-            arrayList.add(UItem.asCheck(ChatsItem.REMEMBER_LAST_USED_CAMERA.getId(), LocaleController.getString(R.string.RememberLastUsedCamera), LocaleController.getString(R.string.RememberLastUsedCameraInfo), true).setChecked(ExteraConfig.getRememberLastUsedCamera()).setSearchable(this).setLinkAlias("rememberLastUsedCamera", this));
+        if (listEnabled.size() > iCoerceAtMost) {
+            spannableStringBuilder.append((CharSequence) " +").append((CharSequence) String.valueOf(listEnabled.size() - iCoerceAtMost));
         }
-        arrayList.add(UItem.asCheck(ChatsItem.ZOOM_SLIDER.getId(), LocaleController.getString(R.string.ZoomSlider), LocaleController.getString(R.string.ZoomSliderInfo), true).setChecked(ExteraConfig.getZoomSlider()).setSearchable(this).setLinkAlias("zoomSlider", this));
-        arrayList.add(UItem.asCheck(ChatsItem.STATIC_ZOOM.getId(), LocaleController.getString(R.string.StaticZoom)).setChecked(ExteraConfig.getStaticZoom()).setSearchable(this).setLinkAlias("staticZoom", this));
-        arrayList.add(UItem.asShadow(LocaleController.getString(R.string.StaticZoomInfo)));
-        arrayList.add(UItem.asHeader(LocaleController.getString(R.string.AutoDownloadPhotos)));
-        arrayList.add(UItem.asCheck(ChatsItem.ALWAYS_SEND_IN_HD.getId(), LocaleController.getString(R.string.AlwaysSendInHD)).setChecked(ExteraConfig.getAlwaysSendInHD()).setSearchable(this).setLinkAlias("alwaysSendInHD", this));
-        arrayList.add(UItem.asCheck(ChatsItem.HIDE_CAMERA_TILE.getId(), LocaleController.getString(R.string.HideCameraTile)).setChecked(ExteraConfig.getHideCameraTile()).setSearchable(this).setLinkAlias("hideCameraTile", this));
-        arrayList.add(UItem.asShadow(LocaleController.getString(R.string.HideCameraTileInfo)));
-        arrayList.add(UItem.asHeader(LocaleController.getString(R.string.AutoDownloadVideos)));
-        arrayList.add(UItem.asButton(ChatsItem.DOUBLE_TAP_SEEK_DURATION.getId(), LocaleController.getString(R.string.DoubleTapSeekDuration), this.doubleTapSeekDuration[ExteraConfig.getDoubleTapSeekDuration()]).setSearchable(this).setLinkAlias("doubleTapSeekDuration", this));
-        arrayList.add(UItem.asCheck(ChatsItem.PREFER_ORIGINAL_QUALITY.getId(), LocaleController.getString(R.string.PreferOriginalQuality)).setChecked(ExteraConfig.getPreferOriginalQuality()).setSearchable(this).setLinkAlias("preferOriginalQuality", this));
-        arrayList.add(UItem.asCheck(ChatsItem.SWIPE_TO_PIP.getId(), LocaleController.getString(R.string.SwipeToPip)).setChecked(ExteraConfig.getSwipeToPip()).setSearchable(this).setLinkAlias("swipeToPip", this));
-        arrayList.add(UItem.asCheck(ChatsItem.UNMUTE_WITH_VOLUME_BUTTONS.getId(), LocaleController.getString(R.string.UnmuteWithVolumeButtons), LocaleController.getString(R.string.UnmuteWithVolumeButtonsInfo), true).setChecked(ExteraConfig.getUnmuteWithVolumeButtons()).setSearchable(this).setLinkAlias("unmuteWithVolumeButtons", this));
-        this.pauseOnMinimize.fill(arrayList);
-        arrayList.add(UItem.asShadow(LocaleController.getString(R.string.PauseOnMinimizeInfo)));
+        return spannableStringBuilder;
     }
 
     @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
-    public void onClick(UItem uItem, View view, int i, float f, float f2) {
-        int i2 = uItem.id;
-        if (i2 <= 0 || i2 > ChatsItem.values().length) {
+    public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
+        boolean z;
+        items.add(UItem.asCustom(ChatsItem.STICKER_SIZE.getId(), this.stickerSizeCell).setLinkAlias("stickerSize", this));
+        ChatsItem chatsItem = ChatsItem.STICKER_TIME;
+        String string = LocaleController.getString(R.string.StickerTimeMode);
+        CharSequence[] charSequenceArr = this.stickerTimeModes;
+        if (charSequenceArr == null) {
+            charSequenceArr = null;
+        }
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) chatsItem, (CharSequence) string, 0, charSequenceArr[ExteraConfig.getStickerTimeMode().ordinal()], (CharSequence) null, (Boolean) null, false, "stickerTime", false, false, (Boolean) null, 1908, (Object) null));
+        this.replyElements.fill(items);
+        items.add(UItem.asShadow());
+        items.add(UItem.asHeader(LocaleController.getString(R.string.StickerShape)));
+        items.add(UItem.asCustom(ChatsItem.STICKER_SHAPE.getId(), this.stickerShapeCell).setLinkAlias("stickerShape", this));
+        items.add(UItem.asShadow());
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.AI, (CharSequence) LocaleController.getString(R.string.AIChat), R.drawable.ai_chat, (CharSequence) null, (CharSequence) LocaleController.getString(R.string.AIChatInfo), (Boolean) null, false, "aiChat", false, false, (Boolean) null, 1896, (Object) null));
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.INLINE_MATH_RESULT, (CharSequence) LocaleController.getString(R.string.InlineMathResult), R.drawable.msg_calculator, (CharSequence) null, (CharSequence) LocaleController.getString(R.string.InlineMathResultInfo), (Boolean) null, false, "inlineMathResult", false, false, (Boolean) null, 1896, (Object) null));
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.CHAT_SETTINGS, (CharSequence) LocaleController.getString(R.string.ChatSettings), R.drawable.msg_discussion, (CharSequence) null, (CharSequence) LocaleController.getString(R.string.ChatSettingsInfo), (Boolean) null, false, "chatSettings", false, false, (Boolean) null, 1832, (Object) null));
+        items.add(UItem.asShadow());
+        items.add(UItem.asHeader(LocaleController.getString(R.string.StickersName)));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.UNLIMITED_RECENT_STICKERS, (CharSequence) LocaleController.getString(R.string.UnlimitedRecentStickers), ExteraConfig.getUnlimitedRecentStickers(), (CharSequence) null, 0, false, "unlimitedRecentStickers", false, 0, 440, (Object) null));
+        this.hideReactions.fill(items);
+        items.add(UItem.asShadow(LocaleController.getString(R.string.HideReactionsInfo)));
+        items.add(UItem.asHeader(LocaleController.getString(R.string.Gestures)));
+        items.add(UItem.asCustom(ChatsItem.DOUBLE_TAP.getId(), this.doubleTapCell));
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.DOUBLE_TAP_ACTION, (CharSequence) LocaleController.getString(R.string.DoubleTapIncoming), 0, DoubleTapUtils.getDoubleTapActionLabel(ExteraConfig.getDoubleTapAction(), false), (CharSequence) null, (Boolean) null, false, "doubleTapIncoming", false, false, (Boolean) null, 1908, (Object) null));
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.DOUBLE_TAP_ACTION_OUT_OWNER, (CharSequence) LocaleController.getString(R.string.DoubleTapOutgoing), 0, DoubleTapUtils.getDoubleTapActionLabel(ExteraConfig.getDoubleTapActionOutOwner(), true), (CharSequence) null, (Boolean) null, false, "doubleTapOutgoing", false, false, (Boolean) null, 1908, (Object) null));
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.SWIPE_ACTIONS, (CharSequence) LocaleController.getString(R.string.SwipeActions), 0, swipeActionsValue(), (CharSequence) null, (Boolean) null, false, "swipeActions", false, false, (Boolean) null, 1908, (Object) null));
+        items.add(UItem.asShadow(LocaleController.getString(R.string.DoubleTapInfo)));
+        items.add(UItem.asHeader(LocaleController.getString(R.string.MainTabsChats)));
+        ChatsItem chatsItem2 = ChatsItem.BOTTOM_BUTTON;
+        String string2 = LocaleController.getString(R.string.BottomButton);
+        CharSequence[] charSequenceArr2 = this.bottomButtonOptions;
+        if (charSequenceArr2 == null) {
+            charSequenceArr2 = null;
+        }
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) chatsItem2, (CharSequence) string2, 0, charSequenceArr2[ExteraConfig.getBottomButton()], (CharSequence) null, (Boolean) null, false, "bottomButton", false, false, (Boolean) null, 1908, (Object) null));
+        this.widePosts.fill(items);
+        this.aiFeatures.fill(items);
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.ADMIN_SHORTCUTS, (CharSequence) LocaleController.getString(R.string.AdminShortcuts), ExteraConfig.getQuickAdminShortcuts(), (CharSequence) null, 0, false, "adminShortcuts", false, 0, 440, (Object) null));
+        this.quickTransitions.fill(items);
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.DISABLE_GREETING_STICKER, (CharSequence) LocaleController.getString(R.string.DisableGreetingSticker), ExteraConfig.getDisableGreetingSticker(), (CharSequence) null, 0, false, "disableGreetingSticker", false, 0, 440, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.HIDE_KEYBOARD_ON_SCROLL, (CharSequence) LocaleController.getString(R.string.HideKeyboardOnScroll), ExteraConfig.getHideKeyboardOnScroll(), (CharSequence) null, 0, false, "hideKeyboardOnScroll", false, 0, 440, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.ADD_COMMA_AFTER_MENTION, (CharSequence) LocaleController.getString(R.string.AddCommaAfterMention), ExteraConfig.getAddCommaAfterMention(), (CharSequence) null, 0, false, "addCommaAfterMention", false, 0, 440, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.HIDE_SEND_AS_PEER, (CharSequence) LocaleController.getString(R.string.HideSendAsPeer), ExteraConfig.getHideSendAsPeer(), (CharSequence) null, 0, false, "hideSendAsPeer", false, 0, 440, (Object) null));
+        items.add(UItem.asShadow(LocaleController.getString(R.string.HideSendAsPeerInfo)));
+        items.add(UItem.asHeader(LocaleController.getString(R.string.MessagesChartTitle)));
+        items.add(UItem.asCustom(ChatsItem.MESSAGES_PREVIEW.getId(), this.messagesPreviewCell));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.REMOVE_MESSAGE_TAIL, (CharSequence) LocaleController.getString(R.string.RemoveMessageTail), ExteraConfig.getRemoveMessageTail(), (CharSequence) null, 0, false, "removeMessageTail", false, 0, 440, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.REPLACE_EDITED_WITH_ICON, (CharSequence) LocaleController.formatString(R.string.ReplaceEditedWithIcon, LocaleController.getString(R.string.EditedMessage)), ExteraConfig.getReplaceEditedWithIcon(), (CharSequence) null, 0, false, "replaceEditedWithIcon", false, 0, 440, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.SHOW_ONLINE_STATUS, (CharSequence) LocaleController.getString(R.string.ShowOnlineStatus), ExteraConfig.getShowOnlineStatus(), (CharSequence) null, 0, false, "showOnlineStatus", false, 0, 440, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.SHOW_FORWARDS_COUNT, (CharSequence) LocaleController.getString(R.string.ShowForwardsCount), ExteraConfig.getShowForwardsCount(), (CharSequence) null, 0, false, "showForwardsCount", false, 0, 440, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.HIDE_SHARE_BUTTON, (CharSequence) LocaleController.formatString(R.string.HideShareButton, LocaleController.getString(R.string.ShareFile)), ExteraConfig.getHideShareButton(), (CharSequence) null, 0, false, "hideShareButton", false, 0, 440, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.SHOW_RESULTS_BEFORE_VOTING, (CharSequence) LocaleController.getString(R.string.ShowPollResultsBeforeVoting), ExteraConfig.getShowResultsBeforeVoting(), (CharSequence) LocaleController.getString(R.string.ShowPollResultsBeforeVotingHint), 0, false, "showResultsBeforeVoting", false, 0, 432, (Object) null));
+        this.messageMenu.fill(items);
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.GROUP_MESSAGE_MENU, (CharSequence) LocaleController.getString(R.string.GroupMessageMenu), ExteraConfig.getGroupMessageMenu(), (CharSequence) null, 0, false, "groupMessageMenu", false, 0, 440, (Object) null));
+        items.add(UItem.asShadow(LocaleController.getString(R.string.GroupMessageMenuInfo)));
+        items.add(UItem.asHeader(LocaleController.getString(R.string.PremiumPreviewVoiceToText)));
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.SPEECH_RECOGNITION_LANGUAGE, (CharSequence) LocaleController.getString(R.string.RecognitionLanguage), 0, (CharSequence) TranslatorUtils.getLanguageTitleSystem(ExteraConfig.getRecognitionLanguage()), (CharSequence) null, (Boolean) null, false, "recognitionLanguage", false, false, (Boolean) null, 1908, (Object) null));
+        ExtensionsKt.addIf(items, AiController.canUseAI() && VoiceRecognitionController.isCustomRecognitionEnabled(), BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.POST_PROCESSING_WITH_AI, (CharSequence) LocaleController.getString(R.string.PostProcessingWithAi), ExteraConfig.getPostprocessingWithAi(), (CharSequence) LocaleController.getString(R.string.PostProcessingWithAiInfo), 0, false, "postprocessingWithAi", false, 0, 432, (Object) null));
+        ExtensionsKt.addIf(items, !getDownloadedRecognitionModels().isEmpty(), BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.DELETE_RECOGNITION_MODEL, (CharSequence) LocaleController.getString(R.string.DeleteRecognitionModel), R.drawable.msg_delete, (CharSequence) null, (CharSequence) null, (Boolean) null, false, "deleteRecognitionModel", true, false, (Boolean) null, 1656, (Object) null));
+        items.add(UItem.asShadow(LocaleController.getString(R.string.RecognitionInfo)));
+        items.add(UItem.asHeader(LocaleController.getString(R.string.VoipCamera)));
+        ChatsItem chatsItem3 = ChatsItem.CAMERA_TYPE;
+        String string3 = LocaleController.getString(R.string.CameraType);
+        CharSequence[] charSequenceArr3 = this.cameraTypeOptions;
+        if (charSequenceArr3 == null) {
+            charSequenceArr3 = null;
+        }
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) chatsItem3, (CharSequence) string3, 0, charSequenceArr3[ExteraConfig.getCameraType().ordinal()], (CharSequence) null, (Boolean) null, false, "cameraType", false, false, (Boolean) null, 1908, (Object) null));
+        if (ExteraConfig.getCameraType() != CameraType.CAMERA_1) {
+            this.cameraSettings.fill(items);
+            if (isSeamlessSwitchingAvailable()) {
+                z = false;
+            } else {
+                SharedPreferences.Editor editorEdit = MessagesController.getGlobalMainSettings().edit();
+                z = false;
+                editorEdit.putBoolean("rounddual_available", false);
+                editorEdit.apply();
+            }
+        } else {
+            z = false;
+        }
+        ChatsItem chatsItem4 = ChatsItem.VIDEO_MESSAGES_CAMERA;
+        String string4 = LocaleController.getString(R.string.VideoMessagesCamera);
+        CharSequence[] charSequenceArr4 = this.videoMessagesCameraOptions;
+        if (charSequenceArr4 == null) {
+            charSequenceArr4 = null;
+        }
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) chatsItem4, (CharSequence) string4, 0, charSequenceArr4[ExteraConfig.getVideoMessagesCamera().ordinal()], (CharSequence) null, (Boolean) null, false, "videoMessagesCamera", false, false, (Boolean) null, 1908, (Object) null));
+        if (ExteraConfig.getVideoMessagesCamera() != VideoMessagesCamera.ASK) {
+            z = true;
+        }
+        ExtensionsKt.addIf(items, z, BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.REMEMBER_LAST_USED_CAMERA, (CharSequence) LocaleController.getString(R.string.RememberLastUsedCamera), ExteraConfig.getRememberLastUsedCamera(), (CharSequence) LocaleController.getString(R.string.RememberLastUsedCameraInfo), 0, false, "rememberLastUsedCamera", false, 0, 432, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.ZOOM_SLIDER, (CharSequence) LocaleController.getString(R.string.ZoomSlider), ExteraConfig.getZoomSlider(), (CharSequence) LocaleController.getString(R.string.ZoomSliderInfo), 0, false, "zoomSlider", false, 0, 432, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.STATIC_ZOOM, (CharSequence) LocaleController.getString(R.string.StaticZoom), ExteraConfig.getStaticZoom(), (CharSequence) null, 0, false, "staticZoom", false, 0, 440, (Object) null));
+        items.add(UItem.asShadow(LocaleController.getString(R.string.StaticZoomInfo)));
+        items.add(UItem.asHeader(LocaleController.getString(R.string.AutoDownloadPhotos)));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.ALWAYS_SEND_IN_HD, (CharSequence) LocaleController.getString(R.string.AlwaysSendInHD), ExteraConfig.getAlwaysSendInHD(), (CharSequence) null, 0, false, "alwaysSendInHD", false, 0, 440, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.HIDE_CAMERA_TILE, (CharSequence) LocaleController.getString(R.string.HideCameraTile), ExteraConfig.getHideCameraTile(), (CharSequence) null, 0, false, "hideCameraTile", false, 0, 440, (Object) null));
+        items.add(UItem.asShadow(LocaleController.getString(R.string.HideCameraTileInfo)));
+        items.add(UItem.asHeader(LocaleController.getString(R.string.AutoDownloadVideos)));
+        ChatsItem chatsItem5 = ChatsItem.DOUBLE_TAP_SEEK_DURATION;
+        String string5 = LocaleController.getString(R.string.DoubleTapSeekDuration);
+        CharSequence[] charSequenceArr5 = this.doubleTapSeekDurationOptions;
+        items.add(BasePreferencesActivity.uButton$TMessagesProj$default((BasePreferencesActivity) this, (Enum) chatsItem5, (CharSequence) string5, 0, (charSequenceArr5 == null ? null : charSequenceArr5)[ExteraConfig.getDoubleTapSeekDuration()], (CharSequence) null, (Boolean) null, false, "doubleTapSeekDuration", false, false, (Boolean) null, 1908, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.PREFER_ORIGINAL_QUALITY, (CharSequence) LocaleController.getString(R.string.PreferOriginalQuality), ExteraConfig.getPreferOriginalQuality(), (CharSequence) null, 0, false, "preferOriginalQuality", false, 0, 440, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.SWIPE_TO_PIP, (CharSequence) LocaleController.getString(R.string.SwipeToPip), ExteraConfig.getSwipeToPip(), (CharSequence) null, 0, false, "swipeToPip", false, 0, 440, (Object) null));
+        items.add(BasePreferencesActivity.uCheck$TMessagesProj$default((BasePreferencesActivity) this, (Enum) ChatsItem.UNMUTE_WITH_VOLUME_BUTTONS, (CharSequence) LocaleController.getString(R.string.UnmuteWithVolumeButtons), ExteraConfig.getUnmuteWithVolumeButtons(), (CharSequence) LocaleController.getString(R.string.UnmuteWithVolumeButtonsInfo), 0, false, "unmuteWithVolumeButtons", false, 0, 432, (Object) null));
+        this.pauseOnMinimize.fill(items);
+        items.add(UItem.asShadow(LocaleController.getString(R.string.PauseOnMinimizeInfo)));
+    }
+
+    @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
+    public void onClick(UItem item, View view, int position, float x, float y) {
+        int i = item.id;
+        if (i <= 0 || i > ChatsItem.getEntries().size()) {
             return;
         }
-        if (ChatsItem.values()[uItem.id - 1] == ChatsItem.SHOW_FORWARDS_COUNT) {
-            toggleBooleanSettingAndRefresh(uItem, new Consumer() {
-                @Override
-                public final void accept(Object obj) {
-                    ExteraConfig.setShowForwardsCount(((Boolean) obj).booleanValue());
-                }
-            });
-            this.messagesPreviewCell.refreshMessages();
-            return;
-        }
-        switch (AnonymousClass2.$SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.values()[uItem.id - 1].ordinal()]) {
+        switch (WhenMappings.$EnumSwitchMapping$0[ChatsItem.getEntries().get(item.id - 1).ordinal()]) {
             case 1:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda63
-                    @Override // com.google.android.exoplayer2.util.Consumer
-                    public final void accept(Object obj) {
-                        ExteraConfig.setHideStickerTime(((Boolean) obj).booleanValue());
+                CharSequence[] charSequenceArr = this.stickerTimeModes;
+                if (charSequenceArr == null) {
+                    charSequenceArr = null;
+                }
+                showListDialog(item, charSequenceArr, LocaleController.getString(R.string.StickerTimeMode), ExteraConfig.getStickerTimeMode().ordinal(), new PopupUtils.OnItemClickListener() {
+                    @Override // com.exteragram.messenger.utils.ui.PopupUtils.OnItemClickListener
+                    public final void onClick(int i2) {
+                        ChatsPreferencesActivity.$r8$lambda$FWitcGe3P3jEExkXLxXfYkSVZ4s(this.f$0, i2);
                     }
                 });
-                this.stickerSizeCell.invalidate();
                 break;
             case 2:
             case 3:
             case 4:
             case 5:
-                this.replyElements.onClick(uItem);
+                this.replyElements.onClick(item);
                 break;
             case 6:
                 presentFragment(new AiPreferencesActivity());
                 break;
             case 7:
-                presentFragment(new ThemeActivity(0));
+                presentFragment(new InlineResultsPreferencesActivity());
                 break;
             case 8:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda74
-                    @Override // com.google.android.exoplayer2.util.Consumer
+                presentFragment(new ThemeActivity(0));
+                break;
+            case 9:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setUnlimitedRecentStickers(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 9:
             case 10:
             case 11:
             case 12:
-                this.hideReactions.onClick(uItem);
-                break;
             case 13:
-                showListDialog(uItem, this.doubleTapActions, DoubleTapUtils.getDoubleTapIcons(false), LocaleController.getString(R.string.DoubleTapIncoming), ExteraConfig.getDoubleTapAction(), new PopupUtils.OnItemClickListener() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda83
-                    @Override // com.exteragram.messenger.utils.ui.PopupUtils.OnItemClickListener
-                    public final void onClick(int i3) {
-                        ChatsPreferencesActivity.this.lambda$onClick$10(i3);
-                    }
-                });
+                this.hideReactions.onClick(item);
                 break;
             case 14:
-                showListDialog(uItem, this.doubleTapOutActions, DoubleTapUtils.getDoubleTapIcons(true), LocaleController.getString(R.string.DoubleTapOutgoing), ExteraConfig.getDoubleTapActionOutOwner(), new PopupUtils.OnItemClickListener() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda84
+                CharSequence[] charSequenceArr2 = this.doubleTapActions;
+                BasePreferencesActivity.showListDialog$default(this, item, charSequenceArr2 == null ? null : charSequenceArr2, DoubleTapUtils.getDoubleTapIcons(false), LocaleController.getString(R.string.DoubleTapIncoming), ExteraConfig.getDoubleTapAction(), new PopupUtils.OnItemClickListener() {
                     @Override // com.exteragram.messenger.utils.ui.PopupUtils.OnItemClickListener
-                    public final void onClick(int i3) {
-                        ChatsPreferencesActivity.this.lambda$onClick$11(i3);
+                    public final void onClick(int i2) {
+                        ChatsPreferencesActivity.$r8$lambda$oohFinv130Q8KjzojqiDzlgwZUQ(this.f$0, i2);
                     }
-                });
+                }, false, false, 192, null);
                 break;
             case 15:
-                showListDialog(uItem, this.bottomButton, LocaleController.getString(R.string.BottomButton), ExteraConfig.getBottomButton(), new PopupUtils.OnItemClickListener() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda85
+                CharSequence[] charSequenceArr3 = this.doubleTapOutActions;
+                BasePreferencesActivity.showListDialog$default(this, item, charSequenceArr3 == null ? null : charSequenceArr3, DoubleTapUtils.getDoubleTapIcons(true), LocaleController.getString(R.string.DoubleTapOutgoing), ExteraConfig.getDoubleTapActionOutOwner(), new PopupUtils.OnItemClickListener() {
                     @Override // com.exteragram.messenger.utils.ui.PopupUtils.OnItemClickListener
-                    public final void onClick(int i3) {
-                        ChatsPreferencesActivity.this.lambda$onClick$12(i3);
+                    public final void onClick(int i2) {
+                        ChatsPreferencesActivity.$r8$lambda$JUuCcMDTxW8ABK84fpnnPE2XeIY(this.f$0, i2);
+                    }
+                }, false, false, 192, null);
+                break;
+            case 16:
+                presentFragment(new SwipeActionsPreferencesActivity());
+                break;
+            case 17:
+                CharSequence[] charSequenceArr4 = this.bottomButtonOptions;
+                if (charSequenceArr4 == null) {
+                    charSequenceArr4 = null;
+                }
+                showListDialog(item, charSequenceArr4, LocaleController.getString(R.string.BottomButton), ExteraConfig.getBottomButton(), new PopupUtils.OnItemClickListener() {
+                    @Override // com.exteragram.messenger.utils.ui.PopupUtils.OnItemClickListener
+                    public final void onClick(int i2) {
+                        ChatsPreferencesActivity.m2040$r8$lambda$mvxOJVz3LNxAun88VdgUhdHUg(this.f$0, i2);
                     }
                 });
                 break;
-            case 16:
-            case 17:
             case 18:
-                this.aiFeatures.onClick(uItem);
-                break;
             case 19:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda86
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 20:
+                this.widePosts.onClick(item);
+                break;
+            case 21:
+            case 22:
+            case 23:
+            case 24:
+                this.aiFeatures.onClick(item);
+                break;
+            case 25:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setQuickAdminShortcuts(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 20:
-            case 21:
-            case 22:
-                this.quickTransitions.onClick(uItem);
+            case 26:
+            case 27:
+            case 28:
+                this.quickTransitions.onClick(item);
                 break;
-            case 23:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda87
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 29:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setDisableGreetingSticker(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 24:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda88
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 30:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setHideKeyboardOnScroll(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 25:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda89
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 31:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setAddCommaAfterMention(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 26:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda90
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 32:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setHideSendAsPeer(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 27:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda64
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 33:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setReplaceEditedWithIcon(((Boolean) obj).booleanValue());
                     }
                 });
-                this.messagesPreviewCell.refreshMessages();
+                MessagesPreviewCell messagesPreviewCell = this.messagesPreviewCell;
+                if (messagesPreviewCell != null) {
+                    messagesPreviewCell.refreshMessages();
+                }
                 break;
-            case 28:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda65
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 34:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setShowOnlineStatus(((Boolean) obj).booleanValue());
                     }
                 });
-                this.messagesPreviewCell.refreshMessages();
+                MessagesPreviewCell messagesPreviewCell2 = this.messagesPreviewCell;
+                if (messagesPreviewCell2 != null) {
+                    messagesPreviewCell2.refreshMessages();
+                }
                 break;
-            case 29:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda66
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 35:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
+                    public final void accept(Object obj) {
+                        ExteraConfig.setShowForwardsCount(((Boolean) obj).booleanValue());
+                    }
+                });
+                MessagesPreviewCell messagesPreviewCell3 = this.messagesPreviewCell;
+                if (messagesPreviewCell3 != null) {
+                    messagesPreviewCell3.refreshMessages();
+                }
+                this.parentLayout.rebuildFragments(AndroidUtilities.isTablet() ? 1 : 0);
+                break;
+            case 36:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setRemoveMessageTail(((Boolean) obj).booleanValue());
                     }
                 });
                 Theme.chat_msgInDrawable = null;
                 Theme.createChatResources(getParentActivity(), false);
-                this.messagesPreviewCell.refreshMessages();
+                MessagesPreviewCell messagesPreviewCell4 = this.messagesPreviewCell;
+                if (messagesPreviewCell4 != null) {
+                    messagesPreviewCell4.refreshMessages();
+                }
                 break;
-            case 30:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda67
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 37:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setShowResultsBeforeVoting(((Boolean) obj).booleanValue());
                     }
                 });
                 this.parentLayout.rebuildFragments(0);
                 break;
-            case 31:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda68
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 38:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setHideShareButton(((Boolean) obj).booleanValue());
                     }
                 });
-                this.messagesPreviewCell.refreshMessages();
+                MessagesPreviewCell messagesPreviewCell5 = this.messagesPreviewCell;
+                if (messagesPreviewCell5 != null) {
+                    messagesPreviewCell5.refreshMessages();
+                }
                 break;
-            case 32:
-            case 33:
-            case 34:
-            case 35:
-            case 36:
-            case 37:
-            case 38:
             case 39:
             case 40:
-                this.messageMenu.onClick(uItem);
-                break;
             case 41:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda69
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 42:
+            case 43:
+            case 44:
+            case 45:
+            case 46:
+            case 47:
+                this.messageMenu.onClick(item);
+                break;
+            case 48:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setGroupMessageMenu(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 42:
-                handleSpeechRecognitionLanguageClick(uItem);
+            case 49:
+                handleSpeechRecognitionLanguageClick(item);
                 break;
-            case 43:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda70
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 50:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setPostprocessingWithAi(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 44:
+            case 51:
                 handleDeleteRecognitionModelClick();
                 break;
-            case 45:
-                showListDialog(uItem, this.cameraType, LocaleController.getString(R.string.CameraType), ExteraConfig.getCameraType().ordinal(), new PopupUtils.OnItemClickListener() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda71
-                    @Override // com.exteragram.messenger.utils.ui.PopupUtils.OnItemClickListener
-                    public final void onClick(int i3) {
-                        ExteraConfig.setCameraType(CameraType.getEntries().get(i3));
-                    }
-                });
-                break;
-            case 46:
-            case 47:
-            case 48:
-            case 49:
-            case 50:
-            case 51:
-                this.cameraSettings.onClick(uItem);
-                break;
             case 52:
-                showListDialog(uItem, this.videoMessagesCamera, LocaleController.getString(R.string.VideoMessagesCamera), ExteraConfig.getVideoMessagesCamera().ordinal(), new PopupUtils.OnItemClickListener() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda72
+                CharSequence[] charSequenceArr5 = this.cameraTypeOptions;
+                if (charSequenceArr5 == null) {
+                    charSequenceArr5 = null;
+                }
+                showListDialog(item, charSequenceArr5, LocaleController.getString(R.string.CameraType), ExteraConfig.getCameraType().ordinal(), new PopupUtils.OnItemClickListener() {
                     @Override // com.exteragram.messenger.utils.ui.PopupUtils.OnItemClickListener
-                    public final void onClick(int i3) {
-                        ExteraConfig.setVideoMessagesCamera(VideoMessagesCamera.getEntries().get(i3));
+                    public final void onClick(int i2) {
+                        ExteraConfig.setCameraType(CameraType.getEntries().get(i2));
                     }
                 });
                 break;
             case 53:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda73
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 54:
+            case 55:
+            case 56:
+            case 57:
+            case 58:
+                this.cameraSettings.onClick(item);
+                break;
+            case 59:
+                CharSequence[] charSequenceArr6 = this.videoMessagesCameraOptions;
+                if (charSequenceArr6 == null) {
+                    charSequenceArr6 = null;
+                }
+                showListDialog(item, charSequenceArr6, LocaleController.getString(R.string.VideoMessagesCamera), ExteraConfig.getVideoMessagesCamera().ordinal(), new PopupUtils.OnItemClickListener() {
+                    @Override // com.exteragram.messenger.utils.ui.PopupUtils.OnItemClickListener
+                    public final void onClick(int i2) {
+                        ExteraConfig.setVideoMessagesCamera(VideoMessagesCamera.getEntries().get(i2));
+                    }
+                });
+                break;
+            case 60:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setRememberLastUsedCamera(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 54:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda75
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 61:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setZoomSlider(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 55:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda76
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 62:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setStaticZoom(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 56:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda77
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 63:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setAlwaysSendInHD(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 57:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda78
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 64:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setHideCameraTile(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 58:
-                showListDialog(uItem, this.doubleTapSeekDuration, LocaleController.getString(R.string.DoubleTapSeekDuration), ExteraConfig.getDoubleTapSeekDuration(), new PopupUtils.OnItemClickListener() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda79
+            case 65:
+                CharSequence[] charSequenceArr7 = this.doubleTapSeekDurationOptions;
+                if (charSequenceArr7 == null) {
+                    charSequenceArr7 = null;
+                }
+                showListDialog(item, charSequenceArr7, LocaleController.getString(R.string.DoubleTapSeekDuration), ExteraConfig.getDoubleTapSeekDuration(), new PopupUtils.OnItemClickListener() {
                     @Override // com.exteragram.messenger.utils.ui.PopupUtils.OnItemClickListener
-                    public final void onClick(int i3) {
-                        ExteraConfig.setDoubleTapSeekDuration(i3);
+                    public final void onClick(int i2) {
+                        ExteraConfig.setDoubleTapSeekDuration(i2);
                     }
                 });
                 break;
-            case 59:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda80
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 66:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setPreferOriginalQuality(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 60:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda81
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 67:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setSwipeToPip(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 61:
-                toggleBooleanSettingAndRefresh(uItem, new Consumer() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda82
-                    @Override // com.google.android.exoplayer2.util.Consumer
+            case 68:
+                toggleBooleanSettingAndRefresh$TMessagesProj(item, new Consumer() {
+                    @Override // androidx.core.util.Consumer
                     public final void accept(Object obj) {
                         ExteraConfig.setUnmuteWithVolumeButtons(((Boolean) obj).booleanValue());
                     }
                 });
                 break;
-            case 62:
-            case 63:
-            case 64:
-            case 65:
-                this.pauseOnMinimize.onClick(uItem);
+            case 69:
+            case 70:
+            case 71:
+            case 72:
+                this.pauseOnMinimize.onClick(item);
                 break;
         }
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$2, reason: invalid class name */
-    public static /* synthetic */ class AnonymousClass2 {
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem;
-
-        static {
-            int[] iArr = new int[ChatsItem.values().length];
-            $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem = iArr;
-            try {
-                iArr[ChatsItem.HIDE_STICKER_TIME.ordinal()] = 1;
-            } catch (NoSuchFieldError unused) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.REPLY_ELEMENTS.ordinal()] = 2;
-            } catch (NoSuchFieldError unused2) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.REPLY_COLORS.ordinal()] = 3;
-            } catch (NoSuchFieldError unused3) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.REPLY_EMOJI.ordinal()] = 4;
-            } catch (NoSuchFieldError unused4) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.REPLY_BACKGROUND.ordinal()] = 5;
-            } catch (NoSuchFieldError unused5) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.AI.ordinal()] = 6;
-            } catch (NoSuchFieldError unused6) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.CHAT_SETTINGS.ordinal()] = 7;
-            } catch (NoSuchFieldError unused7) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.UNLIMITED_RECENT_STICKERS.ordinal()] = 8;
-            } catch (NoSuchFieldError unused8) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.HIDE_REACTIONS.ordinal()] = 9;
-            } catch (NoSuchFieldError unused9) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.CHANNELS.ordinal()] = 10;
-            } catch (NoSuchFieldError unused10) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.GROUPS.ordinal()] = 11;
-            } catch (NoSuchFieldError unused11) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.PRIVATE_CHATS.ordinal()] = 12;
-            } catch (NoSuchFieldError unused12) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.DOUBLE_TAP_ACTION.ordinal()] = 13;
-            } catch (NoSuchFieldError unused13) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.DOUBLE_TAP_ACTION_OUT_OWNER.ordinal()] = 14;
-            } catch (NoSuchFieldError unused14) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.BOTTOM_BUTTON.ordinal()] = 15;
-            } catch (NoSuchFieldError unused15) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.AI_FEATURES.ordinal()] = 16;
-            } catch (NoSuchFieldError unused16) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.AI_FEATURES_EDITOR.ordinal()] = 17;
-            } catch (NoSuchFieldError unused17) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.AI_FEATURES_SUMMARIES.ordinal()] = 18;
-            } catch (NoSuchFieldError unused18) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.ADMIN_SHORTCUTS.ordinal()] = 19;
-            } catch (NoSuchFieldError unused19) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.QUICK_TRANSITIONS.ordinal()] = 20;
-            } catch (NoSuchFieldError unused20) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.QUICK_TRANSITION_FOR_CHANNELS.ordinal()] = 21;
-            } catch (NoSuchFieldError unused21) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.QUICK_TRANSITION_FOR_TOPICS.ordinal()] = 22;
-            } catch (NoSuchFieldError unused22) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.DISABLE_GREETING_STICKER.ordinal()] = 23;
-            } catch (NoSuchFieldError unused23) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.HIDE_KEYBOARD_ON_SCROLL.ordinal()] = 24;
-            } catch (NoSuchFieldError unused24) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.ADD_COMMA_AFTER_MENTION.ordinal()] = 25;
-            } catch (NoSuchFieldError unused25) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.HIDE_SEND_AS_PEER.ordinal()] = 26;
-            } catch (NoSuchFieldError unused26) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.REPLACE_EDITED_WITH_ICON.ordinal()] = 27;
-            } catch (NoSuchFieldError unused27) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.SHOW_ONLINE_STATUS.ordinal()] = 28;
-            } catch (NoSuchFieldError unused28) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.REMOVE_MESSAGE_TAIL.ordinal()] = 29;
-            } catch (NoSuchFieldError unused29) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.SHOW_RESULTS_BEFORE_VOTING.ordinal()] = 30;
-            } catch (NoSuchFieldError unused30) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.HIDE_SHARE_BUTTON.ordinal()] = 31;
-            } catch (NoSuchFieldError unused31) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.MESSAGE_MENU.ordinal()] = 32;
-            } catch (NoSuchFieldError unused32) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.COPY_PHOTO.ordinal()] = 33;
-            } catch (NoSuchFieldError unused33) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.SAVE.ordinal()] = 34;
-            } catch (NoSuchFieldError unused34) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.REPEAT.ordinal()] = 35;
-            } catch (NoSuchFieldError unused35) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.CLEAR.ordinal()] = 36;
-            } catch (NoSuchFieldError unused36) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.HISTORY.ordinal()] = 37;
-            } catch (NoSuchFieldError unused37) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.REPORT.ordinal()] = 38;
-            } catch (NoSuchFieldError unused38) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.GENERATE.ordinal()] = 39;
-            } catch (NoSuchFieldError unused39) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.DETAILS.ordinal()] = 40;
-            } catch (NoSuchFieldError unused40) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.GROUP_MESSAGE_MENU.ordinal()] = 41;
-            } catch (NoSuchFieldError unused41) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.SPEECH_RECOGNITION_LANGUAGE.ordinal()] = 42;
-            } catch (NoSuchFieldError unused42) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.POST_PROCESSING_WITH_AI.ordinal()] = 43;
-            } catch (NoSuchFieldError unused43) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.DELETE_RECOGNITION_MODEL.ordinal()] = 44;
-            } catch (NoSuchFieldError unused44) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.CAMERA_TYPE.ordinal()] = 45;
-            } catch (NoSuchFieldError unused45) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.CAMERA_SETTINGS.ordinal()] = 46;
-            } catch (NoSuchFieldError unused46) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.DUAL_CAMERA.ordinal()] = 47;
-            } catch (NoSuchFieldError unused47) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.EXTENDED_FRAMES_PER_SECOND.ordinal()] = 48;
-            } catch (NoSuchFieldError unused48) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.CAMERA_STABILIZATION.ordinal()] = 49;
-            } catch (NoSuchFieldError unused49) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.CAMERA_MIRROR_MODE.ordinal()] = 50;
-            } catch (NoSuchFieldError unused50) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.START_WITH_WIDE_ANGLE_CAMERA.ordinal()] = 51;
-            } catch (NoSuchFieldError unused51) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.VIDEO_MESSAGES_CAMERA.ordinal()] = 52;
-            } catch (NoSuchFieldError unused52) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.REMEMBER_LAST_USED_CAMERA.ordinal()] = 53;
-            } catch (NoSuchFieldError unused53) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.ZOOM_SLIDER.ordinal()] = 54;
-            } catch (NoSuchFieldError unused54) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.STATIC_ZOOM.ordinal()] = 55;
-            } catch (NoSuchFieldError unused55) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.ALWAYS_SEND_IN_HD.ordinal()] = 56;
-            } catch (NoSuchFieldError unused56) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.HIDE_CAMERA_TILE.ordinal()] = 57;
-            } catch (NoSuchFieldError unused57) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.DOUBLE_TAP_SEEK_DURATION.ordinal()] = 58;
-            } catch (NoSuchFieldError unused58) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.PREFER_ORIGINAL_QUALITY.ordinal()] = 59;
-            } catch (NoSuchFieldError unused59) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.SWIPE_TO_PIP.ordinal()] = 60;
-            } catch (NoSuchFieldError unused60) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.UNMUTE_WITH_VOLUME_BUTTONS.ordinal()] = 61;
-            } catch (NoSuchFieldError unused61) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.PAUSE_ON_MINIMIZE.ordinal()] = 62;
-            } catch (NoSuchFieldError unused62) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.PAUSE_ON_MINIMIZE_VIDEO.ordinal()] = 63;
-            } catch (NoSuchFieldError unused63) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.PAUSE_ON_MINIMIZE_VOICE.ordinal()] = 64;
-            } catch (NoSuchFieldError unused64) {
-            }
-            try {
-                $SwitchMap$com$exteragram$messenger$preferences$chats$ChatsPreferencesActivity$ChatsItem[ChatsItem.PAUSE_ON_MINIMIZE_ROUND.ordinal()] = 65;
-            } catch (NoSuchFieldError unused65) {
-            }
+    public static void $r8$lambda$FWitcGe3P3jEExkXLxXfYkSVZ4s(ChatsPreferencesActivity chatsPreferencesActivity, int i) {
+        ExteraConfig.setStickerTimeMode(StickerTimeMode.getEntries().get(i));
+        SliderPreviewCell sliderPreviewCell = chatsPreferencesActivity.stickerSizeCell;
+        if (sliderPreviewCell != null) {
+            sliderPreviewCell.invalidate();
         }
+        chatsPreferencesActivity.parentLayout.rebuildFragments(0);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$onClick$10(int i) {
+    public static void $r8$lambda$oohFinv130Q8KjzojqiDzlgwZUQ(ChatsPreferencesActivity chatsPreferencesActivity, int i) {
         ExteraConfig.setDoubleTapAction(i);
-        handleDoubleTapActionButtonClick(false);
+        chatsPreferencesActivity.handleDoubleTapActionButtonClick(false);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$onClick$11(int i) {
+    public static void $r8$lambda$JUuCcMDTxW8ABK84fpnnPE2XeIY(ChatsPreferencesActivity chatsPreferencesActivity, int i) {
         ExteraConfig.setDoubleTapActionOutOwner(i);
-        handleDoubleTapActionButtonClick(true);
+        chatsPreferencesActivity.handleDoubleTapActionButtonClick(true);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$onClick$12(int i) {
+    public static void m2040$r8$lambda$mvxOJVz3LNxAun88VdgUhdHUg(ChatsPreferencesActivity chatsPreferencesActivity, int i) {
         ExteraConfig.setBottomButton(i);
+        chatsPreferencesActivity.parentLayout.rebuildFragments(0);
+    }
+
+    public final void updateReplySettings() {
+        SliderPreviewCell sliderPreviewCell = this.stickerSizeCell;
+        if (sliderPreviewCell != null) {
+            sliderPreviewCell.invalidate();
+        }
         this.parentLayout.rebuildFragments(0);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public void updateReplySettings() {
-        this.stickerSizeCell.invalidate();
-        this.parentLayout.rebuildFragments(0);
+    private final DoubleTapCell handleDoubleTapActionButtonClick(boolean outOwner) {
+        DoubleTapCell doubleTapCell = this.doubleTapCell;
+        if (doubleTapCell == null) {
+            return null;
+        }
+        doubleTapCell.updateIcons(outOwner ? 2 : 1, true);
+        doubleTapCell.invalidate();
+        return doubleTapCell;
     }
 
-    private void handleDoubleTapActionButtonClick(boolean z) {
-        this.doubleTapCell.updateIcons(z ? 2 : 1, true);
-        this.doubleTapCell.invalidate();
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public boolean isSeamlessSwitchingAvailable() {
+    public final boolean isSeamlessSwitchingAvailable() {
         if (ExteraConfig.getCameraType() == CameraType.CAMERA_X && CameraXSession.isSeamlessSwitchingAvailable(getContext())) {
             return true;
         }
         return ExteraConfig.getCameraType() == CameraType.CAMERA_2 && DualCameraView.dualAvailableStatic(getContext());
     }
 
-    private void handleSpeechRecognitionLanguageClick(final UItem uItem) {
-        PopupUtils.showDialog(this.recognitionLanguageOptions, null, LocaleController.getString(R.string.RecognitionLanguage), this.languageCodes.indexOf(ExteraConfig.getRecognitionLanguage()), getContext(), new PopupUtils.OnItemClickListener() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda92
+    private final void handleSpeechRecognitionLanguageClick(final UItem item) {
+        CharSequence[] charSequenceArr = this.recognitionLanguageOptions;
+        if (charSequenceArr == null) {
+            charSequenceArr = null;
+        }
+        PopupUtils.showDialog(charSequenceArr, null, LocaleController.getString(R.string.RecognitionLanguage), languageCodes.indexOf(ExteraConfig.getRecognitionLanguage()), getContext(), new PopupUtils.OnItemClickListener() {
             @Override // com.exteragram.messenger.utils.ui.PopupUtils.OnItemClickListener
             public final void onClick(int i) {
-                ChatsPreferencesActivity.this.lambda$handleSpeechRecognitionLanguageClick$18(uItem, i);
+                ChatsPreferencesActivity.m2033$r8$lambda$1yAcOUwPw9ESR3aYjo0aMcNq3g(this.f$0, item, i);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$handleSpeechRecognitionLanguageClick$18(final UItem uItem, int i) {
+    public static void m2033$r8$lambda$1yAcOUwPw9ESR3aYjo0aMcNq3g(final ChatsPreferencesActivity chatsPreferencesActivity, final UItem uItem, int i) {
+        Object next;
         String recognitionLanguage = ExteraConfig.getRecognitionLanguage();
-        final String str = this.languageCodes.get(i);
-        if (Objects.equals(recognitionLanguage, str)) {
+        final String str = languageCodes.get(i);
+        if (Intrinsics.areEqual(recognitionLanguage, str)) {
             return;
         }
-        Runnable runnable = new Runnable() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda94
+        Runnable runnable = new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                ChatsPreferencesActivity.this.lambda$handleSpeechRecognitionLanguageClick$15(str, uItem);
+                ChatsPreferencesActivity.$r8$lambda$f6U5Q1zHk8xPCE0HQbdDhtEFh2s(str, chatsPreferencesActivity, uItem);
             }
         };
-        if (!Objects.equals(str, "none") && getDownloadedRecognitionModels().stream().noneMatch(new Predicate() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda95
-            @Override // java.util.function.Predicate
-            public final boolean test(Object obj) {
-                return Objects.equals(((VoiceRecognitionController.RecognitionModel) obj).getLanguage(), str);
-            }
-        })) {
-            VoiceRecognitionController.RecognitionModel recognitionModelOrElse = (VoiceRecognitionController.RecognitionModel) VoiceRecognitionController.getInstance().listAvailableModels("vosk").stream().filter(new Predicate() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda96
-                @Override // java.util.function.Predicate
-                public final boolean test(Object obj) {
-                    return ((VoiceRecognitionController.RecognitionModel) obj).getLanguage().equals(str);
+        if (!Intrinsics.areEqual(str, "none")) {
+            List<VoiceRecognitionController.RecognitionModel> downloadedRecognitionModels = chatsPreferencesActivity.getDownloadedRecognitionModels();
+            if (!(downloadedRecognitionModels instanceof Collection) || !downloadedRecognitionModels.isEmpty()) {
+                Iterator<T> it = downloadedRecognitionModels.iterator();
+                while (it.hasNext()) {
+                    if (Intrinsics.areEqual(((VoiceRecognitionController.RecognitionModel) it.next()).getLanguage(), str)) {
+                    }
                 }
-            }).findFirst().orElse(null);
-            if (recognitionModelOrElse == null) {
+            }
+            Iterator<T> it2 = VoiceRecognitionController.getInstance().listAvailableModels("vosk").iterator();
+            do {
+                if (!it2.hasNext()) {
+                    next = null;
+                    break;
+                }
+                next = it2.next();
+            } while (!Intrinsics.areEqual(((VoiceRecognitionController.RecognitionModel) next).getLanguage(), str));
+            VoiceRecognitionController.RecognitionModel recognitionModel = (VoiceRecognitionController.RecognitionModel) next;
+            if (recognitionModel == null) {
                 return;
             }
-            RecognitionModelDialogs.showDownloadDialog(this, str, recognitionModelOrElse, runnable);
+            RecognitionModelDialogs.showDownloadDialog(chatsPreferencesActivity, str, recognitionModel, runnable);
             return;
         }
         runnable.run();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$handleSpeechRecognitionLanguageClick$15(String str, UItem uItem) {
+    public static void $r8$lambda$f6U5Q1zHk8xPCE0HQbdDhtEFh2s(String str, ChatsPreferencesActivity chatsPreferencesActivity, UItem uItem) {
         ExteraConfig.setRecognitionLanguage(str);
-        View viewFindViewByItemId = this.listView.findViewByItemId(uItem.id);
+        View viewFindViewByItemId = chatsPreferencesActivity.getListView$TMessagesProj().findViewByItemId(uItem.id);
         if (viewFindViewByItemId instanceof TextCell) {
             ((TextCell) viewFindViewByItemId).setValue(TranslatorUtils.getLanguageTitleSystem(str), true);
         }
-        this.listView.adapter.update(true);
+        chatsPreferencesActivity.getListView$TMessagesProj().adapter.update(true);
     }
 
-    private List<VoiceRecognitionController.RecognitionModel> getDownloadedRecognitionModels() {
+    private final List<VoiceRecognitionController.RecognitionModel> getDownloadedRecognitionModels() {
         return VoiceRecognitionController.getInstance().listDownloadedModels("vosk");
     }
 
-    private void handleDeleteRecognitionModelClick() {
-        RecognitionModelDialogs.showDeleteFlow(this, getDownloadedRecognitionModels(), new Utilities.Callback() { // from class: com.exteragram.messenger.preferences.chats.ChatsPreferencesActivity$$ExternalSyntheticLambda93
+    private final void handleDeleteRecognitionModelClick() {
+        RecognitionModelDialogs.showDeleteFlow(this, getDownloadedRecognitionModels(), new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                ChatsPreferencesActivity.this.lambda$handleDeleteRecognitionModelClick$19((VoiceRecognitionController.RecognitionModel) obj);
+                ChatsPreferencesActivity.$r8$lambda$YZ5y3z4PYm0nJJJ0zaUkrVFE0zM(this.f$0, (VoiceRecognitionController.RecognitionModel) obj);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$handleDeleteRecognitionModelClick$19(VoiceRecognitionController.RecognitionModel recognitionModel) {
-        if (Objects.equals(ExteraConfig.getRecognitionLanguage(), recognitionModel.getLanguage())) {
+    public static void $r8$lambda$YZ5y3z4PYm0nJJJ0zaUkrVFE0zM(ChatsPreferencesActivity chatsPreferencesActivity, VoiceRecognitionController.RecognitionModel recognitionModel) {
+        if (Intrinsics.areEqual(ExteraConfig.getRecognitionLanguage(), recognitionModel.getLanguage())) {
             ExteraConfig.setRecognitionLanguage("none");
         }
-        this.listView.adapter.update(true);
+        chatsPreferencesActivity.getListView$TMessagesProj().adapter.update(true);
     }
 }

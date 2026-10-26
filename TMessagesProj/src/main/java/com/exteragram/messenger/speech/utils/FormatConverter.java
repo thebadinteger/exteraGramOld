@@ -5,11 +5,15 @@ import android.media.MediaCrypto;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.view.Surface;
-import com.google.android.exoplayer2.util.Log;
+import com.google.android.gms.cast.framework.media.NotificationOptions;
+import j$.io.DesugarInputStream;
+import j$.io.InputStreamRetargetInterface;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import kotlin.UByte;
+import org.telegram.messenger.FileLog;
 
 public abstract class FormatConverter {
     public static int getSampleRate(String str) {
@@ -36,7 +40,7 @@ public abstract class FormatConverter {
                 }
                 mediaExtractor.release();
             } catch (IOException e) {
-                Log.e("exteraGram", "Error detecting sample rate", e);
+                FileLog.e("Error detecting sample rate", e);
                 mediaExtractor.release();
                 integer = -1;
             }
@@ -50,21 +54,24 @@ public abstract class FormatConverter {
         }
     }
 
-    public static InputStream extractAndConvertToPcm(String str, boolean z) throws IOException {
+    public static InputStream extractAndConvertToPcm(String str, boolean z) {
         return new LazyPcmInputStream(str, z);
     }
 
-    public static class LazyPcmInputStream extends InputStream {
+    public static class LazyPcmInputStream extends InputStream implements InputStreamRetargetInterface {
         private final MediaCodec codec;
         private ByteBuffer currentOutputBuffer;
         private final MediaExtractor extractor;
-        private final ByteBuffer[] inputBuffers;
         private boolean isEOS;
         private final boolean limitToOneMinute;
-        private ByteBuffer[] outputBuffers;
         private long totalDecodedDurationUs;
         private final long oneMinuteUs = 60000000;
         private final MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+
+        @Override // java.io.InputStream, j$.io.InputStreamRetargetInterface
+        public long transferTo(OutputStream outputStream) {
+            return DesugarInputStream.transferTo(this, outputStream);
+        }
 
         public LazyPcmInputStream(String str, boolean z) throws IOException {
             this.limitToOneMinute = z;
@@ -74,14 +81,13 @@ public abstract class FormatConverter {
             MediaFormat trackFormat = mediaExtractor.getTrackFormat(0);
             String string = trackFormat.getString("mime");
             if (!string.startsWith("audio/")) {
-                throw new IOException("Not an audio file");
+                throw new java.io.IOException("Not an audio file");
+                throw null;
             }
             MediaCodec mediaCodecCreateDecoderByType = MediaCodec.createDecoderByType(string);
             this.codec = mediaCodecCreateDecoderByType;
             mediaCodecCreateDecoderByType.configure(trackFormat, (Surface) null, (MediaCrypto) null, 0);
             mediaCodecCreateDecoderByType.start();
-            this.inputBuffers = mediaCodecCreateDecoderByType.getInputBuffers();
-            this.outputBuffers = mediaCodecCreateDecoderByType.getOutputBuffers();
             mediaExtractor.selectTrack(0);
         }
 
@@ -121,9 +127,9 @@ public abstract class FormatConverter {
 
         private ByteBuffer getNextOutputBuffer() {
             while (!this.isEOS) {
-                int iDequeueInputBuffer = this.codec.dequeueInputBuffer(10000L);
+                int iDequeueInputBuffer = this.codec.dequeueInputBuffer(NotificationOptions.SKIP_STEP_TEN_SECONDS_IN_MS);
                 if (iDequeueInputBuffer >= 0) {
-                    int sampleData = this.extractor.readSampleData(this.inputBuffers[iDequeueInputBuffer], 0);
+                    int sampleData = this.extractor.readSampleData(this.codec.getInputBuffer(iDequeueInputBuffer), 0);
                     if (sampleData < 0) {
                         this.codec.queueInputBuffer(iDequeueInputBuffer, 0, 0, 0L, 4);
                         this.isEOS = true;
@@ -132,13 +138,11 @@ public abstract class FormatConverter {
                         this.extractor.advance();
                     }
                 }
-                int iDequeueOutputBuffer = this.codec.dequeueOutputBuffer(this.bufferInfo, 10000L);
-                if (iDequeueOutputBuffer == -3) {
-                    this.outputBuffers = this.codec.getOutputBuffers();
-                } else if (iDequeueOutputBuffer != -2 && iDequeueOutputBuffer != -1) {
-                    ByteBuffer byteBuffer = this.outputBuffers[iDequeueOutputBuffer];
+                int iDequeueOutputBuffer = this.codec.dequeueOutputBuffer(this.bufferInfo, NotificationOptions.SKIP_STEP_TEN_SECONDS_IN_MS);
+                if (iDequeueOutputBuffer >= 0) {
+                    ByteBuffer outputBuffer = this.codec.getOutputBuffer(iDequeueOutputBuffer);
                     ByteBuffer byteBufferAllocate = ByteBuffer.allocate(this.bufferInfo.size);
-                    byteBufferAllocate.put(byteBuffer);
+                    byteBufferAllocate.put(outputBuffer);
                     byteBufferAllocate.flip();
                     this.codec.releaseOutputBuffer(iDequeueOutputBuffer, false);
                     long j = this.totalDecodedDurationUs;

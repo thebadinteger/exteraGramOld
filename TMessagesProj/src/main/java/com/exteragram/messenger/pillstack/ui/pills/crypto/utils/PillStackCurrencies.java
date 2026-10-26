@@ -1,6 +1,7 @@
 package com.exteragram.messenger.pillstack.ui.pills.crypto.utils;
 
-import com.exteragram.messenger.utils.RecordTag;
+import com.android.tools.r8.RecordTag;
+import com.exteragram.messenger.utils.network.ExchangeRates;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
@@ -8,6 +9,7 @@ import java.util.Arrays;
 import java.util.Currency;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -16,34 +18,32 @@ import org.telegram.messenger.BillingController;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
+import org.telegram.ui.Wallet.CurrenciesController;
 
 public abstract class PillStackCurrencies {
     private static final HashSet<String> AMBIGUOUS_SYMBOLS = new HashSet<>(Arrays.asList("$", "kr", "Fr", "₩"));
-    private static final Map<String, CurrencyInfo> CURRENCIES = new HashMap();
+    private static final Map<String, CurrencyInfo> CURRENCIES;
+    private static final HashSet<String> PILL_CURRENCIES;
     public static final String[] TARGET_CURRENCIES;
 
     public static final class CurrencyInfo extends RecordTag {
-        private final String code;
-        private final int nameResId;
         private final boolean suffixSymbol;
         private final String symbolOverride;
 
-        private /* synthetic */ boolean $record$equals(Object obj) {
+        private boolean $record$equals(Object obj) {
             if (!(obj instanceof CurrencyInfo)) {
                 return false;
             }
             CurrencyInfo currencyInfo = (CurrencyInfo) obj;
-            return this.suffixSymbol == currencyInfo.suffixSymbol && this.nameResId == currencyInfo.nameResId && Objects.equals(this.code, currencyInfo.code) && Objects.equals(this.symbolOverride, currencyInfo.symbolOverride);
+            return this.suffixSymbol == currencyInfo.suffixSymbol && Objects.equals(this.symbolOverride, currencyInfo.symbolOverride);
         }
 
-        private /* synthetic */ Object[] $record$getFieldsAsObjects() {
-            return new Object[]{this.code, Integer.valueOf(this.nameResId), this.symbolOverride, Boolean.valueOf(this.suffixSymbol)};
+        private Object[] $record$getFieldsAsObjects() {
+            return new Object[]{this.symbolOverride, Boolean.valueOf(this.suffixSymbol)};
         }
 
-        private CurrencyInfo(String str, int i, String str2, boolean z) {
-            this.code = str;
-            this.nameResId = i;
-            this.symbolOverride = str2;
+        private CurrencyInfo(String str, boolean z) {
+            this.symbolOverride = str;
             this.suffixSymbol = z;
         }
 
@@ -52,49 +52,48 @@ public abstract class PillStackCurrencies {
         }
 
         public final int hashCode() {
-            return java.util.Objects.hash(this.suffixSymbol, this.nameResId, this.code, this.symbolOverride);
+            return RestBackend$java.util.Objects.hash(this.suffixSymbol, this.symbolOverride);
         }
 
         public final String toString() {
-            return com.exteragram.messenger.utils.RecordUtils.recordToString($record$getFieldsAsObjects(), CurrencyInfo.class, "code;nameResId;symbolOverride;suffixSymbol");
+            return com.exteragram.messenger.utils.RecordUtils.recordToString($record$getFieldsAsObjects(), CurrencyInfo.class, "symbolOverride;suffixSymbol");
         }
     }
 
     static {
-        addCurrency("USD", R.string.CryptoCurrencyUsd, "$", false);
-        addCurrency("EUR", R.string.CryptoCurrencyEur, null, false);
-        addCurrency("RUB", R.string.CryptoCurrencyRub, "₽", true);
-        addCurrency("GBP", R.string.CryptoCurrencyGbp, null, false);
-        addCurrency("KZT", R.string.CryptoCurrencyKzt, "₸", true);
-        addCurrency("TRY", R.string.CryptoCurrencyTry, "₺", true);
-        addCurrency("UAH", R.string.CryptoCurrencyUah, "₴", true);
-        addCurrency("PLN", R.string.CryptoCurrencyPln, "zł", true);
-        addCurrency("AED", R.string.CryptoCurrencyAed, null, false);
-        addCurrency("CNY", R.string.CryptoCurrencyCny, "CN¥", false);
-        addCurrency("JPY", R.string.CryptoCurrencyJpy, null, false);
-        addCurrency("BYN", R.string.CryptoCurrencyByn, "Br", true);
-        addCurrency("ILS", R.string.CryptoCurrencyIls, "₪", false);
-        addCurrency("CZK", R.string.CryptoCurrencyCzk, "Kč", true);
-        addCurrency("INR", R.string.CryptoCurrencyInr, "₹", false);
-        String[] strArr = new String[16];
+        List<String> list = ExchangeRates.FIAT_CURRENCIES;
+        HashSet<String> hashSet = new HashSet<>(list);
+        PILL_CURRENCIES = hashSet;
+        CURRENCIES = new HashMap();
+        hashSet.addAll(Arrays.asList("TON", "BTC", "ETH", "SOL"));
+        int i = 0;
+        addCurrency("USD", "$", false);
+        addCurrency("RUB", "₽", true);
+        addCurrency("KZT", "₸", true);
+        addCurrency("TRY", "₺", true);
+        addCurrency("UAH", "₴", true);
+        addCurrency("PLN", "zł", true);
+        addCurrency("CNY", "CN¥", false);
+        addCurrency("BYN", "Br", true);
+        addCurrency("ILS", "₪", false);
+        addCurrency("CZK", "Kč", true);
+        addCurrency("INR", "₹", false);
+        String[] strArr = new String[list.size() + 1];
         TARGET_CURRENCIES = strArr;
         strArr[0] = "AUTO";
-        System.arraycopy(new String[]{"AED", "BYN", "CNY", "CZK", "EUR", "GBP", "ILS", "INR", "JPY", "KZT", "PLN", "RUB", "TRY", "UAH", "USD"}, 0, strArr, 1, 15);
+        while (true) {
+            List<String> list2 = ExchangeRates.FIAT_CURRENCIES;
+            if (i >= list2.size()) {
+                return;
+            }
+            int i2 = i + 1;
+            TARGET_CURRENCIES[i2] = list2.get(i);
+            i = i2;
+        }
     }
 
-    private static void addCurrency(String str, int i, String str2, boolean z) {
-        String strNormalize = normalize(str);
-        if (strNormalize.isEmpty()) {
-            return;
-        }
-        CURRENCIES.put(strNormalize, new CurrencyInfo(strNormalize, i, str2, z));
-    }
-
-    public static CharSequence getTargetCurrencyLabel(String str) {
-        if (str == null || "AUTO".equalsIgnoreCase(str)) {
-            return LocaleController.getString(R.string.QualityAuto);
-        }
-        return getCurrencyLabelWithCode(str);
+    private static void addCurrency(String str, String str2, boolean z) {
+        CURRENCIES.put(normalize(str), new CurrencyInfo(str2, z));
     }
 
     public static CharSequence getTargetCurrencySubtext(String str) {
@@ -106,17 +105,24 @@ public abstract class PillStackCurrencies {
 
     public static String getCurrencyName(String str) {
         String strNormalize = normalize(str);
-        CurrencyInfo currencyInfo = CURRENCIES.get(strNormalize);
-        return currencyInfo == null ? strNormalize : LocaleController.getString(currencyInfo.nameResId);
-    }
-
-    public static String getCurrencyLabelWithCode(String str) {
-        String strNormalize = normalize(str);
-        CurrencyInfo currencyInfo = CURRENCIES.get(strNormalize);
-        if (currencyInfo == null) {
+        Locale currentLocale = LocaleController.getInstance().getCurrentLocale();
+        if (currentLocale == null) {
+            currentLocale = Locale.getDefault();
+        }
+        try {
+            return CurrenciesController.capitalizeFirstLetter(Currency.getInstance(strNormalize).getDisplayName(currentLocale), currentLocale);
+        } catch (IllegalArgumentException unused) {
             return strNormalize;
         }
-        return LocaleController.getString(currencyInfo.nameResId) + " — " + strNormalize;
+    }
+
+    public static String resolveTargetCurrency(int i, String str) {
+        String strNormalize = normalize(str);
+        if (!"AUTO".equals(strNormalize)) {
+            return PILL_CURRENCIES.contains(strNormalize) ? strNormalize : "USD";
+        }
+        String localCurrency = ExchangeRates.getLocalCurrency(i);
+        return (localCurrency == null || !PILL_CURRENCIES.contains(localCurrency)) ? "USD" : localCurrency;
     }
 
     public static String[] getTargetCurrencies(String str) {

@@ -1,6 +1,6 @@
 package com.exteragram.messenger.feed;
 
-import com.exteragram.messenger.utils.RecordTag;
+import com.android.tools.r8.RecordTag;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import org.telegram.messenger.DialogObject;
+import org.telegram.messenger.FileLog;
 import org.telegram.messenger.MessagesController;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -49,7 +50,7 @@ public abstract class FeedRequestNormalizer {
         if (obj == null) {
             return EMPTY_METADATA;
         }
-        return metadataCache.computeIfAbsent(obj.getClass(), new Function() { 
+        return metadataCache.computeIfAbsent(obj.getClass(), new Function() {
             @Override // java.util.function.Function
             public final Object apply(Object obj2) {
                 return FeedRequestNormalizer.buildMetadata((Class) obj2);
@@ -61,7 +62,8 @@ public abstract class FeedRequestNormalizer {
         Field[] fields;
         try {
             fields = cls.getFields();
-        } catch (Exception unused) {
+        } catch (Exception e) {
+            reportFailure("fields of ".concat(cls.getName()), e);
             fields = EMPTY_FIELDS;
         }
         Field field = null;
@@ -140,42 +142,44 @@ public abstract class FeedRequestNormalizer {
     }
 
     private static long normalizeMessageIdField(FeedController feedController, Object obj, Field field) {
+        long j = 0;
         try {
             Object obj2 = field.get(obj);
             if (obj2 instanceof Integer) {
                 Integer num = (Integer) obj2;
                 long jResolveRealDialogId = feedController.resolveRealDialogId(num.intValue());
-                if (jResolveRealDialogId == 0) {
-                    return 0L;
+                if (jResolveRealDialogId != 0) {
+                    field.setInt(obj, feedController.resolveRealMessageId(jResolveRealDialogId, num.intValue()));
+                    return jResolveRealDialogId;
                 }
-                field.setInt(obj, feedController.resolveRealMessageId(jResolveRealDialogId, num.intValue()));
-                return jResolveRealDialogId;
-            }
-            if (!(obj2 instanceof ArrayList)) {
-                return 0L;
-            }
-            ArrayList arrayList = (ArrayList) obj2;
-            long jMergeResolvedDialogIds = 0;
-            for (int i = 0; i < arrayList.size(); i++) {
-                try {
-                    Object obj3 = arrayList.get(i);
-                    if (obj3 instanceof Integer) {
-                        Integer num2 = (Integer) obj3;
-                        long jResolveRealDialogId2 = feedController.resolveRealDialogId(num2.intValue());
-                        if (jResolveRealDialogId2 != 0) {
-                            setListInteger(arrayList, i, feedController.resolveRealMessageId(jResolveRealDialogId2, num2.intValue()));
-                            jMergeResolvedDialogIds = mergeResolvedDialogIds(jMergeResolvedDialogIds, jResolveRealDialogId2);
-                        } else {
-                            continue;
+            } else if (obj2 instanceof ArrayList) {
+                ArrayList arrayList = (ArrayList) obj2;
+                long jMergeResolvedDialogIds = 0;
+                for (int i = 0; i < arrayList.size(); i++) {
+                    try {
+                        Object obj3 = arrayList.get(i);
+                        if (obj3 instanceof Integer) {
+                            Integer num2 = (Integer) obj3;
+                            long jResolveRealDialogId2 = feedController.resolveRealDialogId(num2.intValue());
+                            if (jResolveRealDialogId2 != 0) {
+                                setListInteger(arrayList, i, feedController.resolveRealMessageId(jResolveRealDialogId2, num2.intValue()));
+                                jMergeResolvedDialogIds = mergeResolvedDialogIds(jMergeResolvedDialogIds, jResolveRealDialogId2);
+                            } else {
+                                continue;
+                            }
                         }
+                    } catch (Exception e) {
+                        e = e;
+                        j = jMergeResolvedDialogIds;
+                        reportFailure("message id field " + field.getName(), e);
+                        return j;
                     }
-                } catch (Exception unused) {
-                    return jMergeResolvedDialogIds;
                 }
+                return jMergeResolvedDialogIds;
             }
-            return jMergeResolvedDialogIds;
-        } catch (Exception unused2) {
             return 0L;
+        } catch (Exception e2) {
+            e = e2;
         }
     }
 
@@ -192,7 +196,8 @@ public abstract class FeedRequestNormalizer {
             if (inputPeer != null) {
                 field.set(obj, inputPeer);
             }
-        } catch (Exception unused) {
+        } catch (Exception e) {
+            reportFailure("peer field " + field.getName(), e);
         }
     }
 
@@ -205,7 +210,8 @@ public abstract class FeedRequestNormalizer {
             if (inputChannel != null) {
                 field.set(obj, inputChannel);
             }
-        } catch (Exception unused) {
+        } catch (Exception e) {
+            reportFailure("channel field " + field.getName(), e);
         }
     }
 
@@ -218,7 +224,8 @@ public abstract class FeedRequestNormalizer {
             if (obj2 instanceof TLRPC.InputPeer) {
                 return DialogObject.getPeerDialogId((TLRPC.InputPeer) obj2);
             }
-        } catch (Exception unused) {
+        } catch (Exception e) {
+            reportFailure("peer field " + field.getName(), e);
         }
         return 0L;
     }
@@ -248,9 +255,14 @@ public abstract class FeedRequestNormalizer {
         }
         try {
             return field.get(obj);
-        } catch (Exception unused) {
+        } catch (Exception e) {
+            reportFailure("field " + field.getName(), e);
             return null;
         }
+    }
+
+    private static void reportFailure(String str, Exception exc) {
+        FileLog.e("FeedRequestNormalizer failed to normalize " + str, exc);
     }
 
     public static final class ClassMetadata extends RecordTag {
@@ -259,6 +271,14 @@ public abstract class FeedRequestNormalizer {
         private final Field[] messageIdFields;
         private final Field peerField;
         private final Field requestPeerField;
+
+        private boolean $record$equals(Object obj) {
+            if (!(obj instanceof ClassMetadata)) {
+                return false;
+            }
+            ClassMetadata classMetadata = (ClassMetadata) obj;
+            return Objects.equals(this.requestPeerField, classMetadata.requestPeerField) && Objects.equals(this.peerField, classMetadata.peerField) && Objects.equals(this.channelField, classMetadata.channelField) && Objects.equals(this.invoiceField, classMetadata.invoiceField) && Objects.equals(this.messageIdFields, classMetadata.messageIdFields);
+        }
 
         private Object[] $record$getFieldsAsObjects() {
             return new Object[]{this.requestPeerField, this.peerField, this.channelField, this.invoiceField, this.messageIdFields};
@@ -273,24 +293,15 @@ public abstract class FeedRequestNormalizer {
         }
 
         public final boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null || getClass() != obj.getClass()) return false;
-            ClassMetadata that = (ClassMetadata) obj;
-            return java.util.Objects.equals(this.requestPeerField, that.requestPeerField) &&
-                   java.util.Objects.equals(this.peerField, that.peerField) &&
-                   java.util.Objects.equals(this.channelField, that.channelField) &&
-                   java.util.Objects.equals(this.invoiceField, that.invoiceField) &&
-                   java.util.Arrays.equals(this.messageIdFields, that.messageIdFields);
+            return $record$equals(obj);
         }
 
         public final int hashCode() {
-            int result = java.util.Objects.hash(this.requestPeerField, this.peerField, this.channelField, this.invoiceField);
-            result = 31 * result + java.util.Arrays.hashCode(this.messageIdFields);
-            return result;
+            return FeedRequestNormalizer$java.util.Objects.hash(this.requestPeerField, this.peerField, this.channelField, this.invoiceField, this.messageIdFields);
         }
 
         public final String toString() {
-            return "ClassMetadata[requestPeerField=" + this.requestPeerField + ", peerField=" + this.peerField + ", channelField=" + this.channelField + ", invoiceField=" + this.invoiceField + ", messageIdFields=" + java.util.Arrays.toString(this.messageIdFields) + "]";
+            return com.exteragram.messenger.utils.RecordUtils.recordToString($record$getFieldsAsObjects(), ClassMetadata.class, "requestPeerField;peerField;channelField;invoiceField;messageIdFields");
         }
     }
 }

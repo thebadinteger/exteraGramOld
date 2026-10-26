@@ -63,7 +63,7 @@ public class NewIconPackBottomSheet extends BottomSheet {
         linearLayout.setPadding(AndroidUtilities.dp(20.0f), 0, AndroidUtilities.dp(20.0f), 0);
         linearLayout.setOrientation(1);
         scrollView.addView(linearLayout, LayoutHelper.createScroll(-1, -2, 51));
-        linearLayout.setOnTouchListener(new View.OnTouchListener() { // from class: com.exteragram.messenger.icons.ui.components.NewIconPackBottomSheet$$ExternalSyntheticLambda0
+        linearLayout.setOnTouchListener(new View.OnTouchListener() {
             @Override // android.view.View.OnTouchListener
             public final boolean onTouch(View view, MotionEvent motionEvent) {
                 return NewIconPackBottomSheet.$r8$lambda$BYtrHHfOrmFfWMznjkqv5h6qepQ(view, motionEvent);
@@ -74,10 +74,10 @@ public class NewIconPackBottomSheet extends BottomSheet {
         OutlineEditText outlineEditText = new OutlineEditText(context);
         this.nameField = outlineEditText;
         outlineEditText.getEditText().setInputType(49152);
-        this.nameField.getEditText().setFilters(new InputFilter[]{new InputFilter() { // from class: com.exteragram.messenger.icons.ui.components.NewIconPackBottomSheet$$ExternalSyntheticLambda1
+        this.nameField.getEditText().setFilters(new InputFilter[]{new InputFilter() {
             @Override // android.text.InputFilter
             public final CharSequence filter(CharSequence charSequence, int i, int i2, Spanned spanned, int i3, int i4) {
-                return NewIconPackBottomSheet.this.lambda$createView$1(charSequence, i, i2, spanned, i3, i4);
+                return this.f$0.lambda$createView$1(charSequence, i, i2, spanned, i3, i4);
             }
         }});
         this.nameField.getEditText().setImeOptions(5);
@@ -86,10 +86,10 @@ public class NewIconPackBottomSheet extends BottomSheet {
             this.nameField.getEditText().setText(this.packToEdit.getName());
         }
         frameLayout.addView(this.nameField, LayoutHelper.createFrame(-1, 58.0f, 51, 0.0f, 0.0f, 0.0f, 0.0f));
-        this.nameField.getEditText().setOnEditorActionListener(new TextView.OnEditorActionListener() { // from class: com.exteragram.messenger.icons.ui.components.NewIconPackBottomSheet$$ExternalSyntheticLambda2
+        this.nameField.getEditText().setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override // android.widget.TextView.OnEditorActionListener
             public final boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
-                return NewIconPackBottomSheet.this.lambda$createView$2(textView, i, keyEvent);
+                return this.f$0.lambda$createView$2(textView, i, keyEvent);
             }
         });
         OutlineEditText outlineEditText2 = new OutlineEditText(context);
@@ -102,10 +102,10 @@ public class NewIconPackBottomSheet extends BottomSheet {
             this.authorField.getEditText().setText(this.packToEdit.getAuthor());
         }
         frameLayout.addView(this.authorField, LayoutHelper.createFrame(-1, 58.0f, 51, 0.0f, 68.0f, 0.0f, 0.0f));
-        this.authorField.getEditText().setOnEditorActionListener(new TextView.OnEditorActionListener() { // from class: com.exteragram.messenger.icons.ui.components.NewIconPackBottomSheet$$ExternalSyntheticLambda3
+        this.authorField.getEditText().setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override // android.widget.TextView.OnEditorActionListener
             public final boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
-                return NewIconPackBottomSheet.this.lambda$createView$3(textView, i, keyEvent);
+                return this.f$0.lambda$createView$3(textView, i, keyEvent);
             }
         });
         OutlineEditText outlineEditText3 = new OutlineEditText(context);
@@ -122,10 +122,10 @@ public class NewIconPackBottomSheet extends BottomSheet {
             outlineEditText4.getEditText().setText("1.0");
         }
         frameLayout.addView(this.versionField, LayoutHelper.createFrame(-1, 58.0f, 51, 0.0f, 136.0f, 0.0f, 0.0f));
-        this.versionField.getEditText().setOnEditorActionListener(new TextView.OnEditorActionListener() { // from class: com.exteragram.messenger.icons.ui.components.NewIconPackBottomSheet$$ExternalSyntheticLambda4
+        this.versionField.getEditText().setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override // android.widget.TextView.OnEditorActionListener
             public final boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
-                return NewIconPackBottomSheet.this.lambda$createView$4(textView, i, keyEvent);
+                return this.f$0.lambda$createView$4(textView, i, keyEvent);
             }
         });
         ButtonWithCounterView buttonWithCounterView = new ButtonWithCounterView(context, this.resourcesProvider);
@@ -133,22 +133,21 @@ public class NewIconPackBottomSheet extends BottomSheet {
         buttonWithCounterView.setRound();
         this.doneButton.setText(LocaleController.getString(this.packToEdit == null ? R.string.Create : R.string.Save), false);
         this.doneButton.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
-        this.doneButton.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.icons.ui.components.NewIconPackBottomSheet$$ExternalSyntheticLambda5
+        this.doneButton.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                NewIconPackBottomSheet.this.lambda$createView$5(view);
+                this.f$0.lambda$createView$5(view);
             }
         });
         linearLayout.addView(this.doneButton, LayoutHelper.createLinear(-1, 48, 0.0f, 16.0f, 0.0f, 16.0f));
         return scrollView;
     }
 
-    public static /* synthetic */ boolean $r8$lambda$BYtrHHfOrmFfWMznjkqv5h6qepQ(View view, MotionEvent motionEvent) {
+    public static boolean $r8$lambda$BYtrHHfOrmFfWMznjkqv5h6qepQ(View view, MotionEvent motionEvent) {
         return true;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ CharSequence lambda$createView$1(CharSequence charSequence, int i, int i2, Spanned spanned, int i3, int i4) {
+    public CharSequence lambda$createView$1(CharSequence charSequence, int i, int i2, Spanned spanned, int i3, int i4) {
         int length = 64 - (spanned.length() - (i4 - i3));
         int i5 = i2 - i;
         if (length < i5) {
@@ -168,8 +167,7 @@ public class NewIconPackBottomSheet extends BottomSheet {
         return charSequence.subSequence(i, i6);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ boolean lambda$createView$2(TextView textView, int i, KeyEvent keyEvent) {
+    public boolean lambda$createView$2(TextView textView, int i, KeyEvent keyEvent) {
         if (i != 5) {
             return false;
         }
@@ -178,8 +176,7 @@ public class NewIconPackBottomSheet extends BottomSheet {
         return true;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ boolean lambda$createView$3(TextView textView, int i, KeyEvent keyEvent) {
+    public boolean lambda$createView$3(TextView textView, int i, KeyEvent keyEvent) {
         if (i != 5) {
             return false;
         }
@@ -188,8 +185,7 @@ public class NewIconPackBottomSheet extends BottomSheet {
         return true;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ boolean lambda$createView$4(TextView textView, int i, KeyEvent keyEvent) {
+    public boolean lambda$createView$4(TextView textView, int i, KeyEvent keyEvent) {
         if (i != 6) {
             return false;
         }
@@ -197,8 +193,7 @@ public class NewIconPackBottomSheet extends BottomSheet {
         return true;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$createView$5(View view) {
+    public void lambda$createView$5(View view) {
         doOnDone();
     }
 
@@ -210,25 +205,23 @@ public class NewIconPackBottomSheet extends BottomSheet {
         }
         final String strTrim = this.nameField.getEditText().getText().toString().trim();
         final String strTrim2 = this.authorField.getEditText().getText().toString().trim();
-        String vField = this.versionField.getEditText().getText().toString().trim();
-        if (vField.isEmpty()) {
-            vField = "1.0";
+        final String strTrim3 = this.versionField.getEditText().getText().toString().trim();
+        if (strTrim3.isEmpty()) {
+            strTrim3 = "1.0";
         }
-        final String strTrim3 = vField;
         if (strTrim.isEmpty()) {
             BulletinFactory.of(this.topBulletinContainer, this.resourcesProvider).createErrorBulletin(LocaleController.getString(R.string.NameCannotBeEmpty)).show();
         } else {
-            Utilities.globalQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.icons.ui.components.NewIconPackBottomSheet$$ExternalSyntheticLambda6
+            Utilities.globalQueue.postRunnable(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    NewIconPackBottomSheet.this.lambda$doOnDone$7(strTrim, strTrim2, strTrim3);
+                    this.f$0.lambda$doOnDone$7(strTrim, strTrim2, strTrim3);
                 }
             });
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$doOnDone$7(String str, String str2, String str3) {
+    public void lambda$doOnDone$7(String str, String str2, String str3) {
         if (this.packToEdit != null) {
             String id = this.packToEdit.getId();
             if (str2.isEmpty()) {
@@ -238,10 +231,10 @@ public class NewIconPackBottomSheet extends BottomSheet {
                 showStorageError();
                 return;
             } else {
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.icons.ui.components.NewIconPackBottomSheet$$ExternalSyntheticLambda7
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
-                        NewIconPackBottomSheet.this.dismiss();
+                        this.f$0.lambda$new$0();
                     }
                 });
                 return;
@@ -255,21 +248,20 @@ public class NewIconPackBottomSheet extends BottomSheet {
         if (!IconManager.INSTANCE.saveIconPackMetadata(iconPack)) {
             showStorageError();
         } else {
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.icons.ui.components.NewIconPackBottomSheet$$ExternalSyntheticLambda8
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    NewIconPackBottomSheet.this.lambda$doOnDone$6(str4, iconPack);
+                    this.f$0.lambda$doOnDone$6(str4, iconPack);
                 }
             });
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$doOnDone$6(String str, IconPack iconPack) {
+    public void lambda$doOnDone$6(String str, IconPack iconPack) {
         IconManager.INSTANCE.setActiveCustomPack(str);
-        dismiss();
+        lambda$new$0();
         ExteraConfig.setEditingIconPackId(iconPack.getId());
-        this.parentFragment.presentFragment(new IconPacksEditorActivity(iconPack) { // from class: com.exteragram.messenger.icons.ui.components.NewIconPackBottomSheet.1
+        this.parentFragment.presentFragment(new IconPacksEditorActivity(iconPack) {
             @Override // org.telegram.ui.ActionBar.BaseFragment
             public void onBecomeFullyVisible() {
                 LaunchActivity launchActivity = LaunchActivity.instance;
@@ -281,16 +273,15 @@ public class NewIconPackBottomSheet extends BottomSheet {
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$showStorageError$8() {
+    public void lambda$showStorageError$8() {
         BulletinFactory.of(this.topBulletinContainer, this.resourcesProvider).createErrorBulletin(LocaleController.getString(R.string.IconPackErrorStorage)).show();
     }
 
     private void showStorageError() {
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.icons.ui.components.NewIconPackBottomSheet$$ExternalSyntheticLambda9
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                NewIconPackBottomSheet.this.lambda$showStorageError$8();
+                this.f$0.lambda$showStorageError$8();
             }
         });
     }

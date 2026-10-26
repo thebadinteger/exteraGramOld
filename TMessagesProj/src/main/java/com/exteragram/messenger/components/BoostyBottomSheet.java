@@ -56,38 +56,28 @@ public abstract class BoostyBottomSheet extends BottomSheet {
 
     public abstract void onButtonClick();
 
-    /* JADX WARN: Type inference fix 'apply assigned field type' failed
-    java.lang.UnsupportedOperationException: ArgType.getObject(), call class: class jadx.core.dex.instructions.args.ArgType$UnknownArg
-    	at jadx.core.dex.instructions.args.ArgType.getObject(ArgType.java:596)
-    	at jadx.core.dex.attributes.nodes.ClassTypeVarsAttr.getTypeVarsMapFor(ClassTypeVarsAttr.java:35)
-    	at jadx.core.dex.nodes.utils.TypeUtils.replaceClassGenerics(TypeUtils.java:177)
-    	at jadx.core.dex.visitors.typeinference.FixTypesVisitor.insertExplicitUseCast(FixTypesVisitor.java:397)
-    	at jadx.core.dex.visitors.typeinference.FixTypesVisitor.tryFieldTypeWithNewCasts(FixTypesVisitor.java:359)
-    	at jadx.core.dex.visitors.typeinference.FixTypesVisitor.applyFieldType(FixTypesVisitor.java:309)
-    	at jadx.core.dex.visitors.typeinference.FixTypesVisitor.visit(FixTypesVisitor.java:94)
-     */
     public BoostyBottomSheet(final Context context, final List<BoostySubscriberDTO> list) {
         super(context, false);
         this.ITEM_HEIGHT = AndroidUtilities.dp(48.0f);
         this.PRIMARY_COLOR = -830418;
         LinearSnapHelper linearSnapHelper = new LinearSnapHelper();
         this.snapHelper = linearSnapHelper;
-        Runnable runnable = new Runnable() { // from class: com.exteragram.messenger.components.BoostyBottomSheet.1
+        Runnable runnable = new Runnable() {
             @Override // java.lang.Runnable
             public void run() {
                 LinearLayoutManager linearLayoutManager;
                 if (BoostyBottomSheet.this.listView == null || BoostyBottomSheet.this.isUserScrolling || BoostyBottomSheet.this.listView.getAdapter() == null) {
                     return;
                 }
-                boolean isWrap = false;
+                final boolean z = true;
                 if (BoostyBottomSheet.this.listView.getAdapter().getItemCount() > 1 && (linearLayoutManager = (LinearLayoutManager) BoostyBottomSheet.this.listView.getLayoutManager()) != null) {
                     BoostyBottomSheet.this.currentAutoScrollPosition++;
                     if (BoostyBottomSheet.this.currentAutoScrollPosition >= BoostyBottomSheet.this.listView.getAdapter().getItemCount()) {
                         BoostyBottomSheet.this.currentAutoScrollPosition = 0;
-                        isWrap = true;
+                    } else {
+                        z = false;
                     }
-                    final boolean z = isWrap;
-                    LinearSmoothScroller linearSmoothScroller = new LinearSmoothScroller(BoostyBottomSheet.this.listView.getContext()) { // from class: com.exteragram.messenger.components.BoostyBottomSheet.1.1
+                    LinearSmoothScroller linearSmoothScroller = new LinearSmoothScroller(BoostyBottomSheet.this.listView.getContext()) {
                         @Override // androidx.recyclerview.widget.LinearSmoothScroller
                         public float calculateSpeedPerPixel(DisplayMetrics displayMetrics) {
                             return super.calculateSpeedPerPixel(displayMetrics) * (z ? 0.6f : 12.5f);
@@ -130,7 +120,7 @@ public abstract class BoostyBottomSheet extends BottomSheet {
         drawable.useBlur = true;
         drawable.roundEffect = false;
         drawable.init();
-        FrameLayout frameLayout = new FrameLayout(context) { // from class: com.exteragram.messenger.components.BoostyBottomSheet.2
+        FrameLayout frameLayout = new FrameLayout(context) {
             private final Path path = new Path();
             private final RectF rectF = new RectF();
 
@@ -139,7 +129,7 @@ public abstract class BoostyBottomSheet extends BottomSheet {
                 boolean zIsTablet = AndroidUtilities.isTablet();
                 BoostyBottomSheet boostyBottomSheet = BoostyBottomSheet.this;
                 if (!zIsTablet) {
-                    boolean z = boostyBottomSheet.isPortrait();
+                    boolean z = ((BottomSheet) boostyBottomSheet).isPortrait;
                     BoostyBottomSheet boostyBottomSheet2 = BoostyBottomSheet.this;
                     if (z) {
                         boostyBottomSheet2.contentHeight = (int) (View.MeasureSpec.getSize(i2) * 0.8f);
@@ -181,7 +171,7 @@ public abstract class BoostyBottomSheet extends BottomSheet {
         FrameLayout frameLayout2 = new FrameLayout(context);
         this.topView = frameLayout2;
         frameLayout.addView(frameLayout2, LayoutHelper.createFrame(-1, -1.0f, 48, 0.0f, 2.0f, 0.0f, 0.0f));
-        RecyclerListView recyclerListView = new RecyclerListView(context) { // from class: com.exteragram.messenger.components.BoostyBottomSheet.3
+        RecyclerListView recyclerListView = new RecyclerListView(context) {
             @Override // org.telegram.ui.Components.RecyclerListView, androidx.recyclerview.widget.RecyclerView, android.view.View
             public void onMeasure(int i2, int i3) {
                 int i4;
@@ -215,7 +205,7 @@ public abstract class BoostyBottomSheet extends BottomSheet {
         };
         this.listView = recyclerListView;
         recyclerListView.setLayoutManager(new LinearLayoutManager(context));
-        recyclerListView.setAdapter(new RecyclerView.Adapter<ViewHolder>() { // from class: com.exteragram.messenger.components.BoostyBottomSheet.4
+        recyclerListView.setAdapter(new RecyclerView.Adapter<ViewHolder>() {
             @Override // androidx.recyclerview.widget.RecyclerView.Adapter
             public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i2) {
                 TextView textView = new TextView(context);
@@ -242,10 +232,10 @@ public abstract class BoostyBottomSheet extends BottomSheet {
             }
         });
         recyclerListView.setOnScrollListener(new AnonymousClass5());
-        recyclerListView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() { // from class: com.exteragram.messenger.components.BoostyBottomSheet$$ExternalSyntheticLambda0
+        recyclerListView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override // android.view.View.OnLayoutChangeListener
             public final void onLayoutChange(View view, int i2, int i3, int i4, int i5, int i6, int i7, int i8, int i9) {
-                BoostyBottomSheet.this.lambda$new$0(view, i2, i3, i4, i5, i6, i7, i8, i9);
+                this.f$0.lambda$new$0(view, i2, i3, i4, i5, i6, i7, i8, i9);
             }
         });
         recyclerListView.setOverScrollMode(2);
@@ -281,10 +271,10 @@ public abstract class BoostyBottomSheet extends BottomSheet {
         spannableStringBuilderAppend.setSpan(coloredImageSpan, spannableStringBuilderAppend.length() - 7, spannableStringBuilderAppend.length() - 6, 33);
         this.buttonView.setText(spannableStringBuilderAppend, false);
         this.buttonView.setTextColor(-1);
-        this.buttonView.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.components.BoostyBottomSheet$$ExternalSyntheticLambda1
+        this.buttonView.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                BoostyBottomSheet.this.lambda$new$1(view);
+                this.f$0.lambda$new$1(view);
             }
         });
         this.buttonView.setColor(-830418, ColorUtils.setAlphaComponent(ColorUtils.blendARGB(-830418, 0, 0.2f), 51));
@@ -294,7 +284,6 @@ public abstract class BoostyBottomSheet extends BottomSheet {
         setCustomView(scrollView);
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.components.BoostyBottomSheet$5, reason: invalid class name */
     public class AnonymousClass5 extends RecyclerView.OnScrollListener {
         public AnonymousClass5() {
         }
@@ -326,30 +315,27 @@ public abstract class BoostyBottomSheet extends BottomSheet {
                         boostyBottomSheet.currentAutoScrollPosition = linearLayoutManager.findFirstVisibleItemPosition();
                     }
                 }
-                BoostyBottomSheet.this.resumeScrollRunnable = new Runnable() { // from class: com.exteragram.messenger.components.BoostyBottomSheet$5$$ExternalSyntheticLambda0
+                BoostyBottomSheet.this.resumeScrollRunnable = new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
-                        AnonymousClass5.this.lambda$onScrollStateChanged$0();
+                        this.f$0.lambda$onScrollStateChanged$0();
                     }
                 };
                 BoostyBottomSheet.this.listView.postDelayed(BoostyBottomSheet.this.resumeScrollRunnable, 3000L);
             }
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$onScrollStateChanged$0() {
+        public void lambda$onScrollStateChanged$0() {
             BoostyBottomSheet.this.isUserScrolling = false;
             BoostyBottomSheet.this.listView.postDelayed(BoostyBottomSheet.this.autoScrollRunnable, 1500L);
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$0(View view, int i, int i2, int i3, int i4, int i5, int i6, int i7, int i8) {
+    public void lambda$new$0(View view, int i, int i2, int i3, int i4, int i5, int i6, int i7, int i8) {
         updateScales();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$1(View view) {
+    public void lambda$new$1(View view) {
         dismiss();
         onButtonClick();
     }
@@ -362,7 +348,6 @@ public abstract class BoostyBottomSheet extends BottomSheet {
         return false;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void updateScales() {
         RecyclerListView recyclerListView = this.listView;
         if (recyclerListView == null) {
@@ -399,9 +384,5 @@ public abstract class BoostyBottomSheet extends BottomSheet {
                 this.listView.removeCallbacks(runnable);
             }
         }
-    }
-
-    public boolean isPortrait() {
-        return this.isPortrait;
     }
 }

@@ -29,7 +29,9 @@ import androidx.dynamicanimation.animation.SpringAnimation;
 import androidx.dynamicanimation.animation.SpringForce;
 import java.util.Arrays;
 import java.util.Locale;
+import org.mvel2.MVEL;
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.Utilities;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 
@@ -105,7 +107,7 @@ public abstract class CameraZoomSliderView extends View {
     private static final PorterDuffXfermode XOR_XFERMODE = new PorterDuffXfermode(PorterDuff.Mode.XOR);
     private static final PorterDuffXfermode DST_OVER_XFERMODE = new PorterDuffXfermode(PorterDuff.Mode.DST_OVER);
     private static final PorterDuffXfermode DST_IN_XFERMODE = new PorterDuffXfermode(PorterDuff.Mode.DST_IN);
-    private static final FloatPropertyCompat<CameraZoomSliderView> CONTROL_WIDTH = new FloatPropertyCompat<CameraZoomSliderView>("controlWidth") { // from class: com.exteragram.messenger.camera.CameraZoomSliderView.1
+    private static final FloatPropertyCompat<CameraZoomSliderView> CONTROL_WIDTH = new FloatPropertyCompat<CameraZoomSliderView>("controlWidth") {
         @Override // androidx.dynamicanimation.animation.FloatPropertyCompat
         public float getValue(CameraZoomSliderView cameraZoomSliderView) {
             return cameraZoomSliderView.animatedControlWidth;
@@ -117,7 +119,7 @@ public abstract class CameraZoomSliderView extends View {
             cameraZoomSliderView.invalidate();
         }
     };
-    private static final FloatPropertyCompat<CameraZoomSliderView> SELECTOR_OFFSET = new FloatPropertyCompat<CameraZoomSliderView>("selectorOffset") { // from class: com.exteragram.messenger.camera.CameraZoomSliderView.2
+    private static final FloatPropertyCompat<CameraZoomSliderView> SELECTOR_OFFSET = new FloatPropertyCompat<CameraZoomSliderView>("selectorOffset") {
         @Override // androidx.dynamicanimation.animation.FloatPropertyCompat
         public float getValue(CameraZoomSliderView cameraZoomSliderView) {
             return cameraZoomSliderView.animatedSelectorOffset;
@@ -183,7 +185,7 @@ public abstract class CameraZoomSliderView extends View {
         this.lastDescribedZoom = Integer.MIN_VALUE;
         this.stickyTick = -1;
         this.dragPrimarySegment = Integer.MIN_VALUE;
-        this.longPressRunnable = new Runnable() { // from class: com.exteragram.messenger.camera.CameraZoomSliderView.3
+        this.longPressRunnable = new Runnable() {
             @Override // java.lang.Runnable
             public void run() {
                 if (!CameraZoomSliderView.this.compactGestureDown || CameraZoomSliderView.this.movedPastSlop || CameraZoomSliderView.this.expanded) {
@@ -195,7 +197,7 @@ public abstract class CameraZoomSliderView extends View {
                 CameraZoomSliderView.this.setExpanded(true, true);
             }
         };
-        this.autoCollapseRunnable = new Runnable() { // from class: com.exteragram.messenger.camera.CameraZoomSliderView.4
+        this.autoCollapseRunnable = new Runnable() {
             @Override // java.lang.Runnable
             public void run() {
                 if (!CameraZoomSliderView.this.expanded || CameraZoomSliderView.this.dragging || CameraZoomSliderView.this.externalZoomGesture) {
@@ -245,6 +247,7 @@ public abstract class CameraZoomSliderView extends View {
     public void setZoomConfiguration(float f, float f2, float[] fArr, float[] fArr2, float f3, boolean z) {
         if (!Float.isFinite(f) || !Float.isFinite(f2) || f <= 0.0f || f2 <= f) {
             throw new IllegalArgumentException("Zoom range must satisfy 0 < minZoom < maxZoom");
+            return;
         }
         float f4 = this.pendingConfigurationSelectorX;
         this.pendingConfigurationSelectorX = Float.NaN;
@@ -253,7 +256,7 @@ public abstract class CameraZoomSliderView extends View {
         this.maxZoom = f2;
         this.toggleStops = sanitizeStops(fArr, f, f2);
         this.rulerStops = sanitizeStops(fArr2, f, f2);
-        this.zoom = clamp(f3, f, f2);
+        this.zoom = Utilities.clamp(f3, f2, f);
         rebuildScale();
         if (z2) {
             this.selectedToggleIndex = findToggleSegment(this.zoom);
@@ -277,7 +280,7 @@ public abstract class CameraZoomSliderView extends View {
     }
 
     public void setZoom(float f, boolean z) {
-        float fClamp = clamp(f, this.minZoom, this.maxZoom);
+        float fClamp = Utilities.clamp(f, this.maxZoom, this.minZoom);
         cancelZoomAnimator();
         if (z && isLaidOut()) {
             animateZoomTo(fClamp, false);
@@ -367,6 +370,11 @@ public abstract class CameraZoomSliderView extends View {
         invalidate();
     }
 
+    public float[] getToggleStops() {
+        float[] fArr = this.toggleStops;
+        return Arrays.copyOf(fArr, fArr.length);
+    }
+
     public void setOnZoomChangeListener(OnZoomChangeListener onZoomChangeListener) {
         this.onZoomChangeListener = onZoomChangeListener;
     }
@@ -381,16 +389,16 @@ public abstract class CameraZoomSliderView extends View {
         super.onDraw(canvas);
         updateLayoutBounds();
         boolean z = !this.controlBounds.isEmpty() && drawPillBackground(canvas, this.controlBounds, (float) AndroidUtilities.dp(24.0f));
-        float fClamp = clamp(1.0f - this.expandedProgress, 0.0f, 1.0f);
-        float fClamp2 = clamp(this.expandedProgress, 0.0f, 1.0f);
+        float fClamp01 = Utilities.clamp01(1.0f - this.expandedProgress);
+        float fClamp02 = Utilities.clamp01(this.expandedProgress);
         int iSaveLayer = canvas.saveLayer(0.0f, 0.0f, getWidth(), getHeight(), null);
-        if (fClamp > 0.001f) {
-            int iSaveLayerAlpha = canvas.saveLayerAlpha(0.0f, 0.0f, getWidth(), getHeight(), Math.round(fClamp * 255.0f));
+        if (fClamp01 > 0.001f) {
+            int iSaveLayerAlpha = canvas.saveLayerAlpha(0.0f, 0.0f, getWidth(), getHeight(), Math.round(fClamp01 * 255.0f));
             drawToggleRow(canvas, 1.0f);
             canvas.restoreToCount(iSaveLayerAlpha);
         }
-        if (fClamp2 > 0.001f) {
-            int iSaveLayerAlpha2 = canvas.saveLayerAlpha(0.0f, 0.0f, getWidth(), getHeight(), Math.round(fClamp2 * 255.0f));
+        if (fClamp02 > 0.001f) {
+            int iSaveLayerAlpha2 = canvas.saveLayerAlpha(0.0f, 0.0f, getWidth(), getHeight(), Math.round(fClamp02 * 255.0f));
             drawBubble(canvas, 1.0f);
             drawRuler(canvas, 1.0f);
             canvas.restoreToCount(iSaveLayerAlpha2);
@@ -545,14 +553,14 @@ public abstract class CameraZoomSliderView extends View {
         float f3 = (this.controlBounds.top - fDp) - f2;
         float f4 = fMax / 2.0f;
         this.bubbleBounds.set(fCenterX - f4, f3 - f2, fCenterX + f4, f3 + f2);
-        float fClamp = clamp(f, 0.0f, 1.0f);
-        if (fClamp <= 0.001f) {
+        float fClamp01 = Utilities.clamp01(f);
+        if (fClamp01 <= 0.001f) {
             return;
         }
         this.bubblePaint.setColor(this.secondaryFixedColor);
         this.bubbleTextPaint.setColor(this.onSecondaryFixedColor);
         float fDp2 = (this.bubbleBounds.top + AndroidUtilities.dp(6.0f)) - fontMetricsInt.ascent;
-        int iSaveLayerAlpha = canvas.saveLayerAlpha(0.0f, 0.0f, getWidth(), getHeight(), Math.round(fClamp * 255.0f));
+        int iSaveLayerAlpha = canvas.saveLayerAlpha(0.0f, 0.0f, getWidth(), getHeight(), Math.round(fClamp01 * 255.0f));
         canvas.drawRoundRect(this.bubbleBounds, f2, f2, this.bubblePaint);
         canvas.drawText(bubble, this.bubbleBounds.centerX(), fDp2, this.bubbleTextPaint);
         canvas.restoreToCount(iSaveLayerAlpha);
@@ -654,7 +662,6 @@ public abstract class CameraZoomSliderView extends View {
         return true;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void beginDrag(float f) {
         if (stopZoomAnimator()) {
             syncSelectedToggle(true);
@@ -721,11 +728,11 @@ public abstract class CameraZoomSliderView extends View {
                 }
             }
         }
-        setDragTick(clamp(f2 - (fCopySign / this.tickSpacing), 0.0f, this.intervalCount));
+        setDragTick(Utilities.clamp(f2 - (fCopySign / this.tickSpacing), this.intervalCount, 0.0f));
     }
 
     private void setDragTick(float f) {
-        float fClamp = clamp(f, 0.0f, this.intervalCount);
+        float fClamp = Utilities.clamp(f, this.intervalCount, 0.0f);
         this.dragTick = fClamp;
         setTickInternal(fClamp, true);
     }
@@ -883,13 +890,13 @@ public abstract class CameraZoomSliderView extends View {
         this.expandedAnimator = valueAnimatorOfFloat;
         valueAnimatorOfFloat.setDuration(217L);
         valueAnimatorOfFloat.setInterpolator(MORPH_INTERPOLATOR);
-        valueAnimatorOfFloat.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() { // from class: com.exteragram.messenger.camera.CameraZoomSliderView$$ExternalSyntheticLambda0
+        valueAnimatorOfFloat.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override // android.animation.ValueAnimator.AnimatorUpdateListener
             public final void onAnimationUpdate(ValueAnimator valueAnimator2) {
-                CameraZoomSliderView.this.lambda$animateExpandedProgress$0(valueAnimator2);
+                this.f$0.lambda$animateExpandedProgress$0(valueAnimator2);
             }
         });
-        valueAnimatorOfFloat.addListener(new AnimatorListenerAdapter() { // from class: com.exteragram.messenger.camera.CameraZoomSliderView.5
+        valueAnimatorOfFloat.addListener(new AnimatorListenerAdapter() {
             @Override // android.animation.AnimatorListenerAdapter, android.animation.Animator.AnimatorListener
             public void onAnimationEnd(Animator animator) {
                 if (CameraZoomSliderView.this.expandedAnimator == animator) {
@@ -900,9 +907,8 @@ public abstract class CameraZoomSliderView extends View {
         valueAnimatorOfFloat.start();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$animateExpandedProgress$0(ValueAnimator valueAnimator) {
-        this.expandedProgress = clamp(((Float) valueAnimator.getAnimatedValue()).floatValue(), 0.0f, 1.0f);
+    public void lambda$animateExpandedProgress$0(ValueAnimator valueAnimator) {
+        this.expandedProgress = Utilities.clamp01(((Float) valueAnimator.getAnimatedValue()).floatValue());
         invalidate();
     }
 
@@ -973,7 +979,7 @@ public abstract class CameraZoomSliderView extends View {
     private float tickToZoom(float f) {
         double d;
         double dExp;
-        float fClamp = clamp(f, 0.0f, this.intervalCount);
+        float fClamp = Utilities.clamp(f, this.intervalCount, 0.0f);
         if (fClamp <= 0.0f) {
             return this.minZoom;
         }
@@ -1006,10 +1012,9 @@ public abstract class CameraZoomSliderView extends View {
         return (float) (d * dExp);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void setZoomInternal(float f, boolean z, boolean z2) {
         OnZoomChangeListener onZoomChangeListener;
-        this.zoom = clamp(f, this.minZoom, this.maxZoom);
+        this.zoom = Utilities.clamp(f, this.maxZoom, this.minZoom);
         if (z2) {
             syncSelectedToggle(!this.expanded);
         }
@@ -1024,7 +1029,7 @@ public abstract class CameraZoomSliderView extends View {
     private float zoomToTick(float f) {
         float fLog;
         int i;
-        float fClamp = clamp(f, this.minZoom, this.maxZoom);
+        float fClamp = Utilities.clamp(f, this.maxZoom, this.minZoom);
         float f2 = this.minZoom;
         if (fClamp <= f2) {
             return 0.0f;
@@ -1053,7 +1058,6 @@ public abstract class CameraZoomSliderView extends View {
         return fLog * i;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void syncSelectedToggle(boolean z) {
         this.selectedShowsStopValue = false;
         int iFindToggleSegment = findToggleSegment(this.zoom);
@@ -1111,7 +1115,7 @@ public abstract class CameraZoomSliderView extends View {
         } else {
             cancelZoomAnimator(true);
         }
-        final float fClamp = clamp(f, this.minZoom, this.maxZoom);
+        final float fClamp = Utilities.clamp(f, this.maxZoom, this.minZoom);
         if (z2) {
             this.selectedToggleIndex = i;
             this.selectedShowsStopValue = true;
@@ -1127,13 +1131,13 @@ public abstract class CameraZoomSliderView extends View {
         this.zoomAnimator = valueAnimatorOfFloat;
         valueAnimatorOfFloat.setDuration(jMin);
         valueAnimatorOfFloat.setInterpolator(ZOOM_INTERPOLATOR);
-        valueAnimatorOfFloat.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() { // from class: com.exteragram.messenger.camera.CameraZoomSliderView$$ExternalSyntheticLambda1
+        valueAnimatorOfFloat.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override // android.animation.ValueAnimator.AnimatorUpdateListener
             public final void onAnimationUpdate(ValueAnimator valueAnimator) {
-                CameraZoomSliderView.this.lambda$animateZoomTo$1(z, z2, valueAnimator);
+                this.f$0.lambda$animateZoomTo$1(z, z2, valueAnimator);
             }
         });
-        valueAnimatorOfFloat.addListener(new AnimatorListenerAdapter() { // from class: com.exteragram.messenger.camera.CameraZoomSliderView.6
+        valueAnimatorOfFloat.addListener(new AnimatorListenerAdapter() {
             private boolean cancelled;
 
             @Override // android.animation.AnimatorListenerAdapter, android.animation.Animator.AnimatorListener
@@ -1155,8 +1159,7 @@ public abstract class CameraZoomSliderView extends View {
         valueAnimatorOfFloat.start();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$animateZoomTo$1(boolean z, boolean z2, ValueAnimator valueAnimator) {
+    public void lambda$animateZoomTo$1(boolean z, boolean z2, ValueAnimator valueAnimator) {
         setZoomInternal(((Float) valueAnimator.getAnimatedValue()).floatValue(), z, !z2);
     }
 
@@ -1351,7 +1354,7 @@ public abstract class CameraZoomSliderView extends View {
             return String.format(locale, "%.0f", Float.valueOf(fNormalizeDisplayZoom));
         }
         String str = String.format(locale, "%.1f", Float.valueOf(fNormalizeDisplayZoom));
-        return str.startsWith("0") ? str.substring(1) : str;
+        return str.startsWith(MVEL.VERSION_SUB) ? str.substring(1) : str;
     }
 
     private float normalizeDisplayZoom(float f) {
@@ -1429,10 +1432,6 @@ public abstract class CameraZoomSliderView extends View {
             }
         }
         return Arrays.copyOf(fArrCopyOf, i2);
-    }
-
-    private static float clamp(float f, float f2, float f3) {
-        return Math.max(f2, Math.min(f3, f));
     }
 
     public static final class ZoomLookupInterpolator implements TimeInterpolator {

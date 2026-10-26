@@ -11,7 +11,6 @@ import java.util.Objects;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.tgnet.tl.TL_iv;
 
-/* JADX INFO: loaded from: classes4.dex */
 public abstract class PreformattedScrollView extends HorizontalScrollView {
     private Group group;
 
@@ -84,9 +83,8 @@ public abstract class PreformattedScrollView extends HorizontalScrollView {
                 return;
             }
             View childAt = getChildAt(0);
-            if (childAt != null) {
-                AndroidUtilities.runOnUIThread(childAt::requestLayout);
-            }
+            Objects.requireNonNull(childAt);
+            AndroidUtilities.runOnUIThread(childAt::requestLayout);
         }
     }
 
@@ -105,7 +103,6 @@ public abstract class PreformattedScrollView extends HorizontalScrollView {
         private int scrollX;
         private final ArrayList<PreformattedScrollView> views = new ArrayList<>();
 
-        /* JADX INFO: Access modifiers changed from: private */
         public void add(PreformattedScrollView preformattedScrollView) {
             if (this.views.contains(preformattedScrollView)) {
                 return;
@@ -113,7 +110,6 @@ public abstract class PreformattedScrollView extends HorizontalScrollView {
             this.views.add(preformattedScrollView);
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
         public void remove(PreformattedScrollView preformattedScrollView) {
             this.views.remove(preformattedScrollView);
             if (this.driver == preformattedScrollView) {
@@ -121,7 +117,6 @@ public abstract class PreformattedScrollView extends HorizontalScrollView {
             }
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
         public void scrollTo(PreformattedScrollView preformattedScrollView, int i) {
             this.scrollX = i;
             for (int i2 = 0; i2 < this.views.size(); i2++) {
@@ -132,7 +127,6 @@ public abstract class PreformattedScrollView extends HorizontalScrollView {
             }
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
         public int adjustContentWidth(PreformattedScrollView preformattedScrollView, int i) {
             if (i > this.contentWidth) {
                 this.contentWidth = i;
@@ -140,9 +134,8 @@ public abstract class PreformattedScrollView extends HorizontalScrollView {
                     PreformattedScrollView preformattedScrollView2 = this.views.get(i2);
                     if (preformattedScrollView2 != preformattedScrollView && preformattedScrollView2.getChildCount() > 0) {
                         View childAt = preformattedScrollView2.getChildAt(0);
-                        if (childAt != null) {
-                            AndroidUtilities.runOnUIThread(childAt::requestLayout);
-                        }
+                        Objects.requireNonNull(childAt);
+                        AndroidUtilities.runOnUIThread(childAt::requestLayout);
                     }
                 }
             }

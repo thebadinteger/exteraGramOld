@@ -1,6 +1,5 @@
 package com.exteragram.messenger.ai.network.backend;
 
-/* JADX INFO: loaded from: classes4.dex */
 public interface Backend {
     void execute(BackendRequest backendRequest, BackendSink backendSink);
 

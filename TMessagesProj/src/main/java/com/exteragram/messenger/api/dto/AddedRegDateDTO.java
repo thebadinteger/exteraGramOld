@@ -7,7 +7,7 @@ import okhttp3.internal.url._UrlKt;
 public final /* data */ class AddedRegDateDTO {
     private final long userId;
 
-    public static /* synthetic */ AddedRegDateDTO copy$default(AddedRegDateDTO addedRegDateDTO, long j, int i, Object obj) {
+    public static AddedRegDateDTO copy$default(AddedRegDateDTO addedRegDateDTO, long j, int i, Object obj) {
         if ((i & 1) != 0) {
             j = addedRegDateDTO.userId;
         }
@@ -34,10 +34,14 @@ public final /* data */ class AddedRegDateDTO {
     }
 
     public String toString() {
-        return "AddedRegDateDTO(userId=" + this.userId + ')';
+        return "AddedRegDateDTO(userId=" + this.userId + ")";
     }
 
     public AddedRegDateDTO(long j) {
         this.userId = j;
+    }
+
+    public final long getUserId() {
+        return this.userId;
     }
 }

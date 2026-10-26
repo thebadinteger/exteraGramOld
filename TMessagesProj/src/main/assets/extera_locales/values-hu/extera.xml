@@ -13,7 +13,6 @@
     <string name="Preferences">exteraGram beállítások</string>
     <!-- Main Menu -->
     <string name="Links">Linkek</string>
-    <string name="AboutExteraDescription">Egy kísérleti Telegram kliens a hivatalos forráskód alapján!</string>
     <string name="Crowdin">Fordítás</string>
     <string name="Website">Weboldal</string>
     <string name="Categories">Kategóriák</string>
@@ -29,7 +28,6 @@
     <string name="LiteBatteryFollowSystemState">Rendszer</string>
     <string name="LiteBatteryFollowSystemInfo">A rendszer akkumulátor-kímélője vezérli.</string>
     <!-- Pill Stack -->
-    <string name="PillStackPills">Pill Stack</string>
     <string name="PillStackPillsInfo">Interaktív tabletták megjelenítése a keresőmezőben</string>
     <string name="PillStackPillsSettingsInfo">Állítsd be, mely tabletták legyenek láthatók. Koppints a megjelenítéshez vagy elrejtéshez, tartsd lenyomva és húzd a sorrend módosításához.</string>
     <string name="PillStackActivePills">Aktív tabletták</string>
@@ -45,23 +43,7 @@
     <string name="WeatherPillTopInfo">Időjárás-widget beállítások a Pill Stack-hez.</string>
     <string name="PillStackInfiniteScrolling">Végtelen görgetés</string>
     <string name="CryptoPillTargetCurrency">Cél pénznem</string>
-    <string name="CryptoCurrencyUsd">USA dollár</string>
-    <string name="CryptoCurrencyEur">Euró</string>
-    <string name="CryptoCurrencyRub">Orosz rubel</string>
-    <string name="CryptoCurrencyGbp">Brit font</string>
-    <string name="CryptoCurrencyKzt">Kazak tenge</string>
-    <string name="CryptoCurrencyTry">Török líra</string>
-    <string name="CryptoCurrencyUah">Ukrán hrivnya</string>
-    <string name="CryptoCurrencyPln">Lengyel złoty</string>
-    <string name="CryptoCurrencyAed">Egyesült Arab Emírségek dirham</string>
-    <string name="CryptoCurrencyCny">Kínai jüan</string>
-    <string name="CryptoCurrencyJpy">Japán jen</string>
-    <string name="CryptoCurrencyByn">Belarusz rubel</string>
-    <string name="CryptoCurrencyIls">Izraeli új sékel</string>
-    <string name="CryptoCurrencyCzk">Cseh korona</string>
-    <string name="CryptoCurrencyInr">Indiai rúpia</string>
     <!-- Proxy -->
-    <string name="ProxyDoNotUseWithVPN">Ne használd VPN-nel</string>
     <string name="ProxyDisableOn">Proxy letiltása</string>
     <string name="ProxyDisableNever">Soha</string>
     <string name="ProxyDisableAlways">Mindig</string>
@@ -73,8 +55,6 @@
     <string name="CopyIpAddress">IP-cím másolása</string>
     <string name="IpInfoUnavailable">Nem sikerült betölteni az IP-cím adatait.</string>
     <string name="IpInfoCountry">Ország</string>
-    <string name="IpInfoRegion">Régió</string>
-    <string name="IpInfoCity">Város</string>
     <string name="IpInfoIsp">Internetszolgáltató</string>
     <string name="IpInfoOrganization">Szervezet</string>
     <string name="IpInfoDomain">Tartomány</string>
@@ -98,13 +78,7 @@
     <!-- Speed -->
     <string name="DownloadSpeedBoost">Letöltési sebesség fokozása</string>
     <string name="UploadSpeedBoost">Feltöltési sebesség fokozása</string>
-    <string name="Ultra">Ultra</string>
     <string name="SpeedBoostInfo">Az Ultra Boost problémákat okozhat fájlok letöltésekor és videók streamelésekor lassú internetkapcsolaton.</string>
-    <!-- Maps -->
-    <string name="Maps">Térképek</string>
-    <string name="TermsOfUseYandexMaps">A Yandex Térképek használatával elfogadod a <![CDATA[<a href="https://yandex.ru/legal/maps_termsofuse/">felhasználási feltételeket</a>]]>.</string>
-    <string name="UseYandexMaps">Yandex Térképek használata</string>
-    <string name="InstallYandexMaps">Yandex Térképek telepítése?</string>
     <!-- Storage -->
     <string name="StorageSettings">Tárhely</string>
     <string name="CustomSavePath">Egyéni mentési mappa</string>
@@ -161,7 +135,6 @@
     <string name="NavigationDrawer">Navigációs fiók</string>
     <string name="NavigationDrawerInfo">A jobb felső menüt egy klasszikus, csúsztatható fiókra és hamburger gombra cseréli.</string>
     <string name="NavigationDrawerImmersiveAnimation">Immerzív animáció</string>
-    <string name="NavigationDrawerProxyPingShort">%1$d ms</string>
     <string name="MainMenuItems">Menüelemek</string>
     <string name="MainMenuItemsInfo">Koppints az elemek megjelenítéséhez vagy elrejtéséhez, tartsd lenyomva az átrendezéshez. Az elrendezés megosztott a menü és a fiók között.</string>
     <string name="MainMenuHiddenItems">Rejtett menüelemek</string>
@@ -211,7 +184,6 @@
     <string name="AppIconAurora">Auróra</string>
     <string name="AppIconAmethyst">Ametiszt</string>
     <string name="AppIconInvincible">Legyőzhetetlen</string>
-    <string name="AppIconCyberpunk">Cyberpunk</string>
     <string name="AppIconSpace">Űr</string>
     <string name="AppIconIceAge">Jégkorszak</string>
     <string name="AppIconEditor">Szerkesztő</string>
@@ -253,7 +225,6 @@
     <string name="StickerSize">Matrica méret</string>
     <string name="StickerSizeLeft">Kicsi</string>
     <string name="StickerSizeRight">Nagy</string>
-    <string name="StickerSizeDialogMessageReplyTo">wow</string>
     <string name="StickerSizeDialogMessage">hűha, milyen aranyos!</string>
     <string name="StickerShape">Matrica alak</string>
     <string name="StickerShapeRounded">Lekerekített</string>
@@ -286,7 +257,6 @@
     <string name="RolesInfo">Hozz létre szerepeket az egyedi igényeidhez!</string>
     <string name="Suggestions">Javaslatok</string>
     <string name="RoleName">Név</string>
-    <string name="RolePrompt">Prompt</string>
     <string name="PromptInfo">A prompt a modellnek adott kezdeti szöveg a válasz generálásának elindításához vagy a párbeszéd folytatásához.</string>
     <string name="NewRole">Új szerep</string>
     <string name="EditRole">Szerep szerkesztése</string>
@@ -325,7 +295,6 @@
     <string name="AIError">Szerverhiba</string>
     <string name="AIErrorInfo">Kérlek, próbáld újra a kérést rövid várakozás után.</string>
     <!-- Chat Actions -->
-    <string name="DoubleTap">Dupla koppintás</string>
     <string name="DoubleTapIncoming">Bejövő üzenetek</string>
     <string name="DoubleTapOutgoing">Kimenő üzenetek</string>
     <string name="DoubleTapInfo">Néhány művelethez adminisztrátori jogosultság szükséges a csevegésben vagy csatornában.</string>
@@ -390,7 +359,6 @@
     <string name="AlwaysSendInHD">Mindig HD-ben küldés</string>
     <string name="HideCameraTile">Azonnali kamera csempe elrejtése</string>
     <string name="HideCameraTileInfo">A kamera csempe helyét egy lebegő gomb veszi át. Megnyomása elindítja a Telegram kamerát; lenyomva tartva a rendszerkamerát.</string>
-    <string name="ShortStandardQuality">SD</string>
     <!-- Playback -->
     <string name="DoubleTapSeekDuration">Dupla koppintás ugrási idő</string>
     <string name="PreferOriginalQuality">Eredeti minőség preferálása</string>
@@ -465,7 +433,6 @@
     <string name="PluginNotEnabled">Engedélyezd a **Bővítmény motort** a **%1$s** telepítéséhez.</string>
     <string name="PluginInstalled">**%1$s** sikeresen telepítve.</string>
     <string name="PluginUpdated">**%1$s** sikeresen frissítve.</string>
-    <string name="PluginInstalledButFailedToEnable">**%1$s** telepítve, de hiba történt az engedélyezés során.</string>
     <string name="PluginEnableError">Nem sikerült engedélyezni a(z) **%1$s**-t.</string>
     <string name="PluginDisableError">Nem sikerült letiltani a(z) **%1$s**-t.</string>
     <string name="PluginInstallError">Nem sikerült telepíteni a(z) **%1$s**-t.</string>
@@ -523,7 +490,6 @@
     <string name="FileSize">Fájlméret</string>
     <string name="FileName">Fájlnév</string>
     <string name="FilePath">Fájl elérési út</string>
-    <string name="Platform">Platform</string>
     <string name="Resolution">Felbontás</string>
     <string name="Bitrate">Bitráta</string>
     <string name="Duration">Időtartam</string>
@@ -541,7 +507,6 @@
     <!-- Login & QR -->
     <string name="LoginQrTitle">QR-kódos bejelentkezés</string>
     <string name="LoginQrSubtitle">Használj másik eszközt a QR-kód beolvasásához.</string>
-    <string name="SelectNumber">Válassz telefonszámot</string>
     <string name="WifiConnect">Csatlakozás</string>
     <string name="WifiDisabled">A Wi-Fi le van tiltva.</string>
     <string name="WifiFailed">Nem sikerült csatlakozni a Wi-Fi-hez.</string>

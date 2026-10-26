@@ -13,9 +13,12 @@ import kotlin.Unit;
 import kotlin.collections.CollectionsKt;
 import kotlin.jvm.JvmStatic;
 import kotlin.jvm.internal.DefaultConstructorMarker;
+import kotlin.jvm.internal.Intrinsics;
 import okhttp3.internal.url._UrlKt;
+import org.telegram.SQLite.SQLiteCursor;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
+import org.telegram.messenger.FileLog;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NotificationBadge;
@@ -23,20 +26,18 @@ import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.support.LongSparseIntArray;
 import org.telegram.tgnet.TLRPC;
 
-/* JADX INFO: loaded from: classes4.dex */
-@Metadata(d1 = {"\u0000X\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\b\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0010 \n\u0000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0006\n\u0002\u0018\u0002\n\u0002\b\u0004\u0018\u0000 %2\u00020\u0001:\u0002$%B\u0011\b\u0002\u0012\u0006\u0010\u0002\u001a\u00020\u0003¢\u0006\u0004\b\u0004\u0010\u0005J\u0006\u0010\f\u001a\u00020\u0003J\u000e\u0010\r\u001a\u00020\u00032\u0006\u0010\u000e\u001a\u00020\u000fJp\u0010\u0010\u001a\u00020\u00112\f\u0010\u0012\u001a\b\u0012\u0004\u0012\u00020\u000f0\u00132\f\u0010\u0014\u001a\b\u0012\u0004\u0012\u00020\u00160\u00152\f\u0010\u0017\u001a\b\u0012\u0004\u0012\u00020\u00160\u00152\u0006\u0010\u0018\u001a\u00020\u00192\f\u0010\u001a\u001a\b\u0012\u0004\u0012\u00020\u001b0\u00152\f\u0010\u001c\u001a\b\u0012\u0004\u0012\u00020\u000b0\u00152\f\u0010\u001d\u001a\b\u0012\u0004\u0012\u00020\u000b0\u00152\f\u0010\u001e\u001a\b\u0012\u0004\u0012\u00020\u00030\u0015J\u0006\u0010\u001f\u001a\u00020\u0011J(\u0010 \u001a\u00020\u00032\f\u0010!\u001a\b\u0012\u0004\u0012\u00020\"0\u00132\u0006\u0010#\u001a\u00020\u00032\b\u0010\u000e\u001a\u0004\u0018\u00010\u000fH\u0002R\u000e\u0010\u0002\u001a\u00020\u0003X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0006\u001a\u00020\u0003X\u0082\u000e¢\u0006\u0002\n\u0000R*\u0010\u0007\u001a\u001e\u0012\u0004\u0012\u00020\u0003\u0012\u0004\u0012\u00020\u00030\bj\u000e\u0012\u0004\u0012\u00020\u0003\u0012\u0004\u0012\u00020\u0003`\tX\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\n\u001a\u00020\u000bX\u0082\u000e¢\u0006\u0002\n\u0000¨\u0006&"}, d2 = {"Lcom/exteragram/messenger/utils/chats/FolderCounters;", _UrlKt.FRAGMENT_ENCODE_SET, "account", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "(I)V", "mainCount", "filterCounts", "Ljava/util/HashMap;", "Lkotlin/collections/HashMap;", "recountScheduled", _UrlKt.FRAGMENT_ENCODE_SET, "getMainUnreadCount", "getUnreadCount", "filter", "Lorg/telegram/messenger/MessagesController$DialogFilter;", PluginsConstants.UPDATE, _UrlKt.FRAGMENT_ENCODE_SET, "filters", _UrlKt.FRAGMENT_ENCODE_SET, "usersDict", "Landroidx/collection/LongSparseArray;", "Lorg/telegram/tgnet/TLRPC$User;", "encUsersDict", "encryptedChatsByUsersCount", "Lorg/telegram/messenger/support/LongSparseIntArray;", "chatsDict", "Lorg/telegram/tgnet/TLRPC$Chat;", "mutedDialogs", "archivedDialogs", "dialogsWithMentions", "scheduleRecount", NotificationBadge.NewHtcHomeBadger.COUNT, "dialogs", "Lcom/exteragram/messenger/utils/chats/FolderCounters$UnreadDialog;", "flags", "UnreadDialog", "Companion", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+@Metadata(d1 = {"\u0000`\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\b\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0010 \n\u0000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0010\t\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0004\u0018\u0000 '2\u00020\u0001:\u0002&'B\u0011\b\u0002\u0012\u0006\u0010\u0002\u001a\u00020\u0003¢\u0006\u0004\b\u0004\u0010\u0005J\u0006\u0010\f\u001a\u00020\u0003J\u000e\u0010\r\u001a\u00020\u00032\u0006\u0010\u000e\u001a\u00020\u000fJp\u0010\u0010\u001a\u00020\u00112\f\u0010\u0012\u001a\b\u0012\u0004\u0012\u00020\u000f0\u00132\f\u0010\u0014\u001a\b\u0012\u0004\u0012\u00020\u00160\u00152\f\u0010\u0017\u001a\b\u0012\u0004\u0012\u00020\u00160\u00152\u0006\u0010\u0018\u001a\u00020\u00192\f\u0010\u001a\u001a\b\u0012\u0004\u0012\u00020\u001b0\u00152\f\u0010\u001c\u001a\b\u0012\u0004\u0012\u00020\u000b0\u00152\f\u0010\u001d\u001a\b\u0012\u0004\u0012\u00020\u000b0\u00152\f\u0010\u001e\u001a\b\u0012\u0004\u0012\u00020\u00030\u0015J\u0006\u0010\u001f\u001a\u00020\u0011J$\u0010 \u001a\u001e\u0012\u0004\u0012\u00020!\u0012\u0004\u0012\u00020\u000b0\bj\u000e\u0012\u0004\u0012\u00020!\u0012\u0004\u0012\u00020\u000b`\tH\u0002J(\u0010\"\u001a\u00020\u00032\f\u0010#\u001a\b\u0012\u0004\u0012\u00020$0\u00132\u0006\u0010%\u001a\u00020\u00032\b\u0010\u000e\u001a\u0004\u0018\u00010\u000fH\u0002R\u000e\u0010\u0002\u001a\u00020\u0003X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0006\u001a\u00020\u0003X\u0082\u000e¢\u0006\u0002\n\u0000R*\u0010\u0007\u001a\u001e\u0012\u0004\u0012\u00020\u0003\u0012\u0004\u0012\u00020\u00030\bj\u000e\u0012\u0004\u0012\u00020\u0003\u0012\u0004\u0012\u00020\u0003`\tX\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\n\u001a\u00020\u000bX\u0082\u000e¢\u0006\u0002\n\u0000¨\u0006("}, d2 = {"Lcom/exteragram/messenger/utils/chats/FolderCounters;", _UrlKt.FRAGMENT_ENCODE_SET, "account", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "(I)V", "mainCount", "filterCounts", "Ljava/util/HashMap;", "Lkotlin/collections/HashMap;", "recountScheduled", _UrlKt.FRAGMENT_ENCODE_SET, "getMainUnreadCount", "getUnreadCount", "filter", "Lorg/telegram/messenger/MessagesController$DialogFilter;", PluginsConstants.UPDATE, _UrlKt.FRAGMENT_ENCODE_SET, "filters", _UrlKt.FRAGMENT_ENCODE_SET, "usersDict", "Landroidx/collection/LongSparseArray;", "Lorg/telegram/tgnet/TLRPC$User;", "encUsersDict", "encryptedChatsByUsersCount", "Lorg/telegram/messenger/support/LongSparseIntArray;", "chatsDict", "Lorg/telegram/tgnet/TLRPC$Chat;", "mutedDialogs", "archivedDialogs", "dialogsWithMentions", "scheduleRecount", "loadForumMutes", _UrlKt.FRAGMENT_ENCODE_SET, NotificationBadge.NewHtcHomeBadger.COUNT, "dialogs", "Lcom/exteragram/messenger/utils/chats/FolderCounters$UnreadDialog;", "flags", "UnreadDialog", "Companion", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
 public final class FolderCounters {
 
-    /* JADX INFO: renamed from: Companion, reason: from kotlin metadata */
     public static final Companion INSTANCE = new Companion(null);
     private static final FolderCounters[] instances = new FolderCounters[16];
     private static final Object[] lockObjects;
     private final int account;
     private HashMap<Integer, Integer> filterCounts;
     private int mainCount;
-    private boolean recountScheduled;
+    private volatile boolean recountScheduled;
 
-    public /* synthetic */ FolderCounters(int i, DefaultConstructorMarker defaultConstructorMarker) {
+    public FolderCounters(int i, DefaultConstructorMarker defaultConstructorMarker) {
         this(i);
     }
 
@@ -100,11 +101,13 @@ public final class FolderCounters {
         int i;
         int i2;
         if (INSTANCE.isUnmutedOnly()) {
+            HashMap<Long, Boolean> mapLoadForumMutes = loadForumMutes();
             ArrayList arrayList = new ArrayList();
             int size = usersDict.size();
             for (int i3 = 0; i3 < size; i3++) {
                 TLRPC.User userValueAt = usersDict.valueAt(i3);
-                if (!mutedDialogs.containsKey(userValueAt.id)) {
+                Boolean bool = mapLoadForumMutes.get(Long.valueOf(userValueAt.id));
+                if (!(bool != null ? bool.booleanValue() : mutedDialogs.containsKey(userValueAt.id))) {
                     if (ChatObject.isUserCollapsedInCommunity(chatsDict, userValueAt)) {
                         i2 = MessagesController.DIALOG_FILTER_FLAG_ALL_CHATS;
                     } else if (userValueAt.bot) {
@@ -134,7 +137,8 @@ public final class FolderCounters {
                 TLRPC.Chat chatValueAt = chatsDict.valueAt(i8);
                 if (chatValueAt != null && !ChatObject.isCommunity(chatValueAt)) {
                     long j3 = -chatValueAt.id;
-                    if (!mutedDialogs.containsKey(j3) || dialogsWithMentions.containsKey(j3)) {
+                    Boolean bool2 = mapLoadForumMutes.get(Long.valueOf(j3));
+                    if (!(bool2 != null ? bool2.booleanValue() : mutedDialogs.containsKey(j3) && !dialogsWithMentions.containsKey(j3))) {
                         if (ChatObject.isChatCollapsedInCommunity(chatsDict, chatValueAt)) {
                             i = MessagesController.DIALOG_FILTER_FLAG_ALL_CHATS;
                         } else {
@@ -149,11 +153,18 @@ public final class FolderCounters {
             for (MessagesController.DialogFilter dialogFilter : filters) {
                 map.put(Integer.valueOf(dialogFilter.id), Integer.valueOf(count(arrayList, dialogFilter.flags, dialogFilter)));
             }
-            AndroidUtilities.runOnUIThread(() -> {
-                FolderCounters.this.mainCount = iCount;
-                FolderCounters.this.filterCounts = map;
+            AndroidUtilities.runOnUIThread(new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() {
+                    FolderCounters.$r8$lambda$70DlWAvopMmbZjuP5Rkp7m_mrV0(this.f$0, iCount, map);
+                }
             });
         }
+    }
+
+    public static void $r8$lambda$70DlWAvopMmbZjuP5Rkp7m_mrV0(FolderCounters folderCounters, int i, HashMap map) {
+        folderCounters.mainCount = i;
+        folderCounters.filterCounts = map;
     }
 
     public final void scheduleRecount() {
@@ -162,10 +173,58 @@ public final class FolderCounters {
         }
         this.recountScheduled = true;
         final MessagesStorage messagesStorage = MessagesStorage.getInstance(this.account);
-        messagesStorage.getStorageQueue().postRunnable(() -> {
-            FolderCounters.this.recountScheduled = false;
-            messagesStorage.resetAllUnreadCounters(false);
+        messagesStorage.getStorageQueue().postRunnable(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                FolderCounters.$r8$lambda$a7yR4wl_zPymeOD2mbHLE9R84bk(this.f$0, messagesStorage);
+            }
         }, 500L);
+    }
+
+    public static void $r8$lambda$a7yR4wl_zPymeOD2mbHLE9R84bk(FolderCounters folderCounters, MessagesStorage messagesStorage) {
+        folderCounters.recountScheduled = false;
+        messagesStorage.resetAllUnreadCounters(false);
+    }
+
+    private final HashMap<Long, Boolean> loadForumMutes() {
+        boolean z;
+        MessagesStorage messagesStorage = MessagesStorage.getInstance(this.account);
+        MessagesController messagesController = MessagesController.getInstance(this.account);
+        HashMap<Long, Boolean> map = new HashMap<>();
+        SQLiteCursor sQLiteCursorQueryFinalized = null;
+        try {
+            try {
+                sQLiteCursorQueryFinalized = messagesStorage.getDatabase().queryFinalized("SELECT did, topic_id, unread_mentions FROM topics WHERE unread_count > 0 OR unread_mentions > 0", new Object[0]);
+                while (sQLiteCursorQueryFinalized.next()) {
+                    long jLongValue = sQLiteCursorQueryFinalized.longValue(0);
+                    if (!Intrinsics.areEqual(map.get(Long.valueOf(jLongValue)), Boolean.FALSE) && messagesStorage.isForum(jLongValue, 13)) {
+                        Long lValueOf = Long.valueOf(jLongValue);
+                        if (sQLiteCursorQueryFinalized.intValue(2) == 0) {
+                            z = true;
+                            if (!messagesController.isDialogMuted(jLongValue, sQLiteCursorQueryFinalized.longValue(1))) {
+                                z = false;
+                            }
+                        } else {
+                            z = false;
+                        }
+                        map.put(lValueOf, Boolean.valueOf(z));
+                    }
+                }
+                sQLiteCursorQueryFinalized.dispose();
+                return map;
+            } catch (Exception e) {
+                FileLog.e(e);
+                if (sQLiteCursorQueryFinalized != null) {
+                    sQLiteCursorQueryFinalized.dispose();
+                }
+                return map;
+            }
+        } catch (Throwable th) {
+            if (sQLiteCursorQueryFinalized != null) {
+                sQLiteCursorQueryFinalized.dispose();
+            }
+            throw th;
+        }
     }
 
     private final int count(List<UnreadDialog> dialogs, int flags, MessagesController.DialogFilter filter) {
@@ -191,9 +250,9 @@ public final class FolderCounters {
         return weight;
     }
 
-    @Metadata(d1 = {"\u00000\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0010\t\n\u0000\n\u0002\u0010\u0011\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0010\b\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0010\u000b\n\u0000\b\u0086\u0003\u0018\u00002\u00020\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\u0010\u0010\f\u001a\u00020\b2\u0006\u0010\r\u001a\u00020\u000eH\u0007J\b\u0010\u000f\u001a\u00020\u0010H\u0007J\b\u0010\u0011\u001a\u00020\u0012H\u0002R\u000e\u0010\u0004\u001a\u00020\u0005X\u0082T¢\u0006\u0002\n\u0000R\u0018\u0010\u0006\u001a\n\u0012\u0006\u0012\u0004\u0018\u00010\b0\u0007X\u0082\u0004¢\u0006\u0004\n\u0002\u0010\tR\u0016\u0010\n\u001a\b\u0012\u0004\u0012\u00020\u00010\u0007X\u0082\u0004¢\u0006\u0004\n\u0002\u0010\u000b¨\u0006\u0013"}, d2 = {"Lcom/exteragram/messenger/utils/chats/FolderCounters$Companion;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "RECOUNT_DELAY_MS", _UrlKt.FRAGMENT_ENCODE_SET, "instances", _UrlKt.FRAGMENT_ENCODE_SET, "Lcom/exteragram/messenger/utils/chats/FolderCounters;", "[Lcom/exteragram/messenger/utils/chats/FolderCounters;", "lockObjects", "[Ljava/lang/Object;", "getInstance", "num", _UrlKt.FRAGMENT_ENCODE_SET, "recountAll", _UrlKt.FRAGMENT_ENCODE_SET, "isUnmutedOnly", _UrlKt.FRAGMENT_ENCODE_SET, "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+    @Metadata(d1 = {"\u00000\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0010\t\n\u0000\n\u0002\u0010\b\n\u0000\n\u0002\u0010\u0011\n\u0002\u0018\u0002\n\u0002\b\u0006\n\u0002\u0010\u0002\n\u0000\n\u0002\u0010\u000b\n\u0000\b\u0086\u0003\u0018\u00002\u00020\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\u0010\u0010\u000e\u001a\u00020\n2\u0006\u0010\u000f\u001a\u00020\u0007H\u0007J\b\u0010\u0010\u001a\u00020\u0011H\u0007J\b\u0010\u0012\u001a\u00020\u0013H\u0002R\u000e\u0010\u0004\u001a\u00020\u0005X\u0082T¢\u0006\u0002\n\u0000R\u000e\u0010\u0006\u001a\u00020\u0007X\u0082T¢\u0006\u0002\n\u0000R\u0018\u0010\b\u001a\n\u0012\u0006\u0012\u0004\u0018\u00010\n0\tX\u0082\u0004¢\u0006\u0004\n\u0002\u0010\u000bR\u0016\u0010\f\u001a\b\u0012\u0004\u0012\u00020\u00010\tX\u0082\u0004¢\u0006\u0004\n\u0002\u0010\r¨\u0006\u0014"}, d2 = {"Lcom/exteragram/messenger/utils/chats/FolderCounters$Companion;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "RECOUNT_DELAY_MS", _UrlKt.FRAGMENT_ENCODE_SET, "FORUM_TYPES", _UrlKt.FRAGMENT_ENCODE_SET, "instances", _UrlKt.FRAGMENT_ENCODE_SET, "Lcom/exteragram/messenger/utils/chats/FolderCounters;", "[Lcom/exteragram/messenger/utils/chats/FolderCounters;", "lockObjects", "[Ljava/lang/Object;", "getInstance", "num", "recountAll", _UrlKt.FRAGMENT_ENCODE_SET, "isUnmutedOnly", _UrlKt.FRAGMENT_ENCODE_SET, "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
     public static final class Companion {
-        public /* synthetic */ Companion(DefaultConstructorMarker defaultConstructorMarker) {
+        public Companion(DefaultConstructorMarker defaultConstructorMarker) {
             this();
         }
 
@@ -228,7 +287,7 @@ public final class FolderCounters {
                 for (int i = 0; i < 16; i++) {
                     if (UserConfig.getInstance(i).isClientActivated()) {
                         final MessagesStorage messagesStorage = MessagesStorage.getInstance(i);
-                        messagesStorage.getStorageQueue().postRunnable(new Runnable() { // from class: com.exteragram.messenger.utils.chats.FolderCounters$Companion$$ExternalSyntheticLambda0
+                        messagesStorage.getStorageQueue().postRunnable(new Runnable() {
                             @Override // java.lang.Runnable
                             public final void run() {
                                 messagesStorage.resetAllUnreadCounters(false);
@@ -239,7 +298,6 @@ public final class FolderCounters {
             }
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
         public final boolean isUnmutedOnly() {
             return ExteraConfig.getTabCounterMode() == TabCounterMode.UNMUTED;
         }

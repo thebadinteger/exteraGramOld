@@ -15,7 +15,7 @@ public enum PillType {
     PROXY(6);
 
     private final int id;
-    private static final /* synthetic */ EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
+    private static final EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
 
     PillType(int i) {
         this.id = i;

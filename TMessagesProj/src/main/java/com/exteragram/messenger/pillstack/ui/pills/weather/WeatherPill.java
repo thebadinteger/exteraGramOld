@@ -87,22 +87,21 @@ public class WeatherPill extends BasePill implements NotificationCenter.Notifica
         if (safeLastFragment == null) {
             return false;
         }
-        ItemOptions.makeOptions(safeLastFragment, this).add(R.drawable.msg_retry, LocaleController.getString(R.string.Refresh), new Runnable() { // from class: com.exteragram.messenger.pillstack.ui.pills.weather.WeatherPill$$ExternalSyntheticLambda0
+        ItemOptions.makeOptions(safeLastFragment, this).add(R.drawable.msg_retry, LocaleController.getString(R.string.Refresh), new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                WeatherPill.this.lambda$onPillLongClicked$0();
+                this.f$0.lambda$onPillLongClicked$0();
             }
-        }).add(R.drawable.msg_settings, LocaleController.getString(R.string.Settings), new Runnable() { // from class: com.exteragram.messenger.pillstack.ui.pills.weather.WeatherPill$$ExternalSyntheticLambda1
+        }).add(R.drawable.msg_settings, LocaleController.getString(R.string.Settings), new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 safeLastFragment.presentFragment(new WeatherSettingsActivity());
             }
-        }).setDrawScrim(false).setDimAlpha(0).show();
+        }).setDrawScrim(false).setDimAlpha(0).setDismissOnMoveOutside(true).show();
         return true;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$onPillLongClicked$0() {
+    public void lambda$onPillLongClicked$0() {
         onUpdateData(true);
     }
 
@@ -121,50 +120,44 @@ public class WeatherPill extends BasePill implements NotificationCenter.Notifica
             Weather.clearCache();
         }
         startLoading();
-        Weather.fetchExtera(new Utilities.Callback() { // from class: com.exteragram.messenger.pillstack.ui.pills.weather.WeatherPill$$ExternalSyntheticLambda3
+        Weather.fetchExtera(new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                WeatherPill.this.lambda$onUpdateData$4((Weather.State) obj);
+                this.f$0.lambda$onUpdateData$4((Weather.State) obj);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$onUpdateData$4(final Weather.State state) {
+    public void lambda$onUpdateData$4(final Weather.State state) {
         if (state != null) {
             markDataUpdated();
-            postDelayed(new Runnable() { // from class: com.exteragram.messenger.pillstack.ui.pills.weather.WeatherPill$$ExternalSyntheticLambda4
+            postDelayed(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    WeatherPill.this.lambda$onUpdateData$2(state);
+                    this.f$0.lambda$onUpdateData$2(state);
                 }
             }, 300L);
         } else {
-            postDelayed(new Runnable() { // from class: com.exteragram.messenger.pillstack.ui.pills.weather.WeatherPill$$ExternalSyntheticLambda5
+            postDelayed(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    WeatherPill.this.lambda$onUpdateData$3();
+                    this.f$0.lambda$onUpdateData$3();
                 }
             }, 300L);
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$onUpdateData$2(Weather.State state) {
+    public void lambda$onUpdateData$2(Weather.State state) {
         setData(state, true);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$onUpdateData$3() {
+    public void lambda$onUpdateData$3() {
         setErrorState(true);
     }
 
     @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill, android.view.ViewGroup, android.view.View
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
-        if (PillStackConfig.checkAndClearPendingUpdate(getPillId()) || Weather.getCached() == null || isRefreshDue()) {
-            onUpdateData(true);
-        }
         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.pillStackSettingsChanged);
     }
 
@@ -194,16 +187,15 @@ public class WeatherPill extends BasePill implements NotificationCenter.Notifica
     }
 
     private void requestLocationAndUpdate() {
-        Weather.getUserLocation(true, new Utilities.Callback() { // from class: com.exteragram.messenger.pillstack.ui.pills.weather.WeatherPill$$ExternalSyntheticLambda2
+        Weather.getUserLocation(true, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                WeatherPill.this.lambda$requestLocationAndUpdate$5((Location) obj);
+                this.f$0.lambda$requestLocationAndUpdate$5((Location) obj);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestLocationAndUpdate$5(Location location) {
+    public void lambda$requestLocationAndUpdate$5(Location location) {
         if (location != null) {
             onUpdateData(true);
         }

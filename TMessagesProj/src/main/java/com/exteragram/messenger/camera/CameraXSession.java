@@ -34,11 +34,11 @@ import androidx.camera.core.resolutionselector.ResolutionSelector;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Consumer;
-import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.LifecycleRegistry;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Observer;
+import androidx.p003lifecycle.Lifecycle;
+import androidx.p003lifecycle.LifecycleOwner;
+import androidx.p003lifecycle.LifecycleRegistry;
+import androidx.p003lifecycle.LiveData;
+import androidx.p003lifecycle.Observer;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.utils.system.SystemUtils;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -52,6 +52,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.ToDoubleFunction;
+import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.FileLog;
@@ -99,7 +102,7 @@ public class CameraXSession {
 
         public void start() {
             try {
-                if (this.lifecycleRegistry.getCurrentState() != Lifecycle.State.DESTROYED) {
+                if (this.lifecycleRegistry.getState() != Lifecycle.State.DESTROYED) {
                     this.lifecycleRegistry.setCurrentState(Lifecycle.State.RESUMED);
                 }
             } catch (Exception e) {
@@ -115,7 +118,7 @@ public class CameraXSession {
             }
         }
 
-        @Override // androidx.lifecycle.LifecycleOwner
+        @Override // androidx.p003lifecycle.LifecycleOwner
         public Lifecycle getLifecycle() {
             return this.lifecycleRegistry;
         }
@@ -127,7 +130,7 @@ public class CameraXSession {
     }
 
     public static Preview.SurfaceProvider createSurfaceProvider(final Context context, final SurfaceTexture surfaceTexture, final PreviewSizeListener previewSizeListener) {
-        return new Preview.SurfaceProvider() { // from class: com.exteragram.messenger.camera.CameraXSession$$ExternalSyntheticLambda7
+        return new Preview.SurfaceProvider() {
             @Override // androidx.camera.core.Preview.SurfaceProvider
             public final void onSurfaceRequested(SurfaceRequest surfaceRequest) {
                 CameraXSession.$r8$lambda$293GI9xWXKNG5kPKaSxWt6Uy9f4(previewSizeListener, context, surfaceTexture, surfaceRequest);
@@ -135,11 +138,11 @@ public class CameraXSession {
         };
     }
 
-    public static /* synthetic */ void $r8$lambda$293GI9xWXKNG5kPKaSxWt6Uy9f4(final PreviewSizeListener previewSizeListener, Context context, SurfaceTexture surfaceTexture, final SurfaceRequest surfaceRequest) {
+    public static void $r8$lambda$293GI9xWXKNG5kPKaSxWt6Uy9f4(final PreviewSizeListener previewSizeListener, Context context, SurfaceTexture surfaceTexture, final SurfaceRequest surfaceRequest) {
         try {
             final Size resolution = surfaceRequest.getResolution();
             previewSizeListener.onPreviewSize(resolution.getWidth(), resolution.getHeight());
-            surfaceRequest.setTransformationInfoListener(ContextCompat.getMainExecutor(context), new SurfaceRequest.TransformationInfoListener() { // from class: com.exteragram.messenger.camera.CameraXSession$$ExternalSyntheticLambda0
+            surfaceRequest.setTransformationInfoListener(ContextCompat.getMainExecutor(context), new SurfaceRequest.TransformationInfoListener() {
                 @Override // androidx.camera.core.SurfaceRequest.TransformationInfoListener
                 public final void onTransformationInfoUpdate(SurfaceRequest.TransformationInfo transformationInfo) {
                     CameraXSession.$r8$lambda$TRled3lKaEUY2eaet8nSIa2avwg(resolution, previewSizeListener, transformationInfo);
@@ -147,10 +150,10 @@ public class CameraXSession {
             });
             surfaceTexture.setDefaultBufferSize(resolution.getWidth(), resolution.getHeight());
             final Surface surface = new Surface(surfaceTexture);
-            surfaceRequest.provideSurface(surface, ContextCompat.getMainExecutor(context), new Consumer() { // from class: com.exteragram.messenger.camera.CameraXSession$$ExternalSyntheticLambda1
+            surfaceRequest.provideSurface(surface, ContextCompat.getMainExecutor(context), new Consumer() {
                 @Override // androidx.core.util.Consumer
                 public final void accept(Object obj) {
-                    CameraXSession.m903$r8$lambda$jewnXiGL03oQsgonhL2QZ_SOiI(surfaceRequest, surface, (SurfaceRequest.Result) obj);
+                    CameraXSession.m1156$r8$lambda$jewnXiGL03oQsgonhL2QZ_SOiI(surfaceRequest, surface, (SurfaceRequest.Result) obj);
                 }
             });
         } catch (Exception e) {
@@ -159,13 +162,12 @@ public class CameraXSession {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$TRled3lKaEUY2eaet8nSIa2avwg(Size size, PreviewSizeListener previewSizeListener, SurfaceRequest.TransformationInfo transformationInfo) {
+    public static void $r8$lambda$TRled3lKaEUY2eaet8nSIa2avwg(Size size, PreviewSizeListener previewSizeListener, SurfaceRequest.TransformationInfo transformationInfo) {
         Rect cropRect = transformationInfo.getCropRect();
         previewSizeListener.onPreviewSize(cropRect.width() > 0 ? cropRect.width() : size.getWidth(), cropRect.height() > 0 ? cropRect.height() : size.getHeight());
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$jewnXiGL03oQsgonhL2Q-Z_SOiI, reason: not valid java name */
-    public static /* synthetic */ void m903$r8$lambda$jewnXiGL03oQsgonhL2QZ_SOiI(SurfaceRequest surfaceRequest, Surface surface, SurfaceRequest.Result result) {
+    public static void m1156$r8$lambda$jewnXiGL03oQsgonhL2QZ_SOiI(SurfaceRequest surfaceRequest, Surface surface, SurfaceRequest.Result result) {
         surfaceRequest.clearTransformationInfoListener();
         surface.release();
     }
@@ -216,20 +218,18 @@ public class CameraXSession {
     public void initCamera(Context context, boolean z, final boolean z2, final Runnable runnable) {
         this.isFrontface = z;
         final ListenableFuture<ProcessCameraProvider> processCameraProvider = ProcessCameraProvider.getInstance(context);
-        processCameraProvider.addListener(new Runnable() { // from class: com.exteragram.messenger.camera.CameraXSession$$ExternalSyntheticLambda5
+        processCameraProvider.addListener(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                CameraXSession.this.lambda$initCamera$3(processCameraProvider, z2, runnable);
+                this.f$0.lambda$initCamera$3(processCameraProvider, z2, runnable);
             }
         }, ContextCompat.getMainExecutor(context));
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    /* JADX WARN: Multi-variable type inference failed */
-    public /* synthetic */ void lambda$initCamera$3(ListenableFuture listenableFuture, boolean z, Runnable runnable) {
+    public void lambda$initCamera$3(ListenableFuture listenableFuture, boolean z, Runnable runnable) {
         try {
             this.provider = (ProcessCameraProvider) listenableFuture.get();
-            if (this.lifecycle.getLifecycle().getCurrentState() == Lifecycle.State.DESTROYED) {
+            if (this.lifecycle.getLifecycle().getState() == Lifecycle.State.DESTROYED) {
                 return;
             }
             this.isDualMode = z && supportsConcurrentFrontBackPair();
@@ -279,6 +279,16 @@ public class CameraXSession {
         }
     }
 
+    public void resetInactiveCameraZoom() {
+        if (this.isDualMode) {
+            if (this.isFrontface) {
+                applyInitialZoom(this.cameraBack, this.cameraControlBack);
+            } else {
+                applyInitialZoom(this.cameraFront, this.cameraControlFront);
+            }
+        }
+    }
+
     private void updateActiveControl(boolean z) {
         if (z) {
             this.camera = this.cameraFront;
@@ -291,10 +301,10 @@ public class CameraXSession {
 
     public void closeCamera() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.camera.CameraXSession$$ExternalSyntheticLambda6
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    CameraXSession.this.closeCamera();
+                    this.f$0.closeCamera();
                 }
             });
             return;
@@ -304,9 +314,43 @@ public class CameraXSession {
             if (processCameraProvider != null) {
                 processCameraProvider.unbindAll();
             }
-        } catch (Exception e) {
-            FileLog.e(e);
+            try {
+                Preview preview = this.previewUseCase;
+                if (preview != null) {
+                    preview.setSurfaceProvider(null);
+                }
+                if (this.previewUseCaseBack != null) {
+                }
+            } catch (Exception e) {
+                e = e;
+                FileLog.e(e);
+            }
+        } catch (Exception e2) {
+            FileLog.e(e2);
+            try {
+                Preview preview2 = this.previewUseCase;
+                if (preview2 != null) {
+                    preview2.setSurfaceProvider(null);
+                }
+                if (this.previewUseCaseBack != null) {
+                }
+            } catch (Exception e3) {
+                e = e3;
+                FileLog.e(e);
+            }
         } finally {
+            try {
+                Preview preview3 = this.previewUseCase;
+                if (preview3 != null) {
+                    preview3.setSurfaceProvider(null);
+                }
+                Preview preview4 = this.previewUseCaseBack;
+                if (preview4 != null) {
+                    preview4.setSurfaceProvider(null);
+                }
+            } catch (Exception e4) {
+                FileLog.e(e4);
+            }
             this.lifecycle.stop();
             this.isInitiated = false;
             clearCameraReferences();
@@ -322,6 +366,14 @@ public class CameraXSession {
         this.cameraControl = null;
         this.previewUseCaseBack = null;
         this.previewUseCase = null;
+    }
+
+    public boolean isFlashAvailable() {
+        Camera camera = this.camera;
+        if (camera == null) {
+            return false;
+        }
+        return camera.getCameraInfo().hasFlashUnit();
     }
 
     public void setTorchEnabled(boolean z) {
@@ -366,7 +418,7 @@ public class CameraXSession {
     private Preview buildPreview(CameraSelector cameraSelector, boolean z, Range<Integer> range, boolean z2) {
         final Size sensorAspect = getSensorAspect(cameraSelector);
         final Set<Size> set = z2 ? get60FpsCapableSizes(cameraSelector) : Collections.EMPTY_SET;
-        Preview.Builder resolutionSelector = new Preview.Builder().setResolutionSelector(new ResolutionSelector.Builder().setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY).setResolutionFilter(new ResolutionFilter() { // from class: com.exteragram.messenger.camera.CameraXSession$$ExternalSyntheticLambda3
+        Preview.Builder resolutionSelector = new Preview.Builder().setResolutionSelector(new ResolutionSelector.Builder().setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY).setResolutionFilter(new ResolutionFilter() {
             @Override // androidx.camera.core.resolutionselector.ResolutionFilter
             public final List filter(List list, int i) {
                 return CameraXSession.sortRoundPreviewSizes(list, sensorAspect, set);
@@ -382,20 +434,6 @@ public class CameraXSession {
         return resolutionSelector.build();
     }
 
-    private CameraInfo getCameraInfo(CameraSelector cameraSelector) {
-        try {
-            if (this.provider != null && cameraSelector != null) {
-                List<CameraInfo> infos = cameraSelector.filter(this.provider.getAvailableCameraInfos());
-                if (!infos.isEmpty()) {
-                    return infos.get(0);
-                }
-            }
-        } catch (Exception e) {
-            FileLog.e(e);
-        }
-        return null;
-    }
-
     private boolean isPreviewStabilizationSupported(CameraSelector cameraSelector) {
         if (cameraSelector != null) {
             try {
@@ -406,8 +444,7 @@ public class CameraXSession {
                     if (bool != null) {
                         return bool.booleanValue();
                     }
-                    CameraInfo info = getCameraInfo(cameraSelector);
-                    boolean zIsStabilizationSupported = info != null && Preview.getPreviewCapabilities(info).isStabilizationSupported();
+                    boolean zIsStabilizationSupported = Preview.getPreviewCapabilities(this.provider.getCameraInfo(cameraSelector)).isStabilizationSupported();
                     map.put(cameraSelector, Boolean.valueOf(zIsStabilizationSupported));
                     return zIsStabilizationSupported;
                 }
@@ -419,19 +456,78 @@ public class CameraXSession {
     }
 
     private Camera tryBindSingleAtFrameRate(Range<Integer> range) {
-        return null;
+        try {
+            CameraInfo cameraInfo = this.provider.getCameraInfo(this.cameraSelector);
+            SessionConfig.Builder builder = new SessionConfig.Builder(this.previewUseCase);
+            if (!cameraInfo.getSupportedFrameRateRanges(builder.build()).contains(range)) {
+                return null;
+            }
+            builder.setFrameRateRange(range);
+            return tryBindSingleSession(builder.build(), ((Integer) range.getUpper()).intValue());
+        } catch (Exception e) {
+            FileLog.e(e);
+            return null;
+        }
     }
 
     private Camera tryBindSingleAtExtendedFrameRate() {
-        return null;
+        try {
+            SessionConfig.Builder builder = new SessionConfig.Builder(this.previewUseCase);
+            Range<Integer> rangeSelectExtendedFpsRange = selectExtendedFpsRange(this.provider.getCameraInfo(this.cameraSelector).getSupportedFrameRateRanges(builder.build()));
+            if (rangeSelectExtendedFpsRange == null) {
+                return null;
+            }
+            builder.setFrameRateRange(rangeSelectExtendedFpsRange);
+            return tryBindSingleSession(builder.build(), ((Integer) rangeSelectExtendedFpsRange.getUpper()).intValue());
+        } catch (Exception e) {
+            FileLog.e(e);
+            return null;
+        }
+    }
+
+    private static Range<Integer> selectExtendedFpsRange(Collection<Range<Integer>> collection) {
+        Range<Integer> range = null;
+        if (collection == null) {
+            return null;
+        }
+        for (Range<Integer> range2 : collection) {
+            if (range2 != null) {
+                Integer num = (Integer) range2.getUpper();
+                Range<Integer> range3 = FPS_60_RANGE;
+                if (!num.equals(range3.getUpper())) {
+                    continue;
+                } else {
+                    if (range3.equals(range2)) {
+                        return range2;
+                    }
+                    if (range == null || ((Integer) range2.getLower()).intValue() > ((Integer) range.getLower()).intValue()) {
+                        range = range2;
+                    }
+                }
+            }
+        }
+        return range;
     }
 
     private Camera tryBindSingleSession(SessionConfig sessionConfig, int i) {
-        return null;
+        try {
+            if (!this.provider.getCameraInfo(this.cameraSelector).isSessionConfigSupported(sessionConfig)) {
+                return null;
+            }
+            Camera cameraBindToLifecycle = this.provider.bindToLifecycle(this.lifecycle, this.cameraSelector, sessionConfig);
+            if (cameraBindToLifecycle == null) {
+                return cameraBindToLifecycle;
+            }
+            this.recordingFrameRate = i;
+            return cameraBindToLifecycle;
+        } catch (Exception e) {
+            FileLog.e(e);
+            return null;
+        }
     }
 
     private void rebindCamera() {
-        if (this.provider == null || this.lifecycle.getLifecycle().getCurrentState() == Lifecycle.State.DESTROYED || this.isBinding) {
+        if (this.provider == null || this.lifecycle.getLifecycle().getState() == Lifecycle.State.DESTROYED || this.isBinding) {
             return;
         }
         boolean z = true;
@@ -452,6 +548,8 @@ public class CameraXSession {
             return;
         } catch (Exception e) {
             FileLog.e(e);
+        } catch (Exception e2) {
+            FileLog.e(e2);
             this.isInitiated = false;
             this.provider.unbindAll();
         } finally {
@@ -591,8 +689,8 @@ public class CameraXSession {
 
     private void observeCameraState(Camera camera) {
         try {
-            camera.getCameraInfo().getCameraState().observe(this.lifecycle, new Observer() { // from class: com.exteragram.messenger.camera.CameraXSession$$ExternalSyntheticLambda4
-                @Override // androidx.lifecycle.Observer
+            camera.getCameraInfo().getCameraState().observe(this.lifecycle, new Observer() {
+                @Override // androidx.p003lifecycle.Observer
                 public final void onChanged(Object obj) {
                     CameraXSession.$r8$lambda$rb0Pnzaeyz85DEsbXVziDkXE8Vk((CameraState) obj);
                 }
@@ -602,7 +700,7 @@ public class CameraXSession {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$rb0Pnzaeyz85DEsbXVziDkXE8Vk(CameraState cameraState) {
+    public static void $r8$lambda$rb0Pnzaeyz85DEsbXVziDkXE8Vk(CameraState cameraState) {
         CameraState.StateError error = cameraState.getError();
         if (error != null) {
             FileLog.e("CameraX camera state error: code=" + error.getCode() + " type=" + cameraState.getType());
@@ -622,8 +720,8 @@ public class CameraXSession {
             if (zoomState.getValue() != null) {
                 applyWideAngle(cameraControl, zoomState.getValue());
             } else {
-                zoomState.observe(this.lifecycle, new Observer<ZoomState>() { // from class: com.exteragram.messenger.camera.CameraXSession.1
-                    @Override // androidx.lifecycle.Observer
+                zoomState.observe(this.lifecycle, new Observer<ZoomState>() {
+                    @Override // androidx.p003lifecycle.Observer
                     public void onChanged(ZoomState zoomState2) {
                         if (zoomState2 == null) {
                             return;
@@ -638,7 +736,6 @@ public class CameraXSession {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void applyWideAngle(CameraControl cameraControl, ZoomState zoomState) {
         if (zoomState == null || zoomState.getMinZoomRatio() >= 1.0f) {
             return;
@@ -646,7 +743,6 @@ public class CameraXSession {
         cameraControl.setZoomRatio(zoomState.getMinZoomRatio());
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public boolean wantsWideAngleStart(Camera camera) {
         return ExteraConfig.getStartWithWideAngleCamera() && camera != null && camera.getCameraInfo().getLensFacing() == 1;
     }
@@ -695,6 +791,19 @@ public class CameraXSession {
         return value.getMaxZoomRatio();
     }
 
+    public String getActiveCameraId() {
+        Camera camera = this.camera;
+        if (camera == null) {
+            return null;
+        }
+        try {
+            return Camera2CameraInfo.from(camera.getCameraInfo()).getCameraId();
+        } catch (Exception e) {
+            FileLog.e(e);
+            return null;
+        }
+    }
+
     public void focusToPoint(float f, float f2, float f3, float f4) {
         Display defaultDisplay;
         if (this.cameraControl == null || this.camera == null || f3 <= 0.0f || f4 <= 0.0f || (defaultDisplay = getDefaultDisplay()) == null) {
@@ -723,7 +832,7 @@ public class CameraXSession {
         Rect rect;
         try {
             ProcessCameraProvider processCameraProvider = this.provider;
-            if (processCameraProvider != null && cameraSelector != null && processCameraProvider.hasCamera(cameraSelector) && (rect = (Rect) Camera2CameraInfo.from(getCameraInfo(cameraSelector)).getCameraCharacteristic(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE)) != null && rect.width() > 0 && rect.height() > 0) {
+            if (processCameraProvider != null && cameraSelector != null && processCameraProvider.hasCamera(cameraSelector) && (rect = (Rect) Camera2CameraInfo.from(this.provider.getCameraInfo(cameraSelector)).getCameraCharacteristic(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE)) != null && rect.width() > 0 && rect.height() > 0) {
                 return new Size(rect.width(), rect.height());
             }
         } catch (Exception e) {
@@ -737,7 +846,7 @@ public class CameraXSession {
         try {
             ProcessCameraProvider processCameraProvider = this.provider;
             if (processCameraProvider != null && cameraSelector != null && processCameraProvider.hasCamera(cameraSelector)) {
-                StreamConfigurationMap streamConfigurationMap = (StreamConfigurationMap) Camera2CameraInfo.from(getCameraInfo(cameraSelector)).getCameraCharacteristic(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+                StreamConfigurationMap streamConfigurationMap = (StreamConfigurationMap) Camera2CameraInfo.from(this.provider.getCameraInfo(cameraSelector)).getCameraCharacteristic(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
                 Size[] outputSizes = streamConfigurationMap != null ? streamConfigurationMap.getOutputSizes(SurfaceTexture.class) : null;
                 if (outputSizes != null) {
                     for (Size size : outputSizes) {
@@ -755,59 +864,63 @@ public class CameraXSession {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public static List<Size> sortRoundPreviewSizes(List<Size> list, Size size, final Set<Size> set) {
         ArrayList arrayList = new ArrayList(list);
         final int roundVideoResolution = SystemUtils.getRoundVideoResolution();
-        final int i = roundVideoResolution * 2;
-        final int iMin = Math.min(size.getWidth(), size.getHeight());
-        final int iMax = Math.max(size.getWidth(), size.getHeight());
-        arrayList.sort(new Comparator() { // from class: com.exteragram.messenger.camera.CameraXSession$$ExternalSyntheticLambda2
-            @Override // java.util.Comparator
-            public final int compare(Object obj, Object obj2) {
-                return CameraXSession.compareRoundPreviewSizes((Size) obj, (Size) obj2, roundVideoResolution, i, iMin, iMax, set);
+        final int iMin = Math.min(1440, Math.max(1024, roundVideoResolution * 2));
+        final double dAspectRatioOf = aspectRatioOf(size);
+        final boolean z = !set.isEmpty();
+        arrayList.sort(Comparator.comparingInt(new ToIntFunction() {
+            @Override // java.util.function.ToIntFunction
+            public final int applyAsInt(Object obj) {
+                return CameraXSession.previewTier((Size) obj, roundVideoResolution, z, set);
             }
-        });
+        }).thenComparingDouble(new ToDoubleFunction() {
+            @Override // java.util.function.ToDoubleFunction
+            public final double applyAsDouble(Object obj) {
+                return CameraXSession.previewScore((Size) obj, dAspectRatioOf, iMin);
+            }
+        }).thenComparingLong(new ToLongFunction() {
+            @Override // java.util.function.ToLongFunction
+            public final long applyAsLong(Object obj) {
+                return CameraXSession.$r8$lambda$v4NSQnloejkP_MjECQZi27YHhEY((Size) obj);
+            }
+        }));
         return arrayList;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public static int compareRoundPreviewSizes(Size size, Size size2, int i, int i2, int i3, int i4, Set<Size> set) {
-        int iCompare;
-        int iCompare2;
-        int iMin = Math.min(size.getWidth(), size.getHeight());
-        int iMax = Math.max(size.getWidth(), size.getHeight());
-        int iMin2 = Math.min(size2.getWidth(), size2.getHeight());
-        int iMax2 = Math.max(size2.getWidth(), size2.getHeight());
-        boolean z = iMin >= i;
-        if (z != (iMin2 >= i)) {
-            return z ? -1 : 1;
-        }
-        if (!z && (iCompare2 = Integer.compare(iMin2, iMin)) != 0) {
-            return iCompare2;
-        }
-        boolean zContains = set.contains(size);
-        if (zContains != set.contains(size2)) {
-            return zContains ? -1 : 1;
-        }
-        boolean z2 = iMin >= i2;
-        if (z2 != (iMin2 >= i2)) {
-            return z2 ? -1 : 1;
-        }
-        if (!z2 && (iCompare = Integer.compare(iMin2, iMin)) != 0) {
-            return iCompare;
-        }
-        int iCompare3 = Long.compare(calculateFieldOfViewPenalty(iMin, iMax, i3, i4) * ((long) iMin2), calculateFieldOfViewPenalty(iMin2, iMax2, i3, i4) * ((long) iMin));
-        if (iCompare3 != 0) {
-            return iCompare3;
-        }
-        int iCompare4 = Integer.compare(Math.abs(iMin - i2), Math.abs(iMin2 - i2));
-        return iCompare4 != 0 ? iCompare4 : Long.compare(((long) size2.getWidth()) * ((long) size2.getHeight()), ((long) size.getWidth()) * ((long) size.getHeight()));
+    public static long $r8$lambda$v4NSQnloejkP_MjECQZi27YHhEY(Size size) {
+        return ((long) size.getWidth()) * ((long) size.getHeight());
     }
 
-    private static long calculateFieldOfViewPenalty(int i, int i2, int i3, int i4) {
-        long j = ((long) i) * ((long) i4);
-        return Math.max(0L, (((((long) i2) * ((long) i3)) - j) * 100) - j);
+    public static int previewTier(Size size, int i, boolean z, Set<Size> set) {
+        if (Math.min(size.getWidth(), size.getHeight()) < i) {
+            return 3;
+        }
+        if (Math.max(size.getWidth(), size.getHeight()) > 1920 || ((long) size.getWidth()) * ((long) size.getHeight()) > 2100000) {
+            return 2;
+        }
+        return (!z || set.contains(size)) ? 0 : 1;
+    }
+
+    public static double previewScore(Size size, double d, int i) {
+        int iMin = Math.min(size.getWidth(), size.getHeight());
+        int iMax = Math.max(size.getWidth(), size.getHeight());
+        if (iMin <= 0 || iMax <= 0 || i <= 0) {
+            return Double.MAX_VALUE;
+        }
+        double d2 = iMax;
+        double d3 = iMin;
+        return ((Math.max(0.0d, (d2 / d3) - d) / d) * 2.0d) + ((((double) Math.abs(iMin - i)) / ((double) i)) * 1.0d) + ((1.0d - (d3 / d2)) * 0.5d);
+    }
+
+    private static double aspectRatioOf(Size size) {
+        int iMin = Math.min(size.getWidth(), size.getHeight());
+        int iMax = Math.max(size.getWidth(), size.getHeight());
+        if (iMin > 0) {
+            return ((double) iMax) / ((double) iMin);
+        }
+        return 1.3333333333333333d;
     }
 
     private static Display getDefaultDisplay() {

@@ -13,7 +13,6 @@
     <string name="Preferences">Nastavenia exteraGram</string>
     <!-- Main Menu -->
     <string name="Links">Odkazy</string>
-    <string name="AboutExteraDescription">Experimentálny klient Telegram založený na oficiálnom zdrojovom kóde!</string>
     <string name="Crowdin">Preložiť</string>
     <string name="Website">Webová stránka</string>
     <string name="Categories">Kategórie</string>
@@ -45,23 +44,7 @@
     <string name="WeatherPillTopInfo">Nastavenia widgetu počasia pre zásobník piluliek.</string>
     <string name="PillStackInfiniteScrolling">Nekonečné posúvanie</string>
     <string name="CryptoPillTargetCurrency">Cieľová mena</string>
-    <string name="CryptoCurrencyUsd">Americký dolár</string>
-    <string name="CryptoCurrencyEur">Euro</string>
-    <string name="CryptoCurrencyRub">Ruský rubeľ</string>
-    <string name="CryptoCurrencyGbp">Britská libra</string>
-    <string name="CryptoCurrencyKzt">Kazachstanský tenge</string>
-    <string name="CryptoCurrencyTry">Turecká líra</string>
-    <string name="CryptoCurrencyUah">Ukrajinská hrivna</string>
-    <string name="CryptoCurrencyPln">Poľský zlotý</string>
-    <string name="CryptoCurrencyAed">SAE dirham</string>
-    <string name="CryptoCurrencyCny">Čínsky jüan</string>
-    <string name="CryptoCurrencyJpy">Japonský jen</string>
-    <string name="CryptoCurrencyByn">Bieloruský rubeľ</string>
-    <string name="CryptoCurrencyIls">Izraelský nový šekel</string>
-    <string name="CryptoCurrencyCzk">Česká koruna</string>
-    <string name="CryptoCurrencyInr">Indická rupia</string>
     <!-- Proxy -->
-    <string name="ProxyDoNotUseWithVPN">Nepoužívať s VPN</string>
     <string name="ProxyDisableOn">Vypnúť proxy</string>
     <string name="ProxyDisableNever">Nikdy</string>
     <string name="ProxyDisableAlways">Vždy</string>
@@ -73,8 +56,6 @@
     <string name="CopyIpAddress">Kopírovať IP adresu</string>
     <string name="IpInfoUnavailable">Nepodarilo sa načítať informácie o IP adrese.</string>
     <string name="IpInfoCountry">Krajina</string>
-    <string name="IpInfoRegion">Región</string>
-    <string name="IpInfoCity">Mesto</string>
     <string name="IpInfoIsp">Poskytovateľ</string>
     <string name="IpInfoOrganization">Organizácia</string>
     <string name="IpInfoDomain">Doména</string>
@@ -98,13 +79,7 @@
     <!-- Speed -->
     <string name="DownloadSpeedBoost">Zrýchlenie sťahovania</string>
     <string name="UploadSpeedBoost">Zvýšenie rýchlosti odosielania</string>
-    <string name="Ultra">Ultra</string>
     <string name="SpeedBoostInfo">Ultra Boost môže spôsobiť problémy so sťahovaním súborov a streamovaním videí pri pomalom pripojení k internetu.</string>
-    <!-- Maps -->
-    <string name="Maps">Mapy</string>
-    <string name="TermsOfUseYandexMaps">Používaním Yandex Mapy súhlasíte s <![CDATA[<a href="https://yandex.ru/legal/maps_termsofuse/">terms of use</a>]]>.</string>
-    <string name="UseYandexMaps">Použite mapy Yandex</string>
-    <string name="InstallYandexMaps">Inštalovať Yandex Mapy?</string>
     <!-- Storage -->
     <string name="StorageSettings">Úložisko</string>
     <string name="CustomSavePath">Vlastný priečinok na ukladanie</string>
@@ -161,7 +136,6 @@
     <string name="NavigationDrawer">Navigačná zásuvka</string>
     <string name="NavigationDrawerInfo">Nahrádza ponuku vpravo hore klasickou zásuvkou, ktorá sa otvára potiahnutím, a tlačidlom hamburger.</string>
     <string name="NavigationDrawerImmersiveAnimation">Imersívna animácia</string>
-    <string name="NavigationDrawerProxyPingShort">%1$d ms</string>
     <string name="MainMenuItems">Položky ponuky</string>
     <string name="MainMenuItemsInfo">Ťuknutím zobrazíte alebo skryjete položky, podržaním zmeníte poradie. Rozloženie je zdieľané medzi ponukou a zásuvkou.</string>
     <string name="MainMenuHiddenItems">Skryté položky ponuky</string>
@@ -171,7 +145,6 @@
     <!-- Icon Packs -->
     <string name="IconPacks">Sady ikon</string>
     <string name="IconPacksInfo">Prispôsobiť ikony v celej aplikácii</string>
-    <string name="IconPickerFilter">Filter</string>
     <string name="IconPickerAllIcons">Všetky ikony</string>
     <string name="IconPickerReplacedIcons">Nahradené ikony</string>
     <string name="IconPickerNotReplacedIcons">Nenahradené ikony</string>
@@ -208,14 +181,10 @@
     <!-- App Icons -->
     <string name="IconPack">Balík ikon</string>
     <string name="AppIconSunset">Západ slnka</string>
-    <string name="AppIconAurora">Aurora</string>
     <string name="AppIconAmethyst">Ametyst</string>
     <string name="AppIconInvincible">Nezraniteľný</string>
-    <string name="AppIconCyberpunk">Cyberpunk</string>
     <string name="AppIconSpace">Vesmír</string>
     <string name="AppIconIceAge">Ľadová doba</string>
-    <string name="AppIconEditor">Editor</string>
-    <string name="AppIconOrbit">Orbit</string>
     <string name="AppIconSus">Podvodník</string>
     <string name="AppIconWinter">Zima</string>
     <!-- General Appearance -->
@@ -253,7 +222,6 @@
     <string name="StickerSize">Veľkosť nálepky</string>
     <string name="StickerSizeLeft">Malý</string>
     <string name="StickerSizeRight">Veľký</string>
-    <string name="StickerSizeDialogMessageReplyTo">wow</string>
     <string name="StickerSizeDialogMessage">Wow, to je roztomilé!</string>
     <string name="StickerShape">Tvar nálepky</string>
     <string name="StickerShapeRounded">Zaoblené</string>
@@ -272,7 +240,6 @@
     <string name="ServicesInfo">Vyberte vhodnú službu pre interakciu s jazykovými modelmi.</string>
     <string name="NewService">Nová služba</string>
     <string name="EditService">Upraviť službu</string>
-    <string name="ServiceModel">Model</string>
     <string name="ServiceKey">API kľúč</string>
     <string name="ServiceInfo">Informácie o službe</string>
     <string name="ServiceProvider">Poskytovateľ</string>
@@ -325,7 +292,6 @@
     <string name="AIError">Chyba servera</string>
     <string name="AIErrorInfo">Po krátkom čakaní skúste požiadavku zopakovať.</string>
     <!-- Chat Actions -->
-    <string name="DoubleTap">Dvojité ťuknutie</string>
     <string name="DoubleTapIncoming">Prichádzajúce správy</string>
     <string name="DoubleTapOutgoing">Odchádzajúce správy</string>
     <string name="DoubleTapInfo">Niektoré akcie vyžadujú práva správcu v chate alebo kanáli.</string>
@@ -390,12 +356,10 @@
     <string name="AlwaysSendInHD">Vždy odosielať v HD</string>
     <string name="HideCameraTile">Skryť dlaždicu okamžitého fotoaparátu</string>
     <string name="HideCameraTileInfo">Dlaždica fotoaparátu bude nahradená plávajúcim tlačidlom. Stlačením sa spustí fotoaparát Telegramu, podržaním sa spustí systémový fotoaparát.</string>
-    <string name="ShortStandardQuality">SD</string>
     <!-- Playback -->
     <string name="DoubleTapSeekDuration">Čas preskoku dvojitým ťuknutím</string>
     <string name="PreferOriginalQuality">Uprednostniť pôvodnú kvalitu</string>
     <string name="PauseOnMinimize">Automatická pauza</string>
-    <string name="PauseOnMinimizeVideo">Video</string>
     <string name="PauseOnMinimizeVoice">Hlas</string>
     <string name="PauseOnMinimizeRound">Kruhové</string>
     <string name="PauseOnMinimizeInfo">Pozastaví prehrávanie médií, keď je zariadenie uzamknuté alebo je exteraGram minimalizovaný.</string>
@@ -465,7 +429,6 @@
     <string name="PluginNotEnabled">Povoľte **Engine pluginov**, aby ste mohli nainštalovať **%1$s**.</string>
     <string name="PluginInstalled">**%1$s** bol úspešne nainštalovaný.</string>
     <string name="PluginUpdated">**%1$s** bol úspešne aktualizovaný.</string>
-    <string name="PluginInstalledButFailedToEnable">**%1$s** bol nainštalovaný, ale pri povoľovaní sa vyskytla chyba.</string>
     <string name="PluginEnableError">Nepodarilo sa povoliť **%1$s**.</string>
     <string name="PluginDisableError">Nepodarilo sa zakázať **%1$s**.</string>
     <string name="PluginInstallError">Nepodarilo sa nainštalovať **%1$s**.</string>
@@ -541,7 +504,6 @@
     <!-- Login & QR -->
     <string name="LoginQrTitle">Prihlásenie cez QR kód</string>
     <string name="LoginQrSubtitle">Použite iné zariadenie na naskenovanie tohto QR kódu.</string>
-    <string name="SelectNumber">Vyberte telefónne číslo</string>
     <string name="WifiConnect">Pripojiť</string>
     <string name="WifiDisabled">Wi-Fi je vypnuté.</string>
     <string name="WifiFailed">Nepodarilo sa pripojiť k Wi-Fi.</string>
@@ -623,7 +585,6 @@
     <string name="StickerCornerRadiusSmall">Malé</string>
     <string name="StickerCornerRadiusNone">Žiadne</string>
     <!-- Feed -->
-    <string name="Feed">Feed</string>
     <string name="FeedShownChannels">Zobrazené v feede</string>
     <string name="FeedHiddenChannels">Skryté</string>
     <string name="FeedChannels">Kanály</string>

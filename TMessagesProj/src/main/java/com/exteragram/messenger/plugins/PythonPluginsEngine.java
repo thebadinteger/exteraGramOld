@@ -3,40 +3,37 @@ package com.exteragram.messenger.plugins;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
-import android.view.View;
 import androidx.core.content.FileProvider;
 import com.android.dx.rop.code.RegisterSpec;
 import com.chaquo.python.PyException;
 import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
+import com.chaquo.python.internal.Common;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.plugins.hooks.PluginsHooks;
-import com.exteragram.messenger.plugins.models.CustomSetting;
-import com.exteragram.messenger.plugins.models.DividerSetting;
-import com.exteragram.messenger.plugins.models.EditTextSetting;
-import com.exteragram.messenger.plugins.models.HeaderSetting;
-import com.exteragram.messenger.plugins.models.InputSetting;
-import com.exteragram.messenger.plugins.models.SelectorSetting;
 import com.exteragram.messenger.plugins.models.SettingItem;
-import com.exteragram.messenger.plugins.models.SwitchSetting;
 import com.exteragram.messenger.plugins.models.TextSetting;
 import com.exteragram.messenger.plugins.pip.PipController;
 import com.exteragram.messenger.plugins.ui.PluginSettingsActivity;
 import com.exteragram.messenger.plugins.ui.components.InstallPluginBottomSheet;
 import com.exteragram.messenger.plugins.ui.components.PluginFileViewer;
+import com.exteragram.messenger.plugins.ui.components.PythonSdkUpdateAlert;
 import com.exteragram.messenger.plugins.utils.PyObjectUtils;
+import com.exteragram.messenger.plugins.utils.SdkSignature;
 import com.exteragram.messenger.preferences.utils.SettingsRegistry;
 import com.exteragram.messenger.utils.AppUtils;
 import com.exteragram.messenger.utils.network.RemoteUtils;
 import com.exteragram.messenger.utils.text.LocaleUtils;
+import com.google.android.gms.cast.MediaError;
+import com.google.android.gms.cast.MediaTrack;
 import com.sun.jna.Callback;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,9 +53,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import kotlin.Lazy;
+import kotlin.LazyKt;
 import kotlin.Metadata;
 import kotlin.Result;
 import kotlin.ResultKt;
@@ -67,13 +67,18 @@ import kotlin.collections.ArraysKt;
 import kotlin.collections.CollectionsKt;
 import kotlin.collections.MapsKt;
 import kotlin.collections.SetsKt;
+import kotlin.enums.EnumEntries;
+import kotlin.enums.EnumEntriesKt;
 import kotlin.io.CloseableKt;
-import kotlin.jdk7.AutoCloseableKt;
 import kotlin.jvm.JvmStatic;
+import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
+import kotlin.jvm.internal.ArrayIteratorKt;
 import kotlin.jvm.internal.DefaultConstructorMarker;
 import kotlin.jvm.internal.Intrinsics;
+import kotlin.jvm.internal.Ref;
 import kotlin.jvm.internal.SourceDebugExtension;
+import kotlin.jvm.internal.StringCompanionObject;
 import kotlin.ranges.RangesKt;
 import kotlin.text.Regex;
 import kotlin.text.StringsKt;
@@ -87,6 +92,7 @@ import org.simplifiles.files.OverwritePolicy;
 import org.simplifiles.files.SimpliFile;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.DownloadController;
 import org.telegram.messenger.FileLoader;
@@ -102,13 +108,13 @@ import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Components.BulletinFactory;
-import org.telegram.ui.Components.UItem;
 import org.telegram.ui.LaunchActivity;
 
-@Metadata(d1 = {"\u0000ô\u0001\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\u0010\u000e\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0010\u0000\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0000\n\u0002\u0018\u0002\n\u0002\b\n\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\f\n\u0002\u0018\u0002\n\u0002\b\t\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0010\"\n\u0002\b\u000e\n\u0002\u0018\u0002\n\u0002\b\t\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010 \n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\b\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0010$\n\u0002\b\t\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\b\b\u0007\u0018\u0000 \u009b\u00012\u00020\u0001:\u0006\u009b\u0001\u009c\u0001\u009d\u0001B\u0007¢\u0006\u0004\b\u0002\u0010\u0003J\b\u0010\u001b\u001a\u00020\u001cH\u0002J\n\u0010\u001d\u001a\u0004\u0018\u00010\u0011H\u0002J\b\u0010\u001e\u001a\u00020\u001fH\u0002J\u001c\u0010 \u001a\u00020\u000f2\b\u0010!\u001a\u0004\u0018\u00010\"2\b\u0010#\u001a\u0004\u0018\u00010$H\u0016J\b\u0010%\u001a\u00020\u000fH\u0016J\b\u0010&\u001a\u00020\u0007H\u0002J\u0018\u0010'\u001a\u00020\u001f2\u0006\u0010(\u001a\u00020\"2\u0006\u0010)\u001a\u00020\u000fH\u0002J\b\u0010*\u001a\u00020\u000fH\u0002J\b\u0010+\u001a\u00020\u001fH\u0002J \u0010,\u001a\u00020\u001f2\u0006\u0010-\u001a\u00020\u00072\u0006\u0010!\u001a\u00020\"2\u0006\u0010.\u001a\u00020\u0006H\u0002J\u0010\u0010/\u001a\u00020\u001f2\u0006\u00100\u001a\u000201H\u0016J\b\u00102\u001a\u00020\u001fH\u0016J\b\u00103\u001a\u00020\u001fH\u0002J\b\u00104\u001a\u00020\u001fH\u0002J\u0010\u00105\u001a\u00020\u001f2\u0006\u00100\u001a\u000201H\u0016J\u0010\u00106\u001a\u00020\u001f2\b\u00100\u001a\u0004\u0018\u000101J\u0016\u00107\u001a\u00020\u001f2\u0006\u00108\u001a\u00020\u00062\u0006\u00109\u001a\u00020\u0006J \u00107\u001a\u00020\u001f2\u0006\u00108\u001a\u00020\u00062\u0006\u00109\u001a\u00020\u00062\b\u0010:\u001a\u0004\u0018\u00010;J*\u00107\u001a\u00020\u001f2\u0006\u00108\u001a\u00020\u00062\u0006\u00109\u001a\u00020\u00062\b\u0010:\u001a\u0004\u0018\u00010;2\b\u0010<\u001a\u0004\u0018\u00010=J\"\u0010>\u001a\u00020\u001f2\u0006\u00108\u001a\u00020\u00062\u0006\u0010?\u001a\u00020;2\b\u0010<\u001a\u0004\u0018\u00010=H\u0002J&\u0010@\u001a\u00020\u001f2\u0006\u00108\u001a\u00020\u00062\u0006\u0010A\u001a\u00020\u00062\f\u0010B\u001a\b\u0012\u0004\u0012\u00020\u00060CH\u0002J\u0010\u0010D\u001a\u00020\u001f2\u0006\u00108\u001a\u00020\u0006H\u0002J\b\u0010E\u001a\u00020\u001fH\u0002J\u0018\u0010F\u001a\u00020\u001f2\u0006\u0010-\u001a\u00020\u00072\u0006\u0010G\u001a\u00020\u0006H\u0002J\b\u0010H\u001a\u00020\u001fH\u0002J\u0018\u0010I\u001a\u00020\u001f2\u0006\u0010J\u001a\u00020\u00072\u0006\u0010G\u001a\u00020\u0006H\u0002J*\u0010K\u001a\u00020\u001f2\u0006\u00108\u001a\u00020\u00062\u0006\u00109\u001a\u00020\u00062\u0006\u0010?\u001a\u00020;2\b\u0010<\u001a\u0004\u0018\u00010=H\u0002J\u000e\u0010L\u001a\u00020\u001f2\u0006\u00108\u001a\u00020\u0006J\u001a\u0010M\u001a\u00020\u001f2\u0006\u00108\u001a\u00020\u00062\b\u0010N\u001a\u0004\u0018\u00010\"H\u0002J\"\u0010O\u001a\u00020\u001f2\u0006\u0010-\u001a\u00020\u00072\u0006\u00108\u001a\u00020\u00062\b\u0010N\u001a\u0004\u0018\u00010\"H\u0002J(\u0010P\u001a\u00020\u001f2\u0006\u00108\u001a\u00020\u00062\u0006\u0010Q\u001a\u00020\u000f2\u000e\u00100\u001a\n\u0012\u0004\u0012\u00020\u0006\u0018\u00010RH\u0016J \u0010S\u001a\u00020\u001f2\u0006\u00108\u001a\u00020\u00062\u000e\u00100\u001a\n\u0012\u0004\u0012\u00020\u0006\u0018\u00010RH\u0016J\u0010\u0010T\u001a\u00020\u00062\u0006\u0010U\u001a\u00020\u0006H\u0016J\b\u0010V\u001a\u00020\u000fH\u0016J\u0010\u0010W\u001a\u00020\u001f2\u0006\u0010U\u001a\u00020\u0006H\u0016J\u0010\u0010X\u001a\u00020\u001f2\u0006\u0010U\u001a\u00020\u0006H\u0016J(\u0010Y\u001a\u00020\u001f2\u0006\u00109\u001a\u00020\u00062\b\u0010?\u001a\u0004\u0018\u00010;2\u000e\u00100\u001a\n\u0012\u0004\u0012\u00020\u0006\u0018\u00010RJ2\u0010Y\u001a\u00020\u001f2\u0006\u00109\u001a\u00020\u00062\b\u0010?\u001a\u0004\u0018\u00010;2\u000e\u00100\u001a\n\u0012\u0004\u0012\u00020\u0006\u0018\u00010R2\b\u0010<\u001a\u0004\u0018\u00010=J\u0012\u0010Z\u001a\u0004\u0018\u00010\u00062\u0006\u00108\u001a\u00020\u0006H\u0002J\u000e\u0010[\u001a\u00020\\2\u0006\u00109\u001a\u00020\u0006J\u001a\u0010]\u001a\b\u0012\u0004\u0012\u00020_0^2\f\u0010`\u001a\b\u0012\u0004\u0012\u00020\u00070^J\u0018\u0010a\u001a\n\u0012\u0004\u0012\u00020_\u0018\u00010^2\u0006\u0010U\u001a\u00020\u0006H\u0016J\u0010\u0010b\u001a\u00020\u001f2\u0006\u0010c\u001a\u00020\u0006H\u0016J_\u0010d\u001a\b\u0012\u0004\u0012\u0002Hf0e\"\u0004\b\u0000\u0010f2\b\u0010g\u001a\u0004\u0018\u00010\u00072\b\u0010h\u001a\u0004\u0018\u0001Hf2\f\u0010i\u001a\b\u0012\u0004\u0012\u0002Hf0j2\u0006\u0010k\u001a\u00020\u00062\f\u0010l\u001a\b\u0012\u0004\u0012\u0002Hf0m2\f\u0010n\u001a\b\u0012\u0004\u0012\u00020o0RH\u0002¢\u0006\u0002\u0010pJ]\u0010d\u001a\b\u0012\u0004\u0012\u0002Hf0e\"\u0004\b\u0000\u0010f2\u0006\u00108\u001a\u00020\u00062\b\u0010h\u001a\u0004\u0018\u0001Hf2\f\u0010i\u001a\b\u0012\u0004\u0012\u0002Hf0j2\u0006\u0010k\u001a\u00020\u00062\f\u0010l\u001a\b\u0012\u0004\u0012\u0002Hf0m2\f\u0010n\u001a\b\u0012\u0004\u0012\u00020o0RH\u0002¢\u0006\u0002\u0010qJ0\u0010r\u001a\b\u0012\u0004\u0012\u00020s0e2\u0006\u0010t\u001a\u00020\u00062\u0006\u0010u\u001a\u00020v2\b\u0010w\u001a\u0004\u0018\u00010s2\u0006\u00108\u001a\u00020\u0006H\u0016J:\u0010x\u001a\b\u0012\u0004\u0012\u00020y0e2\u0006\u0010t\u001a\u00020\u00062\u0006\u0010u\u001a\u00020v2\b\u0010z\u001a\u0004\u0018\u00010s2\b\u0010{\u001a\u0004\u0018\u00010|2\b\u0010g\u001a\u0004\u0018\u00010\u0007J:\u0010x\u001a\b\u0012\u0004\u0012\u00020y0e2\u0006\u0010t\u001a\u00020\u00062\u0006\u0010u\u001a\u00020v2\b\u0010z\u001a\u0004\u0018\u00010s2\b\u0010{\u001a\u0004\u0018\u00010|2\u0006\u00108\u001a\u00020\u0006H\u0016J1\u0010}\u001a\b\u0012\u0004\u0012\u00020~0e2\u0006\u0010\u007f\u001a\u00020\u00062\u0006\u0010u\u001a\u00020v2\t\u0010\u0080\u0001\u001a\u0004\u0018\u00010~2\u0006\u00108\u001a\u00020\u0006H\u0016J5\u0010\u0081\u0001\u001a\t\u0012\u0005\u0012\u00030\u0082\u00010e2\u0007\u0010\u0083\u0001\u001a\u00020\u00062\u0006\u0010u\u001a\u00020v2\n\u0010\u0084\u0001\u001a\u0005\u0018\u00010\u0082\u00012\u0006\u00108\u001a\u00020\u0006H\u0016J,\u0010\u0085\u0001\u001a\t\u0012\u0005\u0012\u00030\u0086\u00010e2\u0006\u0010u\u001a\u00020v2\n\u0010\u0087\u0001\u001a\u0005\u0018\u00010\u0086\u00012\u0006\u00108\u001a\u00020\u0006H\u0016J\u001c\u0010\u0088\u0001\u001a\u0004\u0018\u00010\u00062\b\u00109\u001a\u0004\u0018\u00010\u00062\u0007\u0010\u0089\u0001\u001a\u00020\u0006J\u001e\u0010\u008a\u0001\u001a\u000f\u0012\u0004\u0012\u00020\u0006\u0012\u0004\u0012\u00020\u00060\u008b\u00012\b\u00109\u001a\u0004\u0018\u00010\u0006J'\u0010\u008c\u0001\u001a\u0004\u0018\u00010\u000b2\u0006\u00108\u001a\u00020\u00062\u0007\u0010\u008d\u0001\u001a\u00020\u00062\t\u0010\u008e\u0001\u001a\u0004\u0018\u00010\u000bH\u0016J%\u0010\u008f\u0001\u001a\u00020\u001f2\u0006\u00108\u001a\u00020\u00062\u0007\u0010\u008d\u0001\u001a\u00020\u00062\t\u0010\u0090\u0001\u001a\u0004\u0018\u00010\u000bH\u0016J\u0011\u0010\u0091\u0001\u001a\u00020\u001f2\u0006\u00108\u001a\u00020\u0006H\u0016J\u001e\u0010\u0092\u0001\u001a\u000f\u0012\u0004\u0012\u00020\u0006\u0012\u0002\b\u0003\u0018\u00010\u008b\u00012\u0006\u00108\u001a\u00020\u0006H\u0016J\u001d\u0010\u0093\u0001\u001a\u00020\u001f2\b\u0010\u0094\u0001\u001a\u00030\u0095\u00012\b\u0010\u0087\u0001\u001a\u00030\u0096\u0001H\u0016J\u001b\u0010\u0097\u0001\u001a\u00020\u001f2\u0006\u0010U\u001a\u00020\u00062\b\u0010\u0094\u0001\u001a\u00030\u0095\u0001H\u0016J\u001c\u0010\u0097\u0001\u001a\u00020\u001f2\u0007\u0010\u0098\u0001\u001a\u00020;2\b\u0010\u0094\u0001\u001a\u00030\u0095\u0001H\u0016J%\u0010\u0099\u0001\u001a\u00020\u001f2\u0007\u0010\u0098\u0001\u001a\u00020;2\u0007\u0010\u009a\u0001\u001a\u00020\u00062\b\u0010\u0094\u0001\u001a\u00030\u0095\u0001H\u0016J$\u0010\u0099\u0001\u001a\u00020\u001f2\u0006\u00108\u001a\u00020\u00062\u0007\u0010\u009a\u0001\u001a\u00020\u00062\b\u0010\u0094\u0001\u001a\u00030\u0095\u0001H\u0016R\u001d\u0010\u0004\u001a\u000e\u0012\u0004\u0012\u00020\u0006\u0012\u0004\u0012\u00020\u00070\u0005¢\u0006\b\n\u0000\u001a\u0004\b\b\u0010\tR(\u0010\n\u001a\u001c\u0012\u0004\u0012\u00020\u0006\u0012\u0012\u0012\u0010\u0012\u0004\u0012\u00020\u0006\u0012\u0006\u0012\u0004\u0018\u00010\u000b0\u00050\u0005X\u0082\u0004¢\u0006\u0002\n\u0000RN\u0010\f\u001aB\u0012\f\u0012\n \u000e*\u0004\u0018\u00010\u00060\u0006\u0012\f\u0012\n \u000e*\u0004\u0018\u00010\u000f0\u000f \u000e* \u0012\f\u0012\n \u000e*\u0004\u0018\u00010\u00060\u0006\u0012\f\u0012\n \u000e*\u0004\u0018\u00010\u000f0\u000f\u0018\u00010\r0\rX\u0082\u0004¢\u0006\u0002\n\u0000R\u0010\u0010\u0010\u001a\u0004\u0018\u00010\u0011X\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u0012\u001a\u0004\u0018\u00010\u0007X\u0082\u000e¢\u0006\u0002\n\u0000R\u001c\u0010\u0013\u001a\u0004\u0018\u00010\u0007X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u0014\u0010\u0015\"\u0004\b\u0016\u0010\u0017R\u001c\u0010\u0018\u001a\u0004\u0018\u00010\u0007X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u0019\u0010\u0015\"\u0004\b\u001a\u0010\u0017¨\u0006\u009e\u0001"}, d2 = {"Lcom/exteragram/messenger/plugins/PythonPluginsEngine;", "Lcom/exteragram/messenger/plugins/PluginsController$PluginsEngine;", "<init>", "()V", "pluginInstances", "Ljava/util/concurrent/ConcurrentHashMap;", _UrlKt.FRAGMENT_ENCODE_SET, "Lcom/chaquo/python/PyObject;", "getPluginInstances", "()Ljava/util/concurrent/ConcurrentHashMap;", "settingsCache", _UrlKt.FRAGMENT_ENCODE_SET, "dependencyPaths", "Ljava/util/concurrent/ConcurrentHashMap$KeySetView;", "kotlin.jvm.PlatformType", _UrlKt.FRAGMENT_ENCODE_SET, "python", "Lcom/chaquo/python/Python;", "devServerClass", "debuggerListener", "getDebuggerListener", "()Lcom/chaquo/python/PyObject;", "setDebuggerListener", "(Lcom/chaquo/python/PyObject;)V", "basePluginClass", "getBasePluginClass", "setBasePluginClass", "getPluginsController", "Lcom/exteragram/messenger/plugins/PluginsController;", "getPython", "initPython", _UrlKt.FRAGMENT_ENCODE_SET, "isPlugin", "file", "Ljava/io/File;", "messageObject", "Lorg/telegram/messenger/MessageObject;", "isEngineAvailable", "requireBasePluginClass", "installSdkArchive", "archiveFile", "fromApk", "initSdk", "stopAndUnloadSdk", "removeModulesRecursive", "sysModules", "prefix", "init", Callback.METHOD_NAME, "Ljava/lang/Runnable;", "checkDevServer", "runDevServer", "stopDevServer", "shutdown", "loadPlugins", "loadPlugin", "pluginId", "filePath", "metadata", "Lcom/exteragram/messenger/plugins/Plugin;", "delegate", "Lcom/exteragram/messenger/plugins/pip/PipController$InstallerDelegate;", "installPluginDependencies", "pluginMetadata", "disableShadowedPlugins", "dependencyName", "providedModules", _UrlKt.FRAGMENT_ENCODE_SET, "removePluginDependencies", "pruneDependencyPaths", "removeModulesUnderPath", "path", "removePluginPathsFromSysPath", "removeFromSysPath", "sysPath", "createPluginInstance", "unloadPlugin", "refreshImportCaches", "moduleDir", "evictPluginModule", "setPluginEnabled", "enabled", "Lorg/telegram/messenger/Utilities$Callback;", "deletePlugin", "getPluginPath", "id", "canOpenInExternalApp", "openInExternalApp", "sharePlugin", "loadPluginFromFile", "findModuleNameOwner", "validatePluginFromFile", "Lcom/exteragram/messenger/plugins/PluginsController$PluginValidationResult;", "parsePySettingDefinitions", _UrlKt.FRAGMENT_ENCODE_SET, "Lcom/exteragram/messenger/plugins/models/SettingItem;", "pyDefinitionsList", "loadPluginSettings", "executeOnAppEvent", "eventType", "executeHook", "Lcom/exteragram/messenger/plugins/PluginsController$HookResult;", "T", "pluginInstance", "initialValue", "valueClass", "Ljava/lang/Class;", "pyResultKey", "caller", "Lcom/exteragram/messenger/plugins/PythonPluginsEngine$PyMethodCaller;", "errorLogger", "Lcom/chaquo/python/PyException;", "(Lcom/chaquo/python/PyObject;Ljava/lang/Object;Ljava/lang/Class;Ljava/lang/String;Lcom/exteragram/messenger/plugins/PythonPluginsEngine$PyMethodCaller;Lorg/telegram/messenger/Utilities$Callback;)Lcom/exteragram/messenger/plugins/PluginsController$HookResult;", "(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Class;Ljava/lang/String;Lcom/exteragram/messenger/plugins/PythonPluginsEngine$PyMethodCaller;Lorg/telegram/messenger/Utilities$Callback;)Lcom/exteragram/messenger/plugins/PluginsController$HookResult;", "executePreRequestHook", "Lorg/telegram/tgnet/TLObject;", "requestName", "account", _UrlKt.FRAGMENT_ENCODE_SET, "request", "executePostRequestHook", "Lcom/exteragram/messenger/plugins/hooks/PluginsHooks$PostRequestResult;", "response", "", "Lorg/telegram/tgnet/TLRPC$TL_error;", "executeUpdateHook", "Lorg/telegram/tgnet/TLRPC$Update;", "updateName", "update", "executeUpdatesHook", "Lorg/telegram/tgnet/TLRPC$Updates;", "containerName", "updates", "executeSendMessageHook", "Lorg/telegram/messenger/SendMessagesHelper$SendMessageParams;", "params", "fetchParameterValue", "parameterName", "parsePluginMetadata", _UrlKt.FRAGMENT_ENCODE_SET, "getPluginSetting", "key", "defaultValue", "setPluginSetting", "value", "clearPluginSettings", "getAllPluginSettings", "showInstallDialog", "fragment", "Lorg/telegram/ui/ActionBar/BaseFragment;", "Lcom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet$PluginInstallParams;", "openPluginSettings", "plugin", "openPluginSetting", "linkAlias", "Companion", "PyMethodCaller", "Updater", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
-@SourceDebugExtension({"SMAP\nPythonPluginsEngine.kt\nKotlin\n*S Kotlin\n*F\n+ 1 PythonPluginsEngine.kt\ncom/exteragram/messenger/plugins/PythonPluginsEngine\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n+ 3 SharedPreferences.kt\nandroidx/core/content/SharedPreferencesKt\n+ 4 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n+ 5 ArraysJVM.kt\nkotlin/collections/ArraysKt__ArraysJVMKt\n*L\n1#1,2775:1\n1#2:2776\n41#3,12:2777\n41#3,12:2795\n41#3,12:2810\n41#3,12:2822\n41#3,12:2834\n1300#4,2:2789\n1315#4,4:2791\n777#4:2807\n873#4,2:2808\n1586#4:2846\n1661#4,3:2847\n296#4,2:2850\n1586#4:2852\n1661#4,3:2853\n777#4:2856\n873#4,2:2857\n1834#4,4:2859\n37#5,2:2863\n*S KotlinDebug\n*F\n+ 1 PythonPluginsEngine.kt\ncom/exteragram/messenger/plugins/PythonPluginsEngine\n*L\n502#1:2777,12\n792#1:2795,12\n1039#1:2810,12\n1044#1:2822,12\n1059#1:2834,12\n752#1:2789,2\n752#1:2791,4\n814#1:2807\n814#1:2808,2\n1281#1:2846\n1281#1:2847,3\n1282#1:2850,2\n1400#1:2852\n1400#1:2853,3\n1401#1:2856\n1401#1:2857,2\n669#1:2859,4\n2093#1:2863,2\n*E\n"})
+@Metadata(d1 = {"\u0000ú\u0001\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\u0010\u000e\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0010\u0000\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\n\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\f\n\u0002\u0018\u0002\n\u0002\b\u000b\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0010\"\n\u0002\b\u000f\n\u0002\u0018\u0002\n\u0002\b\t\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010 \n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0003\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\b\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0010$\n\u0002\b\t\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\t\u0018\u0000  \u00012\u00020\u0001:\b \u0001¡\u0001¢\u0001£\u0001B\u0007¢\u0006\u0004\b\u0002\u0010\u0003J\b\u0010\u001d\u001a\u00020\u001eH\u0002J\n\u0010\u001f\u001a\u0004\u0018\u00010\u0013H\u0002J\b\u0010 \u001a\u00020!H\u0002J\u001c\u0010\"\u001a\u00020\u000f2\b\u0010#\u001a\u0004\u0018\u00010$2\b\u0010%\u001a\u0004\u0018\u00010&H\u0016J\b\u0010'\u001a\u00020\u000fH\u0016J\b\u0010(\u001a\u00020\u0007H\u0002J\u0018\u0010)\u001a\u00020!2\u0006\u0010*\u001a\u00020$2\u0006\u0010+\u001a\u00020\u000fH\u0002J\b\u0010,\u001a\u00020\u000fH\u0002J\b\u0010-\u001a\u00020!H\u0002J \u0010.\u001a\u00020!2\u0006\u0010/\u001a\u00020\u00072\u0006\u0010#\u001a\u00020$2\u0006\u00100\u001a\u00020\u0006H\u0002J\u0010\u00101\u001a\u00020!2\u0006\u00102\u001a\u000203H\u0016J\b\u00104\u001a\u00020!H\u0016J\b\u00105\u001a\u00020!H\u0002J\b\u00106\u001a\u00020!H\u0002J\r\u00107\u001a\u00020!H\u0000¢\u0006\u0002\b8J\u0010\u00109\u001a\u00020!2\u0006\u00102\u001a\u000203H\u0016J\u0010\u0010:\u001a\u00020!2\b\u00102\u001a\u0004\u0018\u000103J\u0016\u0010;\u001a\u00020!2\u0006\u0010<\u001a\u00020\u00062\u0006\u0010=\u001a\u00020\u0006J \u0010;\u001a\u00020!2\u0006\u0010<\u001a\u00020\u00062\u0006\u0010=\u001a\u00020\u00062\b\u0010>\u001a\u0004\u0018\u00010?J*\u0010;\u001a\u00020!2\u0006\u0010<\u001a\u00020\u00062\u0006\u0010=\u001a\u00020\u00062\b\u0010>\u001a\u0004\u0018\u00010?2\b\u0010@\u001a\u0004\u0018\u00010AJ\"\u0010B\u001a\u00020!2\u0006\u0010<\u001a\u00020\u00062\u0006\u0010C\u001a\u00020?2\b\u0010@\u001a\u0004\u0018\u00010AH\u0002J&\u0010D\u001a\u00020!2\u0006\u0010<\u001a\u00020\u00062\u0006\u0010E\u001a\u00020\u00062\f\u0010F\u001a\b\u0012\u0004\u0012\u00020\u00060GH\u0002J\u0010\u0010H\u001a\u00020!2\u0006\u0010<\u001a\u00020\u0006H\u0002J\b\u0010I\u001a\u00020!H\u0002J\u0018\u0010J\u001a\u00020!2\u0006\u0010/\u001a\u00020\u00072\u0006\u0010K\u001a\u00020\u0006H\u0002J\b\u0010L\u001a\u00020!H\u0002J\u0018\u0010M\u001a\u00020!2\u0006\u0010N\u001a\u00020\u00072\u0006\u0010K\u001a\u00020\u0006H\u0002J*\u0010O\u001a\u00020!2\u0006\u0010<\u001a\u00020\u00062\u0006\u0010=\u001a\u00020\u00062\u0006\u0010C\u001a\u00020?2\b\u0010@\u001a\u0004\u0018\u00010AH\u0002J\u000e\u0010P\u001a\u00020!2\u0006\u0010<\u001a\u00020\u0006J\u0010\u0010Q\u001a\u00020!2\u0006\u0010<\u001a\u00020\u0006H\u0002J\u001a\u0010R\u001a\u00020!2\u0006\u0010<\u001a\u00020\u00062\b\u0010S\u001a\u0004\u0018\u00010$H\u0002J\"\u0010T\u001a\u00020!2\u0006\u0010/\u001a\u00020\u00072\u0006\u0010<\u001a\u00020\u00062\b\u0010S\u001a\u0004\u0018\u00010$H\u0002J(\u0010U\u001a\u00020!2\u0006\u0010<\u001a\u00020\u00062\u0006\u0010V\u001a\u00020\u000f2\u000e\u00102\u001a\n\u0012\u0004\u0012\u00020\u0006\u0018\u00010WH\u0016J \u0010X\u001a\u00020!2\u0006\u0010<\u001a\u00020\u00062\u000e\u00102\u001a\n\u0012\u0004\u0012\u00020\u0006\u0018\u00010WH\u0016J\u0010\u0010Y\u001a\u00020\u00062\u0006\u0010Z\u001a\u00020\u0006H\u0016J\b\u0010[\u001a\u00020\u000fH\u0016J\u0010\u0010\\\u001a\u00020!2\u0006\u0010Z\u001a\u00020\u0006H\u0016J\u0010\u0010]\u001a\u00020!2\u0006\u0010Z\u001a\u00020\u0006H\u0016J(\u0010^\u001a\u00020!2\u0006\u0010=\u001a\u00020\u00062\b\u0010C\u001a\u0004\u0018\u00010?2\u000e\u00102\u001a\n\u0012\u0004\u0012\u00020\u0006\u0018\u00010WJ4\u0010^\u001a\u00020!2\u0006\u0010=\u001a\u00020\u00062\b\u0010C\u001a\u0004\u0018\u00010?2\u000e\u00102\u001a\n\u0012\u0004\u0012\u00020\u0006\u0018\u00010W2\b\u0010@\u001a\u0004\u0018\u00010AH\u0016J\u0012\u0010_\u001a\u0004\u0018\u00010\u00062\u0006\u0010<\u001a\u00020\u0006H\u0002J\u000e\u0010`\u001a\u00020a2\u0006\u0010=\u001a\u00020\u0006J\u001a\u0010b\u001a\b\u0012\u0004\u0012\u00020d0c2\f\u0010e\u001a\b\u0012\u0004\u0012\u00020\u00070cJ\u0018\u0010f\u001a\n\u0012\u0004\u0012\u00020d\u0018\u00010c2\u0006\u0010Z\u001a\u00020\u0006H\u0016J\u0010\u0010g\u001a\u00020!2\u0006\u0010h\u001a\u00020\u0006H\u0016J_\u0010i\u001a\b\u0012\u0004\u0012\u0002Hk0j\"\u0004\b\u0000\u0010k2\b\u0010l\u001a\u0004\u0018\u00010\u00072\b\u0010m\u001a\u0004\u0018\u0001Hk2\f\u0010n\u001a\b\u0012\u0004\u0012\u0002Hk0o2\u0006\u0010p\u001a\u00020\u00062\f\u0010q\u001a\b\u0012\u0004\u0012\u0002Hk0r2\f\u0010s\u001a\b\u0012\u0004\u0012\u00020t0WH\u0002¢\u0006\u0002\u0010uJ]\u0010i\u001a\b\u0012\u0004\u0012\u0002Hk0j\"\u0004\b\u0000\u0010k2\u0006\u0010<\u001a\u00020\u00062\b\u0010m\u001a\u0004\u0018\u0001Hk2\f\u0010n\u001a\b\u0012\u0004\u0012\u0002Hk0o2\u0006\u0010p\u001a\u00020\u00062\f\u0010q\u001a\b\u0012\u0004\u0012\u0002Hk0r2\f\u0010s\u001a\b\u0012\u0004\u0012\u00020t0WH\u0002¢\u0006\u0002\u0010vJ0\u0010w\u001a\b\u0012\u0004\u0012\u00020x0j2\u0006\u0010y\u001a\u00020\u00062\u0006\u0010z\u001a\u00020{2\b\u0010|\u001a\u0004\u0018\u00010x2\u0006\u0010<\u001a\u00020\u0006H\u0016J<\u0010}\u001a\b\u0012\u0004\u0012\u00020~0j2\u0006\u0010y\u001a\u00020\u00062\u0006\u0010z\u001a\u00020{2\b\u0010\u007f\u001a\u0004\u0018\u00010x2\n\u0010\u0080\u0001\u001a\u0005\u0018\u00010\u0081\u00012\b\u0010l\u001a\u0004\u0018\u00010\u0007J<\u0010}\u001a\b\u0012\u0004\u0012\u00020~0j2\u0006\u0010y\u001a\u00020\u00062\u0006\u0010z\u001a\u00020{2\b\u0010\u007f\u001a\u0004\u0018\u00010x2\n\u0010\u0080\u0001\u001a\u0005\u0018\u00010\u0081\u00012\u0006\u0010<\u001a\u00020\u0006H\u0016J5\u0010\u0082\u0001\u001a\t\u0012\u0005\u0012\u00030\u0083\u00010j2\u0007\u0010\u0084\u0001\u001a\u00020\u00062\u0006\u0010z\u001a\u00020{2\n\u0010\u0085\u0001\u001a\u0005\u0018\u00010\u0083\u00012\u0006\u0010<\u001a\u00020\u0006H\u0016J5\u0010\u0086\u0001\u001a\t\u0012\u0005\u0012\u00030\u0087\u00010j2\u0007\u0010\u0088\u0001\u001a\u00020\u00062\u0006\u0010z\u001a\u00020{2\n\u0010\u0089\u0001\u001a\u0005\u0018\u00010\u0087\u00012\u0006\u0010<\u001a\u00020\u0006H\u0016J,\u0010\u008a\u0001\u001a\t\u0012\u0005\u0012\u00030\u008b\u00010j2\u0006\u0010z\u001a\u00020{2\n\u0010\u008c\u0001\u001a\u0005\u0018\u00010\u008b\u00012\u0006\u0010<\u001a\u00020\u0006H\u0016J\u001c\u0010\u008d\u0001\u001a\u0004\u0018\u00010\u00062\b\u0010=\u001a\u0004\u0018\u00010\u00062\u0007\u0010\u008e\u0001\u001a\u00020\u0006J \u0010\u008f\u0001\u001a\u000f\u0012\u0004\u0012\u00020\u0006\u0012\u0004\u0012\u00020\u00060\u0090\u00012\b\u0010=\u001a\u0004\u0018\u00010\u0006H\u0016J'\u0010\u0091\u0001\u001a\u0004\u0018\u00010\u000b2\u0006\u0010<\u001a\u00020\u00062\u0007\u0010\u0092\u0001\u001a\u00020\u00062\t\u0010\u0093\u0001\u001a\u0004\u0018\u00010\u000bH\u0016J%\u0010\u0094\u0001\u001a\u00020!2\u0006\u0010<\u001a\u00020\u00062\u0007\u0010\u0092\u0001\u001a\u00020\u00062\t\u0010\u0095\u0001\u001a\u0004\u0018\u00010\u000bH\u0016J\u0011\u0010\u0096\u0001\u001a\u00020!2\u0006\u0010<\u001a\u00020\u0006H\u0016J\u001e\u0010\u0097\u0001\u001a\u000f\u0012\u0004\u0012\u00020\u0006\u0012\u0002\b\u0003\u0018\u00010\u0090\u00012\u0006\u0010<\u001a\u00020\u0006H\u0016J\u001d\u0010\u0098\u0001\u001a\u00020!2\b\u0010\u0099\u0001\u001a\u00030\u009a\u00012\b\u0010\u008c\u0001\u001a\u00030\u009b\u0001H\u0016J\u001b\u0010\u009c\u0001\u001a\u00020!2\u0006\u0010Z\u001a\u00020\u00062\b\u0010\u0099\u0001\u001a\u00030\u009a\u0001H\u0016J\u001c\u0010\u009c\u0001\u001a\u00020!2\u0007\u0010\u009d\u0001\u001a\u00020?2\b\u0010\u0099\u0001\u001a\u00030\u009a\u0001H\u0016J%\u0010\u009e\u0001\u001a\u00020!2\u0007\u0010\u009d\u0001\u001a\u00020?2\u0007\u0010\u009f\u0001\u001a\u00020\u00062\b\u0010\u0099\u0001\u001a\u00030\u009a\u0001H\u0016J$\u0010\u009e\u0001\u001a\u00020!2\u0006\u0010<\u001a\u00020\u00062\u0007\u0010\u009f\u0001\u001a\u00020\u00062\b\u0010\u0099\u0001\u001a\u00030\u009a\u0001H\u0016R\u001d\u0010\u0004\u001a\u000e\u0012\u0004\u0012\u00020\u0006\u0012\u0004\u0012\u00020\u00070\u0005¢\u0006\b\n\u0000\u001a\u0004\b\b\u0010\tR(\u0010\n\u001a\u001c\u0012\u0004\u0012\u00020\u0006\u0012\u0012\u0012\u0010\u0012\u0004\u0012\u00020\u0006\u0012\u0006\u0012\u0004\u0018\u00010\u000b0\u00050\u0005X\u0082\u0004¢\u0006\u0002\n\u0000RN\u0010\f\u001aB\u0012\f\u0012\n \u000e*\u0004\u0018\u00010\u00060\u0006\u0012\f\u0012\n \u000e*\u0004\u0018\u00010\u000f0\u000f \u000e* \u0012\f\u0012\n \u000e*\u0004\u0018\u00010\u00060\u0006\u0012\f\u0012\n \u000e*\u0004\u0018\u00010\u000f0\u000f\u0018\u00010\r0\rX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0010\u001a\u00020\u0011X\u0082\u0004¢\u0006\u0002\n\u0000R\u0010\u0010\u0012\u001a\u0004\u0018\u00010\u0013X\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u0014\u001a\u0004\u0018\u00010\u0007X\u0082\u000e¢\u0006\u0002\n\u0000R\u001c\u0010\u0015\u001a\u0004\u0018\u00010\u0007X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u0016\u0010\u0017\"\u0004\b\u0018\u0010\u0019R\u001c\u0010\u001a\u001a\u0004\u0018\u00010\u0007X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u001b\u0010\u0017\"\u0004\b\u001c\u0010\u0019¨\u0006¤\u0001"}, d2 = {"Lcom/exteragram/messenger/plugins/PythonPluginsEngine;", "Lcom/exteragram/messenger/plugins/PluginsController$PluginsEngine;", "<init>", "()V", "pluginInstances", "Ljava/util/concurrent/ConcurrentHashMap;", _UrlKt.FRAGMENT_ENCODE_SET, "Lcom/chaquo/python/PyObject;", "getPluginInstances", "()Ljava/util/concurrent/ConcurrentHashMap;", "settingsCache", _UrlKt.FRAGMENT_ENCODE_SET, "dependencyPaths", "Ljava/util/concurrent/ConcurrentHashMap$KeySetView;", "kotlin.jvm.PlatformType", _UrlKt.FRAGMENT_ENCODE_SET, "lifecycleGeneration", "Ljava/util/concurrent/atomic/AtomicInteger;", PluginsConstants.PYTHON, "Lcom/chaquo/python/Python;", "devServerClass", "debuggerListener", "getDebuggerListener", "()Lcom/chaquo/python/PyObject;", "setDebuggerListener", "(Lcom/chaquo/python/PyObject;)V", "basePluginClass", "getBasePluginClass", "setBasePluginClass", "getPluginsController", "Lcom/exteragram/messenger/plugins/PluginsController;", "getPython", "initPython", _UrlKt.FRAGMENT_ENCODE_SET, "isPlugin", "file", "Ljava/io/File;", "messageObject", "Lorg/telegram/messenger/MessageObject;", "isEngineAvailable", "requireBasePluginClass", "installSdkArchive", "archiveFile", "fromApk", "initSdk", "stopAndUnloadSdk", "removeModulesRecursive", "sysModules", "prefix", "init", Callback.METHOD_NAME, "Ljava/lang/Runnable;", "checkDevServer", "runDevServer", "stopDevServer", "stopPluginTasks", "stopPluginTasks$TMessagesProj", "shutdown", "loadPlugins", "loadPlugin", "pluginId", "filePath", "metadata", "Lcom/exteragram/messenger/plugins/Plugin;", "delegate", "Lcom/exteragram/messenger/plugins/pip/PipController$InstallerDelegate;", "installPluginDependencies", "pluginMetadata", "disableShadowedPlugins", "dependencyName", "providedModules", _UrlKt.FRAGMENT_ENCODE_SET, "removePluginDependencies", "pruneDependencyPaths", "removeModulesUnderPath", "path", "removePluginPathsFromSysPath", "removeFromSysPath", "sysPath", "createPluginInstance", "unloadPlugin", "releasePluginObjects", "refreshImportCaches", "moduleDir", "evictPluginModule", "setPluginEnabled", "enabled", "Lorg/telegram/messenger/Utilities$Callback;", "deletePlugin", "getPluginPath", "id", "canOpenInExternalApp", "openInExternalApp", "sharePlugin", "loadPluginFromFile", "findModuleNameOwner", "validatePluginFromFile", "Lcom/exteragram/messenger/plugins/PluginsController$PluginValidationResult;", "parsePySettingDefinitions", _UrlKt.FRAGMENT_ENCODE_SET, "Lcom/exteragram/messenger/plugins/models/SettingItem;", "pyDefinitionsList", "loadPluginSettings", "executeOnAppEvent", "eventType", "executeHook", "Lcom/exteragram/messenger/plugins/PluginsController$HookResult;", "T", "pluginInstance", "initialValue", "valueClass", "Ljava/lang/Class;", "pyResultKey", "caller", "Lcom/exteragram/messenger/plugins/PythonPluginsEngine$PyMethodCaller;", "errorLogger", _UrlKt.FRAGMENT_ENCODE_SET, "(Lcom/chaquo/python/PyObject;Ljava/lang/Object;Ljava/lang/Class;Ljava/lang/String;Lcom/exteragram/messenger/plugins/PythonPluginsEngine$PyMethodCaller;Lorg/telegram/messenger/Utilities$Callback;)Lcom/exteragram/messenger/plugins/PluginsController$HookResult;", "(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Class;Ljava/lang/String;Lcom/exteragram/messenger/plugins/PythonPluginsEngine$PyMethodCaller;Lorg/telegram/messenger/Utilities$Callback;)Lcom/exteragram/messenger/plugins/PluginsController$HookResult;", "executePreRequestHook", "Lorg/telegram/tgnet/TLObject;", "requestName", "account", _UrlKt.FRAGMENT_ENCODE_SET, PluginsConstants.REQUEST, "executePostRequestHook", "Lcom/exteragram/messenger/plugins/hooks/PluginsHooks$PostRequestResult;", PluginsConstants.RESPONSE, "error", "Lorg/telegram/tgnet/TLRPC$TL_error;", "executeUpdateHook", "Lorg/telegram/tgnet/TLRPC$Update;", "updateName", PluginsConstants.UPDATE, "executeUpdatesHook", "Lorg/telegram/tgnet/TLRPC$Updates;", "containerName", PluginsConstants.UPDATES, "executeSendMessageHook", "Lorg/telegram/messenger/SendMessagesHelper$SendMessageParams;", PluginsConstants.PARAMS, "fetchParameterValue", "parameterName", "parsePluginMetadata", _UrlKt.FRAGMENT_ENCODE_SET, "getPluginSetting", PluginsConstants.Settings.KEY, "defaultValue", "setPluginSetting", "value", "clearPluginSettings", "getAllPluginSettings", "showInstallDialog", "fragment", "Lorg/telegram/ui/ActionBar/BaseFragment;", "Lcom/exteragram/messenger/plugins/ui/components/InstallPluginBottomSheet$PluginInstallParams;", "openPluginSettings", "plugin", "openPluginSetting", "linkAlias", "Companion", "PyMethodCaller", "SdkState", "Updater", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+@SourceDebugExtension({"SMAP\nPythonPluginsEngine.kt\nKotlin\n*S Kotlin\n*F\n+ 1 PythonPluginsEngine.kt\ncom/exteragram/messenger/plugins/PythonPluginsEngine\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n+ 3 SharedPreferences.kt\nandroidx/core/content/SharedPreferencesKt\n+ 4 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n+ 5 ArraysJVM.kt\nkotlin/collections/ArraysKt__ArraysJVMKt\n*L\n1#1,2821:1\n1#2:2822\n41#3,12:2823\n41#3,12:2835\n41#3,12:2853\n41#3,12:2868\n41#3,12:2880\n41#3,12:2892\n41#3,12:2921\n1300#4,2:2847\n1315#4,4:2849\n777#4:2865\n873#4,2:2866\n1586#4:2904\n1661#4,3:2905\n296#4,2:2908\n1586#4:2910\n1661#4,3:2911\n777#4:2914\n873#4,2:2915\n1834#4,4:2917\n37#5,2:2933\n*S KotlinDebug\n*F\n+ 1 PythonPluginsEngine.kt\ncom/exteragram/messenger/plugins/PythonPluginsEngine\n*L\n508#1:2823,12\n749#1:2835,12\n810#1:2853,12\n1086#1:2868,12\n1091#1:2880,12\n1106#1:2892,12\n1272#1:2921,12\n770#1:2847,2\n770#1:2849,4\n832#1:2865\n832#1:2866,2\n1343#1:2904\n1343#1:2905,3\n1344#1:2908,2\n1462#1:2910\n1462#1:2911,3\n1463#1:2914\n1463#1:2915,2\n679#1:2917,4\n2179#1:2933,2\n*E\n"})
 public final class PythonPluginsEngine implements PluginsController.PluginsEngine {
     private static final long MAX_SDK_VERSION_BYTES = 65536;
+    private static final String SAFE_MODE_ENABLE_ERROR = "Plugins cannot be enabled while safe mode is active";
     private static boolean SDK_BETA;
     private static File SDK_DIR;
     private static String SDK_VERSION;
@@ -117,21 +123,36 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
     private PyObject debuggerListener;
     private PyObject devServerClass;
     private volatile Python python;
-    private static final String SAFE_MODE_ENABLE_ERROR = "Plugins cannot be enabled while safe mode is active";
 
-    /* JADX INFO: renamed from: Companion, reason: from kotlin metadata */
     public static final Companion INSTANCE = new Companion(null);
     private static final Pattern VERSION_PATTERN = Pattern.compile("^(>=|<=|==|>|<)(.+)$");
     private static final String[] SDK_REQUIRED_MODULES = {"_sdk_version", "base_plugin", "plugin_settings"};
     private static final SecurityPolicy SDK_ARCHIVE_POLICY = SecurityPolicy.INSTANCE.builder().maxEntries(100000).maxTotalUncompressedSize(2147483648L).maxSingleFileSize(536870912).maxCompressionRatio(500.0d).build();
     private static final ArchiveExtractionOptions SDK_ARCHIVE_OPTIONS = ArchiveExtractionOptions.INSTANCE.builder().targetPolicy(ExtractionTargetPolicy.REPLACE).build();
+    private static volatile SdkState sdkState = SdkState.READY;
     private final ConcurrentHashMap<String, PyObject> pluginInstances = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ConcurrentHashMap<String, Object>> settingsCache = new ConcurrentHashMap<>();
     private final ConcurrentHashMap.KeySetView<String, Boolean> dependencyPaths = ConcurrentHashMap.newKeySet();
+    private final AtomicInteger lifecycleGeneration = new AtomicInteger();
 
     @Metadata(d1 = {"\u0000\u0014\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0000\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0004\bâ\u0080\u0001\u0018\u0000*\u0004\b\u0000\u0010\u00012\u00020\u0002J!\u0010\u0003\u001a\u0004\u0018\u00010\u00042\u0006\u0010\u0005\u001a\u00020\u00042\b\u0010\u0006\u001a\u0004\u0018\u00018\u0000H&¢\u0006\u0002\u0010\u0007¨\u0006\bÀ\u0006\u0003"}, d2 = {"Lcom/exteragram/messenger/plugins/PythonPluginsEngine$PyMethodCaller;", "T", _UrlKt.FRAGMENT_ENCODE_SET, "call", "Lcom/chaquo/python/PyObject;", "instance", "value", "(Lcom/chaquo/python/PyObject;Ljava/lang/Object;)Lcom/chaquo/python/PyObject;", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
     public interface PyMethodCaller<T> {
         PyObject call(PyObject instance, T value);
+    }
+
+    @Metadata(d1 = {"\u0000\f\n\u0002\u0018\u0002\n\u0002\u0010\u0010\n\u0002\b\b\b\u0082\u0081\u0002\u0018\u00002\b\u0012\u0004\u0012\u00020\u00000\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003j\u0002\b\u0004j\u0002\b\u0005j\u0002\b\u0006j\u0002\b\u0007j\u0002\b\b¨\u0006\t"}, d2 = {"Lcom/exteragram/messenger/plugins/PythonPluginsEngine$SdkState;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "(Ljava/lang/String;I)V", "READY", "STARTING", "PYTHON_FAILED", "INSTALL_FAILED", "START_FAILED", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+    public enum SdkState {
+        READY,
+        STARTING,
+        PYTHON_FAILED,
+        INSTALL_FAILED,
+        START_FAILED;
+
+        private static final EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
+
+        public static EnumEntries<SdkState> getEntries() {
+            return $ENTRIES;
+        }
     }
 
     @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
@@ -139,10 +160,10 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         return true;
     }
 
-    @Metadata(d1 = {"\u0000T\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\u0011\n\u0002\u0010\u000e\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\t\n\u0002\b\u0007\n\u0002\u0010\u000b\n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0010\u0002\n\u0002\b\u0005\n\u0002\u0010\"\n\u0002\b\u0002\b\u0086\u0003\u0018\u00002\u00020\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\u0018\u0010 \u001a\u00020\u00182\u0006\u0010!\u001a\u00020\u001e2\u0006\u0010\"\u001a\u00020\tH\u0002J\u0012\u0010#\u001a\u00020$2\b\u0010%\u001a\u0004\u0018\u00010\u001eH\u0002J\u0012\u0010&\u001a\u00020\u00182\b\u0010!\u001a\u0004\u0018\u00010\u001eH\u0002J\u0014\u0010'\u001a\u0004\u0018\u00010\t2\b\u0010(\u001a\u0004\u0018\u00010\tH\u0002J\u0018\u0010)\u001a\b\u0012\u0004\u0012\u00020\t0*2\b\u0010+\u001a\u0004\u0018\u00010\u001eH\u0002R\u0016\u0010\u0004\u001a\n \u0006*\u0004\u0018\u00010\u00050\u0005X\u0082\u0004¢\u0006\u0002\n\u0000R\u0016\u0010\u0007\u001a\b\u0012\u0004\u0012\u00020\t0\bX\u0082\u0004¢\u0006\u0004\n\u0002\u0010\nR\u000e\u0010\u000b\u001a\u00020\fX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\r\u001a\u00020\u000eX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u000f\u001a\u00020\u0010X\u0082T¢\u0006\u0002\n\u0000R\u000e\u0010\u0011\u001a\u00020\tX\u0082T¢\u0006\u0002\n\u0000R\u001c\u0010\u0012\u001a\u0004\u0018\u00010\tX\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u0013\u0010\u0014\"\u0004\b\u0015\u0010\u0016R\u001a\u0010\u0017\u001a\u00020\u0018X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u0019\u0010\u001a\"\u0004\b\u001b\u0010\u001cR\u0010\u0010\u001d\u001a\u0004\u0018\u00010\u001eX\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\u001f\u001a\u00020\u0018X\u0082\u000e¢\u0006\u0002\n\u0000¨\u0006,"}, d2 = {"Lcom/exteragram/messenger/plugins/PythonPluginsEngine$Companion;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "VERSION_PATTERN", "Ljava/util/regex/Pattern;", "kotlin.jvm.PlatformType", "SDK_REQUIRED_MODULES", _UrlKt.FRAGMENT_ENCODE_SET, _UrlKt.FRAGMENT_ENCODE_SET, "[Ljava/lang/String;", "SDK_ARCHIVE_POLICY", "Lorg/simplifiles/archive/security/SecurityPolicy;", "SDK_ARCHIVE_OPTIONS", "Lorg/simplifiles/archive/ArchiveExtractionOptions;", "MAX_SDK_VERSION_BYTES", _UrlKt.FRAGMENT_ENCODE_SET, "SAFE_MODE_ENABLE_ERROR", "SDK_VERSION", "getSDK_VERSION", "()Ljava/lang/String;", "setSDK_VERSION", "(Ljava/lang/String;)V", "SDK_BETA", _UrlKt.FRAGMENT_ENCODE_SET, "getSDK_BETA", "()Z", "setSDK_BETA", "(Z)V", "SDK_DIR", "Ljava/io/File;", "sdkInitialized", "sdkModuleExists", "sdkDir", "moduleName", "deleteFileIfExists", _UrlKt.FRAGMENT_ENCODE_SET, "file", "isSdkDirValid", "canonicalPathOrNull", "path", "topLevelModuleNames", _UrlKt.FRAGMENT_ENCODE_SET, "dir", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
-    @SourceDebugExtension({"SMAP\nPythonPluginsEngine.kt\nKotlin\n*S Kotlin\n*F\n+ 1 PythonPluginsEngine.kt\ncom/exteragram/messenger/plugins/PythonPluginsEngine$Companion\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n*L\n1#1,2775:1\n1#2:2776\n*E\n"})
+    @Metadata(d1 = {"\u0000Z\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\u0011\n\u0002\u0010\u000e\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\t\n\u0002\b\u0007\n\u0002\u0010\u000b\n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0002\n\u0002\b\n\n\u0002\u0010\"\n\u0002\b\u0002\b\u0086\u0003\u0018\u00002\u00020\u0001B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\u0010\u0010\"\u001a\u00020#2\u0006\u0010$\u001a\u00020!H\u0002J\u0018\u0010%\u001a\u00020\u00182\u0006\u0010&\u001a\u00020\u001e2\u0006\u0010'\u001a\u00020\tH\u0002J\u0012\u0010(\u001a\u00020#2\b\u0010)\u001a\u0004\u0018\u00010\u001eH\u0002J\u0012\u0010*\u001a\u00020\u00182\b\u0010&\u001a\u0004\u0018\u00010\u001eH\u0002J\u0014\u0010+\u001a\u0004\u0018\u00010\t2\b\u0010,\u001a\u0004\u0018\u00010\tH\u0002J\u0018\u0010-\u001a\b\u0012\u0004\u0012\u00020\t0.2\b\u0010/\u001a\u0004\u0018\u00010\u001eH\u0002R\u0016\u0010\u0004\u001a\n \u0006*\u0004\u0018\u00010\u00050\u0005X\u0082\u0004¢\u0006\u0002\n\u0000R\u0016\u0010\u0007\u001a\b\u0012\u0004\u0012\u00020\t0\bX\u0082\u0004¢\u0006\u0004\n\u0002\u0010\nR\u000e\u0010\u000b\u001a\u00020\fX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\r\u001a\u00020\u000eX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u000f\u001a\u00020\u0010X\u0082T¢\u0006\u0002\n\u0000R\u000e\u0010\u0011\u001a\u00020\tX\u0082T¢\u0006\u0002\n\u0000R\u001c\u0010\u0012\u001a\u0004\u0018\u00010\tX\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u0013\u0010\u0014\"\u0004\b\u0015\u0010\u0016R\u001a\u0010\u0017\u001a\u00020\u0018X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u0019\u0010\u001a\"\u0004\b\u001b\u0010\u001cR\u0010\u0010\u001d\u001a\u0004\u0018\u00010\u001eX\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\u001f\u001a\u00020\u0018X\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010 \u001a\u00020!X\u0082\u000e¢\u0006\u0002\n\u0000¨\u00060"}, d2 = {"Lcom/exteragram/messenger/plugins/PythonPluginsEngine$Companion;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "VERSION_PATTERN", "Ljava/util/regex/Pattern;", "kotlin.jvm.PlatformType", "SDK_REQUIRED_MODULES", _UrlKt.FRAGMENT_ENCODE_SET, _UrlKt.FRAGMENT_ENCODE_SET, "[Ljava/lang/String;", "SDK_ARCHIVE_POLICY", "Lorg/simplifiles/archive/security/SecurityPolicy;", "SDK_ARCHIVE_OPTIONS", "Lorg/simplifiles/archive/ArchiveExtractionOptions;", "MAX_SDK_VERSION_BYTES", _UrlKt.FRAGMENT_ENCODE_SET, "SAFE_MODE_ENABLE_ERROR", "SDK_VERSION", "getSDK_VERSION", "()Ljava/lang/String;", "setSDK_VERSION", "(Ljava/lang/String;)V", "SDK_BETA", _UrlKt.FRAGMENT_ENCODE_SET, "getSDK_BETA", "()Z", "setSDK_BETA", "(Z)V", "SDK_DIR", "Ljava/io/File;", "sdkInitialized", "sdkState", "Lcom/exteragram/messenger/plugins/PythonPluginsEngine$SdkState;", "setSdkState", _UrlKt.FRAGMENT_ENCODE_SET, "state", "sdkModuleExists", "sdkDir", "moduleName", "deleteFileIfExists", "file", "isSdkDirValid", "canonicalPathOrNull", "path", "topLevelModuleNames", _UrlKt.FRAGMENT_ENCODE_SET, "dir", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+    @SourceDebugExtension({"SMAP\nPythonPluginsEngine.kt\nKotlin\n*S Kotlin\n*F\n+ 1 PythonPluginsEngine.kt\ncom/exteragram/messenger/plugins/PythonPluginsEngine$Companion\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n*L\n1#1,2821:1\n1#2:2822\n*E\n"})
     public static final class Companion {
-        public /* synthetic */ Companion(DefaultConstructorMarker defaultConstructorMarker) {
+        public Companion(DefaultConstructorMarker defaultConstructorMarker) {
             this();
         }
 
@@ -165,11 +186,13 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             PythonPluginsEngine.SDK_BETA = z;
         }
 
+        public final void setSdkState(SdkState state) {
+            PythonPluginsEngine.sdkState = state;
+            Updater.INSTANCE.notifySdkStateChanged();
+        }
+
         private final boolean sdkModuleExists(File sdkDir, String moduleName) {
             if (new File(sdkDir, moduleName + ".so").exists()) {
-                return true;
-            }
-            if (new File(sdkDir, moduleName + ".py").exists()) {
                 return true;
             }
             StringBuilder sb = new StringBuilder();
@@ -178,19 +201,24 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             return new File(sdkDir, sb.toString()).exists();
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
         public final void deleteFileIfExists(File file) {
+            Object objM2406constructorimpl;
             if (file == null || !file.exists()) {
                 return;
             }
             try {
-                SimpliFiles.file(file).delete();
+                Result.Companion companion = Result.INSTANCE;
+                objM2406constructorimpl = Result.m2406constructorimpl(Boolean.valueOf(SimpliFiles.file(file).delete()));
             } catch (Throwable th) {
-                FileLog.e(th);
+                Result.Companion companion2 = Result.INSTANCE;
+                objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th));
+            }
+            Throwable thM2409exceptionOrNullimpl = Result.m2409exceptionOrNullimpl(objM2406constructorimpl);
+            if (thM2409exceptionOrNullimpl != null) {
+                FileLog.e(thM2409exceptionOrNullimpl);
             }
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
         public final boolean isSdkDirValid(File sdkDir) {
             if (sdkDir == null || !sdkDir.isDirectory()) {
                 return false;
@@ -203,19 +231,21 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             return true;
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
         public final String canonicalPathOrNull(String path) {
+            Object objM2406constructorimpl;
             if (path == null || path.length() == 0) {
                 return null;
             }
             try {
-                return new File(path).getCanonicalPath();
+                Result.Companion companion = Result.INSTANCE;
+                objM2406constructorimpl = Result.m2406constructorimpl(new File(path).getCanonicalPath());
             } catch (Throwable th) {
-                return null;
+                Result.Companion companion2 = Result.INSTANCE;
+                objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th));
             }
+            return (String) (Result.m2412isFailureimpl(objM2406constructorimpl) ? null : objM2406constructorimpl);
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
         public final Set<String> topLevelModuleNames(File dir) {
             File[] fileArrListFiles;
             if (dir == null || (fileArrListFiles = dir.listFiles()) == null) {
@@ -225,11 +255,11 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             for (File file : fileArrListFiles) {
                 String name = file.getName();
                 if (file.isDirectory()) {
-                    if (!Intrinsics.areEqual(name, "__pycache__") && !name.endsWith(".dist-info") && !name.endsWith(".data")) {
+                    if (!Intrinsics.areEqual(name, "__pycache__") && !StringsKt.endsWith$default(name, ".dist-info", false, 2, (Object) null) && !StringsKt.endsWith$default(name, ".data", false, 2, (Object) null)) {
                         hashSet.add(name);
                     }
-                } else if (name.endsWith(".py") || name.endsWith(".pyc") || name.endsWith(".so")) {
-                    hashSet.add(StringsKt.substringBefore(name, ".", name));
+                } else if (StringsKt.endsWith$default(name, ".py", false, 2, (Object) null) || StringsKt.endsWith$default(name, ".pyc", false, 2, (Object) null) || StringsKt.endsWith$default(name, ".so", false, 2, (Object) null)) {
+                    hashSet.add(StringsKt.substringBefore$default(name, '.', (String) null, 2, (Object) null));
                 }
             }
             return hashSet;
@@ -264,7 +294,6 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         if (this.python == null) {
             initPython();
             if (this.python == null) {
-                android.util.Log.e("PYTHON_INIT", "Python initialization failed, unable to proceed.");
                 FileLog.e("Python initialization failed, unable to proceed.");
                 return null;
             }
@@ -274,37 +303,29 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
 
     private final void initPython() {
         try {
-            android.util.Log.e("PYTHON_INIT", "initPython(): isStarted=" + Python.isStarted());
             if (!Python.isStarted()) {
                 Python.start(new AndroidPlatform(ApplicationLoader.applicationContext));
             }
             this.python = Python.getInstance();
-            android.util.Log.e("PYTHON_INIT", "initPython(): python instance=" + this.python);
-        } catch (Throwable e) {
-            android.util.Log.e("PYTHON_INIT", "Failed to initialize Python", e);
-            FileLog.e("Failed to initialize Python", e);
+        } catch (Throwable th) {
+            FileLog.e("Failed to initialize Python", th);
         }
     }
 
     @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
     public boolean isPlugin(File file, MessageObject messageObject) {
-        if (file == null) {
-            return false;
-        }
-        String name = file.getName();
-        String lowerCase = name.toLowerCase(Locale.ROOT);
-        return lowerCase.endsWith(".plugin");
+        return file != null && StringsKt.endsWith$default(file.getName().toLowerCase(Locale.ROOT), PluginsConstants.PLUGINS_EXT, false, 2, (Object) null);
     }
 
     @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
     public boolean isEngineAvailable() {
-        return this.python != null && Python.isStarted() && sdkInitialized && this.basePluginClass != null;
+        return (this.python == null || !sdkInitialized || this.basePluginClass == null) ? false : true;
     }
 
     private final synchronized PyObject requireBasePluginClass() {
         try {
             if (ExteraConfig.getPluginsSafeMode()) {
-                throw new Exception("Plugins cannot be enabled while safe mode is active");
+                throw new Exception(SAFE_MODE_ENABLE_ERROR);
             }
             if (!sdkInitialized) {
                 throw new Exception("Python plugin SDK is not initialized");
@@ -317,26 +338,28 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             if (python == null) {
                 throw new Exception("Python interpreter is not initialized");
             }
-            PyObject pyObject2 = (PyObject) python.getModule("base_plugin").get((Object) "BasePlugin");
-            if (pyObject2 != null) {
-                this.basePluginClass = pyObject2;
-                return pyObject2;
+            try {
+                PyObject pyObject2 = (PyObject) python.getModule("base_plugin").get((Object) "BasePlugin");
+                if (pyObject2 != null) {
+                    this.basePluginClass = pyObject2;
+                    return pyObject2;
+                }
+                throw new Exception("BasePlugin class is missing from the Python SDK");
+            } catch (Throwable th) {
+                throw new Exception("Failed to initialize Python plugin runtime", th);
             }
-            throw new Exception("BasePlugin class is missing from the Python SDK");
         } catch (Throwable th2) {
-            if (th2 instanceof RuntimeException) {
-                throw (RuntimeException) th2;
-            }
-            throw new RuntimeException(th2);
+            throw th2;
         }
     }
 
-    private final void installSdkArchive(File archiveFile, boolean fromApk) throws IOException {
-        Object objM2315constructorimpl;
-        Object objM2315constructorimpl2;
+    private final void installSdkArchive(File archiveFile, boolean fromApk) {
+        Object objM2406constructorimpl;
+        Object objM2406constructorimpl2;
         File file = SDK_DIR;
         if (file == null) {
             throw new IllegalArgumentException("Required value was null.");
+            return;
         }
         File file2 = new File(file.getParentFile(), "plugins-sdk.tmp");
         try {
@@ -348,9 +371,15 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             Updater.INSTANCE.setBuildFromApk(fromApk);
             if (file2.exists()) {
                 try {
-                    SimpliFiles.directory(file2).deleteRecursively();
+                    Result.Companion companion = Result.INSTANCE;
+                    objM2406constructorimpl2 = Result.m2406constructorimpl(Boolean.valueOf(SimpliFiles.directory(file2).deleteRecursively()));
                 } catch (Throwable th) {
-                    FileLog.e(th);
+                    Result.Companion companion2 = Result.INSTANCE;
+                    objM2406constructorimpl2 = Result.m2406constructorimpl(ResultKt.createFailure(th));
+                }
+                Throwable thM2409exceptionOrNullimpl = Result.m2409exceptionOrNullimpl(objM2406constructorimpl2);
+                if (thM2409exceptionOrNullimpl != null) {
+                    FileLog.e(thM2409exceptionOrNullimpl);
                 }
             }
             if (file.exists()) {
@@ -360,18 +389,21 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         } catch (Throwable th2) {
             if (file2.exists()) {
                 try {
-                    SimpliFiles.directory(file2).deleteRecursively();
+                    Result.Companion companion3 = Result.INSTANCE;
+                    objM2406constructorimpl = Result.m2406constructorimpl(Boolean.valueOf(SimpliFiles.directory(file2).deleteRecursively()));
                 } catch (Throwable th3) {
-                    FileLog.e(th3);
+                    Result.Companion companion4 = Result.INSTANCE;
+                    objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th3));
+                }
+                Throwable thM2409exceptionOrNullimpl2 = Result.m2409exceptionOrNullimpl(objM2406constructorimpl);
+                if (thM2409exceptionOrNullimpl2 != null) {
+                    FileLog.e(thM2409exceptionOrNullimpl2);
                 }
             }
             if (!file.exists()) {
                 SimpliFiles.directory(file).create();
             }
-            if (th2 instanceof IOException) {
-                throw (IOException) th2;
-            }
-            throw new IOException("Failed to install SDK archive", th2);
+            throw th2;
         }
     }
 
@@ -384,19 +416,26 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             return false;
         }
         if (SDK_DIR == null) {
-            File file = new File(new File(ApplicationLoader.getFilesDirFixed(), "chaquopy"), "plugins-sdk");
-            SDK_DIR = file;
-            if (!file.exists()) {
-                File file2 = SDK_DIR;
-                if (file2 == null) {
-                    throw new IllegalArgumentException("Required value was null.");
+            File fileSdkDirFile = Updater.INSTANCE.sdkDirFile();
+            SDK_DIR = fileSdkDirFile;
+            if (fileSdkDirFile != null) {
+                if (!fileSdkDirFile.exists()) {
+                    File file = SDK_DIR;
+                    if (file == null) {
+                        throw new IllegalArgumentException("Required value was null.");
+                        return false;
+                    }
+                    SimpliFiles.directory(file).create();
                 }
-                SimpliFiles.directory(file2).create();
+            } else {
+                throw new IllegalArgumentException("Required value was null.");
+                return false;
             }
         }
-        File file3 = SDK_DIR;
-        if (file3 == null) {
+        File file2 = SDK_DIR;
+        if (file2 == null) {
             throw new IllegalArgumentException("Required value was null.");
+            return false;
         }
         Updater.Companion companion = Updater.INSTANCE;
         File fileRequestSdkFromApkFile = companion.requestSdkFromApkFile();
@@ -404,24 +443,29 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         File pythonCurrentSdkFile = companion.getPythonCurrentSdkFile();
         boolean zExists = fileRequestSdkFromApkFile.exists();
         if (zExists) {
-            SimpliFiles.directory(file3).clean();
+            SimpliFiles.directory(file2).clean();
             INSTANCE.deleteFileIfExists(fileRequestSdkFromApkFile);
         }
         boolean z = true;
         if (!zExists && pythonSdkUpdateFile.exists()) {
-            try {
-                SimpliFiles.file(pythonSdkUpdateFile).copyTo(pythonCurrentSdkFile, OverwritePolicy.REPLACE);
-                installSdkArchive(pythonCurrentSdkFile, false);
-            } catch (IOException e) {
-                FileLog.e("Failed to install updated Python SDK archive", e);
-                zExists = true;
+            if (!companion.isPendingUpdateVerified(pythonSdkUpdateFile)) {
+                FileLog.e("Discarding Python SDK update that failed signature verification");
+                companion.deleteSdkUpdateFile();
+            } else {
+                try {
+                    SimpliFiles.file(pythonSdkUpdateFile).copyTo(pythonCurrentSdkFile, OverwritePolicy.REPLACE);
+                    installSdkArchive(pythonCurrentSdkFile, false);
+                } catch (IOException e) {
+                    FileLog.e("Failed to install updated Python SDK archive", e);
+                    zExists = true;
+                }
             }
         }
-        File file4 = new File(file3, "v.txt");
-        if (file4.exists()) {
-            String string = StringsKt.trim((CharSequence) SimpliFile.readText$default(SimpliFiles.file(file4), 65536L, null, 2, null)).toString();
-            boolean zEndsWith$default = string.endsWith("|1");
-            String strSubstringBefore$default = StringsKt.substringBefore(string, "|", string);
+        File file3 = new File(file2, "v.txt");
+        if (file3.exists()) {
+            String string = StringsKt.trim((CharSequence) SimpliFile.readText$default(SimpliFiles.file(file3), 65536L, null, 2, null)).toString();
+            boolean zEndsWith$default = StringsKt.endsWith$default(string, "|1", false, 2, (Object) null);
+            String strSubstringBefore$default = StringsKt.substringBefore$default(string, '|', (String) null, 2, (Object) null);
             try {
                 InputStream inputStreamOpen = ApplicationLoader.applicationContext.getAssets().open("plugins_pysdk/v.txt");
                 try {
@@ -435,10 +479,17 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                             }
                             sb.append(line);
                             sb.append('\n');
+                            try {
+                                throw th;
+                            } catch (Throwable th) {
+                                CloseableKt.closeFinally(inputStreamOpen, th);
+                                throw th;
+                            }
                         }
-                        String string2 = sb.toString();
+                        String string2 = StringsKt.trim((CharSequence) sb.toString()).toString();
                         try {
-                            if (AppUtils.compareVersions(zEndsWith$default ? ">=" : ">", StringsKt.trim((CharSequence) string2).toString(), strSubstringBefore$default)) {
+                            Updater.Companion companion2 = Updater.INSTANCE;
+                            if (AppUtils.compareVersions((companion2.isSdkFromCurrentApk() || !(zEndsWith$default || companion2.isSdkFromApk())) ? ">" : ">=", string2, strSubstringBefore$default)) {
                                 zExists = true;
                             }
                         } catch (NumberFormatException e2) {
@@ -460,13 +511,14 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                 }
             } catch (IOException e3) {
                 throw new RuntimeException("Failed to read Python SDK version (v.txt) from APK assets", e3);
+                return false;
             }
         }
-        if (zExists || !INSTANCE.isSdkDirValid(file3)) {
+        if (zExists || !INSTANCE.isSdkDirValid(file2)) {
             if (!zExists) {
                 FileLog.w("Python SDK directory is missing required files. Restoring SDK from APK.");
             }
-            SimpliFiles.directory(file3).clean();
+            SimpliFiles.directory(file2).clean();
             try {
                 InputStream inputStreamSdkFromApk = Updater.INSTANCE.sdkFromApk();
                 try {
@@ -483,27 +535,27 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                 }
             } catch (IOException e4) {
                 throw new RuntimeException("Failed to install Python SDK from APK", e4);
+                return false;
             }
         }
         Updater.INSTANCE.deleteSdkUpdateFile();
-        PyObject module = python.getModule("sys");
-        PyObject pyObject = (PyObject) module.get((Object) "path");
+        PyObject pyObject = (PyObject) python.getModule("sys").get((Object) "path");
         if (pyObject != null) {
-            pyObject.callAttr("append", file3.getAbsolutePath());
+            pyObject.callAttr("append", file2.getAbsolutePath());
         }
         try {
-            PyObject module2 = python.getModule("_sdk_version");
-            PyObject pyObjectCallAttr = module2.callAttr("__start__", new Object[0]);
+            PyObject module = python.getModule("_sdk_version");
+            PyObject pyObjectCallAttr = module.callAttr("__start__", new Object[0]);
             if (pyObjectCallAttr == null || !pyObjectCallAttr.toBoolean()) {
                 z = false;
             }
             sdkInitialized = z;
-            PyObject pyObject2 = (PyObject) module2.get((Object) "__version__");
+            PyObject pyObject2 = (PyObject) module.get((Object) "__version__");
             if (pyObject2 == null || (str = (String) pyObject2.toJava(String.class)) == null) {
                 str = SDK_VERSION;
             }
             SDK_VERSION = str;
-            PyObject pyObject3 = (PyObject) module2.get((Object) "__beta__");
+            PyObject pyObject3 = (PyObject) module.get((Object) "__beta__");
             SDK_BETA = (pyObject3 == null || (bool = (Boolean) pyObject3.toJava(Boolean.TYPE)) == null) ? SDK_BETA : bool.booleanValue();
             if (this.basePluginClass == null && sdkInitialized && !ExteraConfig.getPluginsSafeMode()) {
                 try {
@@ -551,12 +603,12 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         if (file == null || pyObject == null) {
             return;
         }
-        removeModulesRecursive(pyObject, file, "");
+        removeModulesRecursive(pyObject, file, _UrlKt.FRAGMENT_ENCODE_SET);
     }
 
     private final void removeModulesRecursive(PyObject sysModules, File file, String prefix) {
         if (Intrinsics.areEqual(prefix, "plugins-sdk.")) {
-            prefix = "";
+            prefix = _UrlKt.FRAGMENT_ENCODE_SET;
         }
         if (file.isDirectory()) {
             if (sysModules.callAttr("__contains__", prefix + file.getName()).toBoolean()) {
@@ -565,12 +617,12 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         }
         File[] fileArrListFiles = file.listFiles();
         if (fileArrListFiles != null) {
-            for (File file2 : fileArrListFiles) {
-                removeModulesRecursive(sysModules, file2, file.getName() + '.');
+            Iterator it = ArrayIteratorKt.iterator(fileArrListFiles);
+            while (it.hasNext()) {
+                removeModulesRecursive(sysModules, (File) it.next(), file.getName() + ".");
             }
         }
-        String name = file.getName();
-        String strSubstringBefore$default = StringsKt.substringBefore(name, ".", name);
+        String strSubstringBefore$default = StringsKt.substringBefore$default(file.getName(), '.', (String) null, 2, (Object) null);
         if (file.isDirectory()) {
             return;
         }
@@ -581,40 +633,38 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
 
     @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
     public void init(Runnable callback) {
-        android.util.Log.e("PYTHON_INIT", "PythonPluginsEngine.init() started on thread: " + Thread.currentThread().getName());
+        this.lifecycleGeneration.incrementAndGet();
+        Companion companion = INSTANCE;
+        companion.setSdkState(SdkState.STARTING);
         if (getPython() == null) {
-            android.util.Log.e("PYTHON_INIT", "getPython() returned null!");
+            companion.setSdkState(SdkState.PYTHON_FAILED);
             callback.run();
             return;
         }
-        android.util.Log.e("PYTHON_INIT", "Python interpreter ready, calling initSdk()...");
         try {
             if (!initSdk()) {
-                android.util.Log.e("PYTHON_INIT", "initSdk() returned false!");
+                companion.setSdkState(SdkState.START_FAILED);
                 callback.run();
                 return;
             }
-            android.util.Log.e("PYTHON_INIT", "initSdk() returned true!");
+            companion.setSdkState(SdkState.READY);
             if (!ExteraConfig.getPluginsSafeMode()) {
-                final Updater.Companion companion = Updater.INSTANCE;
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda7
+                final Updater.Companion companion2 = Updater.INSTANCE;
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
-                        companion.checkUpdates();
+                        companion2.checkUpdates();
                     }
                 }, 5000L);
             }
             Python python = this.python;
             if (python == null) {
-                android.util.Log.e("PYTHON_INIT", "python field was null after initSdk!");
                 callback.run();
                 return;
             }
             if (!ExteraConfig.getPluginsSafeMode()) {
                 try {
-                    PyObject module = python.getModule("plugin_settings");
-                    Object java = module.callAttr("init", getPluginsController().getPluginsDir().getAbsolutePath(), getPluginsController().getPreferences().getAll()).toJava(String[].class);
-                    String[] strArr = (String[]) java;
+                    String[] strArr = (String[]) python.getModule("plugin_settings").callAttr("init", getPluginsController().getPluginsDir().getAbsolutePath(), getPluginsController().getPreferences().getAll()).toJava(String[].class);
                     if (!(strArr.length == 0)) {
                         SharedPreferences.Editor editorEdit = getPluginsController().getPreferences().edit();
                         for (String str : strArr) {
@@ -627,14 +677,12 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                     FileLog.e("Failed to initialize plugin_settings module", e);
                 }
             }
-            android.util.Log.e("PYTHON_INIT", "calling PipController cleanup and loadPlugins...");
             PipController.INSTANCE.cleanup();
             loadPlugins(callback);
             checkDevServer();
-            android.util.Log.e("PYTHON_INIT", "PythonPluginsEngine.init() completed!");
         } catch (Throwable th) {
-            android.util.Log.e("PYTHON_INIT", "Failed to initialize Python plugins engine", th);
             FileLog.e("Failed to initialize Python plugins engine", th);
+            INSTANCE.setSdkState(SdkState.INSTALL_FAILED);
             callback.run();
         }
     }
@@ -660,13 +708,13 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             stopDevServer();
         }
         try {
-            PyObject pyObject = (PyObject) python.getModule("dev_server").get((Object) "DevServer");
+            PyObject pyObject = (PyObject) python.getModule(PluginsConstants.DevServer.MODULE).get(PluginsConstants.DevServer.CLASS);
             this.devServerClass = pyObject;
             if (pyObject == null) {
                 return;
             }
             if (pyObject != null) {
-                pyObject.callAttrThrows("start_server", new Object[0]);
+                pyObject.callAttrThrows(PluginsConstants.DevServer.START_SERVER, new Object[0]);
             }
             FileLog.d("Dev server started successfully.");
         } catch (Throwable th) {
@@ -681,7 +729,7 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             return;
         }
         try {
-            pyObject.callAttrThrows("stop_server", new Object[0]);
+            pyObject.callAttrThrows(PluginsConstants.DevServer.STOP_SERVER, new Object[0]);
             FileLog.d("Dev server stopped successfully.");
             this.devServerClass = null;
         } catch (Throwable th) {
@@ -693,53 +741,132 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         }
     }
 
+    public final void stopPluginTasks$TMessagesProj() {
+        Object objM2406constructorimpl;
+        PyObject pyObject;
+        this.lifecycleGeneration.incrementAndGet();
+        try {
+            Result.Companion companion = Result.INSTANCE;
+            PyObject pyObject2 = this.basePluginClass;
+            PyObjectUtils.closeSafely((pyObject2 == null || (pyObject = (PyObject) pyObject2.get((Object) "_stop_all_lifecycles")) == null) ? null : pyObject.call(new Object[0]));
+            objM2406constructorimpl = Result.m2406constructorimpl(Unit.INSTANCE);
+        } catch (Throwable th) {
+            Result.Companion companion2 = Result.INSTANCE;
+            objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th));
+        }
+        Throwable thM2409exceptionOrNullimpl = Result.m2409exceptionOrNullimpl(objM2406constructorimpl);
+        if (thM2409exceptionOrNullimpl != null) {
+            FileLog.e("Failed to stop plugin tasks", thM2409exceptionOrNullimpl);
+        }
+    }
+
     @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
     public void shutdown(Runnable callback) {
-        if (getPython() == null) {
-            callback.run();
-            return;
-        }
+        Object objM2406constructorimpl;
+        Object objM2406constructorimpl2;
+        Object objM2406constructorimpl3;
+        Object objM2406constructorimpl4;
+        Unit unit;
+        Object objM2406constructorimpl5;
         try {
-            stopDevServer();
-            Iterator it = new ArrayList(this.pluginInstances.keySet()).iterator();
-            while (it.hasNext()) {
-                unloadPlugin((String) it.next());
+            stopPluginTasks$TMessagesProj();
+            try {
+                Result.Companion companion = Result.INSTANCE;
+                stopDevServer();
+                objM2406constructorimpl = Result.m2406constructorimpl(Unit.INSTANCE);
+            } catch (Throwable th) {
+                Result.Companion companion2 = Result.INSTANCE;
+                objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th));
             }
-            PyObject pyObject = this.debuggerListener;
-            if (pyObject != null) {
-                pyObject.close();
+            Throwable thM2409exceptionOrNullimpl = Result.m2409exceptionOrNullimpl(objM2406constructorimpl);
+            if (thM2409exceptionOrNullimpl != null) {
+                FileLog.e(thM2409exceptionOrNullimpl);
+            }
+            for (String str : new ArrayList(this.pluginInstances.keySet())) {
+                try {
+                    Result.Companion companion3 = Result.INSTANCE;
+                    unloadPlugin(str);
+                    objM2406constructorimpl5 = Result.m2406constructorimpl(Unit.INSTANCE);
+                } catch (Throwable th2) {
+                    Result.Companion companion4 = Result.INSTANCE;
+                    objM2406constructorimpl5 = Result.m2406constructorimpl(ResultKt.createFailure(th2));
+                }
+                Throwable thM2409exceptionOrNullimpl2 = Result.m2409exceptionOrNullimpl(objM2406constructorimpl5);
+                if (thM2409exceptionOrNullimpl2 != null) {
+                    FileLog.e("Failed to unload plugin " + str, thM2409exceptionOrNullimpl2);
+                }
+            }
+            try {
+                Result.Companion companion5 = Result.INSTANCE;
+                PyObject pyObject = this.debuggerListener;
+                if (pyObject != null) {
+                    pyObject.close();
+                    unit = Unit.INSTANCE;
+                } else {
+                    unit = null;
+                }
+                objM2406constructorimpl2 = Result.m2406constructorimpl(unit);
+            } catch (Throwable th3) {
+                Result.Companion companion6 = Result.INSTANCE;
+                objM2406constructorimpl2 = Result.m2406constructorimpl(ResultKt.createFailure(th3));
+            }
+            Throwable thM2409exceptionOrNullimpl3 = Result.m2409exceptionOrNullimpl(objM2406constructorimpl2);
+            if (thM2409exceptionOrNullimpl3 != null) {
+                FileLog.e(thM2409exceptionOrNullimpl3);
             }
             this.debuggerListener = null;
             this.pluginInstances.clear();
             synchronized (this) {
-                removePluginPathsFromSysPath();
-                stopAndUnloadSdk();
+                try {
+                    removePluginPathsFromSysPath();
+                    objM2406constructorimpl3 = Result.m2406constructorimpl(Unit.INSTANCE);
+                } catch (Throwable th4) {
+                    Result.Companion companion7 = Result.INSTANCE;
+                    objM2406constructorimpl3 = Result.m2406constructorimpl(ResultKt.createFailure(th4));
+                }
+                Throwable thM2409exceptionOrNullimpl4 = Result.m2409exceptionOrNullimpl(objM2406constructorimpl3);
+                if (thM2409exceptionOrNullimpl4 != null) {
+                    FileLog.e(thM2409exceptionOrNullimpl4);
+                }
+                try {
+                    stopAndUnloadSdk();
+                    objM2406constructorimpl4 = Result.m2406constructorimpl(Unit.INSTANCE);
+                } catch (Throwable th5) {
+                    Result.Companion companion8 = Result.INSTANCE;
+                    objM2406constructorimpl4 = Result.m2406constructorimpl(ResultKt.createFailure(th5));
+                }
+                Throwable thM2409exceptionOrNullimpl5 = Result.m2409exceptionOrNullimpl(objM2406constructorimpl4);
+                if (thM2409exceptionOrNullimpl5 != null) {
+                    FileLog.e(thM2409exceptionOrNullimpl5);
+                }
                 this.python = null;
                 sdkInitialized = false;
-                Unit unit = Unit.INSTANCE;
+                Unit unit2 = Unit.INSTANCE;
             }
+            INSTANCE.setSdkState(SdkState.READY);
             FileLog.d("Python plugin engine shut down.");
-        } catch (Exception e) {
-            FileLog.e(e);
+            callback.run();
+        } catch (Throwable th6) {
+            callback.run();
+            throw th6;
         }
-        callback.run();
     }
 
     public final void loadPlugins(final Runnable callback) {
-        PluginsController.INSTANCE.runOnPluginsQueue(new Runnable() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda22
+        final int i = this.lifecycleGeneration.get();
+        PluginsController.INSTANCE.runOnPluginsQueue(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                PythonPluginsEngine.m1313$r8$lambda$2QnMYM5kpMDhr3l1kM17QcThy8(PythonPluginsEngine.this, callback);
+                PythonPluginsEngine.m1876$r8$lambda$RV8K0RBdTAlfldGEGnoJyoyk(this.f$0, i, callback);
             }
         });
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$2QnMYM5kpMDhr3l1k-M17QcThy8, reason: not valid java name */
-    public static void m1313$r8$lambda$2QnMYM5kpMDhr3l1kM17QcThy8(PythonPluginsEngine pythonPluginsEngine, Runnable runnable) {
+    public static void m1876$r8$lambda$RV8K0RBdTAlfldGEGnoJyoyk(PythonPluginsEngine pythonPluginsEngine, int i, Runnable runnable) {
         PluginsController.PluginValidationResult pluginValidationResultValidatePluginFromFile;
         Plugin plugin;
-        Python python = pythonPluginsEngine.getPython();
-        if (python == null) {
+        Python python = pythonPluginsEngine.python;
+        if (python == null || i != pythonPluginsEngine.lifecycleGeneration.get()) {
             if (runnable != null) {
                 AndroidUtilities.runOnUIThread(runnable);
                 return;
@@ -747,16 +874,15 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             return;
         }
         try {
-            PyObject module = python.getModule("sys");
-            PyObject pyObject = (PyObject) module.get((Object) "path");
+            PyObject pyObject = (PyObject) python.getModule("sys").get((Object) "path");
             String absolutePath = pythonPluginsEngine.getPluginsController().getPluginsDir().getAbsolutePath();
             if (!ExteraConfig.getPluginsSafeMode() && pyObject != null && !pyObject.callAttr("__contains__", absolutePath).toBoolean()) {
                 pyObject.callAttr("append", absolutePath);
             }
-            File[] fileArrListFiles = pythonPluginsEngine.getPluginsController().getPluginsDir().listFiles(new FilenameFilter() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda6
+            File[] fileArrListFiles = pythonPluginsEngine.getPluginsController().getPluginsDir().listFiles(new FilenameFilter() {
                 @Override // java.io.FilenameFilter
                 public final boolean accept(File file, String str) {
-                    return PythonPluginsEngine.loadPlugins$lambda$0$0(file, str);
+                    return StringsKt.endsWith$default(str.toLowerCase(Locale.ROOT), ".py", false, 2, (Object) null);
                 }
             });
             if (fileArrListFiles == null) {
@@ -767,60 +893,65 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                 }
                 return;
             }
-            int i = 0;
-            for (File file : fileArrListFiles) {
-                String name = file.getName();
-                String strSubstring = name.substring(0, file.getName().length() - 3);
-                try {
-                    String absolutePath2 = file.getAbsolutePath();
-                    pluginValidationResultValidatePluginFromFile = pythonPluginsEngine.validatePluginFromFile(absolutePath2);
+            Iterator it = ArrayIteratorKt.iterator(fileArrListFiles);
+            while (true) {
+                int i2 = 0;
+                if (it.hasNext()) {
+                    File file = (File) it.next();
+                    String strSubstring = file.getName().substring(0, file.getName().length() - 3);
                     try {
-                        if (pluginValidationResultValidatePluginFromFile.getError() != null) {
-                            throw new Exception(pluginValidationResultValidatePluginFromFile.getError());
+                        pluginValidationResultValidatePluginFromFile = pythonPluginsEngine.validatePluginFromFile(file.getAbsolutePath());
+                        try {
+                            if (pluginValidationResultValidatePluginFromFile.getError() != null) {
+                                throw new Exception(pluginValidationResultValidatePluginFromFile.getError());
+                            }
+                            pythonPluginsEngine.loadPlugin(strSubstring, file.getAbsolutePath(), pluginValidationResultValidatePluginFromFile.getPlugin());
+                        } catch (Throwable th) {
+                            th = th;
+                            FileLog.e("Failed to load plugin " + file.getName() + ". Reason: " + th.getMessage(), th);
+                            Plugin plugin2 = pluginValidationResultValidatePluginFromFile != null ? pluginValidationResultValidatePluginFromFile.getPlugin() : null;
+                            if (plugin2 != null) {
+                                plugin = new Plugin(strSubstring, plugin2.getName());
+                                plugin.setAuthor(plugin2.getAuthor());
+                                plugin.setDescription(plugin2.getDescription());
+                                plugin.setIcon(plugin2.getIcon());
+                                plugin.setVersion(plugin2.getVersion());
+                                plugin.setAppVersion(plugin2.getAppVersion());
+                                plugin.setSdkVersion(plugin2.getSdkVersion());
+                                plugin.setRequirements(plugin2.getRequirements());
+                                plugin.setEngine(plugin2.getEngine());
+                            } else {
+                                plugin = new Plugin(strSubstring, strSubstring);
+                                plugin.setAuthor(LocaleController.getString(R.string.PluginNoAuthor));
+                                plugin.setVersion("1.0");
+                                plugin.setEngine(PluginsConstants.PYTHON);
+                            }
+                            plugin.setError(th);
+                            plugin.setEnabled(false);
+                            pythonPluginsEngine.getPluginsController().getPlugins().put(strSubstring, plugin);
                         }
-                        String absolutePath3 = file.getAbsolutePath();
-                        pythonPluginsEngine.loadPlugin(strSubstring, absolutePath3, pluginValidationResultValidatePluginFromFile.getPlugin());
-                    } catch (Throwable th) {
-                        FileLog.e("Failed to load plugin " + file.getName() + ". Reason: " + th.getMessage(), th);
-                        Plugin plugin2 = pluginValidationResultValidatePluginFromFile != null ? pluginValidationResultValidatePluginFromFile.getPlugin() : null;
-                        if (plugin2 != null) {
-                            plugin = new Plugin(strSubstring, plugin2.getName());
-                            plugin.setAuthor(plugin2.getAuthor());
-                            plugin.setDescription(plugin2.getDescription());
-                            plugin.setIcon(plugin2.getIcon());
-                            plugin.setVersion(plugin2.getVersion());
-                            plugin.setAppVersion(plugin2.getAppVersion());
-                            plugin.setSdkVersion(plugin2.getSdkVersion());
-                            plugin.setRequirements(plugin2.getRequirements());
-                            plugin.setEngine(plugin2.getEngine());
-                        } else {
-                            plugin = new Plugin(strSubstring, strSubstring);
-                            plugin.setAuthor(LocaleController.getString(R.string.PluginNoAuthor));
-                            plugin.setVersion("1.0");
-                            plugin.setEngine("python");
+                    } catch (Throwable th2) {
+                        th = th2;
+                        pluginValidationResultValidatePluginFromFile = null;
+                    }
+                } else {
+                    pythonPluginsEngine.getPluginsController().notifyPluginsChanged();
+                    Collection<Plugin> collectionValues = pythonPluginsEngine.getPluginsController().getPlugins().values();
+                    if (!collectionValues.isEmpty()) {
+                        Iterator<T> it2 = collectionValues.iterator();
+                        while (it2.hasNext()) {
+                            if (((Plugin) it2.next()).isEnabled() && (i2 = i2 + 1) < 0) {
+                                CollectionsKt.throwCountOverflow();
+                            }
                         }
-                        plugin.setError(th);
-                        plugin.setEnabled(false);
-                        pythonPluginsEngine.getPluginsController().getPlugins().put(strSubstring, plugin);
                     }
-                } catch (Throwable th2) {
-                    pluginValidationResultValidatePluginFromFile = null;
-                }
-            }
-            pythonPluginsEngine.getPluginsController().notifyPluginsChanged();
-            Collection<Plugin> collectionValues = pythonPluginsEngine.getPluginsController().getPlugins().values();
-            Collection<Plugin> collection = collectionValues;
-            if (!collection.isEmpty()) {
-                Iterator<Plugin> it = collection.iterator();
-                while (it.hasNext()) {
-                    if (((Plugin) it.next()).isEnabled() && (i = i + 1) < 0) {
-                        CollectionsKt.throwCountOverflow();
+                    FileLog.d("Python plugin system initialized. Total: " + pythonPluginsEngine.getPluginsController().getPlugins().size() + ", Enabled: " + i2);
+                    if (runnable != null) {
+                        AndroidUtilities.runOnUIThread(runnable);
+                        return;
                     }
+                    return;
                 }
-            }
-            FileLog.d("Python plugin system initialized. Total: " + pythonPluginsEngine.getPluginsController().getPlugins().size() + ", Enabled: " + i);
-            if (runnable != null) {
-                AndroidUtilities.runOnUIThread(runnable);
             }
         } catch (PyException e) {
             FileLog.e("Failed to setup Python environment for plugins", e);
@@ -828,12 +959,6 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                 AndroidUtilities.runOnUIThread(runnable);
             }
         }
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public static final boolean loadPlugins$lambda$0$0(File file, String str) {
-        String lowerCase = str.toLowerCase(Locale.ROOT);
-        return lowerCase.endsWith(".py");
     }
 
     public final void loadPlugin(String pluginId, String filePath) throws Exception {
@@ -845,7 +970,7 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
     }
 
     public final void loadPlugin(String pluginId, String filePath, Plugin metadata, PipController.InstallerDelegate delegate) throws Exception {
-        boolean z = getPluginsController().getPreferences().getBoolean("plugin_enabled_" + pluginId, false);
+        boolean z = getPluginsController().getPreferences().getBoolean(PluginsController.PREF_PLUGIN_ENABLED_KEY_PREFIX + pluginId, false);
         File file = new File(filePath);
         if (!file.exists() || !file.isFile()) {
             throw new Exception("Plugin file not found: " + filePath);
@@ -859,6 +984,7 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         }
         if (metadata == null) {
             throw new IllegalArgumentException("Required value was null.");
+            return;
         }
         if (!Intrinsics.areEqual(pluginId, metadata.getId())) {
             throw new Exception("Plugin ID mismatch. Expected: " + pluginId + ", but found: " + metadata.getId() + " in metadata.");
@@ -872,11 +998,22 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         if (ExteraConfig.getPluginsSafeMode()) {
             return;
         }
-        if (z) {
+        if (!z) {
+            if (delegate != null) {
+                installPluginDependencies(pluginId, metadata, delegate);
+                return;
+            }
+            return;
+        }
+        try {
             createPluginInstance(pluginId, filePath, metadata, delegate);
             setPluginEnabled(pluginId, true, null);
-        } else if (delegate != null) {
-            installPluginDependencies(pluginId, metadata, delegate);
+        } catch (Throwable th) {
+            SharedPreferences.Editor editorEdit = getPluginsController().getPreferences().edit();
+            editorEdit.putBoolean(PluginsController.PREF_PLUGIN_ENABLED_KEY_PREFIX + pluginId, false);
+            editorEdit.apply();
+            unloadPlugin(pluginId);
+            throw th;
         }
     }
 
@@ -894,23 +1031,18 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             linkedHashMap.put(obj, INSTANCE.topLevelModuleNames(new File((String) obj)));
         }
         Set set = INSTANCE.topLevelModuleNames(SDK_DIR);
-        for (Object entryObj : linkedHashMap.entrySet()) {
-            Map.Entry entry = (Map.Entry) entryObj;
+        for (Map.Entry entry : linkedHashMap.entrySet()) {
             String str = (String) entry.getKey();
             Set setIntersect = CollectionsKt.intersect((Set) entry.getValue(), set);
             if (!setIntersect.isEmpty()) {
-                throw new Exception("Dependency " + new File(str).getName() + " of " + pluginId + " provides " + CollectionsKt.joinToString(setIntersect, ", ", "", "", -1, "...", null) + ", which would replace the plugins SDK module of the same name.");
+                throw new Exception("Dependency " + new File(str).getName() + " of " + pluginId + " provides " + CollectionsKt.joinToString$default(setIntersect, null, null, null, 0, null, null, 63, null) + ", which would replace the plugins SDK module of the same name.");
             }
         }
-        for (Object entry2Obj : linkedHashMap.entrySet()) {
-            Map.Entry entry2 = (Map.Entry) entry2Obj;
-            String str2 = (String) entry2.getKey();
-            Set<String> set2 = (Set) entry2.getValue();
-            String name = new File(str2).getName();
-            disableShadowedPlugins(pluginId, name, set2);
+        for (Map.Entry entry2 : linkedHashMap.entrySet()) {
+            disableShadowedPlugins(pluginId, new File((String) entry2.getKey()).getName(), (Set) entry2.getValue());
         }
         Python python = getPython();
-        PyObject pyObject = (python == null || (module = python.getModule("sys")) == null) ? null : (PyObject) module.get((Object) "path");
+        PyObject pyObject = (python == null || (module = python.getModule("sys")) == null) ? null : (PyObject) module.get("path");
         if (pyObject == null) {
             return;
         }
@@ -920,10 +1052,10 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             if (-1 >= size) {
                 return;
             }
-            String str3 = listInstallDependencies.get(size);
-            removeFromSysPath(pyObject, str3);
-            pyObject.callAttr("insert", 0, str3);
-            this.dependencyPaths.add(str3);
+            String str2 = listInstallDependencies.get(size);
+            removeFromSysPath(pyObject, str2);
+            pyObject.callAttr("insert", 0, str2);
+            this.dependencyPaths.add(str2);
         }
     }
 
@@ -934,8 +1066,7 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                     FileLog.w("Disabling plugin '" + str + "': dependency " + dependencyName + " of " + pluginId + " now owns that module name");
                     unloadPlugin(str);
                     SharedPreferences.Editor editorEdit = getPluginsController().getPreferences().edit();
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("plugin_enabled_");
+                    StringBuilder sb = new StringBuilder(PluginsController.PREF_PLUGIN_ENABLED_KEY_PREFIX);
                     sb.append(str);
                     editorEdit.putBoolean(sb.toString(), false);
                     editorEdit.apply();
@@ -1005,7 +1136,7 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
     private final void removeModulesUnderPath(PyObject sysModules, String path) {
         String string;
         PyObject pyObjectCallAttr;
-        Object objM2315constructorimpl;
+        Object objM2406constructorimpl;
         String string2;
         List<PyObject> listAsList;
         PyObject pyObject;
@@ -1014,32 +1145,38 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         if (python == null) {
             return;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append(path);
         String str = File.separator;
-        sb.append(str);
-        String string3 = sb.toString();
+        String str2 = path + str;
         String strCanonicalPathOrNull2 = INSTANCE.canonicalPathOrNull(path);
-        String str2 = strCanonicalPathOrNull2 != null ? strCanonicalPathOrNull2 + str : string3;
+        String str3 = strCanonicalPathOrNull2 != null ? strCanonicalPathOrNull2 + str : str2;
         ArrayList arrayList = new ArrayList();
         for (PyObject pyObject2 : python.getBuiltins().callAttr("list", sysModules).asList()) {
             if (pyObject2 != null && (string = pyObject2.toString()) != null && (pyObjectCallAttr = sysModules.callAttr("get", string)) != null) {
-                PyObject pyObject3 = (PyObject) pyObjectCallAttr.get((Object) "__file__");
+                PyObject pyObject3 = (PyObject) pyObjectCallAttr.get("__file__");
                 if (pyObject3 == null || (string2 = pyObject3.toString()) == null) {
                     try {
-                        PyObject pyObject4 = (PyObject) pyObjectCallAttr.get((Object) "__path__");
-                        string2 = (pyObject4 == null || (listAsList = pyObject4.asList()) == null || (pyObject = (PyObject) CollectionsKt.firstOrNull((List) listAsList)) == null) ? null : pyObject.toString();
+                        Result.Companion companion = Result.INSTANCE;
+                        PyObject pyObject4 = (PyObject) pyObjectCallAttr.get("__path__");
+                        objM2406constructorimpl = Result.m2406constructorimpl((pyObject4 == null || (listAsList = pyObject4.asList()) == null || (pyObject = (PyObject) CollectionsKt.firstOrNull((List) listAsList)) == null) ? null : pyObject.toString());
                     } catch (Throwable th) {
-                        string2 = null;
+                        Result.Companion companion2 = Result.INSTANCE;
+                        objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th));
+                    }
+                    if (Result.m2412isFailureimpl(objM2406constructorimpl)) {
+                        objM2406constructorimpl = null;
+                    }
+                    string2 = (String) objM2406constructorimpl;
+                    if (string2 == null) {
                     }
                 }
-                if (string2.startsWith(string3) || ((strCanonicalPathOrNull = INSTANCE.canonicalPathOrNull(string2)) != null && strCanonicalPathOrNull.startsWith(str2))) {
+                if (StringsKt.startsWith$default(string2, str2, false, 2, (Object) null) || ((strCanonicalPathOrNull = INSTANCE.canonicalPathOrNull(string2)) != null && StringsKt.startsWith$default(strCanonicalPathOrNull, str3, false, 2, (Object) null))) {
                     arrayList.add(string);
                 }
             }
         }
-        for (Object obj : arrayList) {
-            sysModules.callAttr("pop", (String) obj, null);
+        Iterator it = arrayList.iterator();
+        while (it.hasNext()) {
+            sysModules.callAttr("pop", (String) it.next(), null);
         }
         if (arrayList.isEmpty()) {
             return;
@@ -1074,134 +1211,304 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         PyObject pyObjectRequireBasePluginClass = requireBasePluginClass();
         installPluginDependencies(pluginId, pluginMetadata, delegate);
         refreshImportCaches(pluginId, new File(filePath).getParentFile());
+        PyObject pyObject = (PyObject) pyObjectRequireBasePluginClass.get("_begin_lifecycle");
+        PyObjectUtils.closeSafely(pyObject != null ? pyObject.call(pluginId) : null);
+        getPluginsController().getWatchdog().onPluginExecutionStarted(pluginId);
         try {
-            Python python = getPython();
-            if (python == null || (module = python.getModule(pluginId)) == null) {
-                throw new Exception("Failed to import plugin module: " + pluginId);
-            }
-            PyObject pyObject = (PyObject) module.get((Object) "__file__");
-            String string = pyObject != null ? pyObject.toString() : null;
-            Companion companion = INSTANCE;
-            if (!Intrinsics.areEqual(companion.canonicalPathOrNull(string), companion.canonicalPathOrNull(filePath))) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("Plugin id '");
-                sb.append(pluginId);
-                sb.append("' is already taken by the Python module ");
-                if (string == null) {
-                    string = "built into the runtime";
+            try {
+                Python python = getPython();
+                if (python == null || (module = python.getModule(pluginId)) == null) {
+                    throw new Exception("Failed to import plugin module: " + pluginId);
                 }
-                sb.append(string);
-                sb.append(". Change '__id__' to a name that no other module uses.");
-                throw new Exception(sb.toString());
+                getPluginsController().getWatchdog().onPluginExecutionFinished(pluginId);
+                PyObject pyObject2 = (PyObject) module.get("__file__");
+                String string = pyObject2 != null ? pyObject2.toString() : null;
+                Companion companion = INSTANCE;
+                if (!Intrinsics.areEqual(companion.canonicalPathOrNull(string), companion.canonicalPathOrNull(filePath))) {
+                    if (string == null) {
+                        string = "built into the runtime";
+                    }
+                    throw new Exception("Plugin id '" + pluginId + "' is already taken by the Python module " + string + ". Change '__id__' to a name that no other module uses.");
+                }
+                PyObject pyObjectCallAttr = pyObjectRequireBasePluginClass.callAttr("_findPluginClass", module);
+                if (pyObjectCallAttr == null) {
+                    throw new Exception("Could not find a class inheriting from BasePlugin in " + pluginId + ".py. Make sure your main plugin class extends BasePlugin.");
+                }
+                PyObject pyObjectCall = pyObjectCallAttr.call(new Object[0]);
+                pyObjectCall.put("id", (Object) pluginMetadata.getId());
+                pyObjectCall.put("name", (Object) pluginMetadata.getName());
+                pyObjectCall.put(MediaTrack.ROLE_DESCRIPTION, (Object) pluginMetadata.getDescription());
+                pyObjectCall.put("author", (Object) pluginMetadata.getAuthor());
+                pyObjectCall.put("version", (Object) pluginMetadata.getVersion());
+                pyObjectCall.put("icon", (Object) pluginMetadata.getIcon());
+                pyObjectCall.put("app_version", (Object) pluginMetadata.getAppVersion());
+                pyObjectCall.put("sdk_version", (Object) pluginMetadata.getSdkVersion());
+                pyObjectCall.put(Common.ASSET_REQUIREMENTS, (Object) pluginMetadata.getRequirements());
+                Boolean bool = Boolean.FALSE;
+                pyObjectCall.put("enabled", (Object) bool);
+                pyObjectCall.put("initialized", (Object) bool);
+                pyObjectCall.put("error_message", (Object) null);
+                this.pluginInstances.put(pluginId, pyObjectCall);
+                return;
+            } catch (PyException e) {
+                throw new Exception("Failed to import plugin module: " + e.getMessage(), e);
             }
-            PyObject pyObjectCallAttr = pyObjectRequireBasePluginClass.callAttr("_findPluginClass", module);
-            if (pyObjectCallAttr == null) {
-                throw new Exception("Could not find a class inheriting from BasePlugin in " + pluginId + ".py. Make sure your main plugin class extends BasePlugin.");
-            }
-            PyObject pyObjectCall = pyObjectCallAttr.call(new Object[0]);
-            pyObjectCall.put("id", (Object) pluginMetadata.getId());
-            pyObjectCall.put("name", (Object) pluginMetadata.getName());
-            pyObjectCall.put("description", (Object) pluginMetadata.getDescription());
-            pyObjectCall.put("author", (Object) pluginMetadata.getAuthor());
-            pyObjectCall.put("version", (Object) pluginMetadata.getVersion());
-            pyObjectCall.put("icon", (Object) pluginMetadata.getIcon());
-            pyObjectCall.put("app_version", (Object) pluginMetadata.getAppVersion());
-            pyObjectCall.put("sdk_version", (Object) pluginMetadata.getSdkVersion());
-            pyObjectCall.put("requirements", (Object) pluginMetadata.getRequirements());
-            String string2 = "enabled";
-            Boolean bool = Boolean.FALSE;
-            pyObjectCall.put(string2, (Object) bool);
-            pyObjectCall.put("initialized", (Object) bool);
-            pyObjectCall.put("error_message", (Object) null);
-            this.pluginInstances.put(pluginId, pyObjectCall);
-        } catch (PyException e) {
-            throw new Exception("Failed to import plugin module: " + e.getMessage(), e);
+        } catch (Throwable th) {
+            getPluginsController().getWatchdog().onPluginExecutionFinished(pluginId);
+            throw th;
         }
+        getPluginsController().getWatchdog().onPluginExecutionFinished(pluginId);
+        throw th;
     }
 
-    /* JADX WARN: Code duplicated, block: B:27:0x0096 A[Catch: all -> 0x0060, PyException -> 0x0063, TryCatch #6 {PyException -> 0x0063, blocks: (B:8:0x0031, B:10:0x003b, B:13:0x0054, B:14:0x0058, B:22:0x0082, B:24:0x0088, B:25:0x0093, B:27:0x0096, B:29:0x00a6, B:30:0x00b4, B:32:0x00d0, B:35:0x00d7, B:37:0x00dd, B:39:0x00e1, B:45:0x0115, B:46:0x011a, B:42:0x010f), top: B:98:0x0031, outer: #0 }] */
-    /* JADX WARN: Code duplicated, block: B:29:0x00a6 A[Catch: all -> 0x0060, PyException -> 0x0063, TryCatch #6 {PyException -> 0x0063, blocks: (B:8:0x0031, B:10:0x003b, B:13:0x0054, B:14:0x0058, B:22:0x0082, B:24:0x0088, B:25:0x0093, B:27:0x0096, B:29:0x00a6, B:30:0x00b4, B:32:0x00d0, B:35:0x00d7, B:37:0x00dd, B:39:0x00e1, B:45:0x0115, B:46:0x011a, B:42:0x010f), top: B:98:0x0031, outer: #0 }] */
-    /* JADX WARN: Code duplicated, block: B:43:0x0112 A[EDGE_INSN: B:43:0x0112->B:44:0x0113 BREAK  A[LOOP:0: B:38:0x00df->B:42:0x010f]] */
     public final void unloadPlugin(String pluginId) {
+        Object objM2406constructorimpl;
+        Object objM2406constructorimpl2;
+        Object objM2406constructorimpl3;
+        Throwable thM2409exceptionOrNullimpl;
+        PyObject pyObject;
+        Object objM2406constructorimpl4;
+        Object objM2406constructorimpl5;
+        Object objM2406constructorimpl6;
+        Throwable thM2409exceptionOrNullimpl2;
+        StringBuilder sb;
+        PyObject pyObject2;
+        boolean z;
+        File file;
+        Object objM2406constructorimpl7;
+        Object objM2406constructorimpl8;
+        Object objM2406constructorimpl9;
+        PyObject pyObject3;
+        File[] fileArrListFiles;
+        PluginsController pluginsController;
+        PyObject pyObject4;
         this.settingsCache.remove(pluginId);
         PyObject pyObjectRemove = this.pluginInstances.remove(pluginId);
         Plugin plugin = getPluginsController().getPlugins().get(pluginId);
         if (plugin != null) {
             plugin.setEnabled(false);
         }
+        Unit unit = null;
+        try {
+            PyObject pyObject5 = this.basePluginClass;
+            PyObjectUtils.closeSafely((pyObject5 == null || (pyObject4 = (PyObject) pyObject5.get((Object) "_stop_lifecycle")) == null) ? null : pyObject4.call(pluginId));
+        } catch (Throwable th) {
+            FileLog.e("Failed to stop plugin tasks for " + pluginId, th);
+        }
         try {
             if (pyObjectRemove != null) {
                 try {
                     if (PyObjectUtils.getBoolean(pyObjectRemove, "initialized", false)) {
-                        getPluginsController().getWatchdog().onPluginExecutionStarted(pluginId);
-                        try {
-                            pyObjectRemove.callAttr("on_plugin_unload", new Object[0]);
-                        } catch (Throwable th) {
-                            FileLog.e("Error during on_plugin_unload for " + pluginId, th);
-                        } finally {
-                            getPluginsController().getWatchdog().onPluginExecutionFinished(pluginId);
-                        }
-                    }
-                    pyObjectRemove.put("initialized", (Object) Boolean.FALSE);
-                    pyObjectRemove.put("enabled", (Object) Boolean.FALSE);
-                    File file = new File(getPluginsController().getPluginsDir(), "__pycache__");
-                    File file2 = null;
-                    File[] fileArrListFiles;
-                    if (file.exists() && file.isDirectory() && (fileArrListFiles = file.listFiles()) != null) {
-                        for (File f : fileArrListFiles) {
-                            if (f.getName().startsWith(pluginId + ".cpython-")) {
-                                file2 = f;
-                                break;
-                            }
-                        }
-                    }
-                    if (file2 != null) {
-                        INSTANCE.deleteFileIfExists(file2);
-                    }
-                    refreshImportCaches(pluginId, getPluginsController().getPluginsDir());
-                    getPluginsController().cleanupPlugin(pluginId);
-                    try {
-                        pyObjectRemove.close();
-                    } catch (Throwable th) {
-                        FileLog.e("Failed to close plugin instance " + pluginId, th);
+                        z = true;
+                    } else {
+                        z = false;
                     }
                 } catch (PyException e) {
                     FileLog.e("Failed to unload plugin " + pluginId, e);
-                    getPluginsController().cleanupPlugin(pluginId);
                     try {
-                        pyObjectRemove.close();
-                    } catch (Throwable th) {
-                        FileLog.e("Failed to close plugin instance " + pluginId, th);
+                        Result.Companion companion = Result.INSTANCE;
+                        PyObject pyObject6 = this.basePluginClass;
+                        PyObjectUtils.closeSafely((pyObject6 == null || (pyObject2 = (PyObject) pyObject6.get((Object) "_cleanup")) == null) ? null : pyObject2.call(pluginId));
+                        objM2406constructorimpl4 = Result.m2406constructorimpl(Unit.INSTANCE);
+                    } catch (Throwable th2) {
+                        Result.Companion companion2 = Result.INSTANCE;
+                        objM2406constructorimpl4 = Result.m2406constructorimpl(ResultKt.createFailure(th2));
+                    }
+                    Throwable thM2409exceptionOrNullimpl3 = Result.m2409exceptionOrNullimpl(objM2406constructorimpl4);
+                    if (thM2409exceptionOrNullimpl3 != null) {
+                        FileLog.e("Failed to clean up SDK resources for " + pluginId, thM2409exceptionOrNullimpl3);
+                    }
+                    try {
+                        getPluginsController().cleanupPlugin(pluginId);
+                        objM2406constructorimpl5 = Result.m2406constructorimpl(Unit.INSTANCE);
+                    } catch (Throwable th3) {
+                        Result.Companion companion3 = Result.INSTANCE;
+                        objM2406constructorimpl5 = Result.m2406constructorimpl(ResultKt.createFailure(th3));
+                    }
+                    Throwable thM2409exceptionOrNullimpl4 = Result.m2409exceptionOrNullimpl(objM2406constructorimpl5);
+                    if (thM2409exceptionOrNullimpl4 != null) {
+                        FileLog.e("Failed to clean up plugin " + pluginId, thM2409exceptionOrNullimpl4);
+                    }
+                    if (pyObjectRemove != null) {
+                        try {
+                            pyObjectRemove.close();
+                            unit = Unit.INSTANCE;
+                        } catch (Throwable th4) {
+                            Result.Companion companion4 = Result.INSTANCE;
+                            objM2406constructorimpl6 = Result.m2406constructorimpl(ResultKt.createFailure(th4));
+                            thM2409exceptionOrNullimpl2 = Result.m2409exceptionOrNullimpl(objM2406constructorimpl6);
+                            if (thM2409exceptionOrNullimpl2 == null) {
+                                sb = new StringBuilder("Failed to close plugin instance ");
+                                sb.append(pluginId);
+                                FileLog.e(sb.toString(), thM2409exceptionOrNullimpl2);
+                            }
+                            return;
+                        }
+                    }
+                    objM2406constructorimpl6 = Result.m2406constructorimpl(unit);
+                    thM2409exceptionOrNullimpl2 = Result.m2409exceptionOrNullimpl(objM2406constructorimpl6);
+                    if (thM2409exceptionOrNullimpl2 == null) {
+                        return;
+                    } else {
+                        sb = new StringBuilder("Failed to close plugin instance ");
                     }
                 }
             } else {
-                File file = new File(getPluginsController().getPluginsDir(), "__pycache__");
-                File file2 = null;
-                File[] fileArrListFiles;
-                if (file.exists() && file.isDirectory() && (fileArrListFiles = file.listFiles()) != null) {
-                    for (File f : fileArrListFiles) {
-                        if (f.getName().startsWith(pluginId + ".cpython-")) {
-                            file2 = f;
-                            break;
-                        }
+                z = false;
+            }
+            if (pyObjectRemove != null) {
+                pyObjectRemove.put("initialized", (Object) Boolean.FALSE);
+            }
+            if (pyObjectRemove != null) {
+                pyObjectRemove.put("enabled", (Object) Boolean.FALSE);
+            }
+            if (pyObjectRemove != null && z) {
+                getPluginsController().getWatchdog().onPluginExecutionStarted(pluginId);
+                try {
+                    if (pyObjectRemove.get((Object) "_invoke_plugin_unload") != null) {
+                        PyObjectUtils.closeSafely(pyObjectRemove.callAttr("_invoke_plugin_unload", new Object[0]));
+                    } else {
+                        PyObjectUtils.closeSafely(pyObjectRemove.callAttr(PluginsConstants.ON_PLUGIN_UNLOAD, new Object[0]));
+                    }
+                    pluginsController = getPluginsController();
+                } catch (Throwable th5) {
+                    try {
+                        FileLog.e("Error during on_plugin_unload for " + pluginId, th5);
+                        pluginsController = getPluginsController();
+                    } catch (Throwable th6) {
+                        getPluginsController().getWatchdog().onPluginExecutionFinished(pluginId);
+                        throw th6;
                     }
                 }
-                if (file2 != null) {
-                    INSTANCE.deleteFileIfExists(file2);
-                }
-                refreshImportCaches(pluginId, getPluginsController().getPluginsDir());
-                getPluginsController().cleanupPlugin(pluginId);
+                pluginsController.getWatchdog().onPluginExecutionFinished(pluginId);
             }
-        } catch (Throwable th5) {
-            getPluginsController().cleanupPlugin(pluginId);
+            releasePluginObjects(pluginId);
+            File file2 = new File(getPluginsController().getPluginsDir(), "__pycache__");
+            if (!file2.exists() || !file2.isDirectory() || (fileArrListFiles = file2.listFiles()) == null) {
+                file = null;
+                break;
+            }
+            int length = fileArrListFiles.length;
+            int i = 0;
+            while (true) {
+                if (i >= length) {
+                    file = null;
+                    break;
+                }
+                file = fileArrListFiles[i];
+                if (StringsKt.startsWith$default(file.getName(), pluginId + ".cpython-", false, 2, (Object) null)) {
+                    break;
+                } else {
+                    i++;
+                }
+            }
+            if (file != null) {
+                INSTANCE.deleteFileIfExists(file);
+            }
+            refreshImportCaches(pluginId, getPluginsController().getPluginsDir());
+            try {
+                Result.Companion companion5 = Result.INSTANCE;
+                PyObject pyObject7 = this.basePluginClass;
+                PyObjectUtils.closeSafely((pyObject7 == null || (pyObject3 = (PyObject) pyObject7.get((Object) "_cleanup")) == null) ? null : pyObject3.call(pluginId));
+                objM2406constructorimpl7 = Result.m2406constructorimpl(Unit.INSTANCE);
+            } catch (Throwable th7) {
+                Result.Companion companion6 = Result.INSTANCE;
+                objM2406constructorimpl7 = Result.m2406constructorimpl(ResultKt.createFailure(th7));
+            }
+            Throwable thM2409exceptionOrNullimpl5 = Result.m2409exceptionOrNullimpl(objM2406constructorimpl7);
+            if (thM2409exceptionOrNullimpl5 != null) {
+                FileLog.e("Failed to clean up SDK resources for " + pluginId, thM2409exceptionOrNullimpl5);
+            }
+            try {
+                getPluginsController().cleanupPlugin(pluginId);
+                objM2406constructorimpl8 = Result.m2406constructorimpl(Unit.INSTANCE);
+            } catch (Throwable th8) {
+                Result.Companion companion7 = Result.INSTANCE;
+                objM2406constructorimpl8 = Result.m2406constructorimpl(ResultKt.createFailure(th8));
+            }
+            Throwable thM2409exceptionOrNullimpl6 = Result.m2409exceptionOrNullimpl(objM2406constructorimpl8);
+            if (thM2409exceptionOrNullimpl6 != null) {
+                FileLog.e("Failed to clean up plugin " + pluginId, thM2409exceptionOrNullimpl6);
+            }
             if (pyObjectRemove != null) {
                 try {
                     pyObjectRemove.close();
-                } catch (Throwable th6) {
-                    FileLog.e("Failed to close plugin instance " + pluginId, th6);
+                    unit = Unit.INSTANCE;
+                } catch (Throwable th9) {
+                    Result.Companion companion8 = Result.INSTANCE;
+                    objM2406constructorimpl9 = Result.m2406constructorimpl(ResultKt.createFailure(th9));
                 }
             }
-            throw th5;
+            objM2406constructorimpl9 = Result.m2406constructorimpl(unit);
+            thM2409exceptionOrNullimpl2 = Result.m2409exceptionOrNullimpl(objM2406constructorimpl9);
+            if (thM2409exceptionOrNullimpl2 != null) {
+                sb = new StringBuilder("Failed to close plugin instance ");
+                sb.append(pluginId);
+                FileLog.e(sb.toString(), thM2409exceptionOrNullimpl2);
+            }
+        } catch (Throwable th10) {
+            try {
+                Result.Companion companion9 = Result.INSTANCE;
+                PyObject pyObject8 = this.basePluginClass;
+                PyObjectUtils.closeSafely((pyObject8 == null || (pyObject = (PyObject) pyObject8.get((Object) "_cleanup")) == null) ? null : pyObject.call(pluginId));
+                objM2406constructorimpl = Result.m2406constructorimpl(Unit.INSTANCE);
+            } catch (Throwable th11) {
+                Result.Companion companion10 = Result.INSTANCE;
+                objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th11));
+            }
+            Throwable thM2409exceptionOrNullimpl7 = Result.m2409exceptionOrNullimpl(objM2406constructorimpl);
+            if (thM2409exceptionOrNullimpl7 != null) {
+                FileLog.e("Failed to clean up SDK resources for " + pluginId, thM2409exceptionOrNullimpl7);
+            }
+            try {
+                getPluginsController().cleanupPlugin(pluginId);
+                objM2406constructorimpl2 = Result.m2406constructorimpl(Unit.INSTANCE);
+            } catch (Throwable th12) {
+                Result.Companion companion11 = Result.INSTANCE;
+                objM2406constructorimpl2 = Result.m2406constructorimpl(ResultKt.createFailure(th12));
+            }
+            Throwable thM2409exceptionOrNullimpl8 = Result.m2409exceptionOrNullimpl(objM2406constructorimpl2);
+            if (thM2409exceptionOrNullimpl8 != null) {
+                FileLog.e("Failed to clean up plugin " + pluginId, thM2409exceptionOrNullimpl8);
+            }
+            if (pyObjectRemove != null) {
+                try {
+                    pyObjectRemove.close();
+                    unit = Unit.INSTANCE;
+                } catch (Throwable th13) {
+                    Result.Companion companion12 = Result.INSTANCE;
+                    objM2406constructorimpl3 = Result.m2406constructorimpl(ResultKt.createFailure(th13));
+                    thM2409exceptionOrNullimpl = Result.m2409exceptionOrNullimpl(objM2406constructorimpl3);
+                    if (thM2409exceptionOrNullimpl != null) {
+                        throw th10;
+                    }
+                    FileLog.e("Failed to close plugin instance " + pluginId, thM2409exceptionOrNullimpl);
+                    throw th10;
+                }
+            }
+            objM2406constructorimpl3 = Result.m2406constructorimpl(unit);
+            thM2409exceptionOrNullimpl = Result.m2409exceptionOrNullimpl(objM2406constructorimpl3);
+            if (thM2409exceptionOrNullimpl != null) {
+                throw th10;
+            }
+            FileLog.e("Failed to close plugin instance " + pluginId, thM2409exceptionOrNullimpl);
+            throw th10;
+        }
+    }
+
+    private final void releasePluginObjects(String pluginId) {
+        Python python = this.python;
+        if (python == null) {
+            return;
+        }
+        try {
+            PyObject pyObject = (PyObject) python.getModule("extera_utils.classes").get((Object) "release_plugin");
+            if (pyObject == null) {
+                return;
+            }
+            pyObject.call(pluginId);
+        } catch (PyException e) {
+            FileLog.e("Failed to release objects of plugin " + pluginId, e);
         }
     }
 
@@ -1232,27 +1539,21 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         if (pyObjectCallAttr == null) {
             return;
         }
-        PyObject pyObject = (PyObject) pyObjectCallAttr.get((Object) "__file__");
+        PyObject pyObject = (PyObject) pyObjectCallAttr.get("__file__");
         String string = pyObject != null ? pyObject.toString() : null;
         if (moduleDir != null) {
             strCanonicalPathOrNull = INSTANCE.canonicalPathOrNull(new File(moduleDir, pluginId + ".py").getAbsolutePath());
         } else {
             strCanonicalPathOrNull = null;
         }
-        if (strCanonicalPathOrNull == null || !Intrinsics.areEqual(INSTANCE.canonicalPathOrNull(string), strCanonicalPathOrNull)) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Keeping module '");
-            sb.append(pluginId);
-            sb.append("' loaded: it belongs to ");
-            if (string == null) {
-                string = "the Python runtime";
-            }
-            sb.append(string);
-            sb.append(", not to a plugin");
-            FileLog.w(sb.toString());
+        if (strCanonicalPathOrNull != null && Intrinsics.areEqual(INSTANCE.canonicalPathOrNull(string), strCanonicalPathOrNull)) {
+            sysModules.callAttr("pop", pluginId, null);
             return;
         }
-        sysModules.callAttr("pop", pluginId, null);
+        if (string == null) {
+            string = "the Python runtime";
+        }
+        FileLog.w("Keeping module '" + pluginId + "' loaded: it belongs to " + string + ", not to a plugin");
     }
 
     @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
@@ -1265,10 +1566,10 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             }
             if (enabled && ExteraConfig.getPluginsSafeMode()) {
                 if (callback != null) {
-                    AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda13
+                    AndroidUtilities.runOnUIThread(new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
-                            callback.run("Plugins cannot be enabled while safe mode is active");
+                            callback.run(PythonPluginsEngine.SAFE_MODE_ENABLE_ERROR);
                         }
                     });
                     return;
@@ -1292,27 +1593,26 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             }
             if (!enabled) {
                 SharedPreferences.Editor editorEdit = getPluginsController().getPreferences().edit();
-                editorEdit.putBoolean("plugin_enabled_" + pluginId, false);
+                editorEdit.putBoolean(PluginsController.PREF_PLUGIN_ENABLED_KEY_PREFIX + pluginId, false);
                 editorEdit.apply();
                 unloadPlugin(pluginId);
             } else {
                 if (pyObject == null) {
-                    throw new IllegalArgumentException("Required value was null.".toString());
+                    throw new IllegalArgumentException("Required value was null.");
                 }
                 getPluginsController().cleanupPlugin(pluginId);
                 getPluginsController().getWatchdog().onPluginExecutionStarted(pluginId);
                 try {
-                    pyObject.callAttr("on_plugin_load", new Object[0]);
+                    pyObject.callAttr(PluginsConstants.ON_PLUGIN_LOAD, new Object[0]);
                     getPluginsController().getWatchdog().onPluginExecutionFinished(pluginId);
-                    String string = "initialized";
                     Boolean bool = Boolean.TRUE;
-                    pyObject.put(string, (Object) bool);
+                    pyObject.put("initialized", (Object) bool);
                     pyObject.put("error_message", (Object) null);
                     plugin2.setError(null);
                     pyObject.put("enabled", (Object) bool);
                     plugin2.setEnabled(true);
                     SharedPreferences.Editor editorEdit2 = getPluginsController().getPreferences().edit();
-                    editorEdit2.putBoolean("plugin_enabled_" + pluginId, true);
+                    editorEdit2.putBoolean(PluginsController.PREF_PLUGIN_ENABLED_KEY_PREFIX + pluginId, true);
                     editorEdit2.apply();
                     getPluginsController().loadPluginSettings(pluginId);
                 } catch (Throwable th) {
@@ -1322,7 +1622,7 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             }
             getPluginsController().notifyPluginsChanged();
             if (callback != null) {
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda14
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
                         callback.run(null);
@@ -1335,11 +1635,11 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                 plugin.setError(th2);
             }
             SharedPreferences.Editor editorEdit3 = getPluginsController().getPreferences().edit();
-            editorEdit3.putBoolean("plugin_enabled_" + pluginId, false);
+            editorEdit3.putBoolean(PluginsController.PREF_PLUGIN_ENABLED_KEY_PREFIX + pluginId, false);
             editorEdit3.apply();
             unloadPlugin(pluginId);
             if (callback != null) {
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda15
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
                         callback.run(AppUtils.stackTraceToString(th2));
@@ -1366,7 +1666,7 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         getPluginsController().getPlugins().remove(pluginId);
         getPluginsController().notifyPluginsChanged();
         if (callback != null) {
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda12
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
                     callback.run(null);
@@ -1388,7 +1688,7 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         }
         File file = new File(getPluginPath(id));
         if (file.exists()) {
-            PluginFileViewer.INSTANCE.open(safeLastFragment, file, id + ".plugin");
+            PluginFileViewer.INSTANCE.open(safeLastFragment, file, id + PluginsConstants.PLUGINS_EXT);
         }
     }
 
@@ -1402,7 +1702,7 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         String pluginPath = getPluginPath(id);
         File file = new File(ApplicationLoader.getFilesDirFixed(), "temp");
         SimpliFiles.directory(file).create();
-        File file2 = new File(file, id + ".plugin");
+        File file2 = new File(file, id + PluginsConstants.PLUGINS_EXT);
         try {
             SimpliFiles.file(pluginPath).copyTo(file2, OverwritePolicy.REPLACE);
             Uri uriForFile = FileProvider.getUriForFile(parentActivity, ApplicationLoader.getApplicationId() + ".provider", file2);
@@ -1410,8 +1710,10 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             intent.setFlags(1);
             intent.putExtra("android.intent.extra.STREAM", uriForFile);
             intent.setType("application/x-plugin");
-            safeLastFragment.startActivityForResult(Intent.createChooser(intent, LocaleController.getString(R.string.ShareFile)), 500);
+            safeLastFragment.startActivityForResult(Intent.createChooser(intent, LocaleController.getString(R.string.ShareFile)), MediaError.DetailedErrorCode.SEGMENT_UNKNOWN);
             file2.deleteOnExit();
+        } catch (IOException e) {
+            FileLog.e(e);
         } catch (IllegalArgumentException e2) {
             FileLog.e(e2);
         } catch (Exception e3) {
@@ -1423,242 +1725,283 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         loadPluginFromFile(filePath, pluginMetadata, callback, null);
     }
 
-    public final void loadPluginFromFile(final String filePath, final Plugin pluginMetadata, final Utilities.Callback<String> callback, final PipController.InstallerDelegate delegate) {
-        PluginsController.INSTANCE.runOnPluginsQueue(new Runnable() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda8
+    @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
+    public void loadPluginFromFile(final String filePath, final Plugin pluginMetadata, final Utilities.Callback<String> callback, final PipController.InstallerDelegate delegate) {
+        PluginsController.INSTANCE.runOnPluginsQueue(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                PythonPluginsEngine.$r8$lambda$Uz7P7RWb8TcyDXFz8YyO_rscMmI(pluginMetadata, PythonPluginsEngine.this, filePath, delegate, callback);
+                PythonPluginsEngine.m1879$r8$lambda$ntptHYkrJR_BTgA1KYYOzCptFM(pluginMetadata, this, filePath, delegate, callback);
             }
         });
     }
 
-    /* JADX WARN: Code duplicated, block: B:37:0x00fc  */
-    /* JADX WARN: Code duplicated, block: B:39:0x0104 A[ADDED_TO_REGION] */
-    /* JADX WARN: Code duplicated, block: B:57:0x017e  */
-    /* JADX WARN: Code duplicated, block: B:64:0x0197  */
-    /* JADX WARN: Code duplicated, block: B:68:0x01ba  */
-    /* JADX WARN: Code duplicated, block: B:88:? A[RETURN, SYNTHETIC] */
-    public static void $r8$lambda$Uz7P7RWb8TcyDXFz8YyO_rscMmI(Plugin plugin, PythonPluginsEngine pythonPluginsEngine, String str, PipController.InstallerDelegate installerDelegate, final Utilities.Callback callback) {
-        Throwable th;
-        Exception e;
+    public static void m1879$r8$lambda$ntptHYkrJR_BTgA1KYYOzCptFM(Plugin plugin, PythonPluginsEngine pythonPluginsEngine, String str, PipController.InstallerDelegate installerDelegate, final Utilities.Callback callback) {
+        String id;
         File file;
+        Plugin plugin2;
         File file2;
+        boolean z;
         boolean zExists;
+        final Throwable th;
         PyObject pyObjectRemove;
-        String str2 = null;
-        file = null;
         File file3 = null;
-        boolean z = false;
+        boolean z2 = false;
         if (plugin == null) {
             try {
                 PluginsController.PluginValidationResult pluginValidationResultValidatePluginFromFile = pythonPluginsEngine.validatePluginFromFile(str);
                 if (pluginValidationResultValidatePluginFromFile.getError() != null) {
                     throw new Exception(pluginValidationResultValidatePluginFromFile.getError());
                 }
-                plugin = pluginValidationResultValidatePluginFromFile.getPlugin();
-                if (plugin == null) {
-                    throw new IllegalArgumentException("Required value was null.".toString());
+                plugin2 = pluginValidationResultValidatePluginFromFile.getPlugin();
+                if (plugin2 == null) {
+                    throw new IllegalArgumentException("Required value was null.");
                 }
-            } catch (Throwable thCatched) {
-                th = thCatched;
+            } catch (Throwable th2) {
+                th = th2;
+                id = null;
                 file = null;
-                file2 = null;
+                file2 = file;
+                z = false;
                 zExists = false;
+                th = th;
                 FileLog.e("Unexpected error loading plugin from file: " + str, th);
-                if (str2 != null) {
+                if (id != null) {
                     INSTANCE.deleteFileIfExists(file);
                     if (zExists) {
                         try {
                             SimpliFiles.file(file2).moveTo(file, OverwritePolicy.REPLACE);
                             try {
-                                String absolutePath = file.getAbsolutePath();
-                                pythonPluginsEngine.loadPlugin(str2, absolutePath);
-                                Unit unit = Unit.INSTANCE;
-                            } catch (Exception eCatched) {
-                                e = eCatched;
+                                SharedPreferences.Editor editorEdit = pythonPluginsEngine.getPluginsController().getPreferences().edit();
+                                editorEdit.putBoolean(PluginsController.PREF_PLUGIN_ENABLED_KEY_PREFIX + ((Object) id), z);
+                                editorEdit.apply();
                                 try {
-                                    FileLog.e("Failed to reload original plugin after update failure for " + str2, e);
-                                    Plugin plugin2 = pythonPluginsEngine.getPluginsController().getPlugins().get(str2);
-                                    if (plugin2 != null) {
-                                        plugin2.setError(e);
+                                    pythonPluginsEngine.loadPlugin(id, file.getAbsolutePath());
+                                    Unit unit = Unit.INSTANCE;
+                                } catch (Exception e) {
+                                    FileLog.e("Failed to reload original plugin after update failure for " + ((Object) id), e);
+                                    Plugin plugin3 = pythonPluginsEngine.getPluginsController().getPlugins().get(id);
+                                    if (plugin3 != null) {
+                                        plugin3.setError(e);
                                         Unit unit2 = Unit.INSTANCE;
                                     }
-                                } catch (Exception e2) {
-                                    e = e2;
-                                    z = true;
-                                    FileLog.e("Failed to restore backup for plugin " + str2, e);
-                                    if (!z) {
-                                        pythonPluginsEngine.getPluginsController().cleanupPlugin(str2);
-                                        try {
-                                            pythonPluginsEngine.removePluginDependencies(str2);
-                                        } catch (Exception e3) {
-                                            FileLog.e(e3);
-                                        }
-                                        pyObjectRemove = pythonPluginsEngine.pluginInstances.remove(str2);
-                                        if (pyObjectRemove != null) {
-                                            pyObjectRemove.close();
-                                        }
-                                        pythonPluginsEngine.getPluginsController().clearPluginSettingsPreferences(str2, true);
-                                        pythonPluginsEngine.getPluginsController().getPlugins().remove(str2);
-                                        INSTANCE.deleteFileIfExists(file);
+                                }
+                                z2 = true;
+                            } catch (Exception e2) {
+                                e = e2;
+                                z2 = true;
+                                FileLog.e("Failed to restore backup for plugin " + ((Object) id), e);
+                                if (!z2) {
+                                    pythonPluginsEngine.getPluginsController().cleanupPlugin(id);
+                                    try {
+                                        pythonPluginsEngine.removePluginDependencies(id);
+                                    } catch (Exception e3) {
+                                        FileLog.e(e3);
                                     }
-                                    pythonPluginsEngine.getPluginsController().notifyPluginsChanged();
-                                    if (callback != null) {
-                                        final Throwable err = th;
-                                        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda21
-                                            @Override // java.lang.Runnable
-                                            public final void run() {
-                                                PythonPluginsEngine.loadPluginFromFile$lambda$0$1(callback, err);
-                                            }
-                                        });
+                                    pyObjectRemove = pythonPluginsEngine.pluginInstances.remove(id);
+                                    if (pyObjectRemove != null) {
+                                        pyObjectRemove.close();
                                     }
+                                    pythonPluginsEngine.getPluginsController().clearPluginSettingsPreferences(id, true);
+                                    pythonPluginsEngine.getPluginsController().getPlugins().remove(id);
+                                    INSTANCE.deleteFileIfExists(file);
+                                }
+                                pythonPluginsEngine.getPluginsController().notifyPluginsChanged();
+                                if (callback != null) {
+                                    AndroidUtilities.runOnUIThread(new Runnable() {
+                                        @Override // java.lang.Runnable
+                                        public final void run() {
+                                            callback.run(AppUtils.stackTraceToString(th));
+                                        }
+                                    });
                                 }
                             }
-                            z = true;
                         } catch (Exception e4) {
                             e = e4;
                         }
                     }
-                    if (!z) {
-                        pythonPluginsEngine.getPluginsController().cleanupPlugin(str2);
-                        pythonPluginsEngine.removePluginDependencies(str2);
-                        pyObjectRemove = pythonPluginsEngine.pluginInstances.remove(str2);
+                    if (!z2) {
+                        pythonPluginsEngine.getPluginsController().cleanupPlugin(id);
+                        pythonPluginsEngine.removePluginDependencies(id);
+                        pyObjectRemove = pythonPluginsEngine.pluginInstances.remove(id);
                         if (pyObjectRemove != null) {
                             pyObjectRemove.close();
                         }
-                        pythonPluginsEngine.getPluginsController().clearPluginSettingsPreferences(str2, true);
-                        pythonPluginsEngine.getPluginsController().getPlugins().remove(str2);
+                        pythonPluginsEngine.getPluginsController().clearPluginSettingsPreferences(id, true);
+                        pythonPluginsEngine.getPluginsController().getPlugins().remove(id);
                         INSTANCE.deleteFileIfExists(file);
                     }
                 }
                 pythonPluginsEngine.getPluginsController().notifyPluginsChanged();
                 if (callback != null) {
-                    final Throwable err2 = th;
-                    AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda21
+                    AndroidUtilities.runOnUIThread(new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
-                            PythonPluginsEngine.loadPluginFromFile$lambda$0$1(callback, err2);
+                            callback.run(AppUtils.stackTraceToString(th));
                         }
                     });
                 }
             }
+        } else {
+            plugin2 = plugin;
         }
-        String id = plugin.getId();
+        id = plugin2.getId();
         try {
-            file = new File(pythonPluginsEngine.getPluginsController().getPluginsDir(), id + ".py");
+            z = pythonPluginsEngine.getPluginsController().getPreferences().getBoolean(PluginsController.PREF_PLUGIN_ENABLED_KEY_PREFIX + ((Object) id), false);
             try {
-                zExists = file.exists();
-                if (zExists) {
-                    try {
-                        pythonPluginsEngine.unloadPlugin(id);
-                        file2 = new File(pythonPluginsEngine.getPluginsController().getPluginsDir(), id + ".py.bak");
-                        try {
-                            INSTANCE.deleteFileIfExists(file2);
-                            SimpliFiles.file(file).moveTo(file2, OverwritePolicy.ERROR);
-                            pythonPluginsEngine.removePluginDependencies(id);
-                            file3 = file2;
-                        } catch (Throwable th2) {
-                            th = th2;
-                            str2 = id;
-                            FileLog.e("Unexpected error loading plugin from file: " + str, th);
-                            if (str2 != null) {
-                                INSTANCE.deleteFileIfExists(file);
-                                if (zExists && file2 != null && file2.exists() && file != null) {
-                                    SimpliFiles.file(file2).moveTo(file, OverwritePolicy.REPLACE);
-                                    String absolutePath2 = file.getAbsolutePath();
-                                        pythonPluginsEngine.loadPlugin(str2, absolutePath2);
-                                    Unit unit3 = Unit.INSTANCE;
-                                    z = true;
-                                }
-                                if (!z) {
-                                    pythonPluginsEngine.getPluginsController().cleanupPlugin(str2);
-                                    pythonPluginsEngine.removePluginDependencies(str2);
-                                    pyObjectRemove = pythonPluginsEngine.pluginInstances.remove(str2);
-                                    if (pyObjectRemove != null) {
-                                        pyObjectRemove.close();
-                                    }
-                                    pythonPluginsEngine.getPluginsController().clearPluginSettingsPreferences(str2, true);
-                                    pythonPluginsEngine.getPluginsController().getPlugins().remove(str2);
-                                    INSTANCE.deleteFileIfExists(file);
-                                }
-                            }
-                            pythonPluginsEngine.getPluginsController().notifyPluginsChanged();
-                            if (callback != null) {
-                                final Throwable err3 = th;
-                                AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda21
-                                    @Override // java.lang.Runnable
-                                    public final void run() {
-                                        PythonPluginsEngine.loadPluginFromFile$lambda$0$1(callback, err3);
-                                    }
-                                });
-                            }
-                        }
-                    } catch (Throwable th3) {
-                        th = th3;
-                        file2 = file3;
-                    }
-                }
-                SimpliFiles.file(str).copyTo(file, OverwritePolicy.REPLACE);
-                String absolutePath3 = file.getAbsolutePath();
-                pythonPluginsEngine.loadPlugin(id, absolutePath3, plugin, installerDelegate);
-                INSTANCE.deleteFileIfExists(file3);
-                pythonPluginsEngine.getPluginsController().notifyPluginsChanged();
-                if (callback != null) {
-                    AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda20
-                        @Override // java.lang.Runnable
-                        public final void run() {
-                            callback.run(null);
-                        }
-                    });
-                }
-            } catch (Throwable th4) {
-                th = th4;
-                file2 = null;
-                zExists = false;
-                str2 = id;
-                FileLog.e("Unexpected error loading plugin from file: " + str, th);
-                if (str2 != null) {
-                    INSTANCE.deleteFileIfExists(file);
+                file = new File(pythonPluginsEngine.getPluginsController().getPluginsDir(), ((Object) id) + ".py");
+                try {
+                    zExists = file.exists();
                     if (zExists) {
-                        SimpliFiles.file(file2).moveTo(file, OverwritePolicy.REPLACE);
-                        String absolutePath4 = file.getAbsolutePath();
-                                pythonPluginsEngine.loadPlugin(str2, absolutePath4);
-                        Unit unit4 = Unit.INSTANCE;
-                        z = true;
-                    }
-                    if (!z) {
-                        pythonPluginsEngine.getPluginsController().cleanupPlugin(str2);
-                        pythonPluginsEngine.removePluginDependencies(str2);
-                        pyObjectRemove = pythonPluginsEngine.pluginInstances.remove(str2);
-                        if (pyObjectRemove != null) {
-                            pyObjectRemove.close();
+                        try {
+                            pythonPluginsEngine.unloadPlugin(id);
+                            file2 = new File(pythonPluginsEngine.getPluginsController().getPluginsDir(), ((Object) id) + ".py.bak");
+                            try {
+                                INSTANCE.deleteFileIfExists(file2);
+                                SimpliFiles.file(file).moveTo(file2, OverwritePolicy.ERROR);
+                                pythonPluginsEngine.removePluginDependencies(id);
+                                file3 = file2;
+                            } catch (Throwable th3) {
+                                th = th3;
+                                th = th;
+                                FileLog.e("Unexpected error loading plugin from file: " + str, th);
+                                if (id != null) {
+                                    INSTANCE.deleteFileIfExists(file);
+                                    if (zExists && file2 != null && file2.exists() && file != null) {
+                                        SimpliFiles.file(file2).moveTo(file, OverwritePolicy.REPLACE);
+                                        SharedPreferences.Editor editorEdit2 = pythonPluginsEngine.getPluginsController().getPreferences().edit();
+                                        editorEdit2.putBoolean(PluginsController.PREF_PLUGIN_ENABLED_KEY_PREFIX + ((Object) id), z);
+                                        editorEdit2.apply();
+                                        pythonPluginsEngine.loadPlugin(id, file.getAbsolutePath());
+                                        Unit unit3 = Unit.INSTANCE;
+                                        z2 = true;
+                                    }
+                                    if (!z2) {
+                                        pythonPluginsEngine.getPluginsController().cleanupPlugin(id);
+                                        pythonPluginsEngine.removePluginDependencies(id);
+                                        pyObjectRemove = pythonPluginsEngine.pluginInstances.remove(id);
+                                        if (pyObjectRemove != null) {
+                                            pyObjectRemove.close();
+                                        }
+                                        pythonPluginsEngine.getPluginsController().clearPluginSettingsPreferences(id, true);
+                                        pythonPluginsEngine.getPluginsController().getPlugins().remove(id);
+                                        INSTANCE.deleteFileIfExists(file);
+                                    }
+                                }
+                                pythonPluginsEngine.getPluginsController().notifyPluginsChanged();
+                                if (callback != null) {
+                                    AndroidUtilities.runOnUIThread(new Runnable() {
+                                        @Override // java.lang.Runnable
+                                        public final void run() {
+                                            callback.run(AppUtils.stackTraceToString(th));
+                                        }
+                                    });
+                                }
+                            }
+                        } catch (Throwable th4) {
+                            th = th4;
+                            file2 = null;
                         }
-                        pythonPluginsEngine.getPluginsController().clearPluginSettingsPreferences(str2, true);
-                        pythonPluginsEngine.getPluginsController().getPlugins().remove(str2);
+                    }
+                    if (!new File(str).exists()) {
+                        throw new Exception("Plugin file is no longer available. It may have been moved or deleted.");
+                    }
+                    SimpliFiles.file(str).copyTo(file, OverwritePolicy.REPLACE);
+                    pythonPluginsEngine.loadPlugin(id, file.getAbsolutePath(), plugin2, installerDelegate);
+                    INSTANCE.deleteFileIfExists(file3);
+                    pythonPluginsEngine.getPluginsController().notifyPluginsChanged();
+                    if (callback != null) {
+                        AndroidUtilities.runOnUIThread(new Runnable() {
+                            @Override // java.lang.Runnable
+                            public final void run() {
+                                callback.run(null);
+                            }
+                        });
+                    }
+                } catch (Throwable th5) {
+                    th = th5;
+                    file2 = null;
+                    zExists = false;
+                    th = th;
+                    FileLog.e("Unexpected error loading plugin from file: " + str, th);
+                    if (id != null) {
                         INSTANCE.deleteFileIfExists(file);
+                        if (zExists) {
+                            SimpliFiles.file(file2).moveTo(file, OverwritePolicy.REPLACE);
+                            SharedPreferences.Editor editorEdit3 = pythonPluginsEngine.getPluginsController().getPreferences().edit();
+                            editorEdit3.putBoolean(PluginsController.PREF_PLUGIN_ENABLED_KEY_PREFIX + ((Object) id), z);
+                            editorEdit3.apply();
+                            pythonPluginsEngine.loadPlugin(id, file.getAbsolutePath());
+                            Unit unit4 = Unit.INSTANCE;
+                            z2 = true;
+                        }
+                        if (!z2) {
+                            pythonPluginsEngine.getPluginsController().cleanupPlugin(id);
+                            pythonPluginsEngine.removePluginDependencies(id);
+                            pyObjectRemove = pythonPluginsEngine.pluginInstances.remove(id);
+                            if (pyObjectRemove != null) {
+                                pyObjectRemove.close();
+                            }
+                            pythonPluginsEngine.getPluginsController().clearPluginSettingsPreferences(id, true);
+                            pythonPluginsEngine.getPluginsController().getPlugins().remove(id);
+                            INSTANCE.deleteFileIfExists(file);
+                        }
+                    }
+                    pythonPluginsEngine.getPluginsController().notifyPluginsChanged();
+                    if (callback != null) {
+                        AndroidUtilities.runOnUIThread(new Runnable() {
+                            @Override // java.lang.Runnable
+                            public final void run() {
+                                callback.run(AppUtils.stackTraceToString(th));
+                            }
+                        });
                     }
                 }
-                pythonPluginsEngine.getPluginsController().notifyPluginsChanged();
-                if (callback != null) {
-                    final Throwable err4 = th;
-                    AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda21
-                        @Override // java.lang.Runnable
-                        public final void run() {
-                            PythonPluginsEngine.loadPluginFromFile$lambda$0$1(callback, err4);
-                        }
-                    });
+            } catch (Throwable th6) {
+                th = th6;
+                file = null;
+                file2 = null;
+            }
+        } catch (Throwable th7) {
+            th = th7;
+            file = null;
+            file2 = file;
+            z = false;
+            zExists = false;
+            th = th;
+            FileLog.e("Unexpected error loading plugin from file: " + str, th);
+            if (id != null) {
+                INSTANCE.deleteFileIfExists(file);
+                if (zExists) {
+                    SimpliFiles.file(file2).moveTo(file, OverwritePolicy.REPLACE);
+                    SharedPreferences.Editor editorEdit4 = pythonPluginsEngine.getPluginsController().getPreferences().edit();
+                    editorEdit4.putBoolean(PluginsController.PREF_PLUGIN_ENABLED_KEY_PREFIX + ((Object) id), z);
+                    editorEdit4.apply();
+                    pythonPluginsEngine.loadPlugin(id, file.getAbsolutePath());
+                    Unit unit5 = Unit.INSTANCE;
+                    z2 = true;
+                }
+                if (!z2) {
+                    pythonPluginsEngine.getPluginsController().cleanupPlugin(id);
+                    pythonPluginsEngine.removePluginDependencies(id);
+                    pyObjectRemove = pythonPluginsEngine.pluginInstances.remove(id);
+                    if (pyObjectRemove != null) {
+                        pyObjectRemove.close();
+                    }
+                    pythonPluginsEngine.getPluginsController().clearPluginSettingsPreferences(id, true);
+                    pythonPluginsEngine.getPluginsController().getPlugins().remove(id);
+                    INSTANCE.deleteFileIfExists(file);
                 }
             }
-        } catch (Throwable th5) {
-            th = th5;
-            file = null;
-            file2 = null;
+            pythonPluginsEngine.getPluginsController().notifyPluginsChanged();
+            if (callback != null) {
+                AndroidUtilities.runOnUIThread(new Runnable() {
+                    @Override // java.lang.Runnable
+                    public final void run() {
+                        callback.run(AppUtils.stackTraceToString(th));
+                    }
+                });
+            }
         }
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public static final void loadPluginFromFile$lambda$0$1(Utilities.Callback callback, Throwable th) {
-        callback.run(AppUtils.stackTraceToString(th));
     }
 
     private final String findModuleNameOwner(String pluginId) {
@@ -1682,7 +2025,7 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             if (pyObjectCallAttr == null) {
                 return null;
             }
-            PyObject pyObject = (PyObject) pyObjectCallAttr.get((Object) "origin");
+            PyObject pyObject = (PyObject) pyObjectCallAttr.get("origin");
             String string = pyObject != null ? pyObject.toString() : null;
             if (string != null) {
                 Companion companion = INSTANCE;
@@ -1691,29 +2034,28 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                 }
                 return string;
             }
-            PyObject pyObject2 = (PyObject) pyObjectCallAttr.get((Object) "submodule_search_locations");
-            if (pyObject2 == null) {
-                return "another Python module";
-            }
-            String strCanonicalPathOrNull = INSTANCE.canonicalPathOrNull(new File(getPluginsController().getPluginsDir(), pluginId).getAbsolutePath());
-            List<PyObject> listAsList = python.getBuiltins().callAttr("list", pyObject2).asList();
-            List<PyObject> list = listAsList;
-            ArrayList arrayList = new ArrayList(CollectionsKt.collectionSizeOrDefault(list, 10));
-            Iterator<PyObject> it2 = list.iterator();
-            while (it2.hasNext()) {
-                arrayList.add(((PyObject) it2.next()).toString());
-            }
-            int size = arrayList.size();
-            int i = 0;
-            while (i < size) {
-                obj = arrayList.get(i);
-                i++;
-                if (!Intrinsics.areEqual(INSTANCE.canonicalPathOrNull((String) obj), strCanonicalPathOrNull)) {
-                    return (String) obj;
+            PyObject pyObject2 = (PyObject) pyObjectCallAttr.get("submodule_search_locations");
+            if (pyObject2 != null) {
+                String strCanonicalPathOrNull = INSTANCE.canonicalPathOrNull(new File(getPluginsController().getPluginsDir(), pluginId).getAbsolutePath());
+                List<PyObject> listAsList = python.getBuiltins().callAttr("list", pyObject2).asList();
+                ArrayList arrayList = new ArrayList(CollectionsKt.collectionSizeOrDefault(listAsList, 10));
+                Iterator<T> it2 = listAsList.iterator();
+                while (it2.hasNext()) {
+                    arrayList.add(((PyObject) it2.next()).toString());
                 }
+                int size = arrayList.size();
+                int i = 0;
+                while (i < size) {
+                    obj = arrayList.get(i);
+                    i++;
+                    if (!Intrinsics.areEqual(INSTANCE.canonicalPathOrNull((String) obj), strCanonicalPathOrNull)) {
+                        return (String) obj;
+                    }
+                }
+                obj = null;
+                return (String) obj;
             }
-            obj = null;
-            return (String) obj;
+            return "another Python module";
         } catch (PyException e) {
             FileLog.w("Treating plugin id '" + pluginId + "' as taken: " + e.getMessage());
             return "another Python module";
@@ -1733,102 +2075,100 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             Map<String, String> pluginMetadata = parsePluginMetadata(filePath);
             String str = pluginMetadata.get("id");
             String str2 = pluginMetadata.get("name");
-            if (!TextUtils.isEmpty(str) && !TextUtils.isEmpty(str2)) {
-                if (str != null) {
-                    if (!new Regex("^[a-zA-Z][a-zA-Z0-9_-]{1,31}$").matches(str)) {
-                        return new PluginsController.PluginValidationResult(null, "Plugin '__id__' must be 2-32 characters long, start with a letter, and contain only latin letters, numbers, dashes and underscores.");
-                    }
-                    String strFindModuleNameOwner = findModuleNameOwner(str);
-                    if (strFindModuleNameOwner != null) {
-                        return new PluginsController.PluginValidationResult(null, "Plugin '__id__' is already used as a Python module name by " + strFindModuleNameOwner + ". Choose a different '__id__'.");
-                    }
-                    String str3 = pluginMetadata.get("app_version");
-                    if (str3 != null) {
-                        Matcher matcher = VERSION_PATTERN.matcher(str3);
-                        if (!matcher.matches()) {
-                            return new PluginsController.PluginValidationResult(null, "Invalid appVersion: " + str3);
-                        }
-                        String strGroup = matcher.group(1);
-                        if (strGroup == null) {
-                            return new PluginsController.PluginValidationResult(null, "Invalid appVersion: " + str3);
-                        }
-                        String strGroup2 = matcher.group(2);
-                        if (strGroup2 == null) {
-                            return new PluginsController.PluginValidationResult(null, "Invalid appVersion: " + str3);
-                        }
-                        string2 = StringsKt.trim((CharSequence) strGroup2).toString();
-                        if (!AppUtils.compareVersions(strGroup, BuildVars.BUILD_VERSION_STRING, string2)) {
-                            return new PluginsController.PluginValidationResult(null, "Plugin requires app version " + str3 + ", but current is " + BuildVars.BUILD_VERSION_STRING);
-                        }
-                    }
-                    String str4 = pluginMetadata.get("sdk_version");
-                    if (str4 != null) {
-                        Matcher matcher2 = VERSION_PATTERN.matcher(str4);
-                        if (!matcher2.matches()) {
-                            return new PluginsController.PluginValidationResult(null, "Invalid sdkVersion: " + str4);
-                        }
-                        String strGroup3 = matcher2.group(1);
-                        if (strGroup3 == null) {
-                            return new PluginsController.PluginValidationResult(null, "Invalid sdkVersion: " + str4);
-                        }
-                        String strGroup4 = matcher2.group(2);
-                        if (strGroup4 == null) {
-                            return new PluginsController.PluginValidationResult(null, "Invalid sdkVersion: " + str4);
-                        }
-                        string = StringsKt.trim((CharSequence) strGroup4).toString();
-                        if (!AppUtils.compareVersions(strGroup3, SDK_VERSION, string)) {
-                            return new PluginsController.PluginValidationResult(null, "Plugin requires sdk version " + str4 + ", but current is " + SDK_VERSION);
-                        }
-                    }
-                    if (str2 != null) {
-                        Plugin plugin = new Plugin(str, str2);
-                        plugin.setEngine("python");
-                        String string3 = pluginMetadata.get("author");
-                        if (string3 == null) {
-                            string3 = LocaleController.getString(R.string.PluginNoAuthor);
-                        }
-                        plugin.setAuthor(string3);
-                        String string4 = pluginMetadata.get("description");
-                        if (string4 == null) {
-                            string4 = LocaleController.getString(R.string.PluginNoDescription);
-                        }
-                        plugin.setDescription(string4);
-                        plugin.setIcon(pluginMetadata.get("icon"));
-                        String string5 = pluginMetadata.get("version");
-                        if (string5 == null) {
-                            string5 = "1.0";
-                        }
-                        plugin.setVersion(string5);
-                        plugin.setAppVersion(str3);
-                        plugin.setSdkVersion(str4);
-                        String str5 = pluginMetadata.get("requirements");
-                        if (str5 != null && str5.length() != 0) {
-                            List<String> listSplit = new Regex(",(?!\\s*[<>=!~(])").split(str5, 0);
-                            ArrayList arrayList = new ArrayList(CollectionsKt.collectionSizeOrDefault(listSplit, 10));
-                            Iterator<String> it = listSplit.iterator();
-                            while (it.hasNext()) {
-                                arrayList.add(StringsKt.trim((CharSequence) it.next()).toString());
-                            }
-                            ArrayList arrayList2 = new ArrayList();
-                            int size = arrayList.size();
-                            int i = 0;
-                            while (i < size) {
-                                Object obj = arrayList.get(i);
-                                i++;
-                                if (((String) obj).length() > 0) {
-                                    arrayList2.add(obj);
-                                }
-                            }
-                            plugin.setRequirements(arrayList2);
-                        }
-                        plugin.setEnabled(getPluginsController().getPreferences().getBoolean("plugin_enabled_" + str, false));
-                        return new PluginsController.PluginValidationResult(plugin, null);
-                    }
-                    throw new IllegalArgumentException("Required value was null.".toString());
-                }
-                throw new IllegalArgumentException("Required value was null.".toString());
+            if (TextUtils.isEmpty(str) || TextUtils.isEmpty(str2)) {
+                return new PluginsController.PluginValidationResult(null, "Plugin metadata must contain non-empty '__id__' and '__name__'.");
             }
-            return new PluginsController.PluginValidationResult(null, "Plugin metadata must contain non-empty '__id__' and '__name__'.");
+            if (str == null) {
+                throw new IllegalArgumentException("Required value was null.");
+            }
+            if (!new Regex("^[a-zA-Z][a-zA-Z0-9_-]{1,31}$").matches(str)) {
+                return new PluginsController.PluginValidationResult(null, "Plugin '__id__' must be 2-32 characters long, start with a letter, and contain only latin letters, numbers, dashes and underscores.");
+            }
+            String strFindModuleNameOwner = findModuleNameOwner(str);
+            if (strFindModuleNameOwner != null) {
+                return new PluginsController.PluginValidationResult(null, "Plugin '__id__' is already used as a Python module name by " + strFindModuleNameOwner + ". Choose a different '__id__'.");
+            }
+            String str3 = pluginMetadata.get("app_version");
+            if (str3 != null) {
+                Matcher matcher = VERSION_PATTERN.matcher(str3);
+                if (!matcher.matches()) {
+                    return new PluginsController.PluginValidationResult(null, "Invalid appVersion: ".concat(str3));
+                }
+                String strGroup = matcher.group(1);
+                if (strGroup == null) {
+                    return new PluginsController.PluginValidationResult(null, "Invalid appVersion: ".concat(str3));
+                }
+                String strGroup2 = matcher.group(2);
+                if (strGroup2 != null && (string2 = StringsKt.trim((CharSequence) strGroup2).toString()) != null) {
+                    if (!AppUtils.compareVersions(strGroup, BuildVars.BUILD_VERSION_STRING, string2)) {
+                        return new PluginsController.PluginValidationResult(null, "Plugin requires app version " + str3 + ", but current is " + BuildVars.BUILD_VERSION_STRING);
+                    }
+                }
+                return new PluginsController.PluginValidationResult(null, "Invalid appVersion: ".concat(str3));
+            }
+            String str4 = pluginMetadata.get("sdk_version");
+            if (str4 != null) {
+                Matcher matcher2 = VERSION_PATTERN.matcher(str4);
+                if (!matcher2.matches()) {
+                    return new PluginsController.PluginValidationResult(null, "Invalid sdkVersion: ".concat(str4));
+                }
+                String strGroup3 = matcher2.group(1);
+                if (strGroup3 == null) {
+                    return new PluginsController.PluginValidationResult(null, "Invalid sdkVersion: ".concat(str4));
+                }
+                String strGroup4 = matcher2.group(2);
+                if (strGroup4 != null && (string = StringsKt.trim((CharSequence) strGroup4).toString()) != null) {
+                    if (!AppUtils.compareVersions(strGroup3, SDK_VERSION, string)) {
+                        return new PluginsController.PluginValidationResult(null, "Plugin requires sdk version " + str4 + ", but current is " + SDK_VERSION);
+                    }
+                }
+                return new PluginsController.PluginValidationResult(null, "Invalid sdkVersion: ".concat(str4));
+            }
+            if (str2 != null) {
+                Plugin plugin = new Plugin(str, str2);
+                plugin.setEngine(PluginsConstants.PYTHON);
+                String string3 = pluginMetadata.get("author");
+                if (string3 == null) {
+                    string3 = LocaleController.getString(R.string.PluginNoAuthor);
+                }
+                plugin.setAuthor(string3);
+                String string4 = pluginMetadata.get(MediaTrack.ROLE_DESCRIPTION);
+                if (string4 == null) {
+                    string4 = LocaleController.getString(R.string.PluginNoDescription);
+                }
+                plugin.setDescription(string4);
+                plugin.setIcon(pluginMetadata.get("icon"));
+                String str5 = pluginMetadata.get("version");
+                if (str5 == null) {
+                    str5 = "1.0";
+                }
+                plugin.setVersion(str5);
+                plugin.setAppVersion(str3);
+                plugin.setSdkVersion(str4);
+                String str6 = pluginMetadata.get(Common.ASSET_REQUIREMENTS);
+                if (str6 != null && str6.length() != 0) {
+                    List<String> listSplit = new Regex(",(?!\\s*[<>=!~(])").split(str6, 0);
+                    ArrayList arrayList = new ArrayList(CollectionsKt.collectionSizeOrDefault(listSplit, 10));
+                    Iterator<T> it = listSplit.iterator();
+                    while (it.hasNext()) {
+                        arrayList.add(StringsKt.trim((CharSequence) it.next()).toString());
+                    }
+                    ArrayList arrayList2 = new ArrayList();
+                    int size = arrayList.size();
+                    int i = 0;
+                    while (i < size) {
+                        Object obj = arrayList.get(i);
+                        i++;
+                        if (((String) obj).length() > 0) {
+                            arrayList2.add(obj);
+                        }
+                    }
+                    plugin.setRequirements(arrayList2);
+                }
+                plugin.setEnabled(getPluginsController().getPreferences().getBoolean(PluginsController.PREF_PLUGIN_ENABLED_KEY_PREFIX + str, false));
+                return new PluginsController.PluginValidationResult(plugin, null);
+            }
+            throw new IllegalArgumentException("Required value was null.");
         } catch (PyException e) {
             FileLog.e("Failed to parse metadata from " + filePath + ". Error: " + e.getMessage(), e);
             return new PluginsController.PluginValidationResult(null, e.getMessage());
@@ -1964,7 +2304,7 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             Plugin plugin = getPluginsController().getPlugins().get(id);
             PyObject pyObject = this.pluginInstances.get(id);
             if (getPluginsController().isPluginActive$TMessagesProj(plugin) && pyObject != null) {
-                PyObject pyObjectCallAttr = pyObject.callAttr("create_settings", new Object[0]);
+                PyObject pyObjectCallAttr = pyObject.callAttr(PluginsConstants.CREATE_SETTINGS, new Object[0]);
                 if (pyObjectCallAttr == null) {
                     return null;
                 }
@@ -1983,6 +2323,7 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
     }
 
     @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
+        @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
     public void executeOnAppEvent(String eventType) {
         Python python;
         PyObject module;
@@ -2036,214 +2377,106 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         }
     }
 
-    private final <T> PluginsController.HookResult<T> executeHook(PyObject pluginInstance, T initialValue, Class<T> valueClass, String pyResultKey, PyMethodCaller<T> caller, Utilities.Callback<PyException> errorLogger) {
+    private final <T> PluginsController.HookResult<T> executeHook(PyObject pluginInstance, T initialValue, Class<T> valueClass, String pyResultKey, PyMethodCaller<T> caller, Utilities.Callback<Throwable> errorLogger) {
         if (pluginInstance != null) {
             try {
                 PyObject pyObjectCall = caller.call(pluginInstance, initialValue);
                 if (pyObjectCall != null) {
                     try {
-                        String string = PyObjectUtils.getString(pyObjectCall, "strategy", "DEFAULT");
-                        if (string != null && string.endsWith("CANCEL")) {
-                            return new PluginsController.HookResult<>(null, true, false);
+                        String string = PyObjectUtils.getString(pyObjectCall, PluginsConstants.STRATEGY, PluginsConstants.Strategy.DEFAULT);
+                        if (string != null && StringsKt.endsWith$default(string, PluginsConstants.Strategy.CANCEL, false, 2, (Object) null)) {
+                            PluginsController.HookResult<T> hookResult = new PluginsController.HookResult<>(null, true, false);
+                            PyObjectUtils.closeSafely(pyObjectCall);
+                            return hookResult;
                         }
-                        if (string != null && (string.endsWith("MODIFY") || string.endsWith("MODIFY_FINAL"))) {
+                        if (string != null && (StringsKt.endsWith$default(string, PluginsConstants.Strategy.MODIFY, false, 2, (Object) null) || StringsKt.endsWith$default(string, PluginsConstants.Strategy.MODIFY_FINAL, false, 2, (Object) null))) {
                             PyObject pyObject = (PyObject) pyObjectCall.get((Object) pyResultKey);
                             if (pyObject != null) {
                                 try {
                                     initialValue = (T) pyObject.toJava(valueClass);
-                                } finally {
-                                    AutoCloseableKt.closeFinally(pyObject, null);
+                                } catch (ClassCastException e) {
+                                    errorLogger.run(e);
                                 }
                             }
-                            if (string.endsWith("MODIFY_FINAL")) {
-                                return new PluginsController.HookResult<>(initialValue, false, true);
+                            if (StringsKt.endsWith$default(string, PluginsConstants.Strategy.MODIFY_FINAL, false, 2, (Object) null)) {
+                                PluginsController.HookResult<T> hookResult2 = new PluginsController.HookResult<>(initialValue, false, true);
+                                PyObjectUtils.closeSafely(pyObjectCall);
+                                return hookResult2;
                             }
                         }
-                    } finally {
-                        AutoCloseableKt.closeFinally(pyObjectCall, null);
+                        PyObjectUtils.closeSafely(pyObjectCall);
+                    } catch (Throwable th) {
+                        PyObjectUtils.closeSafely(pyObjectCall);
+                        throw th;
                     }
                 }
-            } catch (PyException e) {
-                errorLogger.run(e);
+            } catch (Throwable th2) {
+                errorLogger.run(th2);
             }
         }
         return new PluginsController.HookResult<>(initialValue, false, false);
     }
 
-    private final <T> PluginsController.HookResult<T> executeHook(String pluginId, T initialValue, Class<T> valueClass, String pyResultKey, PyMethodCaller<T> caller, Utilities.Callback<PyException> errorLogger) {
+    private final <T> PluginsController.HookResult<T> executeHook(String pluginId, T initialValue, Class<T> valueClass, String pyResultKey, PyMethodCaller<T> caller, Utilities.Callback<Throwable> errorLogger) {
         return executeHook(this.pluginInstances.get(pluginId), initialValue, valueClass, pyResultKey, caller, errorLogger);
     }
 
     @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
     public PluginsController.HookResult<TLObject> executePreRequestHook(final String requestName, final int account, TLObject request, final String pluginId) {
-        return executeHook(pluginId, request, (Class<TLObject>) TLObject.class, "request", (PyMethodCaller<TLObject>) new PyMethodCaller() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda23
+        return executeHook(pluginId, request, (Class<TLObject>) TLObject.class, PluginsConstants.REQUEST, (PyMethodCaller<TLObject>) new PyMethodCaller() {
             @Override // com.exteragram.messenger.plugins.PythonPluginsEngine.PyMethodCaller
             public final PyObject call(PyObject pyObject, Object obj) {
-                return PythonPluginsEngine.$r8$lambda$3HuOhQN3SQ64XZXjHG3mX3zdIqY(requestName, account, pyObject, (TLObject) obj);
+                return pyObject.callAttr("pre_request_hook", requestName, Integer.valueOf(account), (TLObject) obj);
             }
-        }, new Utilities.Callback() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda24
+        }, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                FileLog.e("Failed to execute pre_request_hook in " + pluginId + " for " + requestName, (PyException) obj);
+                FileLog.e("Failed to execute pre_request_hook in " + pluginId + " for " + requestName, (Throwable) obj);
             }
         });
     }
 
-    public static PyObject $r8$lambda$3HuOhQN3SQ64XZXjHG3mX3zdIqY(String str, int i, PyObject pyObject, TLObject tLObject) {
-        return pyObject.callAttr("pre_request_hook", str, Integer.valueOf(i), tLObject);
-    }
-
-    /* JADX WARN: Code duplicated, block: B:39:0x00b5 A[Catch: all -> 0x005b, TRY_LEAVE, TryCatch #4 {all -> 0x005b, blocks: (B:8:0x0027, B:10:0x003b, B:12:0x004b, B:17:0x005e, B:20:0x0077, B:27:0x0082, B:30:0x009b, B:37:0x00a6, B:39:0x00b5, B:35:0x00a2, B:36:0x00a5, B:25:0x007e, B:26:0x0081, B:44:0x00cc, B:33:0x00a0, B:19:0x006f, B:23:0x007c, B:29:0x0093), top: B:61:0x0027, outer: #2, inners: #0, #3, #5, #6 }] */
-    /* JADX WARN: Code duplicated, block: B:59:0x006f A[EXC_TOP_SPLITTER, SYNTHETIC] */
-    /* JADX WARN: Code duplicated, block: B:64:0x0093 A[EXC_TOP_SPLITTER, SYNTHETIC] */
-    /* JADX WARN: Multi-variable type inference failed */
-    /* JADX WARN: Type inference failed for: r2v1 */
-    /* JADX WARN: Type inference failed for: r3v7 */
-    /* JADX WARN: Type inference failed for: r8v0, types: [java.lang.Object, org.telegram.tgnet.TLObject] */
-    /* JADX WARN: Type inference failed for: r8v1 */
-    /* JADX WARN: Type inference failed for: r8v10 */
-    /* JADX WARN: Type inference failed for: r8v11 */
-    /* JADX WARN: Type inference failed for: r8v12 */
-    /* JADX WARN: Type inference failed for: r8v13 */
-    /* JADX WARN: Type inference failed for: r8v14 */
-    /* JADX WARN: Type inference failed for: r8v15 */
-    /* JADX WARN: Type inference failed for: r8v16 */
-    /* JADX WARN: Type inference failed for: r8v17 */
-    /* JADX WARN: Type inference failed for: r8v3 */
-    /* JADX WARN: Type inference failed for: r8v4 */
-    /* JADX WARN: Type inference failed for: r8v5 */
-    /* JADX WARN: Type inference failed for: r8v6 */
-    /* JADX WARN: Type inference failed for: r8v7, types: [java.lang.Object] */
-    /* JADX WARN: Type inference failed for: r8v8 */
-    /* JADX WARN: Type inference failed for: r8v9 */
-    /* JADX WARN: Type inference failed for: r9v0, types: [java.lang.Object, org.telegram.tgnet.TLRPC$TL_error] */
-    /* JADX WARN: Type inference failed for: r9v1 */
-    /* JADX WARN: Type inference failed for: r9v10 */
-    /* JADX WARN: Type inference failed for: r9v11 */
-    /* JADX WARN: Type inference failed for: r9v12 */
-    /* JADX WARN: Type inference failed for: r9v13 */
-    /* JADX WARN: Type inference failed for: r9v14 */
-    /* JADX WARN: Type inference failed for: r9v15 */
-    /* JADX WARN: Type inference failed for: r9v16 */
-    /* JADX WARN: Type inference failed for: r9v17 */
-    /* JADX WARN: Type inference failed for: r9v3 */
-    /* JADX WARN: Type inference failed for: r9v4 */
-    /* JADX WARN: Type inference failed for: r9v5 */
-    /* JADX WARN: Type inference failed for: r9v6 */
-    /* JADX WARN: Type inference failed for: r9v7, types: [java.lang.Object] */
-    /* JADX WARN: Type inference failed for: r9v8 */
-    /* JADX WARN: Type inference failed for: r9v9 */
     public final PluginsController.HookResult<PluginsHooks.PostRequestResult> executePostRequestHook(String requestName, int account, TLObject response, TLRPC.TL_error error, PyObject pluginInstance) {
-        PyObject pyObject;
-        PyObject pyObject2;
-        Object r9 = null;
-        TLObject r8 = response;
-        TLRPC.TL_error r10 = error;
         if (pluginInstance != null) {
             try {
                 PyObject pyObjectCallAttr = pluginInstance.callAttr("post_request_hook", requestName, Integer.valueOf(account), response, error);
-                r8 = response;
-                r10 = error;
                 if (pyObjectCallAttr != null) {
                     try {
-                        String string = PyObjectUtils.getString(pyObjectCallAttr, "strategy", "");
-                        TLObject r11 = response;
-                        TLRPC.TL_error r12 = error;
-                        if (string != null) {
-                            if (!string.endsWith("MODIFY")) {
-                                if (string.endsWith("MODIFY_FINAL")) {
-                                    r11 = response;
-                                    r12 = error;
-                                    pyObject = (PyObject) pyObjectCallAttr.get((Object) "response");
-                                    response = response;
-                                    if (pyObject != null) {
-                                        response = pyObject.toJava(TLObject.class);
-                                        Unit unit = Unit.INSTANCE;
-                                        AutoCloseableKt.closeFinally(pyObject, null);
-                                        response = response;
-                                    }
-                                    pyObject2 = (PyObject) pyObjectCallAttr.get((Object) "error");
-                                    r9 = error;
-                                    if (pyObject2 != null) {
-                                        error = pyObject2.toJava(TLRPC.TL_error.class);
-                                        Unit unit2 = Unit.INSTANCE;
-                                        AutoCloseableKt.closeFinally(pyObject2, null);
-                                        r9 = error;
-                                    }
-                                    r11 = response;
-                                    r12 = (TLRPC.TL_error) r9;
-                                    if (string.endsWith("MODIFY_FINAL")) {
-                                        PluginsController.HookResult<PluginsHooks.PostRequestResult> hookResult = new PluginsController.HookResult<>(new PluginsHooks.PostRequestResult((TLObject) response, (TLRPC.TL_error) r9), false, true);
-                                        AutoCloseableKt.closeFinally(pyObjectCallAttr, null);
-                                        return hookResult;
-                                    }
-                                }
-                            } else {
-                                pyObject = (PyObject) pyObjectCallAttr.get((Object) "response");
-                                response = response;
-                                if (pyObject != null) {
-                                    try {
-                                        response = pyObject.toJava(TLObject.class);
-                                        Unit unit3 = Unit.INSTANCE;
-                                        AutoCloseableKt.closeFinally(pyObject, null);
-                                        response = response;
-                                    } catch (Throwable th) {
-                                        try {
-                                            throw th;
-                                        } catch (Throwable th2) {
-                                            AutoCloseableKt.closeFinally(pyObject, th);
-                                            throw th2;
-                                        }
-                                    }
-                                }
-                                pyObject2 = (PyObject) pyObjectCallAttr.get((Object) "error");
-                                r9 = error;
-                                if (pyObject2 != null) {
-                                    try {
-                                        error = pyObject2.toJava(TLRPC.TL_error.class);
-                                        Unit unit4 = Unit.INSTANCE;
-                                        AutoCloseableKt.closeFinally(pyObject2, null);
-                                        r9 = error;
-                                    } catch (Throwable th3) {
-                                        try {
-                                            throw th3;
-                                        } catch (Throwable th4) {
-                                            AutoCloseableKt.closeFinally(pyObject2, th3);
-                                            throw th4;
-                                        }
-                                    }
-                                }
-                                r11 = response;
-                                r12 = (TLRPC.TL_error) r9;
-                                if (string.endsWith("MODIFY_FINAL")) {
-                                    PluginsController.HookResult<PluginsHooks.PostRequestResult> hookResult2 = new PluginsController.HookResult<>(new PluginsHooks.PostRequestResult((TLObject) response, (TLRPC.TL_error) r9), false, true);
-                                    AutoCloseableKt.closeFinally(pyObjectCallAttr, null);
-                                    return hookResult2;
+                        String string = PyObjectUtils.getString(pyObjectCallAttr, PluginsConstants.STRATEGY, _UrlKt.FRAGMENT_ENCODE_SET);
+                        if (string != null && (StringsKt.endsWith$default(string, PluginsConstants.Strategy.MODIFY, false, 2, (Object) null) || StringsKt.endsWith$default(string, PluginsConstants.Strategy.MODIFY_FINAL, false, 2, (Object) null))) {
+                            PyObject pyObject = (PyObject) pyObjectCallAttr.get(PluginsConstants.RESPONSE);
+                            if (pyObject != null) {
+                                try {
+                                    response = (TLObject) pyObject.toJava(TLObject.class);
+                                } catch (ClassCastException e) {
+                                    FileLog.e("Bad response type from post_request_hook for " + requestName, e);
                                 }
                             }
+                            PyObject pyObject2 = (PyObject) pyObjectCallAttr.get("error");
+                            if (pyObject2 != null) {
+                                try {
+                                    error = (TLRPC.TL_error) pyObject2.toJava(TLRPC.TL_error.class);
+                                } catch (ClassCastException e2) {
+                                    FileLog.e("Bad error type from post_request_hook for " + requestName, e2);
+                                }
+                            }
+                            if (StringsKt.endsWith$default(string, PluginsConstants.Strategy.MODIFY_FINAL, false, 2, (Object) null)) {
+                                PluginsController.HookResult<PluginsHooks.PostRequestResult> hookResult = new PluginsController.HookResult<>(new PluginsHooks.PostRequestResult(response, error), false, true);
+                                PyObjectUtils.closeSafely(pyObjectCallAttr);
+                                return hookResult;
+                            }
                         }
-                        r11 = response;
-                        r12 = error;
-                        Unit unit5 = Unit.INSTANCE;
-                        AutoCloseableKt.closeFinally(pyObjectCallAttr, null);
-                        r8 = r11;
-                        r10 = r12;
-                    } catch (Throwable th5) {
-                        try {
-                            throw th5;
-                        } catch (Throwable th6) {
-                            AutoCloseableKt.closeFinally(pyObjectCallAttr, th5);
-                            throw th6;
-                        }
+                        PyObjectUtils.closeSafely(pyObjectCallAttr);
+                    } catch (Throwable th) {
+                        PyObjectUtils.closeSafely(pyObjectCallAttr);
+                        throw th;
                     }
                 }
-            } catch (PyException e) {
-                FileLog.e("Failed to execute post_request_hook for " + requestName, e);
-                r8 = response;
-                r10 = error;
+            } catch (Throwable th2) {
+                FileLog.e("Failed to execute post_request_hook for " + requestName, th2);
             }
         }
-        return new PluginsController.HookResult<>(new PluginsHooks.PostRequestResult((TLObject) r8, (TLRPC.TL_error) r10), false, false);
+        return new PluginsController.HookResult<>(new PluginsHooks.PostRequestResult(response, error), false, false);
     }
 
     @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
@@ -2253,59 +2486,47 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
 
     @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
     public PluginsController.HookResult<TLRPC.Update> executeUpdateHook(final String updateName, final int account, TLRPC.Update update, String pluginId) {
-        return executeHook(pluginId, update, (Class<TLRPC.Update>) TLRPC.Update.class, "update", (PyMethodCaller<TLRPC.Update>) new PyMethodCaller() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda3
+        return executeHook(pluginId, update, (Class<TLRPC.Update>) TLRPC.Update.class, PluginsConstants.UPDATE, (PyMethodCaller<TLRPC.Update>) new PyMethodCaller() {
             @Override // com.exteragram.messenger.plugins.PythonPluginsEngine.PyMethodCaller
             public final PyObject call(PyObject pyObject, Object obj) {
-                return PythonPluginsEngine.$r8$lambda$gogZ8_uy9hbJzmvkveYPLtlEcFs(updateName, account, pyObject, (TLRPC.Update) obj);
+                return pyObject.callAttr("on_update_hook", updateName, Integer.valueOf(account), (TLRPC.Update) obj);
             }
-        }, new Utilities.Callback() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda4
+        }, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                FileLog.e("Failed to execute on_update_hook for " + updateName, (PyException) obj);
+                FileLog.e("Failed to execute on_update_hook for " + updateName, (Throwable) obj);
             }
         });
-    }
-
-    public static PyObject $r8$lambda$gogZ8_uy9hbJzmvkveYPLtlEcFs(String str, int i, PyObject pyObject, TLRPC.Update update) {
-        return pyObject.callAttr("on_update_hook", str, Integer.valueOf(i), update);
     }
 
     @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
     public PluginsController.HookResult<TLRPC.Updates> executeUpdatesHook(final String containerName, final int account, TLRPC.Updates updates, String pluginId) {
-        return executeHook(pluginId, updates, (Class<TLRPC.Updates>) TLRPC.Updates.class, "updates", (PyMethodCaller<TLRPC.Updates>) new PyMethodCaller() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda9
+        return executeHook(pluginId, updates, (Class<TLRPC.Updates>) TLRPC.Updates.class, PluginsConstants.UPDATES, (PyMethodCaller<TLRPC.Updates>) new PyMethodCaller() {
             @Override // com.exteragram.messenger.plugins.PythonPluginsEngine.PyMethodCaller
             public final PyObject call(PyObject pyObject, Object obj) {
-                return PythonPluginsEngine.$r8$lambda$66nPF4OSjZKgz4yasnWGOzZ1Egk(containerName, account, pyObject, (TLRPC.Updates) obj);
+                return pyObject.callAttr("on_updates_hook", containerName, Integer.valueOf(account), (TLRPC.Updates) obj);
             }
-        }, new Utilities.Callback() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda10
+        }, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                FileLog.e("Failed to execute on_updates_hook for " + containerName, (PyException) obj);
+                FileLog.e("Failed to execute on_updates_hook for " + containerName, (Throwable) obj);
             }
         });
-    }
-
-    public static PyObject $r8$lambda$66nPF4OSjZKgz4yasnWGOzZ1Egk(String str, int i, PyObject pyObject, TLRPC.Updates updates) {
-        return pyObject.callAttr("on_updates_hook", str, Integer.valueOf(i), updates);
     }
 
     @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
     public PluginsController.HookResult<SendMessagesHelper.SendMessageParams> executeSendMessageHook(final int account, SendMessagesHelper.SendMessageParams params, final String pluginId) {
-        return executeHook(pluginId, params, (Class<SendMessagesHelper.SendMessageParams>) SendMessagesHelper.SendMessageParams.class, "params", (PyMethodCaller<SendMessagesHelper.SendMessageParams>) new PyMethodCaller() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda18
+        return executeHook(pluginId, params, (Class<SendMessagesHelper.SendMessageParams>) SendMessagesHelper.SendMessageParams.class, PluginsConstants.PARAMS, (PyMethodCaller<SendMessagesHelper.SendMessageParams>) new PyMethodCaller() {
             @Override // com.exteragram.messenger.plugins.PythonPluginsEngine.PyMethodCaller
             public final PyObject call(PyObject pyObject, Object obj) {
-                return PythonPluginsEngine.$r8$lambda$_D6PxQm0hg98qBk_zHO3yV4BGHE(account, pyObject, (SendMessagesHelper.SendMessageParams) obj);
+                return pyObject.callAttr("on_send_message_hook", Integer.valueOf(account), (SendMessagesHelper.SendMessageParams) obj);
             }
-        }, new Utilities.Callback() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda19
+        }, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                FileLog.e("Failed to execute on_send_message_hook for " + pluginId, (PyException) obj);
+                FileLog.e("Failed to execute on_send_message_hook for " + pluginId, (Throwable) obj);
             }
         });
-    }
-
-    public static PyObject $r8$lambda$_D6PxQm0hg98qBk_zHO3yV4BGHE(int i, PyObject pyObject, SendMessagesHelper.SendMessageParams sendMessageParams) {
-        return pyObject.callAttr("on_send_message_hook", Integer.valueOf(i), sendMessageParams);
     }
 
     public final String fetchParameterValue(String filePath, String parameterName) {
@@ -2322,42 +2543,27 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         return null;
     }
 
-    public final Map<String, String> parsePluginMetadata(String filePath) {
+    @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
+    public Map<String, String> parsePluginMetadata(String filePath) {
         HashMap map = new HashMap();
         if (filePath != null) {
             File file = new File(filePath);
             if (file.exists() && file.isFile()) {
                 Python python = getPython();
-                if (python != null) {
-                    if (!sdkInitialized) {
-                        initSdk();
-                    }
-                    try {
-                        PyObject module = python.getModule("extera_utils.metadata_parser");
-                        PyObject pyObjectCallAttr = module.callAttr("get_metadata", filePath);
-                        if (pyObjectCallAttr != null) {
-                            Map<PyObject, PyObject> mapAsMap = pyObjectCallAttr.asMap();
-                            for (Map.Entry<PyObject, PyObject> entry : mapAsMap.entrySet()) {
-                                map.put(entry.getKey().toString(), entry.getValue().toString());
-                            }
-                            return map;
-                        }
-                    } catch (Throwable e) {
-                        FileLog.e("metadata_parser module failed for " + filePath + ", falling back to regex: " + e.getMessage());
-                    }
+                if (python == null) {
+                    FileLog.e("Python engine not initialized, cannot parse metadata for ".concat(filePath));
+                    return map;
                 }
-                // Fast regex fallback if Python/SDK is not ready
-                try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                    Pattern pattern = Pattern.compile("^\\s*__([a-zA-Z0-9_]+)__\\s*=\\s*[\"'](.*)[\"']\\s*$");
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        Matcher matcher = pattern.matcher(line);
-                        if (matcher.matches()) {
-                            map.put(matcher.group(1), matcher.group(2));
+                try {
+                    PyObject pyObjectCallAttr = python.getModule("extera_utils.metadata_parser").callAttr("get_metadata", filePath);
+                    if (pyObjectCallAttr != null) {
+                        for (Map.Entry<PyObject, PyObject> entry : pyObjectCallAttr.asMap().entrySet()) {
+                            map.put(entry.getKey().toString(), entry.getValue().toString());
                         }
                     }
-                } catch (Exception e) {
-                    FileLog.e("Regex metadata parser failed for " + filePath, e);
+                } catch (PyException e) {
+                    FileLog.e("Failed to parse metadata from " + filePath + ". Error: " + e.getMessage(), e);
+                    throw e;
                 }
             }
         }
@@ -2366,7 +2572,7 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
 
     @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
     public Object getPluginSetting(String pluginId, String key, Object defaultValue) {
-        Object java;
+        Object java2;
         ConcurrentHashMap<String, Object> concurrentHashMap = this.settingsCache.get(pluginId);
         if (concurrentHashMap != null && concurrentHashMap.containsKey(key)) {
             return concurrentHashMap.get(key);
@@ -2374,89 +2580,85 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         Python python = getPython();
         if (python != null) {
             try {
-                PyObject module = python.getModule("plugin_settings");
-                PyObject pyObjectCallAttr = module.callAttr("get_setting", pluginId, key, defaultValue);
+                PyObject pyObjectCallAttr = python.getModule("plugin_settings").callAttr("get_setting", pluginId, key, defaultValue);
                 if (pyObjectCallAttr != null) {
                     if (defaultValue instanceof Boolean) {
-                        java = Boolean.valueOf(pyObjectCallAttr.toBoolean());
+                        java2 = Boolean.valueOf(pyObjectCallAttr.toBoolean());
                     } else if (defaultValue instanceof Integer) {
-                        java = Integer.valueOf(pyObjectCallAttr.toInt());
+                        java2 = Integer.valueOf(pyObjectCallAttr.toInt());
                     } else if (defaultValue instanceof String) {
-                        java = pyObjectCallAttr.toString();
+                        java2 = pyObjectCallAttr.toString();
                     } else if (defaultValue instanceof Float) {
-                        java = Float.valueOf(pyObjectCallAttr.toFloat());
+                        java2 = Float.valueOf(pyObjectCallAttr.toFloat());
                     } else if (defaultValue instanceof Long) {
-                        java = Long.valueOf(pyObjectCallAttr.toLong());
+                        java2 = Long.valueOf(pyObjectCallAttr.toLong());
                     } else if (defaultValue == null) {
-                        java = pyObjectCallAttr.toJava(Object.class);
+                        java2 = pyObjectCallAttr.toJava(Object.class);
                     } else {
-                        java = pyObjectCallAttr.toJava(defaultValue.getClass());
+                        java2 = pyObjectCallAttr.toJava(defaultValue.getClass());
                     }
                     ConcurrentHashMap<String, ConcurrentHashMap<String, Object>> concurrentHashMap2 = this.settingsCache;
-                    final Function1 function1 = new Function1() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda25
+                    final Function1 function1 = new Function1() {
                         @Override // kotlin.jvm.functions.Function1
                         public final Object invoke(Object obj) {
-                            return PythonPluginsEngine.$r8$lambda$QERKwSD6yL4J8XJCKdmRa2I5DR8((String) obj);
+                            return PythonPluginsEngine.m1871$r8$lambda$BnCazs149WScbG3VFjlFmt8ONU((String) obj);
                         }
                     };
-                    ConcurrentHashMap<String, Object> concurrentHashMapComputeIfAbsent = concurrentHashMap2.computeIfAbsent(pluginId, new Function() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda26
+                    concurrentHashMap2.computeIfAbsent(pluginId, new Function() {
                         @Override // java.util.function.Function
                         public final Object apply(Object obj) {
-                            return PythonPluginsEngine.$r8$lambda$T5aUeMCGEOtaNiCJriFIVhbHSkA(function1, obj);
+                            return PythonPluginsEngine.m1878$r8$lambda$mWa3J6wo5y4lMrM_F3QYyLfwRo(function1, obj);
                         }
-                    });
-                    concurrentHashMapComputeIfAbsent.put(key, java);
-                    return java;
+                    }).put(key, java2);
+                    return java2;
                 }
             } catch (PyException e) {
-                FileLog.e("Failed to get plugin setting " + pluginId + '/' + key, e);
+                FileLog.e("Failed to get plugin setting " + pluginId + "/" + key, e);
                 return defaultValue;
             }
         }
         return defaultValue;
     }
 
-    public static ConcurrentHashMap $r8$lambda$QERKwSD6yL4J8XJCKdmRa2I5DR8(String str) {
+    public static ConcurrentHashMap m1871$r8$lambda$BnCazs149WScbG3VFjlFmt8ONU(String str) {
         return new ConcurrentHashMap();
     }
 
-    public static ConcurrentHashMap $r8$lambda$T5aUeMCGEOtaNiCJriFIVhbHSkA(Function1 function1, Object obj) {
+    public static ConcurrentHashMap m1878$r8$lambda$mWa3J6wo5y4lMrM_F3QYyLfwRo(Function1 function1, Object obj) {
         return (ConcurrentHashMap) function1.invoke(obj);
     }
 
-    public static ConcurrentHashMap $r8$lambda$H3KBjR7kR4EblHmumAscDlVGoa4(Function1 function1, Object obj) {
-        return (ConcurrentHashMap) function1.invoke(obj);
-    }
-
-    public static ConcurrentHashMap $r8$lambda$M02QGUTSwEr0Np6WtwhMk889TKc(String str) {
+    public static ConcurrentHashMap $r8$lambda$OzxiW6_MfzlvelZei_SBz_Q8Wv8(String str) {
         return new ConcurrentHashMap();
+    }
+
+    public static ConcurrentHashMap $r8$lambda$_M8g8Sw5ovyJIYMmPx9xCzPeulk(Function1 function1, Object obj) {
+        return (ConcurrentHashMap) function1.invoke(obj);
     }
 
     @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
     public void setPluginSetting(String pluginId, String key, Object value) {
         ConcurrentHashMap<String, ConcurrentHashMap<String, Object>> concurrentHashMap = this.settingsCache;
-        final Function1 function1 = new Function1() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda0
+        final Function1 function1 = new Function1() {
             @Override // kotlin.jvm.functions.Function1
             public final Object invoke(Object obj) {
-                return PythonPluginsEngine.$r8$lambda$M02QGUTSwEr0Np6WtwhMk889TKc((String) obj);
+                return PythonPluginsEngine.$r8$lambda$OzxiW6_MfzlvelZei_SBz_Q8Wv8((String) obj);
             }
         };
-        ConcurrentHashMap<String, Object> concurrentHashMapComputeIfAbsent = concurrentHashMap.computeIfAbsent(pluginId, new Function() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda1
+        concurrentHashMap.computeIfAbsent(pluginId, new Function() {
             @Override // java.util.function.Function
             public final Object apply(Object obj) {
-                return PythonPluginsEngine.$r8$lambda$H3KBjR7kR4EblHmumAscDlVGoa4(function1, obj);
+                return PythonPluginsEngine.$r8$lambda$_M8g8Sw5ovyJIYMmPx9xCzPeulk(function1, obj);
             }
-        });
-        concurrentHashMapComputeIfAbsent.put(key, value);
+        }).put(key, value);
         Python python = getPython();
         if (python == null) {
             return;
         }
         try {
-            PyObject module = python.getModule("plugin_settings");
-            module.callAttr("set_setting", pluginId, key, value);
+            python.getModule("plugin_settings").callAttr("set_setting", pluginId, key, value);
         } catch (PyException e) {
-            FileLog.e("Failed to set plugin setting " + pluginId + '/' + key, e);
+            FileLog.e("Failed to set plugin setting " + pluginId + "/" + key, e);
         }
     }
 
@@ -2468,8 +2670,7 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             return;
         }
         try {
-            PyObject module = python.getModule("plugin_settings");
-            module.callAttr("clear_settings", pluginId);
+            python.getModule("plugin_settings").callAttr("clear_settings", pluginId);
         } catch (PyException e) {
             FileLog.e("Failed to clear plugin settings for " + pluginId, e);
         }
@@ -2482,12 +2683,10 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             return null;
         }
         try {
-            PyObject module = python.getModule("plugin_settings");
-            PyObject pyObjectCallAttr = module.callAttr("get_all_settings", pluginId);
+            PyObject pyObjectCallAttr = python.getModule("plugin_settings").callAttr("get_all_settings", pluginId);
             if (pyObjectCallAttr != null) {
                 HashMap map = new HashMap();
-                Map<PyObject, PyObject> mapAsMap = pyObjectCallAttr.asMap();
-                for (Map.Entry<PyObject, PyObject> entry : mapAsMap.entrySet()) {
+                for (Map.Entry<PyObject, PyObject> entry : pyObjectCallAttr.asMap().entrySet()) {
                     PyObject key = entry.getKey();
                     PyObject value = entry.getValue();
                     if (key != null) {
@@ -2505,53 +2704,47 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
 
     @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
     public void showInstallDialog(final BaseFragment fragment, final InstallPluginBottomSheet.PluginInstallParams params) {
-        android.util.Log.e("PLUGIN_INSTALL", "PythonPluginsEngine.showInstallDialog called! params.filePath=" + (params != null ? params.getFilePath() : null));
-        Utilities.globalQueue.postRunnable(new Runnable() {
-            @Override
-            public void run() {
-                android.util.Log.e("PLUGIN_INSTALL", "inside globalQueue runnable!");
-                try {
-                    File file = new File(params.getFilePath());
-                    String nameVal = PythonPluginsEngine.this.fetchParameterValue(params.getFilePath(), "name");
-                    android.util.Log.e("PLUGIN_INSTALL", "nameVal=" + nameVal);
-                    if (TextUtils.isEmpty(nameVal) && file.exists()) {
-                        nameVal = file.getName();
-                    }
-                    final String strFetchParameterValue = nameVal;
-                    final PluginsController.PluginValidationResult pluginValidationResultValidatePluginFromFile = PythonPluginsEngine.this.validatePluginFromFile(params.getFilePath());
-                    android.util.Log.e("PLUGIN_INSTALL", "validationResult: plugin=" + pluginValidationResultValidatePluginFromFile.getPlugin() + ", error=" + pluginValidationResultValidatePluginFromFile.getError());
-                    AndroidUtilities.runOnUIThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            android.util.Log.e("PLUGIN_INSTALL", "inside UIThread runnable: fragment=" + fragment);
-                            if (fragment == null || !AndroidUtilities.isActivityRunning(fragment.getParentActivity())) {
-                                android.util.Log.e("PLUGIN_INSTALL", "activity not running in UIThread!");
-                                return;
-                            }
-                            if (pluginValidationResultValidatePluginFromFile.getPlugin() != null) {
-                                android.util.Log.e("PLUGIN_INSTALL", "SHOWING InstallPluginBottomSheet!");
-                                new InstallPluginBottomSheet(fragment, pluginValidationResultValidatePluginFromFile, params).show();
-                            } else {
-                                android.util.Log.e("PLUGIN_INSTALL", "SHOWING Bulletin error: " + pluginValidationResultValidatePluginFromFile.getError());
-                                BaseFragment baseFragment = fragment;
-                                BulletinFactory.of(baseFragment).createSimpleBulletin(R.raw.error, AndroidUtilities.replaceTags(LocaleController.formatString(R.string.PluginInstallError, strFetchParameterValue)), LocaleUtils.createCopySpan(baseFragment), new Runnable() {
-                                    @Override
-                                    public final void run() {
-                                        PythonPluginsEngine.showInstallDialog$lambda$0$0(pluginValidationResultValidatePluginFromFile, fragment);
-                                    }
-                                }).show();
-                            }
-                        }
-                    });
-                } catch (Throwable t) {
-                    android.util.Log.e("PLUGIN_INSTALL", "Error in showInstallDialog", t);
-                }
+        final Activity parentActivity = fragment.getParentActivity();
+        if (parentActivity == null) {
+            return;
+        }
+        final int currentAccount = fragment.getCurrentAccount();
+        final String filePath = params.getFilePath();
+        PluginsController.INSTANCE.runOnPluginsQueue(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                PythonPluginsEngine.m1874$r8$lambda$LiFKmdzDBLJP6MfAnjiwSBwDj4(this.f$0, filePath, fragment, parentActivity, currentAccount, params);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public static final void showInstallDialog$lambda$0$0(PluginsController.PluginValidationResult pluginValidationResult, BaseFragment baseFragment) {
+    public static void m1874$r8$lambda$LiFKmdzDBLJP6MfAnjiwSBwDj4(PythonPluginsEngine pythonPluginsEngine, String str, final BaseFragment baseFragment, final Activity activity, final int i, final InstallPluginBottomSheet.PluginInstallParams pluginInstallParams) {
+        final PluginsController.PluginValidationResult pluginValidationResultValidatePluginFromFile = pythonPluginsEngine.validatePluginFromFile(str);
+        final String name = new File(str).getName();
+        AndroidUtilities.runOnUIThread(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                PythonPluginsEngine.m1869$r8$lambda$7wzgHVd0HkPhRj8FHEZgor0MeY(baseFragment, activity, i, pluginValidationResultValidatePluginFromFile, pluginInstallParams, name);
+            }
+        });
+    }
+
+    public static void m1869$r8$lambda$7wzgHVd0HkPhRj8FHEZgor0MeY(final BaseFragment baseFragment, Activity activity, int i, final PluginsController.PluginValidationResult pluginValidationResult, InstallPluginBottomSheet.PluginInstallParams pluginInstallParams, String str) {
+        if (!baseFragment.isFinished && !baseFragment.isPaused() && baseFragment.getParentActivity() == activity && baseFragment.getCurrentAccount() == i && AndroidUtilities.isActivityRunning(activity)) {
+            if (pluginValidationResult.getPlugin() != null) {
+                new InstallPluginBottomSheet(baseFragment, pluginValidationResult, pluginInstallParams).show();
+            } else {
+                BulletinFactory.of(baseFragment).createSimpleBulletin(R.raw.error, LocaleController.formatString(R.string.PluginInstallError, str), LocaleUtils.createCopySpan(baseFragment), new Runnable() {
+                    @Override // java.lang.Runnable
+                    public final void run() {
+                        PythonPluginsEngine.m1875$r8$lambda$RICVGZuhirUBe_UACigu18EuCo(pluginValidationResult, baseFragment);
+                    }
+                }).show();
+            }
+        }
+    }
+
+    public static void m1875$r8$lambda$RICVGZuhirUBe_UACigu18EuCo(PluginsController.PluginValidationResult pluginValidationResult, BaseFragment baseFragment) {
         if (AndroidUtilities.addToClipboard(pluginValidationResult.getError())) {
             BulletinFactory.of(baseFragment).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
         }
@@ -2567,40 +2760,36 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
 
     @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
     public void openPluginSettings(final Plugin plugin, final BaseFragment fragment) {
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda5
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                fragment.presentFragment(new PluginSettingsActivity(plugin));
+                fragment.presentFragment(new PluginSettingsActivity(plugin, (String) null, 2, (DefaultConstructorMarker) (0 == true ? 1 : 0)));
             }
         });
     }
 
     @Override // com.exteragram.messenger.plugins.PluginsController.PluginsEngine
     public void openPluginSetting(final Plugin plugin, final String linkAlias, final BaseFragment fragment) {
-        PluginsController.INSTANCE.runOnPluginsQueue(new Runnable() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda11
+        PluginsController.INSTANCE.runOnPluginsQueue(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                try {
-                    PythonPluginsEngine.$r8$lambda$tlRSlsg46rHC7NnIW9NYVB_8Z3s(PythonPluginsEngine.this, plugin, linkAlias, fragment);
-                } catch (Throwable th) {
-                    FileLog.e(th);
-                }
+                PythonPluginsEngine.$r8$lambda$RfcEB9KJA_anfi6_hBn_f0PRfBA(this.f$0, plugin, linkAlias, fragment);
             }
         });
     }
 
-    public static void $r8$lambda$tlRSlsg46rHC7NnIW9NYVB_8Z3s(PythonPluginsEngine pythonPluginsEngine, Plugin plugin, String str, final BaseFragment baseFragment) throws Throwable {
+    public static void $r8$lambda$RfcEB9KJA_anfi6_hBn_f0PRfBA(PythonPluginsEngine pythonPluginsEngine, Plugin plugin, String str, final BaseFragment baseFragment) {
         final PluginSettingsActivity settingsLinkPrefix;
         if (pythonPluginsEngine.getPluginsController().isPluginActive$TMessagesProj(plugin)) {
-            FileLog.d("Opening plugin setting: " + plugin.getId() + '/' + str);
-            if (!str.contains(":")) {
+            FileLog.d("Opening plugin setting: " + plugin.getId() + "/" + str);
+            if (!StringsKt.contains$default((CharSequence) str, (CharSequence) ":", false, 2, (Object) null)) {
                 settingsLinkPrefix = new PluginSettingsActivity(plugin, str);
             } else {
                 List<SettingItem> list = pythonPluginsEngine.getPluginsController().getSettings().get(plugin.getId());
                 if (list == null) {
                     return;
                 }
-                String[] strArr = (String[]) StringsKt.split((CharSequence) str, new String[]{":"}, false, 0).toArray(new String[0]);
+                String[] strArr = (String[]) StringsKt.split$default((CharSequence) str, new String[]{":"}, false, 0, 6, (Object) null).toArray(new String[0]);
                 int length = strArr.length - 1;
                 List<SettingItem> pySettingDefinitions = list;
                 TextSetting textSetting = null;
@@ -2619,9 +2808,8 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                                     PyObject createSubFragmentCallback = ((TextSetting) next).getCreateSubFragmentCallback();
                                     PyObject pyObjectCall = createSubFragmentCallback != null ? createSubFragmentCallback.call(new Object[0]) : null;
                                     if (pyObjectCall != null) {
-                                        List<PyObject> listAsList = pyObjectCall.asList();
                                         try {
-                                            pySettingDefinitions = pythonPluginsEngine.parsePySettingDefinitions(listAsList);
+                                            pySettingDefinitions = pythonPluginsEngine.parsePySettingDefinitions(pyObjectCall.asList());
                                             break;
                                         } catch (Exception unused) {
                                             break;
@@ -2640,12 +2828,11 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                 }
                 if (textSetting == null) {
                     return;
+                } else {
+                    settingsLinkPrefix = new PluginSettingsActivity(plugin, textSetting.getText(), pySettingDefinitions, textSetting.getCreateSubFragmentCallback(), strArr[strArr.length - 1]).setSettingsLinkPrefix(ArraysKt.joinToString$default(Arrays.copyOf(strArr, strArr.length - 1), ":", (CharSequence) null, (CharSequence) null, 0, (CharSequence) null, (Function1) null, 62, (Object) null));
                 }
-                PluginSettingsActivity pluginSettingsActivity = new PluginSettingsActivity(plugin, textSetting.getText(), pySettingDefinitions, textSetting.getCreateSubFragmentCallback(), strArr[strArr.length - 1]);
-                Object[] objArrCopyOf = Arrays.copyOf(strArr, strArr.length - 1);
-                settingsLinkPrefix = pluginSettingsActivity.setSettingsLinkPrefix(ArraysKt.joinToString(objArrCopyOf, ":", "", "", -1, "...", null));
             }
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$$ExternalSyntheticLambda2
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
                     baseFragment.presentFragment(settingsLinkPrefix);
@@ -2663,23 +2850,30 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
     }
 
     @Metadata(d1 = {"\u0000\f\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0004\u0018\u0000 \u00042\u00020\u0001:\u0001\u0004B\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003¨\u0006\u0005"}, d2 = {"Lcom/exteragram/messenger/plugins/PythonPluginsEngine$Updater;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "Companion", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+    @SourceDebugExtension({"SMAP\nPythonPluginsEngine.kt\nKotlin\n*S Kotlin\n*F\n+ 1 PythonPluginsEngine.kt\ncom/exteragram/messenger/plugins/PythonPluginsEngine$Updater\n+ 2 _Arrays.kt\nkotlin/collections/ArraysKt___ArraysKt\n+ 3 fake.kt\nkotlin/jvm/internal/FakeKt\n*L\n1#1,2821:1\n1401#2:2822\n1402#2:2824\n1#3:2823\n*S KotlinDebug\n*F\n+ 1 PythonPluginsEngine.kt\ncom/exteragram/messenger/plugins/PythonPluginsEngine$Updater\n*L\n2358#1:2822\n2358#1:2824\n*E\n"})
     public static final class Updater {
         private static int TAG;
-        private static boolean isLoading;
+        private static DownloadController.FileDownloadProgressListener downloadListener;
+        private static volatile boolean isLoading;
         private static long lastCheckUpdateTime;
         private static boolean notifyWhenChangeStatus;
         private static int status;
 
-        /* JADX INFO: renamed from: Companion, reason: from kotlin metadata */
         public static final Companion INSTANCE = new Companion(null);
         private static final Pattern PYTHON_SDK_APP_VERSION_PATTERN = Pattern.compile("^app_version(>=|<=|==)(.+)$");
         private static final Pattern PYTHON_SDK_APP_VERSION_CODE_PATTERN = Pattern.compile("^app_version_code(>=|<=|==)(.+)$");
-        public static final Runnable notifyRunnable = new Runnable() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$Updater$$ExternalSyntheticLambda0
+        private static final Runnable notifyRunnable = new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                NotificationCenter.getGlobalInstance().postNotificationNameOnUIThread(NotificationCenter.pluginsPySdkInfoChanged, new Object[0]);
+                NotificationCenter.getGlobalInstance().lambda$postNotificationNameOnUIThread$1(NotificationCenter.pluginsPySdkInfoChanged, new Object[0]);
             }
         };
+        private static final Lazy<String> sdkAbi$delegate = LazyKt.lazy(new Function0() {
+            @Override // kotlin.jvm.functions.Function0
+            public final Object invoke() {
+                return PythonPluginsEngine.Updater.$r8$lambda$JuR13UJDt15dZx4WfbbKpgyB9_k();
+            }
+        });
 
         @JvmStatic
         public static final void checkUpdates() {
@@ -2697,6 +2891,11 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         }
 
         @JvmStatic
+        public static final void enableAutoUpdate() {
+            INSTANCE.enableAutoUpdate();
+        }
+
+        @JvmStatic
         public static final File getPythonCurrentSdkFile() {
             return INSTANCE.getPythonCurrentSdkFile();
         }
@@ -2704,6 +2903,11 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         @JvmStatic
         public static final File getPythonSdkUpdateFile() {
             return INSTANCE.getPythonSdkUpdateFile();
+        }
+
+        @JvmStatic
+        public static final File getPythonSdkUpdateMetaFile() {
+            return INSTANCE.getPythonSdkUpdateMetaFile();
         }
 
         @JvmStatic
@@ -2732,6 +2936,11 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         }
 
         @JvmStatic
+        public static final boolean isPendingUpdateVerified(File file) {
+            return INSTANCE.isPendingUpdateVerified(file);
+        }
+
+        @JvmStatic
         public static final boolean isSdkFromApk() {
             return INSTANCE.isSdkFromApk();
         }
@@ -2757,22 +2966,12 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
         }
 
         @JvmStatic
-        public static final void enableAutoUpdate() {
-            com.exteragram.messenger.ExteraConfig.setPluginsPySdkAutoUpdate(true);
+        public static final void savePythonSdkArchive(Companion.PythonSdkUpdateInfo pythonSdkUpdateInfo, boolean z) {
+            INSTANCE.savePythonSdkArchive(pythonSdkUpdateInfo, z);
         }
 
         @JvmStatic
-        public static final void savePythonSdkArchive(TLRPC.Message message, TLRPC.Document document) {
-            INSTANCE.savePythonSdkArchive(message, document);
-        }
-
-        @JvmStatic
-        public static final void savePythonSdkArchive(TLRPC.Message message, TLRPC.Document document, boolean z) {
-            INSTANCE.savePythonSdkArchive(message, document, z);
-        }
-
-        @JvmStatic
-        public static final InputStream sdkFromApk() throws IOException {
+        public static final InputStream sdkFromApk() {
             return INSTANCE.sdkFromApk();
         }
 
@@ -2786,9 +2985,41 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             INSTANCE.zipFolder(file, file2);
         }
 
-        @Metadata(d1 = {"\u0000v\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0000\n\u0002\u0010\b\n\u0002\b\n\n\u0002\u0010\t\n\u0002\b\u0002\n\u0002\u0010\r\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\u0002\n\u0002\b\u0002\n\u0002\u0010\u000e\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u000b\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\f\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0002\b\u0086\u0003\u0018\u00002\u00020\u0001:\u0001GB\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\b\u0010\u001a\u001a\u00020\u001bH\u0007J\n\u0010\u001c\u001a\u0004\u0018\u00010\u001bH\u0007J\b\u0010\u001d\u001a\u00020\u001eH\u0007J\b\u0010\u001f\u001a\u00020\u000bH\u0007J\u0010\u0010 \u001a\u00020!2\u0006\u0010\"\u001a\u00020\u000bH\u0007J\u0010\u0010#\u001a\u00020$2\u0006\u0010%\u001a\u00020\u001eH\u0007J\b\u0010&\u001a\u00020'H\u0007J\b\u0010(\u001a\u00020'H\u0007J\b\u0010)\u001a\u00020'H\u0007J\b\u0010*\u001a\u00020!H\u0007J\b\u0010+\u001a\u00020!H\u0007J\u0010\u0010+\u001a\u00020!2\u0006\u0010,\u001a\u00020\u000bH\u0007J\b\u0010-\u001a\u00020!H\u0007J\u0010\u0010.\u001a\u00020!2\u0006\u0010/\u001a\u00020'H\u0002J\u0010\u00100\u001a\u00020!2\u0006\u00101\u001a\u00020\rH\u0002J\u0012\u00102\u001a\u0004\u0018\u0001032\u0006\u00104\u001a\u000205H\u0007J\u0018\u00106\u001a\u00020\u000b2\u0006\u00107\u001a\u00020$2\u0006\u00108\u001a\u00020\u000bH\u0007J\u0018\u00109\u001a\u00020\u000b2\u0006\u0010:\u001a\u00020$2\u0006\u0010;\u001a\u00020$H\u0007J\u0018\u0010<\u001a\u00020\u000b2\u0006\u0010:\u001a\u00020$2\u0006\u0010;\u001a\u00020$H\u0007J\u0018\u0010=\u001a\u00020!2\u0006\u0010>\u001a\u00020'2\u0006\u0010?\u001a\u00020'H\u0007J\u0018\u0010@\u001a\u00020!2\u0006\u0010A\u001a\u00020B2\u0006\u0010C\u001a\u00020\u000bH\u0002J\u001c\u0010D\u001a\u00020!2\b\u0010E\u001a\u0004\u0018\u00010F2\b\u0010A\u001a\u0004\u0018\u00010BH\u0007J$\u0010D\u001a\u00020!2\b\u0010E\u001a\u0004\u0018\u00010F2\b\u0010A\u001a\u0004\u0018\u00010B2\u0006\u0010C\u001a\u00020\u000bH\u0007R\u0016\u0010\u0004\u001a\n \u0006*\u0004\u0018\u00010\u00050\u0005X\u0082\u0004¢\u0006\u0002\n\u0000R\u0016\u0010\u0007\u001a\n \u0006*\u0004\u0018\u00010\u00050\u0005X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\b\u001a\u00020\tX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\n\u001a\u00020\u000bX\u0082\u000e¢\u0006\u0002\n\u0000R\u001a\u0010\f\u001a\u00020\rX\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u000e\u0010\u000f\"\u0004\b\u0010\u0010\u0011R\u001a\u0010\u0012\u001a\u00020\u000bX\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u0013\u0010\u0014\"\u0004\b\u0015\u0010\u0016R\u000e\u0010\u0017\u001a\u00020\u0018X\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\u0019\u001a\u00020\rX\u0082\u000e¢\u0006\u0002\n\u0000¨\u0006H"}, d2 = {"Lcom/exteragram/messenger/plugins/PythonPluginsEngine$Updater$Companion;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "PYTHON_SDK_APP_VERSION_PATTERN", "Ljava/util/regex/Pattern;", "kotlin.jvm.PlatformType", "PYTHON_SDK_APP_VERSION_CODE_PATTERN", "notifyRunnable", "Ljava/lang/Runnable;", "isLoading", _UrlKt.FRAGMENT_ENCODE_SET, "status", _UrlKt.FRAGMENT_ENCODE_SET, "getStatus", "()I", "setStatus", "(I)V", "notifyWhenChangeStatus", "getNotifyWhenChangeStatus", "()Z", "setNotifyWhenChangeStatus", "(Z)V", "lastCheckUpdateTime", _UrlKt.FRAGMENT_ENCODE_SET, "TAG", "getVersion", _UrlKt.FRAGMENT_ENCODE_SET, "getStateString", "sdkFromApk", "Ljava/io/InputStream;", "isSdkFromApk", "setBuildFromApk", _UrlKt.FRAGMENT_ENCODE_SET, "fromApk", "hashBytes", _UrlKt.FRAGMENT_ENCODE_SET, "inputStream", "getPythonSdkUpdateFile", "Ljava/io/File;", "getPythonCurrentSdkFile", "requestSdkFromApkFile", "deleteSdkUpdateFile", "checkUpdates", "force", "restoreSdkFromApk", "touchFile", "file", "updateStatus", "newStatus", "parsePythonSdkUpdateResponse", "Lcom/exteragram/messenger/plugins/PythonPluginsEngine$Updater$Companion$PythonSdkUpdateInfo;", "res", "Lorg/telegram/tgnet/TLRPC$messages_Messages;", "isSdkVersionNewer", "remoteVersion", "isBeta", "isAppVersionCompatible", "operator", "targetVersion", "isAppVersionCodeCompatible", "zipFolder", "sourceDir", "zipFile", "copyArchiveToPluginsDirectory", "document", "Lorg/telegram/tgnet/TLRPC$Document;", "autoRestartEngine", "savePythonSdkArchive", "msg", "Lorg/telegram/tgnet/TLRPC$Message;", "PythonSdkUpdateInfo", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+        @Metadata(d1 = {"\u0000n\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0000\n\u0002\u0010\b\n\u0002\b\n\n\u0002\u0010\t\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\r\n\u0000\n\u0002\u0010\u000e\n\u0000\n\u0002\u0010\u0002\n\u0002\b\u0007\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0018\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\r\n\u0002\u0018\u0002\n\u0002\b\u0004\b\u0086\u0003\u0018\u00002\u00020\u0001:\u0001WB\t\b\u0002¢\u0006\u0004\b\u0002\u0010\u0003J\b\u0010\u001c\u001a\u00020\u001dH\u0007J\n\u0010\u001e\u001a\u0004\u0018\u00010\u001fH\u0002J\u0006\u0010 \u001a\u00020!J\n\u0010\"\u001a\u0004\u0018\u00010\u001dH\u0007J\b\u0010(\u001a\u00020)H\u0007J\u0006\u0010*\u001a\u00020+J\b\u0010,\u001a\u00020\u000bH\u0007J\u0006\u0010-\u001a\u00020\u000bJ\u0010\u0010.\u001a\u00020!2\u0006\u0010/\u001a\u00020\u000bH\u0007J\b\u00100\u001a\u00020+H\u0002J\b\u00101\u001a\u00020\u001fH\u0002J\u0010\u00102\u001a\u00020\u001f2\u0006\u00103\u001a\u00020)H\u0007J\b\u00104\u001a\u00020+H\u0007J\b\u00105\u001a\u00020+H\u0007J\b\u00106\u001a\u00020+H\u0007J\u0010\u00107\u001a\u00020\u000b2\u0006\u00108\u001a\u00020+H\u0007J\b\u00109\u001a\u00020+H\u0007J\b\u0010:\u001a\u00020!H\u0007J\b\u0010;\u001a\u00020!H\u0007J\b\u0010<\u001a\u00020!H\u0007J\u0010\u0010<\u001a\u00020!2\u0006\u0010=\u001a\u00020\u000bH\u0007J\b\u0010>\u001a\u00020!H\u0007J\u0010\u0010?\u001a\u00020!2\u0006\u0010@\u001a\u00020+H\u0002J\u0010\u0010A\u001a\u00020!2\u0006\u0010B\u001a\u00020\rH\u0002J\u0012\u0010C\u001a\u0004\u0018\u00010D2\u0006\u0010E\u001a\u00020FH\u0007J\u0018\u0010G\u001a\u00020\u000b2\u0006\u0010H\u001a\u00020\u001f2\u0006\u0010I\u001a\u00020\u000bH\u0007J\u0018\u0010J\u001a\u00020\u000b2\u0006\u0010K\u001a\u00020\u001f2\u0006\u0010L\u001a\u00020\u001fH\u0007J\u0018\u0010M\u001a\u00020\u000b2\u0006\u0010K\u001a\u00020\u001f2\u0006\u0010L\u001a\u00020\u001fH\u0007J\u0018\u0010N\u001a\u00020!2\u0006\u0010O\u001a\u00020+2\u0006\u0010P\u001a\u00020+H\u0007J \u0010Q\u001a\u00020!2\u0006\u0010R\u001a\u00020D2\u0006\u0010S\u001a\u00020T2\u0006\u0010U\u001a\u00020\u000bH\u0002J\u001a\u0010V\u001a\u00020!2\u0006\u0010R\u001a\u00020D2\b\b\u0002\u0010U\u001a\u00020\u000bH\u0007R\u0016\u0010\u0004\u001a\n \u0006*\u0004\u0018\u00010\u00050\u0005X\u0082\u0004¢\u0006\u0002\n\u0000R\u0016\u0010\u0007\u001a\n \u0006*\u0004\u0018\u00010\u00050\u0005X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\b\u001a\u00020\tX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\n\u001a\u00020\u000bX\u0082\u000e¢\u0006\u0002\n\u0000R\u001a\u0010\f\u001a\u00020\rX\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u000e\u0010\u000f\"\u0004\b\u0010\u0010\u0011R\u001a\u0010\u0012\u001a\u00020\u000bX\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u0013\u0010\u0014\"\u0004\b\u0015\u0010\u0016R\u000e\u0010\u0017\u001a\u00020\u0018X\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\u0019\u001a\u00020\rX\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u001a\u001a\u0004\u0018\u00010\u001bX\u0082\u000e¢\u0006\u0002\n\u0000R\u001d\u0010#\u001a\u0004\u0018\u00010\u001f8BX\u0082\u0084\u0002¢\u0006\f\n\u0004\b&\u0010'\u001a\u0004\b$\u0010%¨\u0006X"}, d2 = {"Lcom/exteragram/messenger/plugins/PythonPluginsEngine$Updater$Companion;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "()V", "PYTHON_SDK_APP_VERSION_PATTERN", "Ljava/util/regex/Pattern;", "kotlin.jvm.PlatformType", "PYTHON_SDK_APP_VERSION_CODE_PATTERN", "notifyRunnable", "Ljava/lang/Runnable;", "isLoading", _UrlKt.FRAGMENT_ENCODE_SET, "status", _UrlKt.FRAGMENT_ENCODE_SET, "getStatus", "()I", "setStatus", "(I)V", "notifyWhenChangeStatus", "getNotifyWhenChangeStatus", "()Z", "setNotifyWhenChangeStatus", "(Z)V", "lastCheckUpdateTime", _UrlKt.FRAGMENT_ENCODE_SET, "TAG", "downloadListener", "Lorg/telegram/messenger/DownloadController$FileDownloadProgressListener;", "getVersion", _UrlKt.FRAGMENT_ENCODE_SET, "getSdkStateText", _UrlKt.FRAGMENT_ENCODE_SET, "notifySdkStateChanged", _UrlKt.FRAGMENT_ENCODE_SET, "getStateString", "sdkAbi", "getSdkAbi", "()Ljava/lang/String;", "sdkAbi$delegate", "Lkotlin/Lazy;", "sdkFromApk", "Ljava/io/InputStream;", "sdkDirFile", "Ljava/io/File;", "isSdkFromApk", "isSdkFromCurrentApk", "setBuildFromApk", "fromApk", "sdkFromApkMarker", "currentApkStamp", "hashBytes", "inputStream", "getPythonSdkUpdateFile", "getPythonCurrentSdkFile", "getPythonSdkUpdateMetaFile", "isPendingUpdateVerified", "archive", "requestSdkFromApkFile", "deleteSdkUpdateFile", "enableAutoUpdate", "checkUpdates", "force", "restoreSdkFromApk", "touchFile", "file", "updateStatus", "newStatus", "parsePythonSdkUpdateResponse", "Lcom/exteragram/messenger/plugins/PythonPluginsEngine$Updater$Companion$PythonSdkUpdateInfo;", "res", "Lorg/telegram/tgnet/TLRPC$messages_Messages;", "isSdkVersionNewer", "remoteVersion", "isBeta", "isAppVersionCompatible", "operator", "targetVersion", "isAppVersionCodeCompatible", "zipFolder", "sourceDir", "zipFile", "copyArchiveToPluginsDirectory", PluginsConstants.UPDATE, "document", "Lorg/telegram/tgnet/TLRPC$Document;", "autoRestartEngine", "savePythonSdkArchive", "PythonSdkUpdateInfo", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+        @SourceDebugExtension({"SMAP\nPythonPluginsEngine.kt\nKotlin\n*S Kotlin\n*F\n+ 1 PythonPluginsEngine.kt\ncom/exteragram/messenger/plugins/PythonPluginsEngine$Updater$Companion\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n*L\n1#1,2821:1\n1#2:2822\n*E\n"})
         public static final class Companion {
-            public /* synthetic */ Companion(DefaultConstructorMarker defaultConstructorMarker) {
+
+            @Metadata(k = 3, mv = {2, 2, 0}, xi = 48)
+            public static final class WhenMappings {
+                public static final int[] $EnumSwitchMapping$0;
+
+                static {
+                    int[] iArr = new int[SdkState.values().length];
+                    try {
+                        iArr[SdkState.READY.ordinal()] = 1;
+                    } catch (NoSuchFieldError unused) {
+                    }
+                    try {
+                        iArr[SdkState.STARTING.ordinal()] = 2;
+                    } catch (NoSuchFieldError unused2) {
+                    }
+                    try {
+                        iArr[SdkState.PYTHON_FAILED.ordinal()] = 3;
+                    } catch (NoSuchFieldError unused3) {
+                    }
+                    try {
+                        iArr[SdkState.INSTALL_FAILED.ordinal()] = 4;
+                    } catch (NoSuchFieldError unused4) {
+                    }
+                    try {
+                        iArr[SdkState.START_FAILED.ordinal()] = 5;
+                    } catch (NoSuchFieldError unused5) {
+                    }
+                    $EnumSwitchMapping$0 = iArr;
+                }
+            }
+
+            public Companion(DefaultConstructorMarker defaultConstructorMarker) {
                 this();
             }
 
@@ -2813,23 +3044,64 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
 
             @JvmStatic
             public final CharSequence getVersion() {
+                String str;
                 String sdk_version = (ExteraConfig.getPluginsEngine() && PythonPluginsEngine.sdkInitialized) ? PythonPluginsEngine.INSTANCE.getSDK_VERSION() : null;
                 boolean sdk_beta = PythonPluginsEngine.INSTANCE.getSDK_BETA();
-                if (sdk_version == null && PythonPluginsEngine.SDK_DIR != null) {
-                    File file = new File(PythonPluginsEngine.SDK_DIR, "v.txt");
+                if (sdk_version == null) {
+                    File fileSdkDirFile = PythonPluginsEngine.SDK_DIR;
+                    if (fileSdkDirFile == null) {
+                        fileSdkDirFile = sdkDirFile();
+                    }
+                    File file = new File(fileSdkDirFile, "v.txt");
                     if (file.exists()) {
                         String string = StringsKt.trim((CharSequence) SimpliFile.readText$default(SimpliFiles.file(file), 65536L, null, 2, null)).toString();
-                        sdk_beta = string.endsWith("|1");
-                        sdk_version = StringsKt.substringBefore(string, "|", string);
+                        sdk_beta = StringsKt.endsWith$default(string, "|1", false, 2, (Object) null);
+                        sdk_version = StringsKt.substringBefore$default(string, '|', (String) null, 2, (Object) null);
                     }
                 }
-                if (sdk_version == null) {
-                    return "SDK not unpacked";
+                if (sdk_version != null) {
+                    str = RegisterSpec.PREFIX + sdk_version + (sdk_beta ? "-beta" : _UrlKt.FRAGMENT_ENCODE_SET);
+                } else {
+                    str = null;
                 }
-                StringBuilder sb = new StringBuilder("v");
-                sb.append(sdk_version);
-                sb.append(sdk_beta ? "-beta" : "");
-                return sb.toString();
+                String sdkStateText = ExteraConfig.getPluginsEngine() ? getSdkStateText() : null;
+                if (sdkStateText == null || str == null) {
+                    if (sdkStateText != null) {
+                        return sdkStateText;
+                    }
+                    if (str != null) {
+                        return str;
+                    }
+                    return !ExteraConfig.getPluginsEngine() ? LocaleController.getString(R.string.PluginsPySdkEngineDisabled) : LocaleController.getString(R.string.PluginsPySdkNotInstalled);
+                }
+                return sdkStateText + " (" + str + ")";
+            }
+
+            private final String getSdkStateText() {
+                int i = WhenMappings.$EnumSwitchMapping$0[PythonPluginsEngine.sdkState.ordinal()];
+                if (i == 1) {
+                    return null;
+                }
+                if (i == 2) {
+                    return LocaleController.getString(R.string.PluginsPySdkStarting);
+                }
+                if (i == 3) {
+                    return LocaleController.getString(R.string.PluginsPySdkPythonFailed);
+                }
+                if (i == 4) {
+                    return LocaleController.getString(R.string.PluginsPySdkInstallFailed);
+                }
+                if (i != 5) {
+                    throw new kotlin.NoWhenBranchMatchedException();
+                    return null;
+                }
+                return LocaleController.getString(R.string.PluginsPySdkStartFailed);
+            }
+
+            public final void notifySdkStateChanged() {
+                if (getNotifyWhenChangeStatus()) {
+                    AndroidUtilities.runOnUIThread(Updater.notifyRunnable);
+                }
             }
 
             @JvmStatic
@@ -2850,10 +3122,10 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                     }
                     return LocaleController.getString(R.string.RestartPluginSystemToApplyUpdate);
                 }
-                return LocaleController.getString(R.string.LatestVersionInstalled) + " (" + ((Object) getVersion()) + ')';
+                return LocaleController.getString(R.string.LatestVersionInstalled) + " (" + ((Object) getVersion()) + ")";
             }
 
-            @Metadata(d1 = {"\u0000,\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0010\u000b\n\u0002\b\u0005\n\u0002\u0010\u000e\n\u0002\b\u0014\n\u0002\u0010\u0002\n\u0002\b\u0002\u0018\u00002\u00020\u0001B\u0007¢\u0006\u0004\b\u0002\u0010\u0003J\u0006\u0010%\u001a\u00020&J\u0006\u0010'\u001a\u00020\u000bR\u001c\u0010\u0004\u001a\u0004\u0018\u00010\u0005X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u0006\u0010\u0007\"\u0004\b\b\u0010\tR\u001a\u0010\n\u001a\u00020\u000bX\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\f\u0010\r\"\u0004\b\u000e\u0010\u000fR\u001c\u0010\u0010\u001a\u0004\u0018\u00010\u0011X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u0012\u0010\u0013\"\u0004\b\u0014\u0010\u0015R\u001c\u0010\u0016\u001a\u0004\u0018\u00010\u0011X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u0017\u0010\u0013\"\u0004\b\u0018\u0010\u0015R\u001c\u0010\u0019\u001a\u0004\u0018\u00010\u0011X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u001a\u0010\u0013\"\u0004\b\u001b\u0010\u0015R\u001c\u0010\u001c\u001a\u0004\u0018\u00010\u0011X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u001d\u0010\u0013\"\u0004\b\u001e\u0010\u0015R\u001c\u0010\u001f\u001a\u0004\u0018\u00010\u0011X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b \u0010\u0013\"\u0004\b!\u0010\u0015R\u001c\u0010\"\u001a\u0004\u0018\u00010\u0011X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b#\u0010\u0013\"\u0004\b$\u0010\u0015¨\u0006("}, d2 = {"Lcom/exteragram/messenger/plugins/PythonPluginsEngine$Updater$Companion$PythonSdkUpdateInfo;", "Lorg/telegram/tgnet/TLRPC$TL_help_appUpdate;", "<init>", "()V", "message", "Lorg/telegram/tgnet/TLRPC$Message;", "getMessage", "()Lorg/telegram/tgnet/TLRPC$Message;", "setMessage", "(Lorg/telegram/tgnet/TLRPC$Message;)V", "available", _UrlKt.FRAGMENT_ENCODE_SET, "getAvailable", "()Z", "setAvailable", "(Z)V", "channel", _UrlKt.FRAGMENT_ENCODE_SET, "getChannel", "()Ljava/lang/String;", "setChannel", "(Ljava/lang/String;)V", "appVersionOperator", "getAppVersionOperator", "setAppVersionOperator", "appVersion", "getAppVersion", "setAppVersion", "appVersionCodeOperator", "getAppVersionCodeOperator", "setAppVersionCodeOperator", "appVersionCode", "getAppVersionCode", "setAppVersionCode", "abi", "getAbi", "setAbi", "clear", _UrlKt.FRAGMENT_ENCODE_SET, "canInstall", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+            @Metadata(d1 = {"\u0000,\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0010\u000b\n\u0002\b\u0005\n\u0002\u0010\u000e\n\u0002\b\u0017\n\u0002\u0010\u0002\n\u0002\b\u0002\u0018\u00002\u00020\u0001B\u0007¢\u0006\u0004\b\u0002\u0010\u0003J\u0006\u0010(\u001a\u00020)J\u0006\u0010*\u001a\u00020\u000bR\u001c\u0010\u0004\u001a\u0004\u0018\u00010\u0005X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u0006\u0010\u0007\"\u0004\b\b\u0010\tR\u001a\u0010\n\u001a\u00020\u000bX\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\f\u0010\r\"\u0004\b\u000e\u0010\u000fR\u001c\u0010\u0010\u001a\u0004\u0018\u00010\u0011X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u0012\u0010\u0013\"\u0004\b\u0014\u0010\u0015R\u001c\u0010\u0016\u001a\u0004\u0018\u00010\u0011X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u0017\u0010\u0013\"\u0004\b\u0018\u0010\u0015R\u001c\u0010\u0019\u001a\u0004\u0018\u00010\u0011X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u001a\u0010\u0013\"\u0004\b\u001b\u0010\u0015R\u001c\u0010\u001c\u001a\u0004\u0018\u00010\u0011X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b\u001d\u0010\u0013\"\u0004\b\u001e\u0010\u0015R\u001c\u0010\u001f\u001a\u0004\u0018\u00010\u0011X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b \u0010\u0013\"\u0004\b!\u0010\u0015R\u001c\u0010\"\u001a\u0004\u0018\u00010\u0011X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b#\u0010\u0013\"\u0004\b$\u0010\u0015R\u001c\u0010%\u001a\u0004\u0018\u00010\u0011X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b&\u0010\u0013\"\u0004\b'\u0010\u0015¨\u0006+"}, d2 = {"Lcom/exteragram/messenger/plugins/PythonPluginsEngine$Updater$Companion$PythonSdkUpdateInfo;", "Lorg/telegram/tgnet/TLRPC$TL_help_appUpdate;", "<init>", "()V", "message", "Lorg/telegram/tgnet/TLRPC$Message;", "getMessage", "()Lorg/telegram/tgnet/TLRPC$Message;", "setMessage", "(Lorg/telegram/tgnet/TLRPC$Message;)V", "available", _UrlKt.FRAGMENT_ENCODE_SET, "getAvailable", "()Z", "setAvailable", "(Z)V", "channel", _UrlKt.FRAGMENT_ENCODE_SET, "getChannel", "()Ljava/lang/String;", "setChannel", "(Ljava/lang/String;)V", "appVersionOperator", "getAppVersionOperator", "setAppVersionOperator", "appVersion", "getAppVersion", "setAppVersion", "appVersionCodeOperator", "getAppVersionCodeOperator", "setAppVersionCodeOperator", "appVersionCode", "getAppVersionCode", "setAppVersionCode", "abi", "getAbi", "setAbi", "signature", "getSignature", "setSignature", "clear", _UrlKt.FRAGMENT_ENCODE_SET, "canInstall", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
             public static final class PythonSdkUpdateInfo extends TLRPC.TL_help_appUpdate {
                 private String abi;
                 private String appVersion;
@@ -2863,6 +3135,7 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                 private boolean available;
                 private String channel;
                 private TLRPC.Message message;
+                private String signature;
 
                 public PythonSdkUpdateInfo() {
                     clear();
@@ -2932,6 +3205,14 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                     this.abi = str;
                 }
 
+                public final String getSignature() {
+                    return this.signature;
+                }
+
+                public final void setSignature(String str) {
+                    this.signature = str;
+                }
+
                 public final void clear() {
                     this.message = null;
                     this.available = false;
@@ -2944,39 +3225,101 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                     this.appVersionCodeOperator = null;
                     this.document = null;
                     this.abi = null;
+                    this.signature = null;
                 }
 
                 public final boolean canInstall() {
-                    String str = this.appVersion;
-                    String str2 = this.appVersionOperator;
-                    String str3 = this.appVersionCode;
-                    String str4 = this.appVersionCodeOperator;
-                    String str5 = this.version;
-                    return (str == null || str2 == null || Updater.INSTANCE.isAppVersionCompatible(str2, str)) && (str3 == null || str4 == null || Updater.INSTANCE.isAppVersionCodeCompatible(str4, str3)) && ((str5 == null || Updater.INSTANCE.isSdkVersionNewer(str5, Intrinsics.areEqual(this.channel, "beta"))) && this.document != null && Intrinsics.areEqual(this.abi, Build.SUPPORTED_ABIS[0]));
+                    String str;
+                    String str2;
+                    String str3 = this.appVersion;
+                    String str4 = this.appVersionOperator;
+                    String str5 = this.appVersionCode;
+                    String str6 = this.appVersionCodeOperator;
+                    String str7 = this.version;
+                    if (str3 != null && str4 != null && !Updater.INSTANCE.isAppVersionCompatible(str4, str3)) {
+                        return false;
+                    }
+                    if ((str5 != null && str6 != null && !Updater.INSTANCE.isAppVersionCodeCompatible(str6, str5)) || str7 == null || str7.length() == 0) {
+                        return false;
+                    }
+                    Companion companion = Updater.INSTANCE;
+                    return (!companion.isSdkVersionNewer(str7, Intrinsics.areEqual(this.channel, BuildConfig.FLAVOR_minApi)) || this.document == null || (str = this.abi) == null || !Intrinsics.areEqual(str, companion.getSdkAbi()) || (str2 = this.signature) == null || str2.length() == 0) ? false : true;
                 }
+            }
+
+            public final String getSdkAbi() {
+                return (String) Updater.sdkAbi$delegate.getValue();
             }
 
             @JvmStatic
             public final InputStream sdkFromApk() throws IOException {
-                InputStream inputStreamOpen = ApplicationLoader.applicationContext.getAssets().open("plugins_pysdk/sdk-" + Build.SUPPORTED_ABIS[0] + ".zip");
-                return inputStreamOpen;
+                String sdkAbi = getSdkAbi();
+                if (sdkAbi == null) {
+                    throw new java.io.IOException("APK has no Python SDK for " + ArraysKt.joinToString$default(Build.SUPPORTED_ABIS, (CharSequence) null, (CharSequence) null, (CharSequence) null, 0, (CharSequence) null, (Function1) null, 63, (Object) null));
+                    return null;
+                }
+                return ApplicationLoader.applicationContext.getAssets().open("plugins_pysdk/sdk-" + sdkAbi + ".zip");
+            }
+
+            public final File sdkDirFile() {
+                return new File(new File(ApplicationLoader.getFilesDirFixed(), Common.ASSET_DIR), PluginsConstants.PLUGINS_SDK);
             }
 
             @JvmStatic
             public final boolean isSdkFromApk() {
-                return new File(new File(ApplicationLoader.getFilesDirFixed(), "chaquopy"), ".currentSdkFromApk").exists() || requestSdkFromApkFile().exists();
+                return sdkFromApkMarker().exists() || requestSdkFromApkFile().exists();
+            }
+
+            public final boolean isSdkFromCurrentApk() {
+                Object objM2406constructorimpl;
+                File fileSdkFromApkMarker = sdkFromApkMarker();
+                if (fileSdkFromApkMarker.exists()) {
+                    try {
+                        Result.Companion companion = Result.INSTANCE;
+                        objM2406constructorimpl = Result.m2406constructorimpl(SimpliFile.readText$default(SimpliFiles.file(fileSdkFromApkMarker), 65536L, null, 2, null));
+                    } catch (Throwable th) {
+                        Result.Companion companion2 = Result.INSTANCE;
+                        objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th));
+                    }
+                    if (Result.m2412isFailureimpl(objM2406constructorimpl)) {
+                        objM2406constructorimpl = null;
+                    }
+                    if (Intrinsics.areEqual(objM2406constructorimpl, currentApkStamp())) {
+                        return true;
+                    }
+                }
+                return false;
             }
 
             @JvmStatic
             public final void setBuildFromApk(boolean fromApk) {
-                File file = new File(new File(ApplicationLoader.getFilesDirFixed(), "chaquopy"), ".currentSdkFromApk");
-                if (file.exists() && !fromApk) {
-                    PythonPluginsEngine.INSTANCE.deleteFileIfExists(file);
-                }
-                if (file.exists() || !fromApk) {
+                Object objM2406constructorimpl;
+                File fileSdkFromApkMarker = sdkFromApkMarker();
+                if (!fromApk) {
+                    PythonPluginsEngine.INSTANCE.deleteFileIfExists(fileSdkFromApkMarker);
                     return;
                 }
-                touchFile(file);
+                try {
+                    Result.Companion companion = Result.INSTANCE;
+                    SimpliFile.writeTextAtomic$default(SimpliFiles.file(fileSdkFromApkMarker), currentApkStamp(), null, 2, null);
+                    objM2406constructorimpl = Result.m2406constructorimpl(Unit.INSTANCE);
+                } catch (Throwable th) {
+                    Result.Companion companion2 = Result.INSTANCE;
+                    objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th));
+                }
+                Throwable thM2409exceptionOrNullimpl = Result.m2409exceptionOrNullimpl(objM2406constructorimpl);
+                if (thM2409exceptionOrNullimpl != null) {
+                    FileLog.e(thM2409exceptionOrNullimpl);
+                }
+            }
+
+            private final File sdkFromApkMarker() {
+                return new File(new File(ApplicationLoader.getFilesDirFixed(), Common.ASSET_DIR), ".currentSdkFromApk");
+            }
+
+            private final String currentApkStamp() {
+                String str = ApplicationLoader.applicationContext.getApplicationInfo().sourceDir;
+                return str + ":" + new File(str).lastModified();
             }
 
             @JvmStatic
@@ -2996,7 +3339,8 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                         byte[] bArrDigest = messageDigest.digest();
                         StringBuilder sb = new StringBuilder(bArrDigest.length * 2);
                         for (byte b2 : bArrDigest) {
-                            sb.append(String.format("%02x", Byte.valueOf(b2)));
+                            StringCompanionObject stringCompanionObject = StringCompanionObject.INSTANCE;
+                            sb.append(String.format("%02x", Arrays.copyOf(new Object[]{Byte.valueOf(b2)}, 1)));
                         }
                         String string = sb.toString();
                         CloseableKt.closeFinally(inputStream, null);
@@ -3011,32 +3355,73 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                     }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
+                    return null;
                 } catch (NoSuchAlgorithmException e2) {
                     throw new RuntimeException(e2);
+                    return null;
                 }
             }
 
             @JvmStatic
             public final File getPythonSdkUpdateFile() {
-                return new File(new File(ApplicationLoader.getFilesDirFixed(), "chaquopy"), "newSdk");
+                return new File(new File(ApplicationLoader.getFilesDirFixed(), Common.ASSET_DIR), "newSdk");
             }
 
             @JvmStatic
             public final File getPythonCurrentSdkFile() {
-                return new File(new File(ApplicationLoader.getFilesDirFixed(), "chaquopy"), "currentSdk");
+                return new File(new File(ApplicationLoader.getFilesDirFixed(), Common.ASSET_DIR), "currentSdk");
+            }
+
+            @JvmStatic
+            public final File getPythonSdkUpdateMetaFile() {
+                return new File(new File(ApplicationLoader.getFilesDirFixed(), Common.ASSET_DIR), "newSdk.meta");
+            }
+
+            @JvmStatic
+            public final boolean isPendingUpdateVerified(File archive) {
+                File pythonSdkUpdateMetaFile = getPythonSdkUpdateMetaFile();
+                if (!pythonSdkUpdateMetaFile.exists()) {
+                    FileLog.e("Pending Python SDK update has no signature");
+                    return false;
+                }
+                try {
+                    List listSplit$default = StringsKt.split$default((CharSequence) StringsKt.trim((CharSequence) SimpliFile.readText$default(SimpliFiles.file(pythonSdkUpdateMetaFile), 65536L, null, 2, null)).toString(), new String[]{"|"}, false, 0, 6, (Object) null);
+                    if (listSplit$default.size() != 3) {
+                        FileLog.e("Malformed signature of a pending Python SDK update");
+                        return false;
+                    }
+                    if (!Intrinsics.areEqual(listSplit$default.get(1), getSdkAbi())) {
+                        FileLog.e("Pending Python SDK update is built for " + listSplit$default.get(1) + ", but the app runs " + getSdkAbi());
+                        return false;
+                    }
+                    return SdkSignature.verify(archive, (String) listSplit$default.get(0), (String) listSplit$default.get(1), (String) listSplit$default.get(2));
+                } catch (IOException e) {
+                    FileLog.e("Failed to read pending Python SDK update signature", e);
+                    return false;
+                }
             }
 
             @JvmStatic
             public final File requestSdkFromApkFile() {
-                return new File(new File(ApplicationLoader.getFilesDirFixed(), "chaquopy"), ".restoreSdk");
+                return new File(new File(ApplicationLoader.getFilesDirFixed(), Common.ASSET_DIR), ".restoreSdk");
             }
 
             @JvmStatic
             public final void deleteSdkUpdateFile() {
+                Companion companion = PythonPluginsEngine.INSTANCE;
+                companion.deleteFileIfExists(getPythonSdkUpdateMetaFile());
                 File pythonSdkUpdateFile = getPythonSdkUpdateFile();
                 if (pythonSdkUpdateFile.exists()) {
-                    PythonPluginsEngine.INSTANCE.deleteFileIfExists(pythonSdkUpdateFile);
+                    companion.deleteFileIfExists(pythonSdkUpdateFile);
                     updateStatus(0);
+                }
+            }
+
+            @JvmStatic
+            public final void enableAutoUpdate() {
+                ExteraConfig.setPluginsPySdkAutoUpdate(true);
+                if (getNotifyWhenChangeStatus()) {
+                    Updater.notifyRunnable.run();
                 }
             }
 
@@ -3050,7 +3435,7 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                 long jCurrentTimeMillis = System.currentTimeMillis();
                 if ((getStatus() != 1 || Math.abs(jCurrentTimeMillis - Updater.lastCheckUpdateTime) >= 6000) && getStatus() <= 2) {
                     if (!force) {
-                        boolean z = Math.abs(jCurrentTimeMillis - ExteraConfig.getSdkUpdateScheduleTimestamp()) < 3600000L;
+                        boolean z = Math.abs(jCurrentTimeMillis - ExteraConfig.getSdkUpdateScheduleTimestamp()) < DurationKt.MILLIS_IN_HOUR;
                         if (!ExteraConfig.getPluginsEngine() || ExteraConfig.getPluginsSafeMode() || z) {
                             return;
                         }
@@ -3058,60 +3443,56 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                     ExteraConfig.setSdkUpdateScheduleTimestamp(jCurrentTimeMillis);
                     updateStatus(1);
                     Updater.lastCheckUpdateTime = jCurrentTimeMillis;
-                    RemoteUtils.searchMessages("python_sdk", new TLRPC.TL_inputMessagesFilterDocument(), new Utilities.Callback2() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$Updater$Companion$$ExternalSyntheticLambda1
+                    RemoteUtils.searchMessages("python_sdk", new TLRPC.TL_inputMessagesFilterDocument(), new Utilities.Callback2() {
                         @Override // org.telegram.messenger.Utilities.Callback2
                         public final void run(Object obj, Object obj2) {
-                            PythonPluginsEngine.Updater.Companion.m1321$r8$lambda$us7HlP4jQnbH6ikxQnBYzBZPGU((TLRPC.messages_Messages) obj, (TLRPC.TL_error) obj2);
+                            AndroidUtilities.runOnUIThread(new Runnable() {
+                                @Override // java.lang.Runnable
+                                public final void run() {
+                                    PythonPluginsEngine.Updater.Companion.$r8$lambda$mgD7LsLu3zhuF5NPEyXI2CgMRNo(tL_error, messages_messages);
+                                }
+                            });
                         }
                     }, 3000);
                 }
             }
 
-            /* JADX INFO: renamed from: $r8$lambda$us7HlP4jQnbH-6ikxQnBYzBZPGU, reason: not valid java name */
-            public static void m1321$r8$lambda$us7HlP4jQnbH6ikxQnBYzBZPGU(TLRPC.messages_Messages messages_messages, TLRPC.TL_error tL_error) {
+            public static void $r8$lambda$mgD7LsLu3zhuF5NPEyXI2CgMRNo(TLRPC.TL_error tL_error, TLRPC.messages_Messages messages_messages) {
                 Companion companion;
-                final PythonSdkUpdateInfo pythonSdkUpdateResponse;
-                boolean z = false;
+                PythonSdkUpdateInfo pythonSdkUpdateResponse;
+                boolean z;
+                boolean z2 = false;
                 if (tL_error != null) {
                     FileLog.e("Failed to search messages with sdk updates: " + tL_error.text);
                 } else if (messages_messages != null && (pythonSdkUpdateResponse = (companion = Updater.INSTANCE).parsePythonSdkUpdateResponse(messages_messages)) != null) {
-                    if (!ExteraConfig.getPluginsPySdkAutoUpdate() && !pythonSdkUpdateResponse.can_not_skip) {
-                        final BaseFragment safeLastFragment = LaunchActivity.getSafeLastFragment();
+                    if (ExteraConfig.getPluginsPySdkAutoUpdate()) {
+                        z = false;
+                    } else {
+                        BaseFragment safeLastFragment = LaunchActivity.getSafeLastFragment();
                         if (safeLastFragment != null) {
-                            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$Updater$Companion$$ExternalSyntheticLambda0
-                                @Override // java.lang.Runnable
-                                public final void run() {
-                                    PythonPluginsEngine.Updater.Companion.checkUpdates$lambda$0$0(safeLastFragment, pythonSdkUpdateResponse);
-                                }
-                            });
+                            safeLastFragment.showDialog(new PythonSdkUpdateAlert(safeLastFragment, pythonSdkUpdateResponse));
                         }
+                        companion.updateStatus(0);
                         z = true;
                     }
-                    if (!z) {
+                    if (z) {
+                        z2 = z;
+                    } else {
                         try {
-                            companion.savePythonSdkArchive(pythonSdkUpdateResponse.getMessage(), pythonSdkUpdateResponse.document);
-                            z = true;
-                        } catch (Exception e) {
-                            StringBuilder sb = new StringBuilder();
-                            sb.append("Failed to load python-plugins-sdk file (");
-                            sb.append(pythonSdkUpdateResponse.getChannel());
-                            sb.append(", message id = ");
+                            savePythonSdkArchive$default(companion, pythonSdkUpdateResponse, false, 2, null);
+                            z2 = true;
+                        } catch (IOException e) {
+                            String channel = pythonSdkUpdateResponse.getChannel();
                             TLRPC.Message message = pythonSdkUpdateResponse.getMessage();
-                            sb.append(message != null ? Integer.valueOf(message.id) : null);
-                            sb.append(')');
-                            FileLog.e(sb.toString(), e);
+                            FileLog.e("Failed to load python-plugins-sdk file (" + channel + ", message id = " + (message != null ? Integer.valueOf(message.id) : null) + ")", e);
+                            z2 = z;
                         }
                     }
                 }
-                if (z) {
+                if (z2) {
                     return;
                 }
                 Updater.INSTANCE.updateStatus(2);
-            }
-
-            /* JADX INFO: Access modifiers changed from: private */
-            public static final void checkUpdates$lambda$0$0(BaseFragment baseFragment, PythonSdkUpdateInfo pythonSdkUpdateInfo) {
-                baseFragment.showDialog(new PythonPluginsEngine$Updater$Companion$checkUpdates$1$1$1(pythonSdkUpdateInfo, baseFragment.getParentActivity(), baseFragment.getCurrentAccount()));
             }
 
             @JvmStatic
@@ -3120,14 +3501,20 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
             }
 
             private final void touchFile(File file) {
+                Object objM2406constructorimpl;
                 try {
-                    SimpliFiles.file(file).touch();
+                    Result.Companion companion = Result.INSTANCE;
+                    objM2406constructorimpl = Result.m2406constructorimpl(SimpliFiles.file(file).touch());
                 } catch (Throwable th) {
-                    FileLog.e(th);
+                    Result.Companion companion2 = Result.INSTANCE;
+                    objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th));
+                }
+                Throwable thM2409exceptionOrNullimpl = Result.m2409exceptionOrNullimpl(objM2406constructorimpl);
+                if (thM2409exceptionOrNullimpl != null) {
+                    FileLog.e(thM2409exceptionOrNullimpl);
                 }
             }
 
-            /* JADX INFO: Access modifiers changed from: private */
             public final void updateStatus(int newStatus) {
                 setStatus(newStatus);
                 if (getNotifyWhenChangeStatus()) {
@@ -3138,104 +3525,114 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
 
             @JvmStatic
             public final PythonSdkUpdateInfo parsePythonSdkUpdateResponse(TLRPC.messages_Messages res) {
+                boolean z;
                 PythonSdkUpdateInfo pythonSdkUpdateInfo = new PythonSdkUpdateInfo();
                 Iterator<TLRPC.Message> it = res.messages.iterator();
                 while (true) {
-                    if (!it.hasNext()) {
-                        break;
-                    }
-                    TLRPC.Message next = it.next();
-                    if (next instanceof TLRPC.TL_message) {
-                        TLRPC.TL_message tL_message = (TLRPC.TL_message) next;
-                        if (!TextUtils.isEmpty(tL_message.message) && (tL_message.media instanceof TLRPC.TL_messageMediaDocument)) {
-                            String str = tL_message.message;
-                            boolean zContains$default = str.contains("python_sdk_stable");
-                            String str2 = tL_message.message;
-                            boolean zContains$default2 = str2.contains("python_sdk_beta");
-                            if (zContains$default || zContains$default2) {
-                                if (!zContains$default2 || ExteraConfig.getPluginsPySdkBetaVersions()) {
-                                    StringBuilder sb = new StringBuilder();
-                                    String str3 = tL_message.message;
-                                    Iterator it2 = StringsKt.split((CharSequence) str3, new String[]{"\n"}, false, 0).iterator();
-                                    boolean z = false;
-                                    while (it2.hasNext()) {
-                                        String string = StringsKt.trim((CharSequence) it2.next()).toString();
-                                        if (!TextUtils.isEmpty(string) || !z) {
-                                            if (string.startsWith("python_sdk_")) {
-                                                pythonSdkUpdateInfo.setChannel(zContains$default2 ? "beta" : "stable");
-                                                z = true;
-                                            } else if (z) {
-                                                Matcher matcher = Updater.PYTHON_SDK_APP_VERSION_PATTERN.matcher(string);
-                                                if (!matcher.matches()) {
-                                                    Matcher matcher2 = Updater.PYTHON_SDK_APP_VERSION_CODE_PATTERN.matcher(string);
-                                                    if (matcher2.matches()) {
-                                                        pythonSdkUpdateInfo.setAppVersionCodeOperator(matcher2.group(1));
-                                                        String strGroup = matcher2.group(2);
-                                                        pythonSdkUpdateInfo.setAppVersionCode(strGroup != null ? StringsKt.trim((CharSequence) strGroup).toString() : null);
-                                                    } else {
-                                                        List listSplit$default = StringsKt.split((CharSequence) string, new String[]{"="}, false, 2);
-                                                        if (listSplit$default.size() == 2) {
-                                                            String string2 = StringsKt.trim((CharSequence) listSplit$default.get(0)).toString();
-                                                            String string3 = StringsKt.trim((CharSequence) listSplit$default.get(1)).toString();
-                                                            int iHashCode = string2.hashCode();
-                                                            if (iHashCode != -1085916422) {
-                                                                if (iHashCode != 96360) {
-                                                                    if (iHashCode == 351608024 && string2.equals("version")) {
-                                                                        pythonSdkUpdateInfo.version = string3;
-                                                                    }
-                                                                } else if (string2.equals("abi")) {
-                                                                    pythonSdkUpdateInfo.setAbi(string3);
+                    if (it.hasNext()) {
+                        TLRPC.Message next = it.next();
+                        if (next instanceof TLRPC.TL_message) {
+                            TLRPC.TL_message tL_message = (TLRPC.TL_message) next;
+                            if (!TextUtils.isEmpty(tL_message.message) && (tL_message.media instanceof TLRPC.TL_messageMediaDocument)) {
+                                boolean zContains$default = StringsKt.contains$default((CharSequence) tL_message.message, (CharSequence) "python_sdk_stable", false, 2, (Object) null);
+                                boolean zContains$default2 = StringsKt.contains$default((CharSequence) tL_message.message, (CharSequence) "python_sdk_beta", false, 2, (Object) null);
+                                if (zContains$default || zContains$default2) {
+                                    if (!zContains$default2 || ExteraConfig.getPluginsPySdkBetaVersions()) {
+                                        StringBuilder sb = new StringBuilder();
+                                        Iterator it2 = StringsKt.split$default((CharSequence) tL_message.message, new String[]{"\n"}, false, 0, 6, (Object) null).iterator();
+                                        boolean z2 = false;
+                                        while (it2.hasNext()) {
+                                            String string = StringsKt.trim((CharSequence) it2.next()).toString();
+                                            if (!TextUtils.isEmpty(string) || !z2) {
+                                                if (StringsKt.startsWith$default(string, "python_sdk_", false, 2, (Object) null)) {
+                                                    pythonSdkUpdateInfo.setChannel(zContains$default2 ? BuildConfig.FLAVOR_minApi : "stable");
+                                                    z2 = true;
+                                                } else if (z2) {
+                                                    Matcher matcher = Updater.PYTHON_SDK_APP_VERSION_PATTERN.matcher(string);
+                                                    if (!matcher.matches()) {
+                                                        Matcher matcher2 = Updater.PYTHON_SDK_APP_VERSION_CODE_PATTERN.matcher(string);
+                                                        if (!matcher2.matches()) {
+                                                            List listSplit$default = StringsKt.split$default((CharSequence) string, new String[]{"="}, false, 2, 2, (Object) null);
+                                                            if (listSplit$default.size() == 2) {
+                                                                String string2 = StringsKt.trim((CharSequence) listSplit$default.get(0)).toString();
+                                                                String string3 = StringsKt.trim((CharSequence) listSplit$default.get(1)).toString();
+                                                                switch (string2.hashCode()) {
+                                                                    case -1085916422:
+                                                                        if (string2.equals("can_not_skip")) {
+                                                                            pythonSdkUpdateInfo.can_not_skip = Boolean.parseBoolean(string3);
+                                                                        }
+                                                                        break;
+                                                                    case 96360:
+                                                                        if (string2.equals("abi")) {
+                                                                            pythonSdkUpdateInfo.setAbi(string3);
+                                                                        }
+                                                                        break;
+                                                                    case 351608024:
+                                                                        if (string2.equals("version")) {
+                                                                            pythonSdkUpdateInfo.version = string3;
+                                                                        }
+                                                                        break;
+                                                                    case 1073584312:
+                                                                        if (string2.equals("signature")) {
+                                                                            pythonSdkUpdateInfo.setSignature(string3);
+                                                                        }
+                                                                        break;
                                                                 }
-                                                            } else if (string2.equals("can_not_skip")) {
-                                                                pythonSdkUpdateInfo.can_not_skip = Boolean.parseBoolean(string3);
                                                             }
+                                                        } else {
+                                                            pythonSdkUpdateInfo.setAppVersionCodeOperator(matcher2.group(1));
+                                                            String strGroup = matcher2.group(2);
+                                                            pythonSdkUpdateInfo.setAppVersionCode(strGroup != null ? StringsKt.trim((CharSequence) strGroup).toString() : null);
                                                         }
+                                                    } else {
+                                                        pythonSdkUpdateInfo.setAppVersionOperator(matcher.group(1));
+                                                        String strGroup2 = matcher.group(2);
+                                                        pythonSdkUpdateInfo.setAppVersion(strGroup2 != null ? StringsKt.trim((CharSequence) strGroup2).toString() : null);
                                                     }
                                                 } else {
-                                                    pythonSdkUpdateInfo.setAppVersionOperator(matcher.group(1));
-                                                    String strGroup2 = matcher.group(2);
-                                                    pythonSdkUpdateInfo.setAppVersion(strGroup2 != null ? StringsKt.trim((CharSequence) strGroup2).toString() : null);
+                                                    sb.append(string);
+                                                    sb.append("\n");
                                                 }
-                                            } else {
-                                                sb.append(string);
-                                                sb.append("\n");
                                             }
                                         }
-                                    }
-                                    pythonSdkUpdateInfo.document = tL_message.media.document;
-                                    if (!pythonSdkUpdateInfo.canInstall()) {
-                                        pythonSdkUpdateInfo.clear();
-                                    } else {
-                                        pythonSdkUpdateInfo.text = sb.toString();
-                                        ArrayList<TLRPC.MessageEntity> arrayList = new ArrayList<>();
-                                        for (TLRPC.MessageEntity messageEntity : tL_message.entities) {
-                                            if (!(messageEntity instanceof TLRPC.TL_messageEntityPre)) {
-                                                arrayList.add(messageEntity);
+                                        z = true;
+                                        pythonSdkUpdateInfo.document = tL_message.media.document;
+                                        if (pythonSdkUpdateInfo.canInstall()) {
+                                            pythonSdkUpdateInfo.text = sb.toString();
+                                            ArrayList<TLRPC.MessageEntity> arrayList = new ArrayList<>();
+                                            for (TLRPC.MessageEntity messageEntity : tL_message.entities) {
+                                                if (!(messageEntity instanceof TLRPC.TL_messageEntityPre)) {
+                                                    arrayList.add(messageEntity);
+                                                }
                                             }
+                                            pythonSdkUpdateInfo.entities = arrayList;
+                                            pythonSdkUpdateInfo.setMessage(next);
+                                        } else {
+                                            pythonSdkUpdateInfo.clear();
                                         }
-                                        pythonSdkUpdateInfo.entities = arrayList;
-                                        pythonSdkUpdateInfo.setMessage(next);
-                                        break;
                                     }
                                 }
                             }
                         }
+                    } else {
+                        z = true;
                     }
                 }
                 if (pythonSdkUpdateInfo.getMessage() == null) {
                     return null;
                 }
-                pythonSdkUpdateInfo.setAvailable((pythonSdkUpdateInfo.document == null || TextUtils.isEmpty(pythonSdkUpdateInfo.version)) ? false : true);
+                pythonSdkUpdateInfo.setAvailable((pythonSdkUpdateInfo.document == null || TextUtils.isEmpty(pythonSdkUpdateInfo.version)) ? false : z);
                 return pythonSdkUpdateInfo;
             }
 
             @JvmStatic
             public final boolean isSdkVersionNewer(String remoteVersion, boolean isBeta) {
-                if (!ExteraConfig.getPluginsPySdkBetaVersions() && PythonPluginsEngine.INSTANCE.getSDK_BETA()) {
+                if (!ExteraConfig.getPluginsPySdkBetaVersions() && PythonPluginsEngine.INSTANCE.getSDK_BETA() && !isSdkFromCurrentApk()) {
                     return !isBeta;
                 }
-                if (PythonPluginsEngine.SDK_VERSION != null) {
-                    return AppUtils.compareVersions(">", remoteVersion, PythonPluginsEngine.SDK_VERSION);
+                Companion companion = PythonPluginsEngine.INSTANCE;
+                if (companion.getSDK_VERSION() != null) {
+                    return AppUtils.compareVersions(">", remoteVersion, companion.getSDK_VERSION());
                 }
                 return false;
             }
@@ -3255,41 +3652,72 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
                 SimpliFiles.directory(sourceDir).zipTo(zipFile, OverwritePolicy.REPLACE);
             }
 
-            /* JADX INFO: Access modifiers changed from: private */
-            public final void copyArchiveToPluginsDirectory(TLRPC.Document document, boolean autoRestartEngine) {
-                File pythonSdkUpdateFile = getPythonSdkUpdateFile();
-                try {
-                    File pathToAttach = FileLoader.getInstance(UserConfig.selectedAccount).getPathToAttach(document);
-                    SimpliFiles.file(pathToAttach).copyTo(pythonSdkUpdateFile, OverwritePolicy.REPLACE);
-                    if (autoRestartEngine) {
-                        PluginsController.INSTANCE.getInstance().restart();
-                    } else {
-                        updateStatus(4);
+            public final void copyArchiveToPluginsDirectory(final PythonSdkUpdateInfo update, TLRPC.Document document, final boolean autoRestartEngine) {
+                final File pythonSdkUpdateFile = getPythonSdkUpdateFile();
+                final File pathToAttach = FileLoader.getInstance(UserConfig.selectedAccount).getPathToAttach(document);
+                Utilities.globalQueue.postRunnable(new Runnable() {
+                    @Override // java.lang.Runnable
+                    public final void run() {
+                        PythonPluginsEngine.Updater.Companion.m1883$r8$lambda$o94czEXBbhoKNVN8ekUm0orzW8(pathToAttach, update, pythonSdkUpdateFile, autoRestartEngine);
                     }
-                } catch (Exception e2) {
-                    FileLog.e("Failed to copy plugins-sdk file", e2);
-                    updateStatus(2);
+                });
+            }
+
+            public static void m1883$r8$lambda$o94czEXBbhoKNVN8ekUm0orzW8(File file, PythonSdkUpdateInfo pythonSdkUpdateInfo, File file2, final boolean z) {
+                final Ref.BooleanRef booleanRef = new Ref.BooleanRef();
+                if (!SdkSignature.verify(file, pythonSdkUpdateInfo.version, pythonSdkUpdateInfo.getAbi(), pythonSdkUpdateInfo.getSignature())) {
+                    String channel = pythonSdkUpdateInfo.getChannel();
+                    TLRPC.Message message = pythonSdkUpdateInfo.getMessage();
+                    FileLog.e("Rejected Python SDK update with an invalid signature (" + channel + ", message id = " + (message != null ? Integer.valueOf(message.id) : null) + ")");
+                } else {
+                    try {
+                        SimpliFiles.file(file).copyTo(file2, OverwritePolicy.REPLACE);
+                        SimpliFile.writeTextAtomic$default(SimpliFiles.file(Updater.INSTANCE.getPythonSdkUpdateMetaFile()), pythonSdkUpdateInfo.version + "|" + pythonSdkUpdateInfo.getAbi() + "|" + pythonSdkUpdateInfo.getSignature(), null, 2, null);
+                        booleanRef.element = true;
+                    } catch (Exception e) {
+                        FileLog.e("Failed to copy plugins-sdk file", e);
+                    }
                 }
+                AndroidUtilities.runOnUIThread(new Runnable() {
+                    @Override // java.lang.Runnable
+                    public final void run() {
+                        PythonPluginsEngine.Updater.Companion.m1884$r8$lambda$qJjoqrqPp_XBVdedlOFp_X2W2A(booleanRef, z);
+                    }
+                });
+            }
+
+            public static void m1884$r8$lambda$qJjoqrqPp_XBVdedlOFp_X2W2A(Ref.BooleanRef booleanRef, boolean z) {
                 Updater.isLoading = false;
+                if (!booleanRef.element) {
+                    Updater.INSTANCE.updateStatus(2);
+                } else if (z) {
+                    PluginsController.INSTANCE.getInstance().restart();
+                } else {
+                    Updater.INSTANCE.updateStatus(4);
+                }
+            }
+
+            public static void savePythonSdkArchive$default(Companion companion, PythonSdkUpdateInfo pythonSdkUpdateInfo, boolean z, int i, Object obj) {
+                if ((i & 2) != 0) {
+                    z = false;
+                }
+                companion.savePythonSdkArchive(pythonSdkUpdateInfo, z);
             }
 
             @JvmStatic
-            public final void savePythonSdkArchive(TLRPC.Message msg, TLRPC.Document document) {
-                savePythonSdkArchive(msg, document, false);
-            }
-
-            @JvmStatic
-            public final void savePythonSdkArchive(TLRPC.Message msg, final TLRPC.Document document, final boolean autoRestartEngine) {
-                if (Updater.isLoading || msg == null || document == null) {
+            public final void savePythonSdkArchive(final PythonSdkUpdateInfo update, final boolean autoRestartEngine) {
+                TLRPC.Message message = update.getMessage();
+                final TLRPC.Document document = update.document;
+                if (Updater.isLoading || message == null || document == null) {
                     return;
                 }
-                MessageObject messageObject = new MessageObject(UserConfig.selectedAccount, msg, false, true);
+                MessageObject messageObject = new MessageObject(UserConfig.selectedAccount, message, false, true);
                 Updater.isLoading = true;
                 updateStatus(3);
                 if (!messageObject.mediaExists) {
                     Updater.TAG = DownloadController.getInstance(UserConfig.selectedAccount).generateObserverTag();
                     FileLoader.getInstance(UserConfig.selectedAccount).loadFile(document, messageObject, 1, 0);
-                    DownloadController.getInstance(UserConfig.selectedAccount).addLoadingFileObserver(FileLoader.getAttachFileName(document), messageObject, new DownloadController.FileDownloadProgressListener() { // from class: com.exteragram.messenger.plugins.PythonPluginsEngine$Updater$Companion$savePythonSdkArchive$1
+                    DownloadController.FileDownloadProgressListener fileDownloadProgressListener = new DownloadController.FileDownloadProgressListener() {
                         @Override // org.telegram.messenger.DownloadController.FileDownloadProgressListener
                         public void onProgressDownload(String fileName, long downloadSize, long totalSize) {
                         }
@@ -3300,6 +3728,10 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
 
                         @Override // org.telegram.messenger.DownloadController.FileDownloadProgressListener
                         public void onFailedDownload(String fileName, boolean canceled) {
+                            if (PythonPluginsEngine.Updater.downloadListener != this) {
+                                return;
+                            }
+                            PythonPluginsEngine.Updater.downloadListener = null;
                             FileLog.e("Failed to load plugins-sdk file");
                             PythonPluginsEngine.Updater.isLoading = false;
                             PythonPluginsEngine.Updater.INSTANCE.updateStatus(2);
@@ -3307,21 +3739,46 @@ public final class PythonPluginsEngine implements PluginsController.PluginsEngin
 
                         @Override // org.telegram.messenger.DownloadController.FileDownloadProgressListener
                         public void onSuccessDownload(String fileName) {
-                            PythonPluginsEngine.Updater.INSTANCE.copyArchiveToPluginsDirectory(document, autoRestartEngine);
+                            if (PythonPluginsEngine.Updater.downloadListener != this) {
+                                return;
+                            }
+                            PythonPluginsEngine.Updater.downloadListener = null;
+                            PythonPluginsEngine.Updater.INSTANCE.copyArchiveToPluginsDirectory(update, document, autoRestartEngine);
                         }
 
                         @Override // org.telegram.messenger.DownloadController.FileDownloadProgressListener
                         public int getObserverTag() {
                             return PythonPluginsEngine.Updater.TAG;
                         }
-                    });
+                    };
+                    Updater.downloadListener = fileDownloadProgressListener;
+                    DownloadController.getInstance(UserConfig.selectedAccount).addLoadingFileObserver(FileLoader.getAttachFileName(document), messageObject, fileDownloadProgressListener);
                     return;
                 }
-                copyArchiveToPluginsDirectory(document, autoRestartEngine);
+                copyArchiveToPluginsDirectory(update, document, autoRestartEngine);
             }
         }
 
         private Updater() {
+        }
+
+        public static String $r8$lambda$JuR13UJDt15dZx4WfbbKpgyB9_k() {
+            Object objM2406constructorimpl;
+            AssetManager assets = ApplicationLoader.applicationContext.getAssets();
+            for (String str : Build.SUPPORTED_ABIS) {
+                try {
+                    Result.Companion companion = Result.INSTANCE;
+                    assets.open("plugins_pysdk/sdk-" + str + ".zip").close();
+                    objM2406constructorimpl = Result.m2406constructorimpl(Unit.INSTANCE);
+                } catch (Throwable th) {
+                    Result.Companion companion2 = Result.INSTANCE;
+                    objM2406constructorimpl = Result.m2406constructorimpl(ResultKt.createFailure(th));
+                }
+                if (Result.m2413isSuccessimpl(objM2406constructorimpl)) {
+                    return str;
+                }
+            }
+            return null;
         }
     }
 }

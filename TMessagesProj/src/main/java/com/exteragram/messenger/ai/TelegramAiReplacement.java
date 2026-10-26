@@ -11,7 +11,6 @@ import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_aicompose;
 
-/* JADX INFO: loaded from: classes4.dex */
 public abstract class TelegramAiReplacement {
 
     public static final class ClientHolder {
@@ -27,7 +26,7 @@ public abstract class TelegramAiReplacement {
     }
 
     public static Runnable compose(TLRPC.TL_messages_composeMessageWithAI tL_messages_composeMessageWithAI, TL_aicompose.AiComposeTone aiComposeTone, String str, final Utilities.Callback<TLRPC.TL_composedMessageWithAI> callback, Utilities.Callback2<Integer, String> callback2) {
-        return run(buildComposeTask(tL_messages_composeMessageWithAI, aiComposeTone, str), tL_messages_composeMessageWithAI.text.text, new Utilities.Callback() { // from class: com.exteragram.messenger.ai.TelegramAiReplacement$$ExternalSyntheticLambda1
+        return run(buildComposeTask(tL_messages_composeMessageWithAI, aiComposeTone, str), tL_messages_composeMessageWithAI.text.text, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
                 TelegramAiReplacement.$r8$lambda$fIYiAZvLeJg9cGEjBrrQSuw5KDg(callback, (TLRPC.TL_textWithEntities) obj);
@@ -35,7 +34,7 @@ public abstract class TelegramAiReplacement {
         }, callback2);
     }
 
-    public static /* synthetic */ void $r8$lambda$fIYiAZvLeJg9cGEjBrrQSuw5KDg(Utilities.Callback callback, TLRPC.TL_textWithEntities tL_textWithEntities) {
+    public static void $r8$lambda$fIYiAZvLeJg9cGEjBrrQSuw5KDg(Utilities.Callback callback, TLRPC.TL_textWithEntities tL_textWithEntities) {
         TLRPC.TL_composedMessageWithAI tL_composedMessageWithAI = new TLRPC.TL_composedMessageWithAI();
         tL_composedMessageWithAI.result_text = tL_textWithEntities;
         callback.run(tL_composedMessageWithAI);
@@ -66,7 +65,7 @@ public abstract class TelegramAiReplacement {
         sb.append("\n</");
         sb.append(str3);
         sb.append(">");
-        final String response = client.getResponse(sb.toString(), new GenerationCallback() { // from class: com.exteragram.messenger.ai.TelegramAiReplacement.1
+        final String response = client.getResponse(sb.toString(), new GenerationCallback() {
             @Override // com.exteragram.messenger.ai.network.GenerationCallback
             public void onChunk(String str4) {
             }
@@ -83,7 +82,7 @@ public abstract class TelegramAiReplacement {
                 callback2.run(Integer.valueOf(i), str4);
             }
         });
-        return new Runnable() { // from class: com.exteragram.messenger.ai.TelegramAiReplacement$$ExternalSyntheticLambda0
+        return new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 client.stopRequest(response);
@@ -200,7 +199,6 @@ public abstract class TelegramAiReplacement {
         return TextUtils.isEmpty(displayName) ? str : displayName;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public static String cleanResponse(String str, String str2) {
         String strTrim = str == null ? _UrlKt.FRAGMENT_ENCODE_SET : str.trim();
         String str3 = "<" + str2 + ">";

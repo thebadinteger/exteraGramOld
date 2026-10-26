@@ -16,17 +16,17 @@ public class BtcPill extends RatePill {
         super(context, resourcesProvider, CACHE, "BTC", 2, R.drawable.pillstack_btc, new ColoredBackground(-1071598, -1608430));
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill
     public int getPillId() {
         return PillType.BTC.getId();
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.crypto.RatePill
     public String getTargetSelection() {
         return PillStackConfig.getBtcTargetCurrency();
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.crypto.RatePill
     public void setTargetSelection(String str) {
         PillStackConfig.setBtcTargetCurrency(str);
     }

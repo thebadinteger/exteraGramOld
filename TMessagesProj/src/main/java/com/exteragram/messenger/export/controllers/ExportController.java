@@ -15,6 +15,8 @@ import com.exteragram.messenger.export.api.ApiWrap$StoriesSlice;
 import com.exteragram.messenger.export.api.ApiWrap$UserpicsInfo;
 import com.exteragram.messenger.export.output.AbstractWriter;
 import com.exteragram.messenger.export.output.OutputFile;
+import com.google.android.gms.cast.CastStatusCodes;
+import j$.time.Instant;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -102,8 +104,7 @@ public class ExportController extends BaseController {
         }
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$XpHL9OJ9E0-jsaOwD7m1Z3whHP0, reason: not valid java name */
-    public static /* synthetic */ void m1055$r8$lambda$XpHL9OJ9E0jsaOwD7m1Z3whHP0(ProcessingState processingState) {
+    public static void m1326$r8$lambda$XpHL9OJ9E0jsaOwD7m1Z3whHP0(ProcessingState processingState) {
     }
 
     static {
@@ -179,15 +180,14 @@ public class ExportController extends BaseController {
     }
 
     public void startExport(final ExportSettings exportSettings) {
-        exportQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda0
+        exportQueue.postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                ExportController.this.lambda$startExport$0(exportSettings);
+                this.f$0.lambda$startExport$0(exportSettings);
             }
         });
     }
 
-    /* JADX INFO: renamed from: startExportInternal, reason: merged with bridge method [inline-methods] */
     public void lambda$startExport$0(ExportSettings exportSettings) {
         String str;
         ExportSettings exportSettings2 = this._settings;
@@ -236,10 +236,10 @@ public class ExportController extends BaseController {
         this._stepIndex = i;
         if (i >= this._steps.size()) {
             if (this._writer.finish().isSuccess()) {
-                ExportRequestsController.getInstance(this.currAcc).invokeFinish(false, new Runnable() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda1
+                ExportRequestsController.getInstance(this.currAcc).invokeFinish(false, new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
-                        ExportController.this.setFinishedState();
+                        this.f$0.setFinishedState();
                     }
                 });
                 Log.i("exteraGram", "finished Export!");
@@ -277,22 +277,20 @@ public class ExportController extends BaseController {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void setFinishedState() {
         setState(new FinishedState(this._writer.mainFilePath(), this._stats.filesCount(), this._stats.bytesCount()));
     }
 
     private void initialize() {
         setState(new ProcessingState());
-        ExportRequestsController.getInstance(this.currAcc).startExport(this._settings, this._stats, new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda18
+        ExportRequestsController.getInstance(this.currAcc).startExport(this._settings, this._stats, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                ExportController.this.initialized((ExportRequestsController.StartInfo) obj);
+                this.f$0.initialized((ExportRequestsController.StartInfo) obj);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void initialized(ExportRequestsController.StartInfo startInfo) {
         if (this._writer.start(this._settings, this._stats).isSuccess()) {
             fillSubstepsInSteps(startInfo);
@@ -302,85 +300,81 @@ public class ExportController extends BaseController {
 
     private void collectDialogsList() {
         setState(stateDialogsList(0));
-        ExportRequestsController.getInstance(this.currAcc).requestDialogsList(new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda19
+        ExportRequestsController.getInstance(this.currAcc).requestDialogsList(new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
-                return ExportController.this.lambda$collectDialogsList$1((Integer) obj);
+                return this.f$0.lambda$collectDialogsList$1((Integer) obj);
             }
-        }, new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda20
+        }, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                ExportController.this.lambda$collectDialogsList$2((ApiWrap$DialogsInfo) obj);
+                this.f$0.lambda$collectDialogsList$2((ApiWrap$DialogsInfo) obj);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ Boolean lambda$collectDialogsList$1(Integer num) {
+    public Boolean lambda$collectDialogsList$1(Integer num) {
         if (num.intValue() > 0) {
             setState(stateDialogsList(num.intValue() - 1));
         }
         return Boolean.TRUE;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$collectDialogsList$2(ApiWrap$DialogsInfo apiWrap$DialogsInfo) {
+    public void lambda$collectDialogsList$2(ApiWrap$DialogsInfo apiWrap$DialogsInfo) {
         this._dialogsInfo = apiWrap$DialogsInfo;
         exportNext();
     }
 
     private void exportPersonalInfo() {
         setState(statePersonalInfo());
-        ExportRequestsController.getInstance(this.currAcc).requestPersonalInfo(new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda17
+        ExportRequestsController.getInstance(this.currAcc).requestPersonalInfo(new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                ExportController.this.lambda$exportPersonalInfo$3((ApiWrap$ExportPersonalInfo) obj);
+                this.f$0.lambda$exportPersonalInfo$3((ApiWrap$ExportPersonalInfo) obj);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$exportPersonalInfo$3(ApiWrap$ExportPersonalInfo apiWrap$ExportPersonalInfo) {
+    public void lambda$exportPersonalInfo$3(ApiWrap$ExportPersonalInfo apiWrap$ExportPersonalInfo) {
         if (this._writer.writePersonal(apiWrap$ExportPersonalInfo).isSuccess()) {
             exportNext();
         }
     }
 
     private ProcessingState statePersonalInfo() {
-        return prepareState(ProcessingState.Step.PersonalInfo, new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda23
+        return prepareState(ProcessingState.Step.PersonalInfo, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                ExportController.m1055$r8$lambda$XpHL9OJ9E0jsaOwD7m1Z3whHP0((ExportController.ProcessingState) obj);
+                ExportController.m1326$r8$lambda$XpHL9OJ9E0jsaOwD7m1Z3whHP0((ExportController.ProcessingState) obj);
             }
         });
     }
 
     private void exportUserpics() {
-        ExportRequestsController.getInstance(this.currAcc).requestUserpics(new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda13
+        ExportRequestsController.getInstance(this.currAcc).requestUserpics(new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
-                return ExportController.this.lambda$exportUserpics$5((ApiWrap$UserpicsInfo) obj);
+                return this.f$0.lambda$exportUserpics$5((ApiWrap$UserpicsInfo) obj);
             }
-        }, new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda14
+        }, new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
-                return ExportController.this.lambda$exportUserpics$6((ApiWrap$DownloadProgress) obj);
+                return this.f$0.lambda$exportUserpics$6((ApiWrap$DownloadProgress) obj);
             }
-        }, new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda15
+        }, new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
-                return ExportController.this.lambda$exportUserpics$7((ArrayList) obj);
+                return this.f$0.lambda$exportUserpics$7((ArrayList) obj);
             }
-        }, new Runnable() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda16
+        }, new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                ExportController.this.lambda$exportUserpics$8();
+                this.f$0.lambda$exportUserpics$8();
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ Boolean lambda$exportUserpics$5(ApiWrap$UserpicsInfo apiWrap$UserpicsInfo) {
+    public Boolean lambda$exportUserpics$5(ApiWrap$UserpicsInfo apiWrap$UserpicsInfo) {
         if (!this._writer.writeUserpicsStart(apiWrap$UserpicsInfo).isSuccess()) {
             return Boolean.FALSE;
         }
@@ -389,14 +383,12 @@ public class ExportController extends BaseController {
         return Boolean.TRUE;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ Boolean lambda$exportUserpics$6(ApiWrap$DownloadProgress apiWrap$DownloadProgress) {
+    public Boolean lambda$exportUserpics$6(ApiWrap$DownloadProgress apiWrap$DownloadProgress) {
         setState(stateUserpics(apiWrap$DownloadProgress));
         return Boolean.TRUE;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ Boolean lambda$exportUserpics$7(ArrayList arrayList) {
+    public Boolean lambda$exportUserpics$7(ArrayList arrayList) {
         if (!this._writer.writeUserpicsSlice(arrayList).isSuccess()) {
             return Boolean.FALSE;
         }
@@ -405,24 +397,22 @@ public class ExportController extends BaseController {
         return Boolean.TRUE;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$exportUserpics$8() {
+    public void lambda$exportUserpics$8() {
         if (this._writer.writeUserpicsEnd().isSuccess()) {
             exportNext();
         }
     }
 
     private ProcessingState stateUserpics(final ApiWrap$DownloadProgress apiWrap$DownloadProgress) {
-        return prepareState(ProcessingState.Step.Userpics, new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda25
+        return prepareState(ProcessingState.Step.Userpics, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                ExportController.this.lambda$stateUserpics$9(apiWrap$DownloadProgress, (ExportController.ProcessingState) obj);
+                this.f$0.lambda$stateUserpics$9(apiWrap$DownloadProgress, (ExportController.ProcessingState) obj);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$stateUserpics$9(ApiWrap$DownloadProgress apiWrap$DownloadProgress, ProcessingState processingState) {
+    public void lambda$stateUserpics$9(ApiWrap$DownloadProgress apiWrap$DownloadProgress, ProcessingState processingState) {
         int iItemIndex = this._userpicsWritten + apiWrap$DownloadProgress.itemIndex();
         processingState.entityIndex = iItemIndex;
         processingState.entityCount = Math.max(this._userpicsCount, iItemIndex);
@@ -435,31 +425,30 @@ public class ExportController extends BaseController {
     }
 
     private void exportStories() {
-        ExportRequestsController.getInstance(this.currAcc).requestStories(new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda3
+        ExportRequestsController.getInstance(this.currAcc).requestStories(new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
-                return ExportController.this.lambda$exportStories$10((Integer) obj);
+                return this.f$0.lambda$exportStories$10((Integer) obj);
             }
-        }, new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda4
+        }, new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
-                return ExportController.this.lambda$exportStories$11((ApiWrap$DownloadProgress) obj);
+                return this.f$0.lambda$exportStories$11((ApiWrap$DownloadProgress) obj);
             }
-        }, new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda5
+        }, new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
-                return ExportController.this.lambda$exportStories$12((ApiWrap$StoriesSlice) obj);
+                return this.f$0.lambda$exportStories$12((ApiWrap$StoriesSlice) obj);
             }
-        }, new Runnable() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda6
+        }, new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                ExportController.this.lambda$exportStories$13();
+                this.f$0.lambda$exportStories$13();
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ Boolean lambda$exportStories$10(Integer num) {
+    public Boolean lambda$exportStories$10(Integer num) {
         if (!this._writer.writeStoriesStart(num.intValue()).isSuccess()) {
             return Boolean.FALSE;
         }
@@ -468,14 +457,12 @@ public class ExportController extends BaseController {
         return Boolean.TRUE;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ Boolean lambda$exportStories$11(ApiWrap$DownloadProgress apiWrap$DownloadProgress) {
+    public Boolean lambda$exportStories$11(ApiWrap$DownloadProgress apiWrap$DownloadProgress) {
         setState(stateStories(apiWrap$DownloadProgress));
         return Boolean.TRUE;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ Boolean lambda$exportStories$12(ApiWrap$StoriesSlice apiWrap$StoriesSlice) {
+    public Boolean lambda$exportStories$12(ApiWrap$StoriesSlice apiWrap$StoriesSlice) {
         if (!this._writer.writeStoriesSlice(apiWrap$StoriesSlice).isSuccess()) {
             return Boolean.FALSE;
         }
@@ -484,24 +471,22 @@ public class ExportController extends BaseController {
         return Boolean.TRUE;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$exportStories$13() {
+    public void lambda$exportStories$13() {
         if (this._writer.writeStoriesEnd().isSuccess()) {
             exportNext();
         }
     }
 
     private ProcessingState stateStories(final ApiWrap$DownloadProgress apiWrap$DownloadProgress) {
-        return prepareState(ProcessingState.Step.Stories, new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda26
+        return prepareState(ProcessingState.Step.Stories, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                ExportController.this.lambda$stateStories$14(apiWrap$DownloadProgress, (ExportController.ProcessingState) obj);
+                this.f$0.lambda$stateStories$14(apiWrap$DownloadProgress, (ExportController.ProcessingState) obj);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$stateStories$14(ApiWrap$DownloadProgress apiWrap$DownloadProgress, ProcessingState processingState) {
+    public void lambda$stateStories$14(ApiWrap$DownloadProgress apiWrap$DownloadProgress, ProcessingState processingState) {
         int iItemIndex = this._storiesWritten + apiWrap$DownloadProgress.itemIndex();
         processingState.entityIndex = iItemIndex;
         processingState.entityCount = Math.max(this._storiesCount, iItemIndex);
@@ -515,32 +500,30 @@ public class ExportController extends BaseController {
 
     private void exportContacts() {
         setState(prepareState(ProcessingState.Step.Contacts, null));
-        ExportRequestsController.getInstance(this.currAcc).requestContacts(new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda7
+        ExportRequestsController.getInstance(this.currAcc).requestContacts(new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                ExportController.this.lambda$exportContacts$15((ApiWrap$ContactsList) obj);
+                this.f$0.lambda$exportContacts$15((ApiWrap$ContactsList) obj);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$exportContacts$15(ApiWrap$ContactsList apiWrap$ContactsList) {
+    public void lambda$exportContacts$15(ApiWrap$ContactsList apiWrap$ContactsList) {
         if (this._writer.writeContactsList(apiWrap$ContactsList).isSuccess()) {
             exportNext();
         }
     }
 
     private ProcessingState stateDialogsList(final int i) {
-        return prepareState(ProcessingState.Step.DialogsList, new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda22
+        return prepareState(ProcessingState.Step.DialogsList, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                ExportController.this.lambda$stateDialogsList$16(i, (ExportController.ProcessingState) obj);
+                this.f$0.lambda$stateDialogsList$16(i, (ExportController.ProcessingState) obj);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$stateDialogsList$16(int i, ProcessingState processingState) {
+    public void lambda$stateDialogsList$16(int i, ProcessingState processingState) {
         processingState.entityIndex = i;
         processingState.entityCount = Math.max(i, substepsInStep(ProcessingState.Step.Dialogs));
     }
@@ -569,7 +552,7 @@ public class ExportController extends BaseController {
     private void fillSubstepsInSteps(ExportRequestsController.StartInfo startInfo) {
         int[] iArr = new int[ProcessingState.Step.values().length];
         iArr[ProcessingState.Step.Initializing.ordinal()] = 1;
-        if ((this._settings.types & 2016) != 0) {
+        if ((this._settings.types & CastStatusCodes.DEVICE_CONNECTION_SUSPENDED) != 0) {
             iArr[ProcessingState.Step.DialogsList.ordinal()] = 1;
         }
         if ((this._settings.types & 32) != 0) {
@@ -590,7 +573,7 @@ public class ExportController extends BaseController {
         if ((this._settings.types & 16) != 0) {
             iArr[ProcessingState.Step.OtherData.ordinal()] = 1;
         }
-        if ((this._settings.types & 2016) != 0) {
+        if ((this._settings.types & CastStatusCodes.DEVICE_CONNECTION_SUSPENDED) != 0) {
             iArr[ProcessingState.Step.Dialogs.ordinal()] = startInfo.dialogsCount;
         }
         this._substepsInStep = iArr;
@@ -638,19 +621,18 @@ public class ExportController extends BaseController {
             }
         }
         if (i != -1) {
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda21
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    ExportController.this.lambda$setState$17(i, processingState);
+                    this.f$0.lambda$setState$17(i, processingState);
                 }
             });
         }
         this._state = processingState;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$setState$17(int i, ProcessingState processingState) {
-        NotificationCenter.getInstance(this.currAcc).postNotificationNameOnUIThread(i, processingState);
+    public void lambda$setState$17(int i, ProcessingState processingState) {
+        NotificationCenter.getInstance(this.currAcc).lambda$postNotificationNameOnUIThread$1(i, processingState);
     }
 
     private boolean stopped() {
@@ -665,16 +647,15 @@ public class ExportController extends BaseController {
 
     private void exportSessions() {
         setState(prepareState(ProcessingState.Step.Sessions, null));
-        ExportRequestsController.getInstance(this.currAcc).requestSessions(new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda2
+        ExportRequestsController.getInstance(this.currAcc).requestSessions(new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                ExportController.this.lambda$exportSessions$18((ApiWrap$SessionsList) obj);
+                this.f$0.lambda$exportSessions$18((ApiWrap$SessionsList) obj);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$exportSessions$18(ApiWrap$SessionsList apiWrap$SessionsList) {
+    public void lambda$exportSessions$18(ApiWrap$SessionsList apiWrap$SessionsList) {
         if (this._writer.writeSessionsList(apiWrap$SessionsList).isSuccess()) {
             exportNext();
         }
@@ -682,16 +663,15 @@ public class ExportController extends BaseController {
 
     private void exportOtherData() {
         setState(prepareState(ProcessingState.Step.OtherData, null));
-        ExportRequestsController.getInstance(this.currAcc).requestOtherData("lists/other_data.json", new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda12
+        ExportRequestsController.getInstance(this.currAcc).requestOtherData("lists/other_data.json", new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                ExportController.this.lambda$exportOtherData$19((ApiWrap$File) obj);
+                this.f$0.lambda$exportOtherData$19((ApiWrap$File) obj);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$exportOtherData$19(ApiWrap$File apiWrap$File) {
+    public void lambda$exportOtherData$19(ApiWrap$File apiWrap$File) {
         if (this._writer.writeOtherData(apiWrap$File).isSuccess()) {
             exportNext();
         }
@@ -702,25 +682,25 @@ public class ExportController extends BaseController {
         this._dialogIndex = i;
         final ApiWrap$DialogInfo itemAt = this._dialogsInfo.getItemAt(i);
         if (itemAt != null) {
-            ExportRequestsController.getInstance(this.currAcc).requestMessages(itemAt, new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda8
+            ExportRequestsController.getInstance(this.currAcc).requestMessages(itemAt, new Utilities.CallbackReturn() {
                 @Override // org.telegram.messenger.Utilities.CallbackReturn
                 public final Object run(Object obj) {
-                    return ExportController.this.lambda$exportNextDialog$21(itemAt, (ApiWrap$DialogInfo) obj);
+                    return this.f$0.lambda$exportNextDialog$21(itemAt, (ApiWrap$DialogInfo) obj);
                 }
-            }, new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda9
+            }, new Utilities.CallbackReturn() {
                 @Override // org.telegram.messenger.Utilities.CallbackReturn
                 public final Object run(Object obj) {
-                    return ExportController.this.lambda$exportNextDialog$22((ApiWrap$DownloadProgress) obj);
+                    return this.f$0.lambda$exportNextDialog$22((ApiWrap$DownloadProgress) obj);
                 }
-            }, new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda10
+            }, new Utilities.CallbackReturn() {
                 @Override // org.telegram.messenger.Utilities.CallbackReturn
                 public final Object run(Object obj) {
-                    return ExportController.this.lambda$exportNextDialog$23((ApiWrap$MessagesSlice) obj);
+                    return this.f$0.lambda$exportNextDialog$23((ApiWrap$MessagesSlice) obj);
                 }
-            }, new Runnable() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda11
+            }, new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    ExportController.this.lambda$exportNextDialog$24();
+                    this.f$0.lambda$exportNextDialog$24();
                 }
             });
         } else if (this._writer.writeDialogsEnd().isSuccess()) {
@@ -728,13 +708,12 @@ public class ExportController extends BaseController {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ Boolean lambda$exportNextDialog$21(ApiWrap$DialogInfo apiWrap$DialogInfo, ApiWrap$DialogInfo apiWrap$DialogInfo2) {
+    public Boolean lambda$exportNextDialog$21(ApiWrap$DialogInfo apiWrap$DialogInfo, ApiWrap$DialogInfo apiWrap$DialogInfo2) {
         if (!this._writer.writeDialogStart(apiWrap$DialogInfo).isSuccess()) {
             return Boolean.FALSE;
         }
         this._messagesWritten = 0;
-        this._messagesCount = apiWrap$DialogInfo2.messagesCountPerSplit.stream().mapToInt(new ToIntFunction() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda27
+        this._messagesCount = apiWrap$DialogInfo2.messagesCountPerSplit.stream().mapToInt(new ToIntFunction() {
             @Override // java.util.function.ToIntFunction
             public final int applyAsInt(Object obj) {
                 return ((Integer) obj).intValue();
@@ -744,14 +723,12 @@ public class ExportController extends BaseController {
         return Boolean.TRUE;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ Boolean lambda$exportNextDialog$22(ApiWrap$DownloadProgress apiWrap$DownloadProgress) {
+    public Boolean lambda$exportNextDialog$22(ApiWrap$DownloadProgress apiWrap$DownloadProgress) {
         setState(stateDialogs(apiWrap$DownloadProgress));
         return Boolean.TRUE;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ Boolean lambda$exportNextDialog$23(ApiWrap$MessagesSlice apiWrap$MessagesSlice) {
+    public Boolean lambda$exportNextDialog$23(ApiWrap$MessagesSlice apiWrap$MessagesSlice) {
         if (!this._writer.writeDialogSlice(apiWrap$MessagesSlice).isSuccess()) {
             return Boolean.FALSE;
         }
@@ -760,8 +737,7 @@ public class ExportController extends BaseController {
         return Boolean.TRUE;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$exportNextDialog$24() {
+    public void lambda$exportNextDialog$24() {
         if (this._writer.writeDialogEnd().isSuccess()) {
             exportNextDialog();
         }
@@ -793,10 +769,9 @@ public class ExportController extends BaseController {
         processingState.bytesCount = apiWrap$DownloadProgress.total();
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.export.controllers.ExportController$1, reason: invalid class name */
-    public static /* synthetic */ class AnonymousClass1 {
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$DialogInfo$Type;
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$export$controllers$ExportController$ProcessingState$Step;
+    public static class AnonymousClass1 {
+        static final int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$DialogInfo$Type;
+        static final int[] $SwitchMap$com$exteragram$messenger$export$controllers$ExportController$ProcessingState$Step;
 
         static {
             int[] iArr = new int[ApiWrap$DialogInfo.Type.values().length];
@@ -855,16 +830,15 @@ public class ExportController extends BaseController {
     }
 
     private ProcessingState stateDialogs(final ApiWrap$DownloadProgress apiWrap$DownloadProgress) {
-        return prepareState(ProcessingState.Step.Dialogs, new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportController$$ExternalSyntheticLambda24
+        return prepareState(ProcessingState.Step.Dialogs, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                ExportController.this.lambda$stateDialogs$25(apiWrap$DownloadProgress, (ExportController.ProcessingState) obj);
+                this.f$0.lambda$stateDialogs$25(apiWrap$DownloadProgress, (ExportController.ProcessingState) obj);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$stateDialogs$25(ApiWrap$DownloadProgress apiWrap$DownloadProgress, ProcessingState processingState) {
+    public void lambda$stateDialogs$25(ApiWrap$DownloadProgress apiWrap$DownloadProgress, ProcessingState processingState) {
         fillMessagesState(processingState, this._dialogsInfo, this._dialogIndex, apiWrap$DownloadProgress);
     }
 
@@ -893,16 +867,15 @@ public class ExportController extends BaseController {
         boolean zStartsWith = tL_error.text.startsWith("TAKEOUT_INIT_DELAY_");
         String str = tL_error.text;
         if (zStartsWith) {
-            Integer num = Utilities.parseInt((CharSequence) str.substring(str.lastIndexOf("_") + 1));
-            long targetTime = System.currentTimeMillis() + (num != null ? num.intValue() * 1000L : 0L);
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
-            String timeStr = sdf.format(new java.util.Date(targetTime));
-            if (num != null && num.intValue() / 3600 <= 0) {
+            int i = Utilities.parseInt((CharSequence) str.substring(str.lastIndexOf("_")));
+            Instant instantNow = Instant.now();
+            instantNow.plusSeconds(i);
+            if (i / 3600 <= 0) {
                 string = LocaleController.getString(R.string.ExportDelayLessThanHour);
             } else {
                 string = LocaleController.getString(R.string.Hours_other);
             }
-            showErrorBulletin(LocaleController.formatString(R.string.ExportDelay, string, timeStr));
+            showErrorBulletin(LocaleController.formatString(R.string.ExportDelay, string, instantNow.toString()));
             return;
         }
         showErrorBulletin("API error happened! Error text: " + str);

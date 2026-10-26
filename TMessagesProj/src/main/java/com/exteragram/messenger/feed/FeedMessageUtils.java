@@ -1,12 +1,11 @@
 package com.exteragram.messenger.feed;
 
-import org.telegram.messenger.DialogObject;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import okhttp3.internal.url._UrlKt;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
+import org.telegram.messenger.DialogObject;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
@@ -18,11 +17,11 @@ import org.telegram.ui.Components.BulletinFactory;
 
 public abstract class FeedMessageUtils {
     public static boolean isAllowedDoubleTapAction(int i) {
-        return i == 2 || i == 3 || i == 4 || i == 6 || i == 9;
+        return i == 1 || i == 2 || i == 3 || i == 4 || i == 6 || i == 9;
     }
 
     public static boolean isAllowedFeedOption(int i) {
-        return i == 2 || i == 3 || i == 4 || i == 6 || i == 7 || i == 8 || i == 10 || i == 16 || i == 22 || i == 29 || i == 36 || i == 200 || i == 203 || i == 206;
+        return i == 2 || i == 3 || i == 4 || i == 6 || i == 7 || i == 8 || i == 10 || i == 16 || i == 22 || i == 25 || i == 36 || i == 115 || i == 200 || i == 203 || i == 206 || i == 28 || i == 29;
     }
 
     public static boolean isPostRow(MessageObject messageObject) {
@@ -101,14 +100,7 @@ public abstract class FeedMessageUtils {
             return false;
         }
         long jResolveRealDialogId = feedControllerPeekInstance.resolveRealDialogId(i2);
-        return jResolveRealDialogId != 0 && jResolveRealDialogId == messageObject.getDialogId() && feedControllerPeekInstance.resolveRealMessageId(jResolveRealDialogId, i2) == getFeedRealId(messageObject);
-    }
-
-    public static int getFeedRealId(MessageObject messageObject) {
-        if (messageObject == null) {
-            return 0;
-        }
-        return messageObject.searchType == 4 ? messageObject.getRealId() : messageObject.getId();
+        return jResolveRealDialogId != 0 && jResolveRealDialogId == messageObject.getDialogId() && feedControllerPeekInstance.resolveRealMessageId(jResolveRealDialogId, i2) == messageObject.getFeedRealId();
     }
 
     public static int getPlaybackScrollMessageId(boolean z, long j, MessageObject messageObject) {
@@ -142,16 +134,21 @@ public abstract class FeedMessageUtils {
         if (messageObject == null || (message = (feedController = FeedController.getInstance(i)).getMessage(j, messageObject.getRealId())) == null) {
             return null;
         }
-        TLRPC.TL_message tL_messageCopyMessage = copyMessage(messageObject.messageOwner);
-        tL_messageCopyMessage.id = message.getId();
-        tL_messageCopyMessage.realId = message.getRealId();
-        tL_messageCopyMessage.dialog_id = message.getDialogId();
-        MessageObject messageObject2 = new MessageObject(i, tL_messageCopyMessage, message.replyMessageObject, null, null, null, null, true, true, 0L, false, false, false, 4);
-        messageObject2.isPrimaryGroupMessage = message.isPrimaryGroupMessage;
-        messageObject2.localGroupId = message.localGroupId;
-        messageObject2.copyStableParams(message);
-        feedController.replaceMessage(message, messageObject2);
-        return messageObject2;
+        MessageObject messageObjectCreateReplacementFor = createReplacementFor(i, message, messageObject);
+        feedController.replaceMessage(message, messageObjectCreateReplacementFor);
+        return messageObjectCreateReplacementFor;
+    }
+
+    public static MessageObject createReplacementFor(int i, MessageObject messageObject, MessageObject messageObject2) {
+        TLRPC.TL_message tL_messageCopyMessage = copyMessage(messageObject2.messageOwner);
+        tL_messageCopyMessage.id = messageObject.getId();
+        tL_messageCopyMessage.realId = messageObject.getRealId();
+        tL_messageCopyMessage.dialog_id = messageObject.getDialogId();
+        MessageObject messageObject3 = new MessageObject(i, tL_messageCopyMessage, messageObject.replyMessageObject, null, null, null, null, true, true, 0L, false, false, false, 4);
+        messageObject3.isPrimaryGroupMessage = messageObject.isPrimaryGroupMessage;
+        messageObject3.localGroupId = messageObject.localGroupId;
+        messageObject3.copyStableParams(messageObject);
+        return messageObject3;
     }
 
     public static ArrayList<MessageObject> createReplacements(int i, long j, ArrayList<MessageObject> arrayList) {
@@ -163,6 +160,10 @@ public abstract class FeedMessageUtils {
             }
         }
         return arrayList2;
+    }
+
+    public static boolean isAllowedSwipeAction(int i) {
+        return i != 1 && isAllowedDoubleTapAction(i);
     }
 
     public static void filterAllowedOptions(ArrayList<CharSequence> arrayList, ArrayList<Integer> arrayList2, ArrayList<Integer> arrayList3) {
@@ -184,10 +185,10 @@ public abstract class FeedMessageUtils {
             TLRPC.TL_channels_exportMessageLink tL_channels_exportMessageLink = new TLRPC.TL_channels_exportMessageLink();
             tL_channels_exportMessageLink.id = messageObject.getRealId();
             tL_channels_exportMessageLink.channel = MessagesController.getInputChannel(chat);
-            chatActivity.getConnectionsManager().sendRequest(tL_channels_exportMessageLink, new RequestDelegate() { 
+            chatActivity.getConnectionsManager().sendRequest(tL_channels_exportMessageLink, new RequestDelegate() {
                 @Override // org.telegram.tgnet.RequestDelegate
                 public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
-                    AndroidUtilities.runOnUIThread(new Runnable() { 
+                    AndroidUtilities.runOnUIThread(new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
                             FeedMessageUtils.$r8$lambda$IXZLP3pS1__oSfuf53vB5B1rwvc(tLObject, chatActivity);
@@ -198,7 +199,7 @@ public abstract class FeedMessageUtils {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$IXZLP3pS1__oSfuf53vB5B1rwvc(TLObject tLObject, ChatActivity chatActivity) {
+    public static void $r8$lambda$IXZLP3pS1__oSfuf53vB5B1rwvc(TLObject tLObject, ChatActivity chatActivity) {
         if (tLObject instanceof TLRPC.TL_exportedMessageLink) {
             String str = ((TLRPC.TL_exportedMessageLink) tLObject).link;
             if (AndroidUtilities.addToClipboard(str) && BulletinFactory.canShowBulletin(chatActivity)) {

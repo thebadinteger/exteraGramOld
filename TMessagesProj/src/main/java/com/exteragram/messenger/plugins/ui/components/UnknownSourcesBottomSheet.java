@@ -24,7 +24,6 @@ import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.RLottieImageView;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 
-/* JADX INFO: loaded from: classes4.dex */
 @Metadata(d1 = {"\u00000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\u0010\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\b\n\u0002\b\u0004\u0018\u0000 \u00112\u00020\u0001:\u0001\u0011B\u001d\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\f\u0010\u0004\u001a\b\u0012\u0004\u0012\u00020\u00060\u0005¢\u0006\u0004\b\u0007\u0010\bJ(\u0010\t\u001a\u00020\n2\u0006\u0010\u000b\u001a\u00020\f2\u0006\u0010\r\u001a\u00020\u000e2\u0006\u0010\u000f\u001a\u00020\u000e2\u0006\u0010\u0010\u001a\u00020\u000eH\u0002¨\u0006\u0012"}, d2 = {"Lcom/exteragram/messenger/plugins/ui/components/UnknownSourcesBottomSheet;", "Lorg/telegram/ui/ActionBar/BottomSheet;", "fragment", "Lorg/telegram/ui/ActionBar/BaseFragment;", "onConfirm", "Lkotlin/Function0;", _UrlKt.FRAGMENT_ENCODE_SET, "<init>", "(Lorg/telegram/ui/ActionBar/BaseFragment;Lkotlin/jvm/functions/Function0;)V", "makeHint", "Landroid/view/View;", "context", "Landroid/content/Context;", "iconResId", _UrlKt.FRAGMENT_ENCODE_SET, "title", "info", "Companion", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
 public final class UnknownSourcesBottomSheet extends BottomSheet {
     private static final float ICON_SIZE = 24.0f;
@@ -33,7 +32,7 @@ public final class UnknownSourcesBottomSheet extends BottomSheet {
     private static final int READ_TIME = 30;
 
     @Override // org.telegram.ui.ActionBar.BaseFragment.AttachedSheet
-    public /* bridge */ /* synthetic */ void setLastVisible(boolean z) {
+    public void setLastVisible(boolean z) {
         super.setLastVisible(z);
     }
 
@@ -83,10 +82,10 @@ public final class UnknownSourcesBottomSheet extends BottomSheet {
         ButtonWithCounterView buttonWithCounterView = new ButtonWithCounterView(parentActivity, true, this.resourcesProvider);
         buttonWithCounterView.setRound();
         buttonWithCounterView.setText(LocaleController.getString(R.string.Cancel), false);
-        buttonWithCounterView.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.plugins.ui.components.UnknownSourcesBottomSheet$$ExternalSyntheticLambda0
+        buttonWithCounterView.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                UnknownSourcesBottomSheet.this.dismiss();
+                this.f$0.dismiss();
             }
         });
         linearLayout.addView(buttonWithCounterView, LayoutHelper.createFrame(-1, 48.0f, 0, 16.0f, 15.0f, 16.0f, 8.0f));
@@ -96,10 +95,10 @@ public final class UnknownSourcesBottomSheet extends BottomSheet {
         buttonWithCounterView2.setText(LocaleController.getString(R.string.Allow), false);
         linearLayout.addView(buttonWithCounterView2, LayoutHelper.createFrame(-1, 48.0f, 0, 16.0f, 0.0f, 16.0f, 0.0f));
         buttonWithCounterView2.setTimer(30, null);
-        buttonWithCounterView2.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.plugins.ui.components.UnknownSourcesBottomSheet$$ExternalSyntheticLambda1
+        buttonWithCounterView2.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                UnknownSourcesBottomSheet.$r8$lambda$Qx_wXefC8pnxHnFFUAF9QhBqceI(buttonWithCounterView2, UnknownSourcesBottomSheet.this, function0, view);
+                UnknownSourcesBottomSheet.$r8$lambda$Qx_wXefC8pnxHnFFUAF9QhBqceI(buttonWithCounterView2, this, function0, view);
             }
         });
         ScrollView scrollView = new ScrollView(parentActivity);
@@ -141,7 +140,7 @@ public final class UnknownSourcesBottomSheet extends BottomSheet {
         textView2.setLineSpacing(AndroidUtilities.dp(2.0f), 1.0f);
         textView2.setText(LocaleController.getString(info));
         linearLayout.addView(textView2, LayoutHelper.createLinear(-1, -2, 0.0f, 2.0f, 0.0f, 0.0f));
-        frameLayout.addView(linearLayout, LayoutHelper.createFrameRelatively(-1.0f, -2.0f, 8388659, ITEM_TEXT_PADDING, 0.0f, ITEM_HORIZONTAL_PADDING, 0.0f));
+        frameLayout.addView(linearLayout, LayoutHelper.createFrameRelatively(-1.0f, -2.0f, 8388659, 68.0f, 0.0f, ITEM_HORIZONTAL_PADDING, 0.0f));
         return frameLayout;
     }
 }

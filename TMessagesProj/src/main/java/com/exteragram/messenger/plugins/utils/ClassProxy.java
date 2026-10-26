@@ -1,7 +1,5 @@
 package com.exteragram.messenger.plugins.utils;
 
-import java.util.Arrays;
-
 import androidx.annotation.Keep;
 import com.android.dx.Code;
 import com.android.dx.Comparison;
@@ -11,8 +9,9 @@ import com.android.dx.Label;
 import com.android.dx.Local;
 import com.android.dx.MethodId;
 import com.android.dx.TypeId;
-import com.exteragram.messenger.utils.RecordTag;
+import com.android.tools.r8.RecordTag;
 import com.chaquo.python.PyObject;
+import com.exteragram.messenger.plugins.PluginsConstants;
 import com.exteragram.messenger.utils.AppUtils;
 import dalvik.system.InMemoryDexClassLoader;
 import java.io.Serializable;
@@ -27,18 +26,20 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import okhttp3.internal.url._UrlKt;
 import org.mvel2.MVEL;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.Utilities;
 
 public class ClassProxy {
-    private static volatile ClassLoader sharedGeneratedClassLoader;
     private static final String PYTHON_PEER_FIELD_NAME = "__extera_internal_python_peer__";
+    private static volatile ClassLoader sharedGeneratedClassLoader;
     private static final Object[] EMPTY_ARGS = new Object[0];
     private static final ConcurrentHashMap<String, Serializable> mvelExpressionCache = new ConcurrentHashMap<>();
     private static final Object generatedClassLoaderLock = new Object();
@@ -84,37 +85,22 @@ public class ClassProxy {
         return createProxyClassInternal(cls, callback3Return, dexMakerHook, list, list2, list3, list4, list5, str, false);
     }
 
-    /* JADX WARN: Multi-variable type inference failed */
-    /* JADX WARN: Type inference failed for: r1v10 */
-    /* JADX WARN: Type inference failed for: r1v11 */
-    /* JADX WARN: Type inference failed for: r1v17, types: [com.android.dx.DexMaker] */
-    /* JADX WARN: Type inference failed for: r1v18 */
-    /* JADX WARN: Type inference failed for: r1v19, types: [com.android.dx.DexMaker] */
-    /* JADX WARN: Type inference failed for: r1v25 */
-    /* JADX WARN: Type inference failed for: r1v6 */
-    /* JADX WARN: Type inference failed for: r1v7, types: [com.android.dx.DexMaker] */
-    /* JADX WARN: Type inference failed for: r21v0, types: [com.exteragram.messenger.plugins.utils.ClassProxy$DexMakerHook] */
-    /* JADX WARN: Type inference failed for: r22v1, types: [com.android.dx.DexMaker] */
-    /* JADX WARN: Type inference failed for: r2v0, types: [com.android.dx.DexMaker] */
-    /* JADX WARN: Type inference failed for: r2v1, types: [com.android.dx.DexMaker] */
-    /* JADX WARN: Type inference failed for: r2v13 */
-    private static Class<?> createProxyClassInternal(Class<?> cls, Utilities.Callback3Return<Object, String, Object[], Object> callback3Return, DexMakerHook dexMakerHook, List<Class<?>> list, List<Method> list2, List<Constructor<?>> list3, List<ProxyMethodSpec> list4, List<FieldSpec> list5, String str, boolean z) {
+    private static Class<?> createProxyClassInternal(Class<?> cls, Utilities.Callback3Return<Object, String, Object[], Object> callback3Return, DexMakerHook dexMakerHook, List<Class<?>> list, List<Method> list2, List<Constructor<?>> list3, List<ProxyMethodSpec> list4, List<FieldSpec> list5, String str, boolean z) throws IllegalAccessException, NoSuchFieldException, NoSuchMethodException {
         Class<?> clsLoadClass;
         FieldId fieldId;
-        DexMaker r1 = null;
+        ?? r1;
         TypeId typeId;
         LinkedHashMap linkedHashMap;
         Iterator<ProxyMethodSpec> it;
-        DexMaker dexMaker = new DexMaker();
+        ?? dexMaker = new DexMaker();
         String simpleName = cls.getSimpleName();
         if (simpleName.isEmpty()) {
             simpleName = "Anonymous";
         }
         String strSanitizeProxyClassSegment = sanitizeProxyClassSegment(str);
-        StringBuilder sb = new StringBuilder();
-        sb.append("com.exteragram.messenger.plugins.Proxy_");
+        StringBuilder sb = new StringBuilder("com.exteragram.messenger.plugins.Proxy_");
         sb.append(simpleName);
-        sb.append(strSanitizeProxyClassSegment != null ? "_" + strSanitizeProxyClassSegment : "");
+        sb.append(strSanitizeProxyClassSegment != null ? "_".concat(strSanitizeProxyClassSegment) : _UrlKt.FRAGMENT_ENCODE_SET);
         sb.append("_");
         sb.append(Math.abs(cls.getName().hashCode()));
         sb.append("_");
@@ -148,7 +134,7 @@ public class ClassProxy {
             }
         }
         Map<String, Method> allOverridableMethods = getAllOverridableMethods(cls, list);
-        LinkedHashMap<String, Method> linkedHashMap2 = new LinkedHashMap<>();
+        LinkedHashMap linkedHashMap2 = new LinkedHashMap();
         if (z && list2 == null && (list4 == null || list4.isEmpty())) {
             linkedHashMap2.putAll(allOverridableMethods);
         }
@@ -184,7 +170,7 @@ public class ClassProxy {
                             it = it2;
                             Method method3 = allOverridableMethods.get(buildMethodSignature(next.name, next.parameterTypes));
                             if (method3 == null) {
-                                throw new IllegalArgumentException("Unable to resolve overridable method " + next.name);
+                                throw new NoSuchMethodException("Unable to resolve overridable method " + next.name);
                             }
                             String strBuildMethodSignature2 = buildMethodSignature(method3.getName(), method3.getParameterTypes());
                             linkedHashMap2.put(strBuildMethodSignature2, method3);
@@ -200,7 +186,7 @@ public class ClassProxy {
                 }
             }
         }
-        DexMaker r2 = dexMaker;
+        ?? r2 = dexMaker;
         for (Map.Entry entry : linkedHashMap2.entrySet()) {
             Method method4 = (Method) entry.getValue();
             generateProxyMethod(r2, typeId2, method4, field, true);
@@ -220,7 +206,7 @@ public class ClassProxy {
             linkedHashMap3 = linkedHashMap;
             r2 = r1;
         }
-        DexMaker r3 = r2;
+        ?? r3 = r2;
         TypeId typeId4 = typeId2;
         int size = arrayList2.size();
         int i = 0;
@@ -231,7 +217,7 @@ public class ClassProxy {
                 generateMvelMethod(r3, typeId4, proxyMethodSpec2.name, proxyMethodSpec2.returnType != null ? proxyMethodSpec2.returnType : Void.TYPE, proxyMethodSpec2.parameterTypes != null ? proxyMethodSpec2.parameterTypes : new Class[0], proxyMethodSpec2.modifiers != 0 ? proxyMethodSpec2.modifiers : 1, proxyMethodSpec2.mvelCode, proxyMethodSpec2.argumentNames);
                 fieldId = field;
             } else {
-                DexMaker r22 = r3;
+                ?? r22 = r3;
                 TypeId typeId5 = typeId4;
                 FieldId fieldId2 = field;
                 generateHandlerMethod(r22, typeId5, proxyMethodSpec2.name, proxyMethodSpec2.returnType != null ? proxyMethodSpec2.returnType : Void.TYPE, proxyMethodSpec2.parameterTypes != null ? proxyMethodSpec2.parameterTypes : new Class[0], proxyMethodSpec2.modifiers != 0 ? proxyMethodSpec2.modifiers : 1, fieldId2);
@@ -243,7 +229,7 @@ public class ClassProxy {
             i = i2;
             r3 = r3;
         }
-        if (dexMakerHook != null) {
+        if (dexMakerHook != 0) {
             dexMakerHook.apply(r3, typeId4, typeId3, arrayList);
         }
         byte[] bArrGenerate = r3.generate();
@@ -253,21 +239,17 @@ public class ClassProxy {
                 if (classLoader == null) {
                     classLoader = ApplicationLoader.applicationContext.getClassLoader();
                 }
-                InMemoryDexClassLoader inMemoryDexClassLoaderM = new InMemoryDexClassLoader(ByteBuffer.wrap(bArrGenerate), classLoader);
+                InMemoryDexClassLoader inMemoryDexClassLoaderM = new dalvik.system.InMemoryDexClassLoader(ByteBuffer.wrap(bArrGenerate), classLoader);
                 clsLoadClass = inMemoryDexClassLoaderM.loadClass(string);
                 sharedGeneratedClassLoader = inMemoryDexClassLoaderM;
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
+            } catch (Throwable th) {
+                throw th;
             }
         }
-        try {
-            Field declaredField = clsLoadClass.getDeclaredField("staticHandler");
-            declaredField.setAccessible(true);
-            declaredField.set(null, callback3Return);
-            return clsLoadClass;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        Field declaredField = clsLoadClass.getDeclaredField("staticHandler");
+        declaredField.setAccessible(true);
+        declaredField.set(null, callback3Return);
+        return clsLoadClass;
     }
 
     private static String sanitizeProxyClassSegment(String str) {
@@ -298,7 +280,8 @@ public class ClassProxy {
         for (Class<?> cls : list) {
             if (cls != null) {
                 if (!cls.isInterface()) {
-                    throw new IllegalArgumentException("Expected interface, got " + cls.getName());
+                    throw new IllegalArgumentException("Expected interface, got ".concat(cls.getName()));
+                    return null;
                 }
                 arrayList.add(TypeId.get(cls));
             }
@@ -448,7 +431,7 @@ public class ClassProxy {
         for (int i = 0; i < parameterTypes.length; i++) {
             typeIdArr[i] = TypeId.get(parameterTypes[i]);
         }
-        TypeId<?> typeId2 = TypeId.get(method.getReturnType());
+        TypeId<R> typeId2 = TypeId.get(method.getReturnType());
         String name = z ? "SUPER_" + method.getName() : method.getName();
         if (z) {
             Code codeDeclare = dexMaker.declare(typeId.getMethod(typeId2, name, typeIdArr), 1);
@@ -479,7 +462,7 @@ public class ClassProxy {
         TypeId typeId2 = TypeId.get(Utilities.Callback3Return.class);
         TypeId<Object> typeId3 = TypeId.OBJECT;
         MethodId method = typeId2.getMethod(typeId3, "run", typeId3, typeId3, typeId3);
-        TypeId<?> typeId4 = TypeId.get(cls);
+        TypeId<R> typeId4 = TypeId.get(cls);
         Code codeDeclare = dexMaker.declare(typeId.getMethod(typeId4, str, typeIdArr), i);
         Local local = codeDeclare.getThis(typeId);
         Local<?> localNewLocal = !typeId4.equals(TypeId.VOID) ? codeDeclare.newLocal(typeId4) : null;
@@ -528,7 +511,7 @@ public class ClassProxy {
         for (int i2 = 0; i2 < clsArr.length; i2++) {
             typeIdArr[i2] = TypeId.get(clsArr[i2]);
         }
-        TypeId<?> typeId2 = TypeId.get(cls);
+        TypeId<R> typeId2 = TypeId.get(cls);
         Code codeDeclare = dexMaker.declare(typeId.getMethod(typeId2, str, typeIdArr), i);
         Local<?> local2 = Modifier.isStatic(i) ? null : codeDeclare.getThis(typeId);
         TypeId<Object> typeId3 = TypeId.OBJECT;
@@ -554,7 +537,7 @@ public class ClassProxy {
         codeDeclare.move(localNewLocal, localNewLocal9);
         codeDeclare.move(localNewLocal2, localNewLocal9);
         if (!Modifier.isStatic(i)) {
-            Object field = typeId.getField(TypeId.OBJECT, "__extera_internal_python_peer__");
+            Object field = typeId.getField(TypeId.OBJECT, PYTHON_PEER_FIELD_NAME);
             codeDeclare.cast(localNewLocal, local2);
             codeDeclare.iget(field, localNewLocal2, local2);
         }
@@ -636,7 +619,7 @@ public class ClassProxy {
             objArr = new Object[0];
         }
         map.put("java", obj);
-        map.put("python", obj2);
+        map.put(PluginsConstants.PYTHON, obj2);
         map.put("py", obj2);
         map.put("self", obj2);
         map.put("args", objArr);
@@ -648,7 +631,7 @@ public class ClassProxy {
                 map.put(str2, obj3);
             }
         }
-        return MVEL.executeExpression(mvelExpressionCache.computeIfAbsent(str, new Function() { // from class: com.exteragram.messenger.plugins.utils.ClassProxy$$ExternalSyntheticLambda2
+        return MVEL.executeExpression(mvelExpressionCache.computeIfAbsent(str, new Function() {
             @Override // java.util.function.Function
             public final Object apply(Object obj4) {
                 return MVEL.compileExpression((String) obj4);
@@ -672,7 +655,7 @@ public class ClassProxy {
         if (str.equals("char")) {
             return "Char";
         }
-        return str.substring(0, 1).toUpperCase() + str.substring(1);
+        return str.substring(0, 1).toUpperCase(Locale.ROOT) + str.substring(1);
     }
 
     public static final class ProxyMethodSpec extends RecordTag {
@@ -685,7 +668,7 @@ public class ClassProxy {
         private final Class<?>[] parameterTypes;
         private final Class<?> returnType;
 
-        private /* synthetic */ boolean $record$equals(Object obj) {
+        private boolean $record$equals(Object obj) {
             if (!(obj instanceof ProxyMethodSpec)) {
                 return false;
             }
@@ -693,7 +676,7 @@ public class ClassProxy {
             return this.overrideExisting == proxyMethodSpec.overrideExisting && this.modifiers == proxyMethodSpec.modifiers && Objects.equals(this.name, proxyMethodSpec.name) && Objects.equals(this.returnType, proxyMethodSpec.returnType) && Objects.equals(this.parameterTypes, proxyMethodSpec.parameterTypes) && Objects.equals(this.implementation, proxyMethodSpec.implementation) && Objects.equals(this.mvelCode, proxyMethodSpec.mvelCode) && Objects.equals(this.argumentNames, proxyMethodSpec.argumentNames);
         }
 
-        private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+        private Object[] $record$getFieldsAsObjects() {
             return new Object[]{this.name, this.returnType, this.parameterTypes, Integer.valueOf(this.modifiers), Boolean.valueOf(this.overrideExisting), this.implementation, this.mvelCode, this.argumentNames};
         }
 
@@ -717,7 +700,7 @@ public class ClassProxy {
         }
 
         public final int hashCode() {
-            return Objects.hash(this.overrideExisting, this.modifiers, this.name, this.returnType, Arrays.hashCode(this.parameterTypes), this.implementation, this.mvelCode, this.argumentNames);
+            return ClassProxy$java.util.Objects.hash(this.overrideExisting, this.modifiers, this.name, this.returnType, this.parameterTypes, this.implementation, this.mvelCode, this.argumentNames);
         }
 
         public String implementation() {
@@ -749,11 +732,11 @@ public class ClassProxy {
         }
 
         public final String toString() {
-            return "ProxyMethodSpec[name=" + this.name + ", returnType=" + this.returnType + ", modifiers=" + this.modifiers + "]";
+            return com.exteragram.messenger.utils.RecordUtils.recordToString($record$getFieldsAsObjects(), ProxyMethodSpec.class, "name;returnType;parameterTypes;modifiers;overrideExisting;implementation;mvelCode;argumentNames");
         }
 
         public ProxyMethodSpec(String str, Class<?> cls, Class<?>[] clsArr, int i, boolean z) {
-            this(str, cls, clsArr, i, z, "python", null, null);
+            this(str, cls, clsArr, i, z, PluginsConstants.PYTHON, null, null);
         }
 
         public boolean isMvel() {
@@ -767,7 +750,7 @@ public class ClassProxy {
         private final String name;
         private final Class<?> type;
 
-        private /* synthetic */ boolean $record$equals(Object obj) {
+        private boolean $record$equals(Object obj) {
             if (!(obj instanceof FieldSpec)) {
                 return false;
             }
@@ -775,7 +758,7 @@ public class ClassProxy {
             return this.modifiers == fieldSpec.modifiers && Objects.equals(this.name, fieldSpec.name) && Objects.equals(this.type, fieldSpec.type) && Objects.equals(this.methods, fieldSpec.methods);
         }
 
-        private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+        private Object[] $record$getFieldsAsObjects() {
             return new Object[]{this.name, this.type, Integer.valueOf(this.modifiers), this.methods};
         }
 
@@ -791,7 +774,7 @@ public class ClassProxy {
         }
 
         public final int hashCode() {
-            return Objects.hash(this.modifiers, this.name, this.type, this.methods);
+            return java.util.Objects.hash(this.modifiers, this.name, this.type, this.methods);
         }
 
         public List<FieldMethodSpec> methods() {
@@ -807,7 +790,7 @@ public class ClassProxy {
         }
 
         public final String toString() {
-            return "FieldSpec[name=" + this.name + ", type=" + this.type + ", modifiers=" + this.modifiers + "]";
+            return com.exteragram.messenger.utils.RecordUtils.recordToString($record$getFieldsAsObjects(), FieldSpec.class, "name;type;modifiers;methods");
         }
 
         public Class<?> type() {
@@ -824,7 +807,7 @@ public class ClassProxy {
         private final int modifiers;
         private final String name;
 
-        private /* synthetic */ boolean $record$equals(Object obj) {
+        private boolean $record$equals(Object obj) {
             if (!(obj instanceof FieldMethodSpec)) {
                 return false;
             }
@@ -832,7 +815,7 @@ public class ClassProxy {
             return this.getter == fieldMethodSpec.getter && this.modifiers == fieldMethodSpec.modifiers && Objects.equals(this.name, fieldMethodSpec.name);
         }
 
-        private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+        private Object[] $record$getFieldsAsObjects() {
             return new Object[]{this.name, Integer.valueOf(this.modifiers), Boolean.valueOf(this.getter)};
         }
 
@@ -851,7 +834,7 @@ public class ClassProxy {
         }
 
         public final int hashCode() {
-            return Objects.hash(this.getter, this.modifiers, this.name);
+            return ClassProxy$java.util.Objects.hash(this.getter, this.modifiers, this.name);
         }
 
         public int modifiers() {
@@ -863,11 +846,11 @@ public class ClassProxy {
         }
 
         public final String toString() {
-            return "FieldMethodSpec[name=" + this.name + ", modifiers=" + this.modifiers + ", getter=" + this.getter + "]";
+            return com.exteragram.messenger.utils.RecordUtils.recordToString($record$getFieldsAsObjects(), FieldMethodSpec.class, "name;modifiers;getter");
         }
     }
 
-    public static class TypeHelper {
+    public class TypeHelper {
         public static Object box(Object obj) {
             return obj;
         }

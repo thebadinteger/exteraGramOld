@@ -2,12 +2,11 @@ package com.exteragram.messenger.ai.data;
 
 import android.text.TextUtils;
 import com.exteragram.messenger.ai.AiConfig;
-import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
 import okhttp3.internal.url._UrlKt;
 
-public class Service implements Serializable {
+public class Service {
     private String id;
     private String key;
     private Kind kind;

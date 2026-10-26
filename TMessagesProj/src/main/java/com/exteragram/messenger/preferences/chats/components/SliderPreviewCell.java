@@ -30,10 +30,10 @@ public class SliderPreviewCell extends FrameLayout implements CustomPreferenceCe
         this.cellId = i;
         setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
         setWillNotDraw(false);
-        AltSeekbar altSeekbar = new AltSeekbar(context, new AltSeekbar.OnDrag() { 
-            @Override 
+        AltSeekbar altSeekbar = new AltSeekbar(context, new AltSeekbar.OnDrag() {
+            @Override // com.exteragram.messenger.preferences.components.AltSeekbar.OnDrag
             public final void run(float f2) {
-                SliderPreviewCell.this.lambda$new$0(f2);
+                this.f$0.lambda$new$0(f2);
             }
         }, i2, i3, str, str2, str3);
         this.seekBar = altSeekbar;
@@ -49,7 +49,7 @@ public class SliderPreviewCell extends FrameLayout implements CustomPreferenceCe
         altSeekbar.setProgress(f);
     }
 
-    public /* synthetic */ void lambda$new$0(float f) {
+    public void lambda$new$0(float f) {
         OnSliderChangedListener onSliderChangedListener = this.listener;
         if (onSliderChangedListener != null) {
             onSliderChangedListener.onChanged(f);
@@ -83,8 +83,8 @@ public class SliderPreviewCell extends FrameLayout implements CustomPreferenceCe
         this.seekBar.invalidate();
     }
 
-    @Override 
-    public boolean equals(Object obj) {
+    @Override // com.exteragram.messenger.preferences.components.CustomPreferenceCell
+    public boolean isSameCell(Object obj) {
         if (this == obj) {
             return true;
         }

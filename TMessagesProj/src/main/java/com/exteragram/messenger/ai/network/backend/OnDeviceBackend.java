@@ -65,14 +65,7 @@ public class OnDeviceBackend implements Backend {
         return true;
     }
 
-    /* JADX WARN: Code restructure failed: missing block: B:27:0x005c, code lost:
-    
-        if (r1 != null) goto L58;
-     */
     @Override // com.exteragram.messenger.ai.network.backend.Backend
-    /*
-        Code decompiled incorrectly, please refer to instructions dump.
-    */
     public void execute(BackendRequest backendRequest, BackendSink backendSink) {
         if (Build.VERSION.SDK_INT < 26) {
             backendSink.onError(-1, "on-device model requires android 8.0");
@@ -230,7 +223,7 @@ public class OnDeviceBackend implements Backend {
                     } else {
                         listenableFutureGenerateContent = generativeModelFutures.generateContent(generateContentRequestCreateRequest);
                     }
-                    backendSink.onCancellable(new Runnable() { // from class: com.exteragram.messenger.ai.network.backend.OnDeviceBackend$$ExternalSyntheticLambda0
+                    backendSink.onCancellable(new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
                             listenableFutureGenerateContent.cancel(true);

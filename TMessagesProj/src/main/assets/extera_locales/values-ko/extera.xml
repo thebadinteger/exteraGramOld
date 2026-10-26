@@ -42,23 +42,7 @@
     <string name="WeatherPillTopInfo">Pill Stack을 위한 날씨 위젯 설정.</string>
     <string name="PillStackInfiniteScrolling">무한 스크롤</string>
     <string name="CryptoPillTargetCurrency">대상 통화</string>
-    <string name="CryptoCurrencyUsd">미국 달러</string>
-    <string name="CryptoCurrencyEur">유로</string>
-    <string name="CryptoCurrencyRub">러시아 루블</string>
-    <string name="CryptoCurrencyGbp">영국 파운드</string>
-    <string name="CryptoCurrencyKzt">카자흐스탄 텡게</string>
-    <string name="CryptoCurrencyTry">터키 리라</string>
-    <string name="CryptoCurrencyUah">우크라이나 흐리브냐</string>
-    <string name="CryptoCurrencyPln">폴란드 즐로티</string>
-    <string name="CryptoCurrencyAed">아랍에미리트 디르함</string>
-    <string name="CryptoCurrencyCny">중국 위안</string>
-    <string name="CryptoCurrencyJpy">일본 엔</string>
-    <string name="CryptoCurrencyByn">벨라루스 루블</string>
-    <string name="CryptoCurrencyIls">이스라엘 신 셰켈</string>
-    <string name="CryptoCurrencyCzk">체코 코루나</string>
-    <string name="CryptoCurrencyInr">인도 루피</string>
     <!-- Proxy -->
-    <string name="ProxyDoNotUseWithVPN">VPN과 함께 사용하지 마세요</string>
     <string name="ProxyDisableOn">프록시 비활성화</string>
     <string name="ProxyDisableNever">사용 안 함</string>
     <string name="ProxyDisableAlways">항상</string>
@@ -70,9 +54,6 @@
     <string name="CopyIpAddress">IP 주소 복사</string>
     <string name="IpInfoUnavailable">IP 주소 정보를 불러올 수 없습니다.</string>
     <string name="IpInfoCountry">국가</string>
-    <string name="IpInfoRegion">지역</string>
-    <string name="IpInfoCity">도시</string>
-    <string name="IpInfoIsp">ISP</string>
     <string name="IpInfoOrganization">조직</string>
     <string name="IpInfoDomain">도메인</string>
     <string name="IpInfoTimezone">시간대</string>
@@ -97,11 +78,6 @@
     <string name="UploadSpeedBoost">업로드 속도 부스트</string>
     <string name="Ultra">울트라</string>
     <string name="SpeedBoostInfo">울트라 부스트는 느린 인터넷 연결에서 파일 다운로드 및 동영상 스트리밍에 문제를 일으킬 수 있습니다.</string>
-    <!-- Maps -->
-    <string name="Maps">지도</string>
-    <string name="TermsOfUseYandexMaps">Yandex 지도를 사용하면 <![CDATA[<a href="https://yandex.ru/legal/maps_termsofuse/">이용 약관</a>]]>에 동의하는 것으로 간주됩니다.</string>
-    <string name="UseYandexMaps">Yandex 지도 사용</string>
-    <string name="InstallYandexMaps">Yandex 지도를 설치하시겠습니까?</string>
     <!-- Storage -->
     <string name="StorageSettings">저장소</string>
     <string name="CustomSavePath">사용자 지정 저장 폴더</string>
@@ -158,7 +134,6 @@
     <string name="NavigationDrawer">탐색 서랍</string>
     <string name="NavigationDrawerInfo">오른쪽 상단 메뉴를 클래식한 스와이프로 열리는 서랍과 햄버거 버튼으로 대체합니다.</string>
     <string name="NavigationDrawerImmersiveAnimation">몰입형 애니메이션</string>
-    <string name="NavigationDrawerProxyPingShort">%1$d ms</string>
     <string name="MainMenuItems">메뉴 항목</string>
     <string name="MainMenuItemsInfo">탭하여 항목을 표시하거나 숨기고, 길게 눌러 순서를 변경합니다. 레이아웃은 메뉴와 서랍 간에 공유됩니다.</string>
     <string name="MainMenuHiddenItems">숨겨진 메뉴 항목</string>
@@ -250,7 +225,6 @@
     <string name="StickerSize">스티커 크기</string>
     <string name="StickerSizeLeft">작게</string>
     <string name="StickerSizeRight">크게</string>
-    <string name="StickerSizeDialogMessageReplyTo">wow</string>
     <string name="StickerSizeDialogMessage">와, 정말 귀엽네요!</string>
     <string name="StickerShape">스티커 모양</string>
     <string name="StickerShapeRounded">둥근</string>
@@ -322,7 +296,6 @@
     <string name="AIError">서버 오류</string>
     <string name="AIErrorInfo">잠시 후에 요청을 다시 시도하세요.</string>
     <!-- Chat Actions -->
-    <string name="DoubleTap">더블 탭</string>
     <string name="DoubleTapIncoming">수신 메시지</string>
     <string name="DoubleTapOutgoing">발신 메시지</string>
     <string name="DoubleTapInfo">일부 작업은 채팅 또는 채널에서 관리자 권한이 필요합니다.</string>
@@ -387,7 +360,6 @@
     <string name="AlwaysSendInHD">항상 HD로 전송</string>
     <string name="HideCameraTile">즉시 카메라 타일 숨기기</string>
     <string name="HideCameraTileInfo">카메라 타일이 플로팅 버튼으로 대체됩니다. 누르면 Telegram 카메라가 실행되고, 길게 누르면 시스템 카메라가 실행됩니다.</string>
-    <string name="ShortStandardQuality">SD</string>
     <!-- Playback -->
     <string name="DoubleTapSeekDuration">더블 탭 건너뛰기 시간</string>
     <string name="PreferOriginalQuality">원본 품질 선호</string>
@@ -462,7 +434,6 @@
     <string name="PluginNotEnabled">**%1$s**를 설치하려면 **플러그인 엔진**을 활성화하세요.</string>
     <string name="PluginInstalled">**%1$s**가 성공적으로 설치되었습니다.</string>
     <string name="PluginUpdated">**%1$s**가 성공적으로 업데이트되었습니다.</string>
-    <string name="PluginInstalledButFailedToEnable">**%1$s**가 설치되었지만 활성화 중 오류가 발생했습니다.</string>
     <string name="PluginEnableError">**%1$s**를 활성화하지 못했습니다.</string>
     <string name="PluginDisableError">**%1$s**를 비활성화하지 못했습니다.</string>
     <string name="PluginInstallError">**%1$s**를 설치하지 못했습니다.</string>
@@ -538,7 +509,6 @@
     <!-- Login & QR -->
     <string name="LoginQrTitle">QR 코드 로그인</string>
     <string name="LoginQrSubtitle">다른 기기를 사용하여 이 QR 코드를 스캔하세요.</string>
-    <string name="SelectNumber">전화번호 선택</string>
     <string name="WifiConnect">연결</string>
     <string name="WifiDisabled">Wi-Fi가 비활성화되었습니다.</string>
     <string name="WifiFailed">Wi-Fi에 연결하지 못했습니다.</string>

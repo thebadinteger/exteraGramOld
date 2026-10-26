@@ -3,10 +3,10 @@ package com.exteragram.messenger.utils;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Point;
-import android.os.Looper;
 import android.util.Base64;
 import android.util.Log;
 import androidx.annotation.Keep;
+import androidx.core.content.pm.PackageInfoCompat;
 import com.exteragram.messenger.utils.text.LocaleUtils;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
@@ -30,7 +30,7 @@ public class AppUtils {
 
     public static Gson getGson() {
         if (gson == null) {
-            gson = new GsonBuilder().setPrettyPrinting().serializeSpecialFloatingPointValues().addSerializationExclusionStrategy(new ExclusionStrategy() { 
+            gson = new GsonBuilder().setPrettyPrinting().serializeSpecialFloatingPointValues().addSerializationExclusionStrategy(new ExclusionStrategy() {
                 @Override // com.google.gson.ExclusionStrategy
                 public boolean shouldSkipField(FieldAttributes fieldAttributes) {
                     if (fieldAttributes.getDeclaringClass().getPackage() == null) {
@@ -51,14 +51,6 @@ public class AppUtils {
             }).create();
         }
         return gson;
-    }
-
-    public static void ensureRunningOnUi(Runnable runnable) {
-        if (Thread.currentThread() != Looper.getMainLooper().getThread()) {
-            AndroidUtilities.runOnUIThread(runnable);
-        } else {
-            runnable.run();
-        }
     }
 
     public static int getNotificationColor() {
@@ -83,7 +75,7 @@ public class AppUtils {
     public static boolean isAppModified() {
         try {
             PackageInfo packageInfo = ApplicationLoader.applicationContext.getPackageManager().getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 64);
-            return ("com.exteragram.messenger".equals(packageInfo.packageName) && "VdBS+IkXbbu+mQuHS4vyXw==".equals(Base64.encodeToString(MessageDigest.getInstance("MD5").digest(packageInfo.signatures[0].toByteArray()), 0).trim())) ? false : true;
+            return (BuildConfig.APPLICATION_ID.equals(packageInfo.packageName) && "VdBS+IkXbbu+mQuHS4vyXw==".equals(Base64.encodeToString(MessageDigest.getInstance("MD5").digest(packageInfo.signatures[0].toByteArray()), 0).trim())) ? false : true;
         } catch (Exception e) {
             FileLog.e(e);
             return true;
@@ -138,12 +130,17 @@ public class AppUtils {
 
     @Keep
     public static Object getPrivateField(Object obj, String str) {
+        Field declaredField;
         try {
             Class<?> superclass = obj.getClass();
-            Field declaredField = null;
-            while (superclass != null) {
+            while (true) {
+                if (superclass == null) {
+                    declaredField = null;
+                    break;
+                }
                 try {
                     declaredField = superclass.getDeclaredField(str);
+                    break;
                 } catch (NoSuchFieldException unused) {
                     superclass = superclass.getSuperclass();
                 }
@@ -160,14 +157,20 @@ public class AppUtils {
 
     @Keep
     public static void setPrivateField(Object obj, String str, Object obj2) {
+        Field declaredField;
         try {
             Class<?> superclass = obj.getClass();
-            Field declaredField = null;
-            while (superclass != null) {
-                try {
-                    declaredField = superclass.getDeclaredField(str);
-                } catch (NoSuchFieldException unused) {
-                    superclass = superclass.getSuperclass();
+            while (true) {
+                if (superclass == null) {
+                    declaredField = null;
+                    break;
+                } else {
+                    try {
+                        declaredField = superclass.getDeclaredField(str);
+                        break;
+                    } catch (NoSuchFieldException unused) {
+                        superclass = superclass.getSuperclass();
+                    }
                 }
             }
             if (declaredField != null) {
@@ -181,44 +184,55 @@ public class AppUtils {
 
     @Keep
     public static Object getPrivateStaticField(Class<?> cls, String str) {
-        try {
-            Class<?> superclass = cls;
-            Field declaredField = null;
-            while (superclass != null) {
+        Field declaredField;
+        Class<?> superclass = cls;
+        while (true) {
+            if (superclass == null) {
+                declaredField = null;
+                break;
+            }
+            try {
                 try {
                     declaredField = superclass.getDeclaredField(str);
+                    break;
                 } catch (NoSuchFieldException unused) {
                     superclass = superclass.getSuperclass();
                 }
+            } catch (Exception e) {
+                logInternal(cls.getName(), e, 6);
             }
-            if (declaredField != null) {
-                declaredField.setAccessible(true);
-                return declaredField.get(null);
-            }
-        } catch (Exception e) {
-            logInternal(cls.getName(), e, 6);
+        }
+        if (declaredField != null) {
+            declaredField.setAccessible(true);
+            return declaredField.get(null);
         }
         return null;
     }
 
     @Keep
     public static void setPrivateStaticField(Class<?> cls, String str, Object obj) {
-        try {
-            Class<?> superclass = cls;
-            Field declaredField = null;
-            while (superclass != null) {
+        Field declaredField;
+        Class<?> superclass = cls;
+        while (true) {
+            if (superclass == null) {
+                declaredField = null;
+                break;
+            }
+            try {
                 try {
                     declaredField = superclass.getDeclaredField(str);
+                    break;
                 } catch (NoSuchFieldException unused) {
                     superclass = superclass.getSuperclass();
                 }
+            } catch (Exception e) {
+                logInternal(cls.getName(), e, 6);
+                return;
             }
-            if (declaredField != null) {
-                declaredField.setAccessible(true);
-                declaredField.set(null, obj);
-            }
-        } catch (Exception e) {
-            logInternal(cls.getName(), e, 6);
+        }
+        if (declaredField != null) {
+            declaredField.setAccessible(true);
+            declaredField.set(null, obj);
         }
     }
 
@@ -239,7 +253,7 @@ public class AppUtils {
         try {
             PackageInfo packageInfo = ApplicationLoader.applicationContext.getPackageManager().getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0);
             sb.append(" (");
-            sb.append(packageInfo.versionCode);
+            sb.append(PackageInfoCompat.getLongVersionCode(packageInfo));
             sb.append(")");
         } catch (PackageManager.NameNotFoundException e) {
             FileLog.e(e);
@@ -265,7 +279,8 @@ public class AppUtils {
             case ">=":
                 return iCompareVersionValues >= 0;
             default:
-                throw new IllegalArgumentException("Unsupported operator: " + str);
+                throw new IllegalArgumentException("Unsupported operator: ".concat(str));
+                return false;
         }
     }
 
@@ -284,7 +299,8 @@ public class AppUtils {
             case ">=":
                 return iCompare >= 0;
             default:
-                throw new IllegalArgumentException("Unsupported operator: " + str);
+                throw new IllegalArgumentException("Unsupported operator: ".concat(str));
+                return false;
         }
     }
 

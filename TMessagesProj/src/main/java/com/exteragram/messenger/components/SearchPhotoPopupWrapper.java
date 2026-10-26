@@ -21,12 +21,12 @@ import org.telegram.ui.Stories.DarkThemeResourceProvider;
 public class SearchPhotoPopupWrapper {
     public ActionBarPopupWindow.ActionBarPopupWindowLayout searchSwipeBackLayout;
 
-    public SearchPhotoPopupWrapper(Context context, final PopupSwipeBackLayout popupSwipeBackLayout, final Utilities.Callback<ReverseImageSearchSheet.Provider> callback) {
+    public SearchPhotoPopupWrapper(Context context, final PopupSwipeBackLayout popupSwipeBackLayout, final Utilities.Callback<ReverseImageSearch.Provider> callback) {
         ActionBarPopupWindow.ActionBarPopupWindowLayout actionBarPopupWindowLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(context, 0, null);
         this.searchSwipeBackLayout = actionBarPopupWindowLayout;
         actionBarPopupWindowLayout.setFitItems(true);
         ActionBarMenuSubItem actionBarMenuSubItemAddItem = ActionBarMenuItem.addItem(this.searchSwipeBackLayout, R.drawable.msg_arrow_back, LocaleController.getString(R.string.Back), false, null);
-        actionBarMenuSubItemAddItem.setOnClickListener(new View.OnClickListener() { 
+        actionBarMenuSubItemAddItem.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 popupSwipeBackLayout.closeForeground();
@@ -34,7 +34,7 @@ public class SearchPhotoPopupWrapper {
         });
         actionBarMenuSubItemAddItem.setColors(-328966, -328966);
         actionBarMenuSubItemAddItem.setSelectorColor(268435455);
-        FrameLayout frameLayout = new FrameLayout(context) { 
+        FrameLayout frameLayout = new FrameLayout(context) {
             @Override // android.widget.FrameLayout, android.view.View
             public void onMeasure(int i, int i2) {
                 super.onMeasure(i, i2);
@@ -52,41 +52,41 @@ public class SearchPhotoPopupWrapper {
         frameLayout.setLayoutParams(layoutParams);
         ActionBarMenuSubItem actionBarMenuSubItemAddItem2 = ActionBarMenuItem.addItem(this.searchSwipeBackLayout, 0, "Yandex", false, null);
         actionBarMenuSubItemAddItem2.setColors(-328966, -328966);
-        actionBarMenuSubItemAddItem2.setOnClickListener(new View.OnClickListener() { 
+        actionBarMenuSubItemAddItem2.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                callback.run(ReverseImageSearchSheet.Provider.YANDEX);
+                callback.run(ReverseImageSearch.Provider.YANDEX);
             }
         });
         actionBarMenuSubItemAddItem2.setSelectorColor(268435455);
         ActionBarMenuSubItem actionBarMenuSubItemAddItem3 = ActionBarMenuItem.addItem(this.searchSwipeBackLayout, 0, "Google", false, null);
         actionBarMenuSubItemAddItem3.setColors(-328966, -328966);
-        actionBarMenuSubItemAddItem3.setOnClickListener(new View.OnClickListener() { 
+        actionBarMenuSubItemAddItem3.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                callback.run(ReverseImageSearchSheet.Provider.GOOGLE);
+                callback.run(ReverseImageSearch.Provider.GOOGLE);
             }
         });
         actionBarMenuSubItemAddItem3.setSelectorColor(268435455);
         ActionBarMenuSubItem actionBarMenuSubItemAddItem4 = ActionBarMenuItem.addItem(this.searchSwipeBackLayout, 0, "Bing", false, null);
         actionBarMenuSubItemAddItem4.setColors(-328966, -328966);
-        actionBarMenuSubItemAddItem4.setOnClickListener(new View.OnClickListener() { 
+        actionBarMenuSubItemAddItem4.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                callback.run(ReverseImageSearchSheet.Provider.BING);
+                callback.run(ReverseImageSearch.Provider.BING);
             }
         });
         actionBarMenuSubItemAddItem4.setSelectorColor(268435455);
         ActionBarMenuSubItem actionBarMenuSubItemAddItem5 = ActionBarMenuItem.addItem(this.searchSwipeBackLayout, 0, "TinEye", false, null);
         actionBarMenuSubItemAddItem5.setColors(-328966, -328966);
-        actionBarMenuSubItemAddItem5.setOnClickListener(new View.OnClickListener() { 
+        actionBarMenuSubItemAddItem5.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                callback.run(ReverseImageSearchSheet.Provider.TINEYE);
+                callback.run(ReverseImageSearch.Provider.TINEYE);
             }
         });
         actionBarMenuSubItemAddItem5.setSelectorColor(268435455);
-        FrameLayout frameLayout2 = new FrameLayout(context) { 
+        FrameLayout frameLayout2 = new FrameLayout(context) {
             @Override // android.widget.FrameLayout, android.view.View
             public void onMeasure(int i, int i2) {
                 super.onMeasure(i, i2);

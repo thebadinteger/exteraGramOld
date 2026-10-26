@@ -65,7 +65,7 @@ public class DebugOverlayView extends AppCompatTextView {
     public DebugOverlayView(Context context) {
         super(context);
         this.contentBuilder = new ContentBuilder();
-        this.updater = new Runnable() { 
+        this.updater = new Runnable() {
             @Override // java.lang.Runnable
             public void run() {
                 if (DebugOverlayView.this.isAttachedToWindow()) {
@@ -82,10 +82,10 @@ public class DebugOverlayView extends AppCompatTextView {
         setPadding(AndroidUtilities.dp(8.0f), AndroidUtilities.dp(8.0f), AndroidUtilities.dp(8.0f), AndroidUtilities.dp(8.0f));
         setGravity(51);
         setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(10.0f), -1342177280));
-        setOnClickListener(new View.OnClickListener() { 
+        setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                DebugOverlayView.this.lambda$new$0(view);
+                this.f$0.lambda$new$0(view);
             }
         });
         setLongClickable(false);
@@ -93,7 +93,7 @@ public class DebugOverlayView extends AppCompatTextView {
         setImportantForAccessibility(2);
     }
 
-    public /* synthetic */ void lambda$new$0(View view) {
+    public void lambda$new$0(View view) {
         if (this.dataSource != null && AndroidUtilities.addToClipboard(this.contentBuilder.build()) && AndroidUtilities.shouldShowClipboardToast()) {
             Toast.makeText(getContext(), LocaleController.getString(R.string.TextCopied), 0).show();
         }

@@ -3,6 +3,7 @@ package com.exteragram.messenger.utils.ui;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import androidx.appcompat.view.ContextThemeWrapper;
+import androidx.core.math.MathUtils;
 import com.google.android.material.R;
 import com.google.android.material.slider.Slider;
 import org.telegram.messenger.AndroidUtilities;
@@ -20,20 +21,33 @@ public abstract class MaterialSliderUiHelper {
     }
 
     public static void applyContinuousStyle(Slider slider) {
-        if (slider.isTickVisible()) {
-            slider.setTickVisible(false);
+        if (slider.getTickVisibilityMode() != 2) {
+            slider.setTickVisibilityMode(2);
+        }
+        if (slider.getContinuousModeTickCount() != 0) {
+            slider.setContinuousModeTickCount(0);
         }
     }
 
     public static void applyDiscreteStyle(Slider slider, int i) {
-        if (!slider.isTickVisible()) {
-            slider.setTickVisible(true);
+        if (slider.getTickVisibilityMode() != 0) {
+            slider.setTickVisibilityMode(0);
         }
         if (slider.getTickActiveRadius() != AndroidUtilities.dp(2.0f)) {
             slider.setTickActiveRadius(AndroidUtilities.dp(2.0f));
         }
         if (slider.getTickInactiveRadius() != AndroidUtilities.dp(2.0f)) {
             slider.setTickInactiveRadius(AndroidUtilities.dp(2.0f));
+        }
+        if (slider.getContinuousModeTickCount() != i) {
+            slider.setContinuousModeTickCount(i);
+        }
+    }
+
+    public static void setValue(Slider slider, float f) {
+        float fClamp = MathUtils.clamp(f, slider.getValueFrom(), slider.getValueTo());
+        if (Math.abs(slider.getValue() - fClamp) > 1.0E-4f) {
+            slider.setValue(fClamp);
         }
     }
 

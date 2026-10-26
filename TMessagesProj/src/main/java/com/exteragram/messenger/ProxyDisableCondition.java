@@ -11,7 +11,7 @@ public enum ProxyDisableCondition {
     MOBILE_DATA(2),
     WIFI(4);
 
-    private static final /* synthetic */ EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
+    private static final EnumEntries $ENTRIES = EnumEntriesKt.enumEntries(values());
     private final int flag;
 
     ProxyDisableCondition(int i) {

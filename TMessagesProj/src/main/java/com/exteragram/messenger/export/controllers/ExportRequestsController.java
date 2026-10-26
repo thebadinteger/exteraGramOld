@@ -222,7 +222,7 @@ public class ExportRequestsController {
         if ((exportSettings2.types & 1920) != 0 && !exportSettings2.onlySinglePeer()) {
             this._startProcess.steps.add(StartProcess.Step.LeftChannelsCount);
         }
-        startMainSession(new Runnable() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda6
+        startMainSession(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 ExportRequestsController.this.sendNextStartRequest();
@@ -262,8 +262,8 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: renamed from: com.exteragram.messenger.export.controllers.ExportRequestsController$1, reason: invalid class name */
-    public static /* synthetic */ class AnonymousClass1 {
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$export$controllers$ExportRequestsController$StartProcess$Step;
+    public static  class AnonymousClass1 {
+        static final  int[] $SwitchMap$com$exteragram$messenger$export$controllers$ExportRequestsController$StartProcess$Step;
 
         static {
             int[] iArr = new int[StartProcess.Step.values().length];
@@ -339,7 +339,7 @@ public class ExportRequestsController {
         TLRPC.TL_inputUser tL_inputUser = new TLRPC.TL_inputUser();
         tL_inputUser.user_id = UserConfig.getInstance(this.selectedAcc).clientUserId;
         tL_users_getUsers.id = new ArrayList<>(Collections.singletonList(tL_inputUser));
-        ConnectionsManager.getInstance(this.selectedAcc).sendRequest(tL_users_getUsers, new RequestDelegate() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda38
+        ConnectionsManager.getInstance(this.selectedAcc).sendRequest(tL_users_getUsers, new RequestDelegate() {
             @Override // org.telegram.tgnet.RequestDelegate
             public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
                 ExportRequestsController.this.lambda$startMainSession$1(exportRequests$InitTakeoutSession, runnable, tLObject, tL_error);
@@ -348,7 +348,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$startMainSession$1(ExportRequests$InitTakeoutSession exportRequests$InitTakeoutSession, final Runnable runnable, TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$startMainSession$1(ExportRequests$InitTakeoutSession exportRequests$InitTakeoutSession, final Runnable runnable, TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tLObject instanceof Vector) {
             ArrayList<TLObject> arrayList = ((Vector) tLObject).objects;
             int size = arrayList.size();
@@ -364,7 +364,7 @@ public class ExportRequestsController {
                     }
                 }
             }
-            ConnectionsManager.getInstance(this.selectedAcc).sendRequest(exportRequests$InitTakeoutSession, new RequestDelegate() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda52
+            ConnectionsManager.getInstance(this.selectedAcc).sendRequest(exportRequests$InitTakeoutSession, new RequestDelegate() {
                 @Override // org.telegram.tgnet.RequestDelegate
                 public final void run(TLObject tLObject3, TLRPC.TL_error tL_error2) {
                     ExportRequestsController.this.lambda$startMainSession$0(runnable, tLObject3, tL_error2);
@@ -374,7 +374,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$startMainSession$0(Runnable runnable, TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$startMainSession$0(Runnable runnable, TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tL_error != null && tL_error.text != null) {
             ExportController.showError(tL_error);
         } else if (tLObject instanceof ExportRequests$Takeout) {
@@ -389,7 +389,7 @@ public class ExportRequestsController {
         tL_photos_getUserPhotos.offset = 0;
         tL_photos_getUserPhotos.max_id = 0L;
         tL_photos_getUserPhotos.limit = 0;
-        mainRequest(tL_photos_getUserPhotos, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda17
+        mainRequest(tL_photos_getUserPhotos, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 ExportRequestsController.this.lambda$requestUserpicsCount$2((TLObject) obj, (TLRPC.TL_error) obj2);
@@ -398,7 +398,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestUserpicsCount$2(TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$requestUserpicsCount$2(TLObject tLObject, TLRPC.TL_error tL_error) {
         int size;
         if (tLObject instanceof TLRPC.photos_Photos) {
             TLRPC.photos_Photos photos_photos = (TLRPC.photos_Photos) tLObject;
@@ -417,7 +417,7 @@ public class ExportRequestsController {
         tL_stories_getStoriesArchive.peer = new TLRPC.TL_inputPeerSelf();
         tL_stories_getStoriesArchive.limit = 0;
         tL_stories_getStoriesArchive.offset_id = 0;
-        mainRequest(tL_stories_getStoriesArchive, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda31
+        mainRequest(tL_stories_getStoriesArchive, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 ExportRequestsController.this.lambda$requestStoriesCount$3((TLObject) obj, (TLRPC.TL_error) obj2);
@@ -426,7 +426,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestStoriesCount$3(TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$requestStoriesCount$3(TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tLObject instanceof TL_stories.TL_stories_stories) {
             this._startProcess.info.storiesCount = ((TL_stories.TL_stories_stories) tLObject).count;
         }
@@ -472,7 +472,7 @@ public class ExportRequestsController {
     }
 
     public void requestSessions(final Utilities.Callback<ApiWrap$SessionsList> callback) {
-        mainRequest(new TL_account.getAuthorizations(), new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda12
+        mainRequest(new TL_account.getAuthorizations(), new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 ExportRequestsController.this.lambda$requestSessions$5(callback, (TLObject) obj, (TLRPC.TL_error) obj2);
@@ -481,10 +481,10 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestSessions$5(final Utilities.Callback callback, TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$requestSessions$5(final Utilities.Callback callback, TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tLObject instanceof TL_account.authorizations) {
             final ApiWrap$SessionsList apiWrap$SessionsListParseSessionsList = DataTypesUtils.ParseSessionsList((TL_account.authorizations) tLObject);
-            mainRequest(new TL_account.getWebAuthorizations(), new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda28
+            mainRequest(new TL_account.getWebAuthorizations(), new Utilities.Callback2() {
                 @Override // org.telegram.messenger.Utilities.Callback2
                 public final void run(Object obj, Object obj2) {
                     ExportRequestsController.$r8$lambda$zUhnSPX6kGtTskTPxh0MMvePxT4(apiWrap$SessionsListParseSessionsList, callback, (TLObject) obj, (TLRPC.TL_error) obj2);
@@ -493,14 +493,14 @@ public class ExportRequestsController {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$zUhnSPX6kGtTskTPxh0MMvePxT4(ApiWrap$SessionsList apiWrap$SessionsList, Utilities.Callback callback, TLObject tLObject, TLRPC.TL_error tL_error) {
+    public static  void $r8$lambda$zUhnSPX6kGtTskTPxh0MMvePxT4(ApiWrap$SessionsList apiWrap$SessionsList, Utilities.Callback callback, TLObject tLObject, TLRPC.TL_error tL_error) {
         apiWrap$SessionsList.webList = DataTypesUtils.ParseWebSessionsList((TL_account.webAuthorizations) tLObject).webList;
         callback.run(apiWrap$SessionsList);
     }
 
     private void requestLeftChannelsCount() {
         this._leftChannelsProcess = new ApiWrap$LeftChannelsProcess();
-        requestLeftChannelsSliceGeneric(new Runnable() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda37
+        requestLeftChannelsSliceGeneric(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 ExportRequestsController.this.lambda$requestLeftChannelsCount$6();
@@ -509,7 +509,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestLeftChannelsCount$6() {
+    public  void lambda$requestLeftChannelsCount$6() {
         this._startProcess.info.dialogsCount += this._leftChannelsProcess.fullCount;
         sendNextStartRequest();
     }
@@ -517,7 +517,7 @@ public class ExportRequestsController {
     private void requestLeftChannelsSliceGeneric(final Runnable runnable) {
         ExportRequests$getLeftChannels exportRequests$getLeftChannels = new ExportRequests$getLeftChannels();
         exportRequests$getLeftChannels.offset = this._leftChannelsProcess.offset;
-        mainRequest(exportRequests$getLeftChannels, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda49
+        mainRequest(exportRequests$getLeftChannels, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 ExportRequestsController.this.lambda$requestLeftChannelsSliceGeneric$7(runnable, (TLObject) obj, (TLRPC.TL_error) obj2);
@@ -526,7 +526,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestLeftChannelsSliceGeneric$7(Runnable runnable, TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$requestLeftChannelsSliceGeneric$7(Runnable runnable, TLObject tLObject, TLRPC.TL_error tL_error) {
         int size;
         if (tLObject instanceof TLRPC.messages_Chats) {
             TLRPC.messages_Chats messages_chats = (TLRPC.messages_Chats) tLObject;
@@ -556,7 +556,7 @@ public class ExportRequestsController {
     }
 
     private void requestMessagesCount(final int i) {
-        requestChatMessages(this._chatProcess.info.splits.get(i).intValue(), 0, 0, 1, new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda5
+        requestChatMessages(this._chatProcess.info.splits.get(i).intValue(), 0, 0, 1, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
                 ExportRequestsController.this.lambda$requestMessagesCount$8(i, (TLRPC.messages_Messages) obj);
@@ -565,7 +565,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestMessagesCount$8(int i, TLRPC.messages_Messages messages_messages) {
+    public  void lambda$requestMessagesCount$8(int i, TLRPC.messages_Messages messages_messages) {
         int size;
         if (messages_messages instanceof TLRPC.TL_messages_messages) {
             size = ((TLRPC.TL_messages_messages) messages_messages).messages.size();
@@ -589,7 +589,7 @@ public class ExportRequestsController {
         if (this._settings.singlePeerTill <= 0) {
             messagesCountLoaded(i, i2);
         } else {
-            requestChatMessages(this._chatProcess.info.splits.get(i).intValue(), 1, -1, 1, new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda21
+            requestChatMessages(this._chatProcess.info.splits.get(i).intValue(), 1, -1, 1, new Utilities.Callback() {
                 @Override // org.telegram.messenger.Utilities.Callback
                 public final void run(Object obj) {
                     ExportRequestsController.this.lambda$checkFirstMessageDate$9(i, i2, (TLRPC.messages_Messages) obj);
@@ -599,7 +599,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$checkFirstMessageDate$9(int i, int i2, TLRPC.messages_Messages messages_messages) {
+    public  void lambda$checkFirstMessageDate$9(int i, int i2, TLRPC.messages_Messages messages_messages) {
         if (!DataTypesUtils.SingleMessageBefore(messages_messages, this._settings.singlePeerTill)) {
             i2 = 0;
         }
@@ -625,7 +625,7 @@ public class ExportRequestsController {
             loadMessagesFiles(new ApiWrap$MessagesSlice());
         } else {
             ApiWrap$ChatProcess apiWrap$ChatProcess2 = this._chatProcess;
-            requestChatMessages(apiWrap$ChatProcess2.info.splits.get(apiWrap$ChatProcess2.localSplitIndex).intValue(), this._chatProcess.largestIdPlusOne, -100, 100, new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda30
+            requestChatMessages(apiWrap$ChatProcess2.info.splits.get(apiWrap$ChatProcess2.localSplitIndex).intValue(), this._chatProcess.largestIdPlusOne, -100, 100, new Utilities.Callback() {
                 @Override // org.telegram.messenger.Utilities.Callback
                 public final void run(Object obj) {
                     ExportRequestsController.this.lambda$requestMessagesSlice$10((TLRPC.messages_Messages) obj);
@@ -635,7 +635,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestMessagesSlice$10(TLRPC.messages_Messages messages_messages) {
+    public  void lambda$requestMessagesSlice$10(TLRPC.messages_Messages messages_messages) {
         if (messages_messages instanceof TLRPC.TL_messages_messagesNotModified) {
             throw new IllegalStateException("Unexpected messagesNotModified received.");
         }
@@ -700,7 +700,7 @@ public class ExportRequestsController {
             arrayList.add((Long) arrayList2.get(iMax));
             this._unresolvedCustomEmoji.remove(arrayList2.get(iMax));
         }
-        final Runnable runnable = new Runnable() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda44
+        final Runnable runnable = new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 ExportRequestsController.this.lambda$resolveCustomEmoji$11(arrayList);
@@ -708,7 +708,7 @@ public class ExportRequestsController {
         };
         TLRPC.TL_messages_getCustomEmojiDocuments tL_messages_getCustomEmojiDocuments = new TLRPC.TL_messages_getCustomEmojiDocuments();
         tL_messages_getCustomEmojiDocuments.document_id = arrayList;
-        mainRequest(tL_messages_getCustomEmojiDocuments, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda45
+        mainRequest(tL_messages_getCustomEmojiDocuments, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 ExportRequestsController.this.lambda$resolveCustomEmoji$12(runnable, (TLObject) obj, (TLRPC.TL_error) obj2);
@@ -717,7 +717,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$resolveCustomEmoji$11(ArrayList arrayList) {
+    public  void lambda$resolveCustomEmoji$11(ArrayList arrayList) {
         int size = arrayList.size();
         int i = 0;
         while (i < size) {
@@ -736,7 +736,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$resolveCustomEmoji$12(Runnable runnable, TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$resolveCustomEmoji$12(Runnable runnable, TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tL_error != null) {
             FileLog.e("Export Error: Failed to get documents for emoji.");
             runnable.run();
@@ -874,7 +874,7 @@ public class ExportRequestsController {
             request.offset = j2;
             this._fileProcess.requests.add(request);
             ApiWrap$FileProcess apiWrap$FileProcess3 = this._fileProcess;
-            apiWrap$FileProcess3.requestId = fileRequest(apiWrap$FileProcess3.location, apiWrap$FileProcess3.offset, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda39
+            apiWrap$FileProcess3.requestId = fileRequest(apiWrap$FileProcess3.location, apiWrap$FileProcess3.offset, new Utilities.Callback2() {
                 @Override // org.telegram.messenger.Utilities.Callback2
                 public final void run(Object obj, Object obj2) {
                     ExportRequestsController.this.lambda$loadFilePart$13(j2, (TLObject) obj, (TLRPC.TL_error) obj2);
@@ -885,7 +885,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$loadFilePart$13(long j, TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$loadFilePart$13(long j, TLObject tLObject, TLRPC.TL_error tL_error) {
         this._fileProcess.requestId = 0L;
         filePartDone(j, tLObject);
     }
@@ -896,7 +896,7 @@ public class ExportRequestsController {
             TL_stories.TL_stories_getStoriesByID tL_stories_getStoriesByID = new TL_stories.TL_stories_getStoriesByID();
             tL_stories_getStoriesByID.peer = new TLRPC.TL_inputPeerSelf();
             tL_stories_getStoriesByID.id = new ArrayList<>(Collections.singletonList(Integer.valueOf(apiWrap$FileOrigin.storyId())));
-            this._fileProcess.requestId = mainRequest(tL_stories_getStoriesByID, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda53
+            this._fileProcess.requestId = mainRequest(tL_stories_getStoriesByID, new Utilities.Callback2() {
                 @Override // org.telegram.messenger.Utilities.Callback2
                 public final void run(Object obj, Object obj2) {
                     ExportRequestsController.this.lambda$filePartRefreshReference$14(j, (TLObject) obj, (TLRPC.TL_error) obj2);
@@ -921,7 +921,7 @@ public class ExportRequestsController {
                 tL_inputChannelFromMessage.channel_id = apiWrap$FileOrigin.peer().channel_id;
                 tL_channels_getMessages.channel = tL_inputChannelFromMessage;
             }
-            this._fileProcess.requestId = mainRequest(tL_channels_getMessages, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda54
+            this._fileProcess.requestId = mainRequest(tL_channels_getMessages, new Utilities.Callback2() {
                 @Override // org.telegram.messenger.Utilities.Callback2
                 public final void run(Object obj, Object obj2) {
                     ExportRequestsController.this.lambda$filePartRefreshReference$15(j, (TLObject) obj, (TLRPC.TL_error) obj2);
@@ -931,7 +931,7 @@ public class ExportRequestsController {
         }
         TLRPC.TL_messages_getMessages tL_messages_getMessages = new TLRPC.TL_messages_getMessages();
         tL_messages_getMessages.id = new ArrayList<>(Collections.singletonList(Integer.valueOf(apiWrap$FileOrigin.messageId())));
-        this._fileProcess.requestId = splitRequest(apiWrap$FileOrigin.split(), tL_messages_getMessages, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda55
+        this._fileProcess.requestId = splitRequest(apiWrap$FileOrigin.split(), tL_messages_getMessages, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 ExportRequestsController.this.lambda$filePartRefreshReference$16(j, (TLObject) obj, (TLRPC.TL_error) obj2);
@@ -940,7 +940,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$filePartRefreshReference$14(long j, TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$filePartRefreshReference$14(long j, TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tL_error != null) {
             ApiWrap$FileProcess apiWrap$FileProcess = this._fileProcess;
             apiWrap$FileProcess.requestId = 0L;
@@ -952,7 +952,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$filePartRefreshReference$15(long j, TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$filePartRefreshReference$15(long j, TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tL_error != null) {
             this._fileProcess.requestId = 0L;
             FileLog.w("Export Error: File unavailable.");
@@ -964,7 +964,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$filePartRefreshReference$16(long j, TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$filePartRefreshReference$16(long j, TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tL_error != null) {
             this._fileProcess.requestId = 0L;
             Log.w("exteraGram", "Export Error: File unavailable.");
@@ -988,7 +988,7 @@ public class ExportRequestsController {
                 boolean zRefreshFileReference2 = DataTypesUtils.RefreshFileReference(this._fileProcess.location.data, apiWrap$Story2.thumb().file.location.data);
                 if (zRefreshFileReference || zRefreshFileReference2) {
                     ApiWrap$FileProcess apiWrap$FileProcess = this._fileProcess;
-                    apiWrap$FileProcess.requestId = fileRequest(apiWrap$FileProcess.location, j, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda0
+                    apiWrap$FileProcess.requestId = fileRequest(apiWrap$FileProcess.location, j, new Utilities.Callback2() {
                         @Override // org.telegram.messenger.Utilities.Callback2
                         public final void run(Object obj, Object obj2) {
                             ExportRequestsController.this.lambda$filePartExtractReference$17(j, (TLObject) obj, (TLRPC.TL_error) obj2);
@@ -1002,7 +1002,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$filePartExtractReference$17(long j, TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$filePartExtractReference$17(long j, TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tLObject instanceof TLRPC.TL_upload_file) {
             this._fileProcess.requestId = 0L;
             filePartDone(j, (TLRPC.TL_upload_file) tLObject);
@@ -1027,7 +1027,7 @@ public class ExportRequestsController {
                 boolean zRefreshFileReference2 = DataTypesUtils.RefreshFileReference(this._fileProcess.location.data, apiWrap$Message2.media.getThumb().file.location.data);
                 if (zRefreshFileReference || zRefreshFileReference2) {
                     ApiWrap$FileProcess apiWrap$FileProcess = this._fileProcess;
-                    apiWrap$FileProcess.requestId = fileRequest(apiWrap$FileProcess.location, j, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda3
+                    apiWrap$FileProcess.requestId = fileRequest(apiWrap$FileProcess.location, j, new Utilities.Callback2() {
                         @Override // org.telegram.messenger.Utilities.Callback2
                         public final void run(Object obj, Object obj2) {
                             ExportRequestsController.this.lambda$filePartExtractReference$18(j, (TLObject) obj, (TLRPC.TL_error) obj2);
@@ -1042,7 +1042,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$filePartExtractReference$18(long j, TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$filePartExtractReference$18(long j, TLObject tLObject, TLRPC.TL_error tL_error) {
         this._fileProcess.requestId = 0L;
         filePartDone(j, tLObject);
     }
@@ -1206,7 +1206,7 @@ public class ExportRequestsController {
         tL_photos_getUserPhotos.user_id = new TLRPC.TL_inputUserSelf();
         tL_photos_getUserPhotos.offset = 0;
         tL_photos_getUserPhotos.max_id = this._userpicsProcess.maxId;
-        mainRequest(tL_photos_getUserPhotos, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda13
+        mainRequest(tL_photos_getUserPhotos, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 ExportRequestsController.this.lambda$requestUserpics$19((TLObject) obj, (TLRPC.TL_error) obj2);
@@ -1215,7 +1215,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestUserpics$19(TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$requestUserpics$19(TLObject tLObject, TLRPC.TL_error tL_error) {
         ApiWrap$UserpicsInfo apiWrap$UserpicsInfo;
         if (tLObject instanceof TLRPC.photos_Photos) {
             TLRPC.photos_Photos photos_photos = (TLRPC.photos_Photos) tLObject;
@@ -1248,7 +1248,7 @@ public class ExportRequestsController {
         tL_stories_getStoriesArchive.peer = new TLRPC.TL_inputPeerSelf();
         tL_stories_getStoriesArchive.limit = 100;
         tL_stories_getStoriesArchive.offset_id = this._storiesProcess.offsetId;
-        mainRequest(tL_stories_getStoriesArchive, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda14
+        mainRequest(tL_stories_getStoriesArchive, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 ExportRequestsController.this.lambda$requestStories$20((TLObject) obj, (TLRPC.TL_error) obj2);
@@ -1257,7 +1257,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestStories$20(TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$requestStories$20(TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tLObject instanceof TL_stories.TL_stories_stories) {
             TL_stories.TL_stories_stories tL_stories_stories = (TL_stories.TL_stories_stories) tLObject;
             if (this._storiesProcess.start.run(Integer.valueOf(tL_stories_stories.count)).booleanValue()) {
@@ -1329,7 +1329,7 @@ public class ExportRequestsController {
         tL_stories_getStoriesArchive.peer = new TLRPC.TL_inputPeerSelf();
         tL_stories_getStoriesArchive.limit = 100;
         tL_stories_getStoriesArchive.offset_id = this._storiesProcess.offsetId;
-        mainRequest(tL_stories_getStoriesArchive, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda40
+        mainRequest(tL_stories_getStoriesArchive, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 ExportRequestsController.this.lambda$finishStoriesSlice$21((TLObject) obj, (TLRPC.TL_error) obj2);
@@ -1338,7 +1338,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$finishStoriesSlice$21(TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$finishStoriesSlice$21(TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tLObject instanceof TL_stories.TL_stories_stories) {
             loadStoriesFiles(DataTypesUtils.ParseStoriesSlice(((TL_stories.TL_stories_stories) tLObject).stories, this._storiesProcess.processed));
         }
@@ -1385,10 +1385,10 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestContacts$24(TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$requestContacts$24(TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tLObject instanceof Vector) {
             this._contactsProcess.result = DataTypesUtils.ParseContactsList((Vector) tLObject);
-            new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda16
+            new Utilities.Callback2() {
                 @Override // org.telegram.messenger.Utilities.Callback2
                 public final void run(Object obj, Object obj2) {
                     ExportRequestsController.this.lambda$requestContacts$23((Integer) obj, (Utilities.Callback2) obj2);
@@ -1399,14 +1399,14 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestContacts$23(final Integer num, final Utilities.Callback2 callback2) {
+    public  void lambda$requestContacts$23(final Integer num, final Utilities.Callback2 callback2) {
         if (num.intValue() == this._contactsProcess.result.list.size()) {
             requestTopPeersSlice();
             return;
         }
         TLRPC.TL_contacts_resolvePhone tL_contacts_resolvePhone = new TLRPC.TL_contacts_resolvePhone();
         tL_contacts_resolvePhone.phone = this._contactsProcess.result.list.get(num.intValue()).phoneNumber;
-        mainRequest(tL_contacts_resolvePhone, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda42
+        mainRequest(tL_contacts_resolvePhone, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 ExportRequestsController.this.lambda$requestContacts$22(num, callback2, (TLObject) obj, (TLRPC.TL_error) obj2);
@@ -1415,7 +1415,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestContacts$22(Integer num, Utilities.Callback2 callback2, TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$requestContacts$22(Integer num, Utilities.Callback2 callback2, TLObject tLObject, TLRPC.TL_error tL_error) {
         if (!(tLObject instanceof TLRPC.TL_contacts_resolvedPeer)) {
             if (tL_error != null) {
                 callback2.run(Integer.valueOf(num.intValue() + 1), callback2);
@@ -1442,7 +1442,7 @@ public class ExportRequestsController {
         tL_contacts_getTopPeers.offset = this._contactsProcess.topPeersOffset;
         tL_contacts_getTopPeers.limit = 100;
         tL_contacts_getTopPeers.hash = 0L;
-        mainRequest(tL_contacts_getTopPeers, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda41
+        mainRequest(tL_contacts_getTopPeers, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 ExportRequestsController.this.lambda$requestTopPeersSlice$25((TLObject) obj, (TLRPC.TL_error) obj2);
@@ -1451,7 +1451,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestTopPeersSlice$25(TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$requestTopPeersSlice$25(TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tLObject instanceof TLRPC.contacts_TopPeers) {
             TLRPC.contacts_TopPeers contacts_toppeers = (TLRPC.contacts_TopPeers) tLObject;
             DataTypesUtils.AppendTopPeers(this._contactsProcess.result, contacts_toppeers);
@@ -1537,7 +1537,7 @@ public class ExportRequestsController {
         tL_photos_getUserPhotos.offset = 0;
         tL_photos_getUserPhotos.max_id = this._userpicsProcess.maxId;
         tL_photos_getUserPhotos.limit = 100;
-        mainRequest(tL_photos_getUserPhotos, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda46
+        mainRequest(tL_photos_getUserPhotos, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 ExportRequestsController.this.lambda$finishUserpicsSlice$26((TLObject) obj, (TLRPC.TL_error) obj2);
@@ -1546,7 +1546,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$finishUserpicsSlice$26(TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$finishUserpicsSlice$26(TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tLObject instanceof TLRPC.photos_Photos) {
             handleUserpicsSlice((TLRPC.photos_Photos) tLObject);
         }
@@ -1706,7 +1706,7 @@ public class ExportRequestsController {
             tL_messages_search.offset_id = i2;
             tL_messages_search.add_offset = i3;
             tL_messages_search.limit = i4;
-            splitRequest(i5, tL_messages_search, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda22
+            splitRequest(i5, tL_messages_search, new Utilities.Callback2() {
                 @Override // org.telegram.messenger.Utilities.Callback2
                 public final void run(Object obj, Object obj2) {
                     ExportRequestsController.this.lambda$requestChatMessages$28((TLObject) obj, (TLRPC.TL_error) obj2);
@@ -1719,7 +1719,7 @@ public class ExportRequestsController {
         tL_messages_getHistory.offset_id = i2;
         tL_messages_getHistory.add_offset = i3;
         tL_messages_getHistory.limit = i4;
-        splitRequest(i5, tL_messages_getHistory, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda23
+        splitRequest(i5, tL_messages_getHistory, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 ExportRequestsController.this.lambda$requestChatMessages$29(inputPeer2, i, i2, i3, i4, (TLObject) obj, (TLRPC.TL_error) obj2);
@@ -1728,12 +1728,12 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestChatMessages$28(TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$requestChatMessages$28(TLObject tLObject, TLRPC.TL_error tL_error) {
         this._chatProcess.requestDone.run((TLRPC.messages_Messages) tLObject);
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestChatMessages$29(TLRPC.InputPeer inputPeer, int i, int i2, int i3, int i4, TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$requestChatMessages$29(TLRPC.InputPeer inputPeer, int i, int i2, int i3, int i4, TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tL_error != null) {
             if ("CHANNEL_PRIVATE".equals(tL_error.text)) {
                 Log.d("exteraGram", "caught channel private");
@@ -1765,7 +1765,7 @@ public class ExportRequestsController {
         tL_messages_getDialogs.limit = 100;
         tL_messages_getDialogs.offset_date = apiWrap$DialogsProcess.offsetDate;
         tL_messages_getDialogs.offset_id = apiWrap$DialogsProcess.offsetId;
-        splitRequest(apiWrap$DialogsProcess.splitIndexPlusOne - 1, tL_messages_getDialogs, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda15
+        splitRequest(apiWrap$DialogsProcess.splitIndexPlusOne - 1, tL_messages_getDialogs, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 ExportRequestsController.this.lambda$requestDialogsSlice$30((TLObject) obj, (TLRPC.TL_error) obj2);
@@ -1774,7 +1774,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestDialogsSlice$30(TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$requestDialogsSlice$30(TLObject tLObject, TLRPC.TL_error tL_error) {
         ApiWrap$DialogInfo apiWrap$DialogInfo;
         int i;
         if (tLObject instanceof TLRPC.TL_messages_dialogsNotModified) {
@@ -1819,13 +1819,13 @@ public class ExportRequestsController {
     }
 
     private void requestSinglePeerDialog() {
-        final Utilities.Callback callback = new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda34
+        final Utilities.Callback callback = new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
                 ExportRequestsController.this.lambda$requestSinglePeerDialog$31((TLObject) obj);
             }
         };
-        Utilities.Callback callback2 = new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda35
+        Utilities.Callback callback2 = new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
                 ExportRequestsController.this.lambda$requestSinglePeerDialog$33(callback, (TLRPC.InputUser) obj);
@@ -1843,7 +1843,7 @@ public class ExportRequestsController {
         if (inputPeer instanceof TLRPC.TL_inputPeerChat) {
             TLRPC.TL_messages_getChats tL_messages_getChats = new TLRPC.TL_messages_getChats();
             tL_messages_getChats.id = new ArrayList<>(Collections.singletonList(Long.valueOf(((TLRPC.TL_inputPeerChat) inputPeer).chat_id)));
-            mainRequest(tL_messages_getChats, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda36
+            mainRequest(tL_messages_getChats, new Utilities.Callback2() {
                 @Override // org.telegram.messenger.Utilities.Callback2
                 public final void run(Object obj, Object obj2) {
                     callback.run((TLObject) obj);
@@ -1865,7 +1865,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestSinglePeerDialog$31(TLObject tLObject) {
+    public  void lambda$requestSinglePeerDialog$31(TLObject tLObject) {
         if (tLObject instanceof Vector) {
             appendSinglePeerDialogs(ParseDialogsInfo(this._settings.singlePeer, (Vector) tLObject));
         } else if (tLObject instanceof TLRPC.messages_Chats) {
@@ -1874,10 +1874,10 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestSinglePeerDialog$33(final Utilities.Callback callback, TLRPC.InputUser inputUser) {
+    public  void lambda$requestSinglePeerDialog$33(final Utilities.Callback callback, TLRPC.InputUser inputUser) {
         TLRPC.TL_users_getUsers tL_users_getUsers = new TLRPC.TL_users_getUsers();
         tL_users_getUsers.id = new ArrayList<>(Collections.singletonList(inputUser));
-        mainRequest(tL_users_getUsers, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda51
+        mainRequest(tL_users_getUsers, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 callback.run((TLObject) obj);
@@ -1886,14 +1886,14 @@ public class ExportRequestsController {
     }
 
     private void appendSinglePeerDialogs(ApiWrap$DialogsInfo apiWrap$DialogsInfo) {
-        Utilities.CallbackReturn callbackReturn = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda47
+        Utilities.CallbackReturn callbackReturn = new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
                 ApiWrap$DialogInfo.Type type = (ApiWrap$DialogInfo.Type) obj;
                 return Boolean.valueOf(type == ApiWrap$DialogInfo.Type.PrivateSupergroup || type == ApiWrap$DialogInfo.Type.PublicSupergroup);
             }
         };
-        Utilities.CallbackReturn callbackReturn2 = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda48
+        Utilities.CallbackReturn callbackReturn2 = new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
                 ApiWrap$DialogInfo.Type type = (ApiWrap$DialogInfo.Type) obj;
@@ -1940,7 +1940,7 @@ public class ExportRequestsController {
             tL_inputChannel.access_hash = tL_inputPeerChannel.access_hash;
             TLRPC.TL_channels_getFullChannel tL_channels_getFullChannel = new TLRPC.TL_channels_getFullChannel();
             tL_channels_getFullChannel.channel = tL_inputChannel;
-            return mainRequest(tL_channels_getFullChannel, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda58
+            return mainRequest(tL_channels_getFullChannel, new Utilities.Callback2() {
                 @Override // org.telegram.messenger.Utilities.Callback2
                 public final void run(Object obj, Object obj2) {
                     ExportRequestsController.this.lambda$requestSinglePeerMigrated$37((TLObject) obj, (TLRPC.TL_error) obj2);
@@ -1951,7 +1951,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestSinglePeerMigrated$37(TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$requestSinglePeerMigrated$37(TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tLObject instanceof TLRPC.TL_messages_chatFull) {
             TLRPC.TL_messages_chatFull tL_messages_chatFull = (TLRPC.TL_messages_chatFull) tLObject;
             TLRPC.ChatFull chatFull = tL_messages_chatFull.full_chat;
@@ -1970,12 +1970,12 @@ public class ExportRequestsController {
 
     public void requestLeftChannelsIfNeeded() {
         if ((this._settings.types & 1920) != 0) {
-            requestLeftChannelsList(new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda19
+            requestLeftChannelsList(new Utilities.CallbackReturn() {
                 @Override // org.telegram.messenger.Utilities.CallbackReturn
                 public final Object run(Object obj) {
                     return ExportRequestsController.this.lambda$requestLeftChannelsIfNeeded$38((Integer) obj);
                 }
-            }, new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda20
+            }, new Utilities.Callback() {
                 @Override // org.telegram.messenger.Utilities.Callback
                 public final void run(Object obj) {
                     ExportRequestsController.this.lambda$requestLeftChannelsIfNeeded$39((ApiWrap$DialogsInfo) obj);
@@ -1987,13 +1987,13 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ Boolean lambda$requestLeftChannelsIfNeeded$38(Integer num) {
+    public  Boolean lambda$requestLeftChannelsIfNeeded$38(Integer num) {
         ApiWrap$DialogsProcess apiWrap$DialogsProcess = this._dialogsProcess;
         return apiWrap$DialogsProcess.progress.run(Integer.valueOf(apiWrap$DialogsProcess.processedCount + num.intValue()));
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestLeftChannelsIfNeeded$39(ApiWrap$DialogsInfo apiWrap$DialogsInfo) {
+    public  void lambda$requestLeftChannelsIfNeeded$39(ApiWrap$DialogsInfo apiWrap$DialogsInfo) {
         this._dialogsProcess.info.left = apiWrap$DialogsInfo.left;
         finishDialogsList();
     }
@@ -2012,7 +2012,7 @@ public class ExportRequestsController {
     }
 
     private void requestLeftChannelsSlice() {
-        requestLeftChannelsSliceGeneric(new Runnable() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda50
+        requestLeftChannelsSliceGeneric(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 ExportRequestsController.this.lambda$requestLeftChannelsSlice$40();
@@ -2021,7 +2021,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestLeftChannelsSlice$40() {
+    public  void lambda$requestLeftChannelsSlice$40() {
         ApiWrap$LeftChannelsProcess apiWrap$LeftChannelsProcess = this._leftChannelsProcess;
         if (apiWrap$LeftChannelsProcess.finished) {
             apiWrap$LeftChannelsProcess.done.run(apiWrap$LeftChannelsProcess.info);
@@ -2164,7 +2164,7 @@ public class ExportRequestsController {
     public void requestPersonalInfo(final Utilities.Callback<ApiWrap$ExportPersonalInfo> callback) {
         TLRPC.TL_users_getFullUser tL_users_getFullUser = new TLRPC.TL_users_getFullUser();
         tL_users_getFullUser.id = new TLRPC.TL_inputUserSelf();
-        mainRequest(tL_users_getFullUser, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda10
+        mainRequest(tL_users_getFullUser, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 ExportRequestsController.lambda$requestPersonalInfo$44(callback, (TLObject) obj, (TLRPC.TL_error) obj2);
@@ -2188,10 +2188,10 @@ public class ExportRequestsController {
         ExportRequests$InvokeWithTakeoutWrapper exportRequests$InvokeWithTakeoutWrapper = new ExportRequests$InvokeWithTakeoutWrapper();
         exportRequests$InvokeWithTakeoutWrapper.query = tLObject;
         exportRequests$InvokeWithTakeoutWrapper.takeout_id = this._takeoutId;
-        return ConnectionsManager.getInstance(this.selectedAcc).sendRequest(exportRequests$InvokeWithTakeoutWrapper, new RequestDelegate() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda7
+        return ConnectionsManager.getInstance(this.selectedAcc).sendRequest(exportRequests$InvokeWithTakeoutWrapper, new RequestDelegate() {
             @Override // org.telegram.tgnet.RequestDelegate
             public final void run(TLObject tLObject2, TLRPC.TL_error tL_error) {
-                ExportController.exportQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda29
+                ExportController.exportQueue.postRunnable(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
                         callback2.run(tLObject2, tL_error);
@@ -2223,7 +2223,7 @@ public class ExportRequestsController {
         ExportRequests$InvokeWithTakeoutWrapper exportRequests$InvokeWithTakeoutWrapper = new ExportRequests$InvokeWithTakeoutWrapper();
         exportRequests$InvokeWithTakeoutWrapper.query = tL_upload_getFile;
         exportRequests$InvokeWithTakeoutWrapper.takeout_id = this._takeoutId;
-        return ConnectionsManager.getInstance(this.selectedAcc).sendRequestSync(exportRequests$InvokeWithTakeoutWrapper, new RequestDelegate() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda43
+        return ConnectionsManager.getInstance(this.selectedAcc).sendRequestSync(exportRequests$InvokeWithTakeoutWrapper, new RequestDelegate() {
             @Override // org.telegram.tgnet.RequestDelegate
             public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
                 ExportRequestsController.this.lambda$fileRequest$44(j, callback2, tLObject, tL_error);
@@ -2232,7 +2232,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$fileRequest$44(long j, Utilities.Callback2 callback2, TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$fileRequest$44(long j, Utilities.Callback2 callback2, TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tL_error != null) {
             this._fileProcess.requestId = 0L;
             if (Objects.equals(tL_error.text, "TAKEOUT_FILE_EMPTY") && this._otherDataProcess != null) {
@@ -2265,7 +2265,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestSplitRanges$45(TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$requestSplitRanges$45(TLObject tLObject, TLRPC.TL_error tL_error) {
         vectorToRanges(tLObject, this.splits);
         this.index = useOnlyLastSplit() ? this.splits.size() - 1 : 0;
         sendNextStartRequest();
@@ -2279,7 +2279,7 @@ public class ExportRequestsController {
             TLRPC.TL_messages_getDialogs tL_messages_getDialogs = new TLRPC.TL_messages_getDialogs();
             tL_messages_getDialogs.offset_peer = new TLRPC.TL_inputPeerEmpty();
             tL_messages_getDialogs.limit = 1;
-            splitRequest(this.index, tL_messages_getDialogs, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda27
+            splitRequest(this.index, tL_messages_getDialogs, new Utilities.Callback2() {
                 @Override // org.telegram.messenger.Utilities.Callback2
                 public final void run(Object obj, Object obj2) {
                     ExportRequestsController.this.lambda$requestDialogsCount$46((TLObject) obj, (TLRPC.TL_error) obj2);
@@ -2289,7 +2289,7 @@ public class ExportRequestsController {
     }
 
     /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$requestDialogsCount$46(TLObject tLObject, TLRPC.TL_error tL_error) {
+    public  void lambda$requestDialogsCount$46(TLObject tLObject, TLRPC.TL_error tL_error) {
         int size;
         if (tLObject instanceof TLRPC.TL_messages_dialogs) {
             size = ((TLRPC.TL_messages_dialogs) tLObject).dialogs.size();
@@ -2323,12 +2323,12 @@ public class ExportRequestsController {
                 outputSerializedData.writeInt32(700340377);
             }
         };
-        loadFile(this._otherDataProcess.file, new ApiWrap$FileOrigin(), new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda8
+        loadFile(this._otherDataProcess.file, new ApiWrap$FileOrigin(), new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
                 return Boolean.TRUE;
             }
-        }, new Utilities.Callback() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda9
+        }, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
                 ExportRequestsController.this.otherDataDone((String) obj);
@@ -2353,7 +2353,7 @@ public class ExportRequestsController {
     public void invokeFinish(boolean z, final Runnable runnable) {
         ExportRequests$FinishTakeoutSession exportRequests$FinishTakeoutSession = new ExportRequests$FinishTakeoutSession();
         exportRequests$FinishTakeoutSession.success = !z;
-        mainRequest(exportRequests$FinishTakeoutSession, new Utilities.Callback2() { // from class: com.exteragram.messenger.export.controllers.ExportRequestsController$$ExternalSyntheticLambda4
+        mainRequest(exportRequests$FinishTakeoutSession, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
                 ExportRequestsController.lambda$invokeFinish$51(runnable, (TLObject) obj, (TLRPC.TL_error) obj2);

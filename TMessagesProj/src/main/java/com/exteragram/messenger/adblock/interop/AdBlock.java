@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-/* JADX INFO: loaded from: classes.dex */
 public class AdBlock {
     private static final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private static volatile long enginePtr = 0;

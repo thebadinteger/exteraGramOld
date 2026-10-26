@@ -52,7 +52,6 @@ import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
 import org.telegram.ui.Components.chat.ViewPositionWatcher;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 
-/* JADX INFO: loaded from: classes4.dex */
 public class AppIconsActivity extends BaseFragment {
     private AppIcon appliedIcon;
     private int backgroundColor;
@@ -86,14 +85,14 @@ public class AppIconsActivity extends BaseFragment {
         AppIcon selectedIcon = AppIconController.getSelectedIcon();
         this.appliedIcon = selectedIcon;
         this.previewIcon = selectedIcon;
-        this.backgroundColor = toThemeTint(AppIconPreviewLoader.getAccent(selectedIcon));
+        this.backgroundColor = AppIconPreviewLoader.getAccentTint(selectedIcon);
         this.actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         this.actionBar.setAllowOverlayTitle(false);
         this.actionBar.setCastShadows(false);
         this.actionBar.setAddToContainer(false);
         this.actionBar.setItemsColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText), false);
         this.actionBar.setItemsBackgroundColor(getThemedColor(Theme.key_listSelector), false);
-        this.actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() { // from class: com.exteragram.messenger.appicons.ui.AppIconsActivity.1
+        this.actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override // org.telegram.ui.ActionBar.ActionBar.ActionBarMenuOnItemClick
             public void onItemClick(int i) {
                 if (i == -1) {
@@ -112,23 +111,23 @@ public class AppIconsActivity extends BaseFragment {
         ChatHeaderUiHelper.applyChatHeaderGlassStyle(this.actionBar, true);
         AppIconHeroView appIconHeroView = new AppIconHeroView(context, this);
         this.heroView = appIconHeroView;
-        appIconHeroView.setOnPreviewReady(new Runnable() { // from class: com.exteragram.messenger.appicons.ui.AppIconsActivity$$ExternalSyntheticLambda0
+        appIconHeroView.setOnPreviewReady(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                AppIconsActivity.this.applyAccent();
+                this.f$0.applyAccent();
             }
         });
         this.heroView.set(this.previewIcon);
         this.contentView.addView(this.heroView, LayoutHelper.createFrame(-1, -2, 48));
-        UniversalRecyclerView universalRecyclerView = new UniversalRecyclerView(this, new Utilities.Callback2() { // from class: com.exteragram.messenger.appicons.ui.AppIconsActivity$$ExternalSyntheticLambda1
+        UniversalRecyclerView universalRecyclerView = new UniversalRecyclerView(this, new Utilities.Callback2() {
             @Override // org.telegram.messenger.Utilities.Callback2
             public final void run(Object obj, Object obj2) {
-                AppIconsActivity.this.fillItems((ArrayList) obj, (UniversalAdapter) obj2);
+                this.f$0.fillItems((ArrayList) obj, (UniversalAdapter) obj2);
             }
-        }, new Utilities.Callback5() { // from class: com.exteragram.messenger.appicons.ui.AppIconsActivity$$ExternalSyntheticLambda2
+        }, new Utilities.Callback5() {
             @Override // org.telegram.messenger.Utilities.Callback5
             public final void run(Object obj, Object obj2, Object obj3, Object obj4, Object obj5) {
-                AppIconsActivity.this.onItemClick((UItem) obj, (View) obj2, ((Integer) obj3).intValue(), ((Float) obj4).floatValue(), ((Float) obj5).floatValue());
+                this.f$0.onItemClick((UItem) obj, (View) obj2, ((Integer) obj3).intValue(), ((Float) obj4).floatValue(), ((Float) obj5).floatValue());
             }
         }, null);
         this.listView = universalRecyclerView;
@@ -137,7 +136,7 @@ public class AppIconsActivity extends BaseFragment {
         this.listView.adapter.setApplyBackground(false);
         this.listView.setDrawSelection(false);
         this.listView.setClipToPadding(false);
-        this.listView.addOnScrollListener(new RecyclerView.OnScrollListener() { // from class: com.exteragram.messenger.appicons.ui.AppIconsActivity.2
+        this.listView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override // androidx.recyclerview.widget.RecyclerView.OnScrollListener
             public void onScrolled(RecyclerView recyclerView, int i, int i2) {
                 AppIconsActivity.this.updateCollapse(i2);
@@ -147,10 +146,10 @@ public class AppIconsActivity extends BaseFragment {
         ButtonWithCounterView buttonWithCounterView = new ButtonWithCounterView(context, true, getResourceProvider());
         this.button = buttonWithCounterView;
         buttonWithCounterView.setRound();
-        this.button.setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.appicons.ui.AppIconsActivity$$ExternalSyntheticLambda3
+        this.button.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                AppIconsActivity.this.lambda$createView$0(view);
+                this.f$0.lambda$createView$0(view);
             }
         });
         updateButton(false);
@@ -158,10 +157,10 @@ public class AppIconsActivity extends BaseFragment {
         this.buttonContainer = frameLayout;
         frameLayout.setBackground(UIUtil.createBottomFade(getThemedColor(Theme.key_windowBackgroundWhite)));
         this.buttonContainer.addView(this.button, LayoutHelper.createFrame(-1, 48.0f, 80, 16.0f, 12.0f, 16.0f, 12.0f));
-        this.buttonContainer.addOnLayoutChangeListener(new View.OnLayoutChangeListener() { // from class: com.exteragram.messenger.appicons.ui.AppIconsActivity$$ExternalSyntheticLambda4
+        this.buttonContainer.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override // android.view.View.OnLayoutChangeListener
             public final void onLayoutChange(View view, int i, int i2, int i3, int i4, int i5, int i6, int i7, int i8) {
-                AppIconsActivity.this.lambda$createView$1(view, i, i2, i3, i4, i5, i6, i7, i8);
+                this.f$0.lambda$createView$1(view, i, i2, i3, i4, i5, i6, i7, i8);
             }
         });
         this.contentView.addView(this.buttonContainer, LayoutHelper.createFrame(-1, -2, 80));
@@ -171,13 +170,11 @@ public class AppIconsActivity extends BaseFragment {
         return contentView;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$createView$0(View view) {
+    public void lambda$createView$0(View view) {
         onButtonClick();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$createView$1(View view, int i, int i2, int i3, int i4, int i5, int i6, int i7, int i8) {
+    public void lambda$createView$1(View view, int i, int i2, int i3, int i4, int i5, int i6, int i7, int i8) {
         updateListPadding();
     }
 
@@ -192,7 +189,6 @@ public class AppIconsActivity extends BaseFragment {
         super.onFragmentDestroy();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public int getPreviewSizeDp(int i) {
         int currentActionBarHeight;
         int iDp;
@@ -209,24 +205,20 @@ public class AppIconsActivity extends BaseFragment {
         return Math.max(64, Math.min(128, (int) (((currentActionBarHeight - iDp) - this.heroView.getTextBlockHeight()) / AndroidUtilities.density)));
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public static boolean isTwoPane(int i, int i2) {
         return i > i2 && i >= AndroidUtilities.dp(560.0f);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public static int paneWidthFor(int i) {
         return Math.max(AndroidUtilities.dp(280.0f), Math.min(AndroidUtilities.dp(400.0f), (int) (i * 0.42f)));
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public int getSpanCount(int i) {
         float fDp = i - (AndroidUtilities.dp(8.0f) * 2);
         int iMax = Math.max(3, Math.min(8, Math.round(fDp / AndroidUtilities.dp(100.0f))));
         return (iMax >= 8 || fDp / ((float) iMax) <= ((float) AndroidUtilities.dp(112.0f))) ? iMax : iMax + 1;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public int getGridWidth(int i, int i2) {
         int iPaneWidthFor;
         int i3;
@@ -240,7 +232,6 @@ public class AppIconsActivity extends BaseFragment {
         return iPaneWidthFor - i3;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void fillItems(ArrayList<UItem> arrayList, UniversalAdapter universalAdapter) {
         List<AppIcon> availableIcons = AppIconController.getAvailableIcons();
         AppIcon appIcon = this.previewIcon;
@@ -256,7 +247,6 @@ public class AppIconsActivity extends BaseFragment {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void onItemClick(UItem uItem, View view, int i, float f, float f2) {
         AppIcon appIcon;
         Object obj = uItem.object;
@@ -270,14 +260,13 @@ public class AppIconsActivity extends BaseFragment {
         this.listView.adapter.update(true);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void applyAccent() {
-        int accent;
+        int accentTint;
         AppIcon appIcon = this.previewIcon;
-        if (appIcon == null || (accent = AppIconPreviewLoader.getAccent(appIcon)) == 0) {
+        if (appIcon == null || (accentTint = AppIconPreviewLoader.getAccentTint(appIcon)) == 0) {
             return;
         }
-        animateBackgroundColor(toThemeTint(accent));
+        animateBackgroundColor(accentTint);
     }
 
     private void onButtonClick() {
@@ -321,13 +310,13 @@ public class AppIconsActivity extends BaseFragment {
             ValueAnimator duration = ValueAnimator.ofFloat(0.0f, 1.0f).setDuration(280L);
             this.colorAnimator = duration;
             duration.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
-            this.colorAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() { // from class: com.exteragram.messenger.appicons.ui.AppIconsActivity$$ExternalSyntheticLambda5
+            this.colorAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override // android.animation.ValueAnimator.AnimatorUpdateListener
                 public final void onAnimationUpdate(ValueAnimator valueAnimator2) {
-                    AppIconsActivity.this.lambda$animateBackgroundColor$2(i2, i, valueAnimator2);
+                    this.f$0.lambda$animateBackgroundColor$2(i2, i, valueAnimator2);
                 }
             });
-            this.colorAnimator.addListener(new AnimatorListenerAdapter() { // from class: com.exteragram.messenger.appicons.ui.AppIconsActivity.3
+            this.colorAnimator.addListener(new AnimatorListenerAdapter() {
                 @Override // android.animation.AnimatorListenerAdapter, android.animation.Animator.AnimatorListener
                 public void onAnimationEnd(Animator animator) {
                     AppIconsActivity.this.backgroundColor = i;
@@ -338,13 +327,11 @@ public class AppIconsActivity extends BaseFragment {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$animateBackgroundColor$2(int i, int i2, ValueAnimator valueAnimator) {
+    public void lambda$animateBackgroundColor$2(int i, int i2, ValueAnimator valueAnimator) {
         this.backgroundColor = ColorUtils.blendARGB(i, i2, ((Float) valueAnimator.getAnimatedValue()).floatValue());
         invalidateHeader();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void invalidateHeader() {
         this.contentView.invalidate();
         BlurredBackgroundSourceColor blurredBackgroundSourceColor = this.glassSource;
@@ -354,7 +341,6 @@ public class AppIconsActivity extends BaseFragment {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void updateStatusBar() {
         if (getParentActivity() != null) {
             AndroidUtilities.setLightStatusBar(getParentActivity().getWindow(), isLightStatusBar());
@@ -366,19 +352,6 @@ public class AppIconsActivity extends BaseFragment {
         return !AndroidUtilities.isDarkColor(getTopColor());
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public int toThemeTint(int i) {
-        if (i == 0) {
-            return 0;
-        }
-        float[] fArr = new float[3];
-        ColorUtils.colorToHSL(i, fArr);
-        fArr[1] = Math.min(fArr[1], 0.6f);
-        fArr[2] = Theme.isCurrentThemeDark() ? 0.22f : 0.86f;
-        return ColorUtils.HSLToColor(fArr);
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
     public int getBaseColor() {
         int themedColor = getThemedColor(Theme.key_windowBackgroundGray);
         int i = this.backgroundColor;
@@ -412,7 +385,6 @@ public class AppIconsActivity extends BaseFragment {
         updateListPadding();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void updateListPadding() {
         int iDp;
         int iDp2;
@@ -441,7 +413,6 @@ public class AppIconsActivity extends BaseFragment {
         updateCollapse(0);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public int getCollapseRange() {
         if (this.twoPane) {
             return 0;
@@ -449,7 +420,6 @@ public class AppIconsActivity extends BaseFragment {
         return Math.max(0, (this.heroHeight - ActionBar.getCurrentActionBarHeight()) - AndroidUtilities.statusBarHeight);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void updateCollapse(int i) {
         if (this.listView == null || this.heroView == null) {
             return;
@@ -529,7 +499,7 @@ public class AppIconsActivity extends BaseFragment {
             } else {
                 int iMakeMeasureSpec = View.MeasureSpec.makeMeasureSpec(AppIconsActivity.this.paneWidth - AppIconsActivity.this.leftInset, TLObject.FLAG_30);
                 int iMakeMeasureSpec2 = View.MeasureSpec.makeMeasureSpec(size2, Integer.MIN_VALUE);
-                AppIconsActivity.this.getActionBar().measure(iMakeMeasureSpec, iMakeMeasureSpec2);
+                ((BaseFragment) AppIconsActivity.this).actionBar.measure(iMakeMeasureSpec, iMakeMeasureSpec2);
                 AppIconsActivity.this.buttonContainer.measure(iMakeMeasureSpec, iMakeMeasureSpec2);
                 AppIconsActivity.this.heroView.measure(iMakeMeasureSpec, iMakeMeasureSpec2);
                 AppIconsActivity.this.listView.measure(View.MeasureSpec.makeMeasureSpec(size - AppIconsActivity.this.paneWidth, TLObject.FLAG_30), View.MeasureSpec.makeMeasureSpec(size2, TLObject.FLAG_30));
@@ -542,7 +512,7 @@ public class AppIconsActivity extends BaseFragment {
                 }
                 AppIconsActivity.this.heroHeight = measuredHeight;
                 final AppIconsActivity appIconsActivity5 = AppIconsActivity.this;
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.appicons.ui.AppIconsActivity$ContentView$$ExternalSyntheticLambda0
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
                         appIconsActivity5.updateListPadding();
@@ -554,9 +524,9 @@ public class AppIconsActivity extends BaseFragment {
         @Override // org.telegram.ui.ActionBar.Theme.Colorable
         public void updateColors() {
             AppIconsActivity appIconsActivity = AppIconsActivity.this;
-            appIconsActivity.backgroundColor = appIconsActivity.toThemeTint(AppIconPreviewLoader.getAccent(appIconsActivity.previewIcon));
-            AppIconsActivity.this.getActionBar().setItemsColor(AppIconsActivity.this.getThemedColor(Theme.key_windowBackgroundWhiteBlackText), false);
-            AppIconsActivity.this.getActionBar().setItemsBackgroundColor(AppIconsActivity.this.getThemedColor(Theme.key_listSelector), false);
+            appIconsActivity.backgroundColor = AppIconPreviewLoader.getAccentTint(appIconsActivity.previewIcon);
+            ((BaseFragment) AppIconsActivity.this).actionBar.setItemsColor(AppIconsActivity.this.getThemedColor(Theme.key_windowBackgroundWhiteBlackText), false);
+            ((BaseFragment) AppIconsActivity.this).actionBar.setItemsBackgroundColor(AppIconsActivity.this.getThemedColor(Theme.key_listSelector), false);
             if (AppIconsActivity.this.buttonFaded) {
                 AppIconsActivity.this.buttonContainer.setBackground(UIUtil.createBottomFade(AppIconsActivity.this.getThemedColor(Theme.key_windowBackgroundWhite)));
             }
@@ -567,7 +537,7 @@ public class AppIconsActivity extends BaseFragment {
         public void onLayout(boolean z, int i, int i2, int i3, int i4) {
             if (AppIconsActivity.this.twoPane) {
                 int i5 = i4 - i2;
-                AppIconsActivity.this.getActionBar().layout(AppIconsActivity.this.leftInset, 0, AppIconsActivity.this.leftInset + AppIconsActivity.this.getActionBar().getMeasuredWidth(), AppIconsActivity.this.getActionBar().getMeasuredHeight());
+                ((BaseFragment) AppIconsActivity.this).actionBar.layout(AppIconsActivity.this.leftInset, 0, AppIconsActivity.this.leftInset + ((BaseFragment) AppIconsActivity.this).actionBar.getMeasuredWidth(), ((BaseFragment) AppIconsActivity.this).actionBar.getMeasuredHeight());
                 AppIconsActivity.this.listView.layout(AppIconsActivity.this.paneWidth, 0, i3 - i, i5);
                 int measuredHeight = i5 - AppIconsActivity.this.buttonContainer.getMeasuredHeight();
                 AppIconsActivity.this.buttonContainer.layout(AppIconsActivity.this.leftInset, measuredHeight, AppIconsActivity.this.leftInset + AppIconsActivity.this.buttonContainer.getMeasuredWidth(), i5);

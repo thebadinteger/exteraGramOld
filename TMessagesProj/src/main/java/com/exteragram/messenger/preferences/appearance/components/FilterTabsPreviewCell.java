@@ -35,8 +35,8 @@ public class FilterTabsPreviewCell extends FrameLayout implements CustomPreferen
     private final FilterTabsView filterTabsView;
     private final Map<Integer, Integer> idsWithCounters;
 
-    @Override 
-    public boolean equals(Object obj) {
+    @Override // com.exteragram.messenger.preferences.components.CustomPreferenceCell
+    public boolean isSameCell(Object obj) {
         return this == obj;
     }
 
@@ -111,12 +111,16 @@ public class FilterTabsPreviewCell extends FrameLayout implements CustomPreferen
             if (ExteraConfig.getTabCounterMode() == TabCounterMode.HIDDEN) {
                 return 0;
             }
-            return ((Integer) FilterTabsPreviewCell.this.idsWithCounters.computeIfAbsent(Integer.valueOf(i), new Function() { 
+            return ((Integer) FilterTabsPreviewCell.this.idsWithCounters.computeIfAbsent(Integer.valueOf(i), new Function() {
                 @Override // java.util.function.Function
                 public final Object apply(Object obj) {
-                    return 0;
+                    return FilterTabsPreviewCell.AnonymousClass1.m2032$r8$lambda$LUTilU3rkOEUjmtXHG1chqCQuQ((Integer) obj);
                 }
             })).intValue();
+        }
+
+        public static Integer m2032$r8$lambda$LUTilU3rkOEUjmtXHG1chqCQuQ(Integer num) {
+            return 0;
         }
     }
 
@@ -197,7 +201,7 @@ public class FilterTabsPreviewCell extends FrameLayout implements CustomPreferen
         NotificationCenter.getInstance(UserConfig.selectedAccount).removeObserver(this, NotificationCenter.dialogFiltersUpdated);
     }
 
-    @Override 
+    @Override // org.telegram.messenger.NotificationCenter.NotificationCenterDelegate
     public void didReceivedNotification(int i, int i2, Object... objArr) {
         if (i == NotificationCenter.dialogFiltersUpdated) {
             updateTabs(true);

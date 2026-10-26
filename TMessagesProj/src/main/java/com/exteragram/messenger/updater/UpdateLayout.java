@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import com.exteragram.messenger.plugins.PluginsConstants;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.ImageLoader;
@@ -61,13 +62,13 @@ public class UpdateLayout extends IUpdateLayout {
         this.updateLayout.setTranslationY(AndroidUtilities.dp(44.0f));
         this.updateLayout.setBackground(Theme.getSelectorDrawable(1090519039, false));
         this.sideMenuContainer.addView(this.updateLayout, LayoutHelper.createFrame(-1, 44, 83));
-        this.updateLayout.setOnClickListener(new View.OnClickListener() { 
+        this.updateLayout.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
-                UpdateLayout.this.lambda$createUpdateUI$0(i, view);
+                this.f$0.lambda$createUpdateUI$0(i, view);
             }
         });
-        AnimatedTextView animatedTextView = new AnimatedTextView(this.activity, true, true, true) { 
+        AnimatedTextView animatedTextView = new AnimatedTextView(this.activity, true, true, true) {
             @Override // org.telegram.ui.Components.AnimatedTextView, android.view.View
             public void onDraw(Canvas canvas) {
                 UpdateLayout.this.updateSizeTextView.setBounds(0, 0, getMeasuredWidth() - AndroidUtilities.dp(20.0f), getMeasuredHeight());
@@ -109,10 +110,10 @@ public class UpdateLayout extends IUpdateLayout {
         this.updateSizeTextView.setTextColor(Theme.multAlpha(color, 0.75f));
     }
 
-    public /* synthetic */ void lambda$createUpdateUI$0(int i, View view) {
+    public void lambda$createUpdateUI$0(int i, View view) {
         if (SharedConfig.isAppUpdateAvailable()) {
             if (this.updateLayoutIcon.getIcon() == 2) {
-                FileLoader.getInstance(i).loadFile(SharedConfig.pendingAppUpdate.document, "update", 1, 1);
+                FileLoader.getInstance(i).loadFile(SharedConfig.pendingAppUpdate.document, PluginsConstants.UPDATE, 1, 1);
                 updateAppUpdateViews(i, true);
             } else if (this.updateLayoutIcon.getIcon() == 3) {
                 FileLoader.getInstance(i).cancelLoadFile(SharedConfig.pendingAppUpdate.document);
@@ -125,7 +126,7 @@ public class UpdateLayout extends IUpdateLayout {
 
     @Override // org.telegram.ui.IUpdateLayout
     public void updateAppUpdateViews(int i, boolean z) {
-        boolean z2 = false;
+        boolean z2;
         String fileSize;
         FrameLayout frameLayout;
         if (this.sideMenuContainer == null) {
@@ -200,7 +201,7 @@ public class UpdateLayout extends IUpdateLayout {
         this.updateLayout.setTag(null);
         FrameLayout frameLayout3 = this.updateLayout;
         if (z) {
-            frameLayout3.animate().translationY(AndroidUtilities.dp(44.0f)).setInterpolator(CubicBezierInterpolator.EASE_OUT).setListener(new AnimatorListenerAdapter() { 
+            frameLayout3.animate().translationY(AndroidUtilities.dp(44.0f)).setInterpolator(CubicBezierInterpolator.EASE_OUT).setListener(new AnimatorListenerAdapter() {
                 @Override // android.animation.AnimatorListenerAdapter, android.animation.Animator.AnimatorListener
                 public void onAnimationEnd(Animator animator) {
                     if (UpdateLayout.this.updateLayout.getTag() == null) {

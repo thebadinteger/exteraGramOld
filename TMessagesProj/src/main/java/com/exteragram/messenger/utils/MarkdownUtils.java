@@ -9,12 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import okhttp3.internal.url._UrlKt;
-import org.telegram.messenger.CodeHighlighting;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.MessageObject;
 import org.telegram.tgnet.tl.TL_iv;
+import org.telegram.utils.code.highlight.CodeHighlighting;
 
-/* JADX INFO: loaded from: classes4.dex */
 public abstract class MarkdownUtils {
     private static final String[] MARKDOWN_TEXT_EXTENSIONS = {"txt", "text"};
     private static final String[] MARKDOWN_MIME_PREFIXES = {"text/plain", "text/x-diff", "text/x-patch", "text/csv", "text/xml", "text/yaml", "text/x-yaml", "text/css", "text/javascript", "application/json", "application/ld+json", "application/json5", "application/xml", "application/yaml", "application/x-yaml", "application/javascript", "application/x-javascript", "application/x-sh"};
@@ -308,7 +307,6 @@ public abstract class MarkdownUtils {
         return strTrim.toLowerCase(Locale.ROOT);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public static TL_iv.RichText plain(String str) {
         TL_iv.textPlain textplain = new TL_iv.textPlain();
         if (str == null) {

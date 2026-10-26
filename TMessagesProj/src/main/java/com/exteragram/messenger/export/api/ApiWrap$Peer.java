@@ -39,6 +39,7 @@ public class ApiWrap$Peer {
             return apiWrap$Chat.title;
         }
         throw new IllegalStateException("both user and chat are null");
+        return null;
     }
 
     public int colorIndex() {
@@ -51,6 +52,7 @@ public class ApiWrap$Peer {
             return apiWrap$Chat.colorIndex;
         }
         throw new IllegalStateException("both user and chat are null");
+        return 0;
     }
 
     public long id() {
@@ -63,5 +65,6 @@ public class ApiWrap$Peer {
             return apiWrap$Chat.bareId;
         }
         throw new IllegalStateException("both user and chat are null");
+        return 0L;
     }
 }

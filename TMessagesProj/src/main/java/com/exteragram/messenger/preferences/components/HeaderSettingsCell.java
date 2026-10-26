@@ -14,12 +14,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.pm.PackageInfoCompat;
 import com.exteragram.messenger.preferences.utils.IconShapeHelper;
 import com.exteragram.messenger.utils.ui.MonetUtils;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BuildVars;
-import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.tgnet.TLObject;
@@ -45,7 +45,7 @@ public class HeaderSettingsCell extends LinearLayout implements CustomPreference
             drawableMutate = ContextCompat.getDrawable(context, R.drawable.ic_foreground_solid).mutate();
             drawableMutate.setColorFilter(new PorterDuffColorFilter(MonetUtils.getColor(activeTheme.isDark() ? "a1_200" : "a1_700"), PorterDuff.Mode.MULTIPLY));
         }
-        RLottieImageView rLottieImageView = new RLottieImageView(context) { 
+        RLottieImageView rLottieImageView = new RLottieImageView(context) {
             @Override // android.view.View
             public void draw(Canvas canvas) {
                 canvas.save();
@@ -82,7 +82,7 @@ public class HeaderSettingsCell extends LinearLayout implements CustomPreference
             StringBuilder sb = new StringBuilder(BuildVars.BUILD_VERSION_STRING);
             if (packageInfo != null) {
                 sb.append(" (");
-                sb.append(packageInfo.versionCode);
+                sb.append(PackageInfoCompat.getLongVersionCode(packageInfo));
                 sb.append(")");
             }
             textView2.setText(sb);
@@ -93,7 +93,8 @@ public class HeaderSettingsCell extends LinearLayout implements CustomPreference
             textView2.setPadding(0, 0, 0, 0);
             addView(textView2, LayoutHelper.createLinear(-2, -2, 49, 60, 2, 60, 28));
         } catch (PackageManager.NameNotFoundException e) {
-            FileLog.e(e);
+            throw new RuntimeException(e);
+            throw null;
         }
     }
 
@@ -111,8 +112,8 @@ public class HeaderSettingsCell extends LinearLayout implements CustomPreference
         super.invalidate();
     }
 
-    @Override 
-    public boolean equals(Object obj) {
+    @Override // com.exteragram.messenger.preferences.components.CustomPreferenceCell
+    public boolean isSameCell(Object obj) {
         if (this == obj) {
             return true;
         }

@@ -27,7 +27,7 @@ public class ChooseSubtitlesLayout {
         this.layout = actionBarPopupWindowLayout;
         actionBarPopupWindowLayout.setFitItems(true);
         ActionBarMenuSubItem actionBarMenuSubItemAddItem = ActionBarMenuItem.addItem(actionBarPopupWindowLayout, R.drawable.msg_arrow_back, LocaleController.getString(R.string.Back), false, null);
-        actionBarMenuSubItemAddItem.setOnClickListener(new View.OnClickListener() { 
+        actionBarMenuSubItemAddItem.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 popupSwipeBackLayout.closeForeground();
@@ -47,7 +47,7 @@ public class ChooseSubtitlesLayout {
         ActionBarMenuSubItem actionBarMenuSubItemAddItem2 = ActionBarMenuItem.addItem(actionBarPopupWindowLayout, R.drawable.msg_folders, LocaleController.getString(R.string.ChooseSubtitles), false, null);
         actionBarMenuSubItemAddItem2.setColors(-328966, -328966);
         actionBarMenuSubItemAddItem2.setSelectorColor(268435455);
-        actionBarMenuSubItemAddItem2.setOnClickListener(new View.OnClickListener() { 
+        actionBarMenuSubItemAddItem2.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 callback.onChooseSubtitles();
@@ -57,7 +57,7 @@ public class ChooseSubtitlesLayout {
         this.disableItem = actionBarMenuSubItemAddItem3;
         actionBarMenuSubItemAddItem3.setColors(-328966, -328966);
         actionBarMenuSubItemAddItem3.setSelectorColor(268435455);
-        actionBarMenuSubItemAddItem3.setOnClickListener(new View.OnClickListener() { 
+        actionBarMenuSubItemAddItem3.setOnClickListener(new View.OnClickListener() {
             @Override // android.view.View.OnClickListener
             public final void onClick(View view) {
                 callback.onDisableSubtitles();

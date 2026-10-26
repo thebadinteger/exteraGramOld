@@ -8,6 +8,8 @@
 
 package org.telegram.ui.ActionBar;
 
+import com.exteragram.messenger.security.SensitiveRequestConfirmation;
+
 import static org.telegram.messenger.AndroidUtilities.dp;
 
 import android.animation.Animator;
@@ -334,6 +336,7 @@ public class AlertDialog extends Dialog implements Drawable.Callback, Notificati
                 .start();
         }
         shownAt = System.currentTimeMillis();
+        SensitiveRequestConfirmation.onDialogShown(this);
     }
 
     public void setCancelDialog(boolean enable) {

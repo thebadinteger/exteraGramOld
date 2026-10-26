@@ -17,6 +17,7 @@ import android.opengl.GLUtils;
 import android.os.SystemClock;
 import android.view.Surface;
 import com.exteragram.messenger.utils.system.SystemUtils;
+import com.google.android.gms.cast.framework.media.NotificationOptions;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -171,15 +172,14 @@ public class RoundVideoEncoder {
         public final byte[][] data = new byte[10][];
         public final ByteBuffer[] buffer = new ByteBuffer[10];
         public final long[] startTimeNs = new long[10];
-        public final Runnable deliveryRunnable = new Runnable() { // from class: com.exteragram.messenger.camera.RoundVideoEncoder$AudioChunkBatch$$ExternalSyntheticLambda0
+        public final Runnable deliveryRunnable = new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                AudioChunkBatch.this.lambda$new$0();
+                this.f$0.lambda$new$0();
             }
         };
 
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$new$0() {
+        public void lambda$new$0() {
             RoundVideoEncoder.this.handleAudioBatch(this);
         }
 
@@ -199,16 +199,16 @@ public class RoundVideoEncoder {
         public Thread thread;
         public final AtomicBoolean stopRequested = new AtomicBoolean(false);
         public final Object recorderLock = new Object();
-        public final Runnable stopRunnable = new Runnable() { // from class: com.exteragram.messenger.camera.RoundVideoEncoder$AudioCaptureSession$$ExternalSyntheticLambda0
+        public final Runnable stopRunnable = new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                AudioCaptureSession.this.stopRecorder();
+                this.f$0.stopRecorder();
             }
         };
-        public final Runnable completionRunnable = new Runnable() { // from class: com.exteragram.messenger.camera.RoundVideoEncoder$AudioCaptureSession$$ExternalSyntheticLambda1
+        public final Runnable completionRunnable = new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                AudioCaptureSession.this.lambda$new$0();
+                this.f$0.lambda$new$0();
             }
         };
 
@@ -217,8 +217,7 @@ public class RoundVideoEncoder {
             this.generation = i;
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$new$0() {
+        public void lambda$new$0() {
             RoundVideoEncoder.this.handleAudioCaptureFinished(this);
         }
 
@@ -234,7 +233,6 @@ public class RoundVideoEncoder {
             FileLog.e("RoundVideoEncoder unable to schedule AudioRecord stop");
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
         public void stopRecorder() {
             synchronized (this.recorderLock) {
                 try {
@@ -278,10 +276,10 @@ public class RoundVideoEncoder {
 
     public void startRecording(final File file, final EGLContext eGLContext, final int i) {
         this.started = true;
-        this.encoderQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.camera.RoundVideoEncoder$$ExternalSyntheticLambda3
+        this.encoderQueue.postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                RoundVideoEncoder.this.lambda$startRecording$0(file, eGLContext, i);
+                this.f$0.lambda$startRecording$0(file, eGLContext, i);
             }
         });
     }
@@ -295,10 +293,10 @@ public class RoundVideoEncoder {
                         return;
                     }
                     this.pendingFrameSet = true;
-                    this.encoderQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.camera.RoundVideoEncoder$$ExternalSyntheticLambda4
+                    this.encoderQueue.postRunnable(new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
-                            RoundVideoEncoder.this.handleFrame();
+                            this.f$0.handleFrame();
                         }
                     });
                 } catch (Throwable th) {
@@ -310,10 +308,10 @@ public class RoundVideoEncoder {
 
     public void pause(final File file) {
         AudioCaptureSession activeAudioCapture = getActiveAudioCapture();
-        this.encoderQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.camera.RoundVideoEncoder$$ExternalSyntheticLambda1
+        this.encoderQueue.postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                RoundVideoEncoder.this.lambda$pause$1(file);
+                this.f$0.lambda$pause$1(file);
             }
         });
         requestAudioCaptureStop(activeAudioCapture);
@@ -322,41 +320,37 @@ public class RoundVideoEncoder {
     public void stop() {
         if (this.finishRequested.compareAndSet(false, true)) {
             AudioCaptureSession activeAudioCapture = getActiveAudioCapture();
-            this.encoderQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.camera.RoundVideoEncoder$$ExternalSyntheticLambda0
+            this.encoderQueue.postRunnable(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    RoundVideoEncoder.this.lambda$stop$2();
+                    this.f$0.lambda$stop$2();
                 }
             });
             requestAudioCaptureStop(activeAudioCapture);
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$stop$2() {
+    public void lambda$stop$2() {
         handleFinish(false);
     }
 
     public void cancel() {
         if (this.finishRequested.compareAndSet(false, true)) {
             AudioCaptureSession activeAudioCapture = getActiveAudioCapture();
-            this.encoderQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.camera.RoundVideoEncoder$$ExternalSyntheticLambda2
+            this.encoderQueue.postRunnable(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    RoundVideoEncoder.this.lambda$cancel$3();
+                    this.f$0.lambda$cancel$3();
                 }
             });
             requestAudioCaptureStop(activeAudioCapture);
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$cancel$3() {
+    public void lambda$cancel$3() {
         handleFinish(true);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    /* JADX INFO: renamed from: handleStart, reason: merged with bridge method [inline-methods] */
     public void lambda$startRecording$0(File file, EGLContext eGLContext, int i) {
         if (this.state == 4) {
             handleResume(eGLContext);
@@ -447,10 +441,10 @@ public class RoundVideoEncoder {
             createEncoderEgl(eGLContext);
             startAudioCapture();
             this.state = 2;
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.camera.RoundVideoEncoder$$ExternalSyntheticLambda7
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    RoundVideoEncoder.this.lambda$handleStart$4();
+                    this.f$0.lambda$handleStart$4();
                 }
             });
         } catch (Throwable th2) {
@@ -459,8 +453,7 @@ public class RoundVideoEncoder {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$handleStart$4() {
+    public void lambda$handleStart$4() {
         this.callback.onRecordingStarted(false);
     }
 
@@ -481,10 +474,10 @@ public class RoundVideoEncoder {
             createEncoderEgl(eGLContext);
             startAudioCapture();
             this.state = 2;
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.camera.RoundVideoEncoder$$ExternalSyntheticLambda12
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    RoundVideoEncoder.this.lambda$handleResume$5();
+                    this.f$0.lambda$handleResume$5();
                 }
             });
         } catch (Throwable th) {
@@ -493,13 +486,10 @@ public class RoundVideoEncoder {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$handleResume$5() {
+    public void lambda$handleResume$5() {
         this.callback.onRecordingStarted(true);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    /* JADX WARN: Code duplicated, block: B:30:0x0058  */
     public void handleFrame() {
         long j;
         synchronized (this.pendingFrameLock) {
@@ -617,7 +607,6 @@ public class RoundVideoEncoder {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void handleAudioBatch(AudioChunkBatch audioChunkBatch) {
         if (this.state == 2 || this.state == 3 || (this.state == 5 && this.waitingAudioTail)) {
             this.pendingAudio.add(audioChunkBatch);
@@ -637,7 +626,6 @@ public class RoundVideoEncoder {
         recycleAudioBatch(audioChunkBatch);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void handleAudioCaptureFinished(AudioCaptureSession audioCaptureSession) {
         if (audioCaptureSession.generation != this.audioCaptureGeneration) {
             return;
@@ -706,15 +694,11 @@ public class RoundVideoEncoder {
         }
     }
 
-    /* JADX WARN: Code duplicated, block: B:46:0x00c1  */
-    /* JADX WARN: Code duplicated, block: B:90:0x00bf A[SYNTHETIC] */
-    /* JADX WARN: Code duplicated, block: B:91:0x00d0 A[SYNTHETIC] */
-    /* JADX WARN: Code duplicated, block: B:93:0x00d3 A[SYNTHETIC] */
     private void feedPendingAudio() {
         long j;
         long j2;
-        boolean z = false;
-        boolean z2 = false;
+        boolean z;
+        boolean z2;
         if (this.audioEncoder == null || this.audioEosQueued || this.segmentVideoOriginNs == -1) {
             return;
         }
@@ -838,6 +822,9 @@ public class RoundVideoEncoder {
                     mediaCodec.queueInputBuffer(iDequeueInputBuffer, 0, 0, j6, 0);
                     return;
                 }
+                FileLog.e(e);
+                failIfActive();
+                return;
             } catch (Exception e2) {
                 FileLog.e(e2);
                 failIfActive();
@@ -866,8 +853,6 @@ public class RoundVideoEncoder {
         return false;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    /* JADX INFO: renamed from: handlePause, reason: merged with bridge method [inline-methods] */
     public void lambda$pause$1(File file) {
         if (this.state != 2) {
             return;
@@ -890,8 +875,8 @@ public class RoundVideoEncoder {
         try {
             long jElapsedRealtime = SystemClock.elapsedRealtime() + 500;
             while (SystemClock.elapsedRealtime() < jElapsedRealtime) {
-                drainVideoOnce(10000L);
-                drainAudioOnce(10000L);
+                drainVideoOnce(NotificationOptions.SKIP_STEP_TEN_SECONDS_IN_MS);
+                drainAudioOnce(NotificationOptions.SKIP_STEP_TEN_SECONDS_IN_MS);
                 feedPendingAudio();
                 if (!hasFeedablePendingAudio() && hasReachedPauseTargets()) {
                     break;
@@ -930,10 +915,10 @@ public class RoundVideoEncoder {
                 this.pendingResumeContext = null;
                 handleResume(eGLContext);
             } else {
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.camera.RoundVideoEncoder$$ExternalSyntheticLambda5
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
-                        RoundVideoEncoder.this.lambda$finishPause$6(file);
+                        this.f$0.lambda$finishPause$6(file);
                     }
                 });
             }
@@ -943,8 +928,7 @@ public class RoundVideoEncoder {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$finishPause$6(File file) {
+    public void lambda$finishPause$6(File file) {
         this.callback.onPaused(file);
     }
 
@@ -963,10 +947,10 @@ public class RoundVideoEncoder {
             this.state = 6;
             scheduleQueueRecycle();
             final FinishReason finishReason = z ? FinishReason.CANCELLED : FinishReason.COMPLETED;
-            AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.camera.RoundVideoEncoder$$ExternalSyntheticLambda8
+            AndroidUtilities.runOnUIThread(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    RoundVideoEncoder.this.lambda$handleFinish$7(finishReason);
+                    this.f$0.lambda$handleFinish$7(finishReason);
                 }
             });
             return;
@@ -1000,8 +984,7 @@ public class RoundVideoEncoder {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$handleFinish$7(FinishReason finishReason) {
+    public void lambda$handleFinish$7(FinishReason finishReason) {
         this.callback.onFinished(finishReason);
     }
 
@@ -1068,16 +1051,15 @@ public class RoundVideoEncoder {
         this.state = zDrainToEndOfStream ? 6 : 7;
         scheduleQueueRecycle();
         final FinishReason finishReason = zDrainToEndOfStream ? FinishReason.COMPLETED : FinishReason.FAILED;
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.camera.RoundVideoEncoder$$ExternalSyntheticLambda9
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                RoundVideoEncoder.this.lambda$finalizeStop$8(finishReason);
+                this.f$0.lambda$finalizeStop$8(finishReason);
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$finalizeStop$8(FinishReason finishReason) {
+    public void lambda$finalizeStop$8(FinishReason finishReason) {
         this.callback.onFinished(finishReason);
     }
 
@@ -1110,16 +1092,15 @@ public class RoundVideoEncoder {
         }
         this.state = 6;
         scheduleQueueRecycle();
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.camera.RoundVideoEncoder$$ExternalSyntheticLambda11
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                RoundVideoEncoder.this.lambda$finalizeCancel$9();
+                this.f$0.lambda$finalizeCancel$9();
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$finalizeCancel$9() {
+    public void lambda$finalizeCancel$9() {
         this.callback.onFinished(FinishReason.CANCELLED);
     }
 
@@ -1165,16 +1146,15 @@ public class RoundVideoEncoder {
         }
         this.state = 7;
         scheduleQueueRecycle();
-        AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.camera.RoundVideoEncoder$$ExternalSyntheticLambda6
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                RoundVideoEncoder.this.lambda$finalizeFailure$10();
+                this.f$0.lambda$finalizeFailure$10();
             }
         });
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$finalizeFailure$10() {
+    public void lambda$finalizeFailure$10() {
         this.callback.onFinished(FinishReason.FAILED);
     }
 
@@ -1189,7 +1169,7 @@ public class RoundVideoEncoder {
     private void scheduleQueueRecycle() {
         final DispatchQueue dispatchQueue = this.encoderQueue;
         Objects.requireNonNull(dispatchQueue);
-        dispatchQueue.postRunnable(new Runnable() { // from class: com.exteragram.messenger.camera.RoundVideoEncoder$$ExternalSyntheticLambda10
+        dispatchQueue.postRunnable(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 dispatchQueue.recycle();
@@ -1232,10 +1212,10 @@ public class RoundVideoEncoder {
             }
             try {
                 if (!this.videoEosSeen) {
-                    drainVideoOnce(10000L);
+                    drainVideoOnce(NotificationOptions.SKIP_STEP_TEN_SECONDS_IN_MS);
                 }
                 if (!this.audioEosSeen) {
-                    drainAudioOnce(10000L);
+                    drainAudioOnce(NotificationOptions.SKIP_STEP_TEN_SECONDS_IN_MS);
                 }
             } catch (Exception e) {
                 FileLog.e(e);
@@ -1249,7 +1229,7 @@ public class RoundVideoEncoder {
 
     private void queueAudioEndOfStream() {
         try {
-            int iDequeueInputBuffer = this.audioEncoder.dequeueInputBuffer(10000L);
+            int iDequeueInputBuffer = this.audioEncoder.dequeueInputBuffer(NotificationOptions.SKIP_STEP_TEN_SECONDS_IN_MS);
             if (iDequeueInputBuffer >= 0) {
                 this.audioEncoder.queueInputBuffer(iDequeueInputBuffer, 0, 0, this.audioTotalEndUs, 4);
                 this.audioEosQueued = true;
@@ -1367,9 +1347,7 @@ public class RoundVideoEncoder {
             return false;
         } catch (Throwable th) {
             this.videoEncoder.releaseOutputBuffer(iDequeueOutputBuffer, false);
-            if (th instanceof RuntimeException) throw (RuntimeException) th;
-            if (th instanceof Error) throw (Error) th;
-            throw new RuntimeException(th);
+            throw th;
         }
     }
 
@@ -1420,29 +1398,31 @@ public class RoundVideoEncoder {
             return false;
         } catch (Throwable th) {
             this.audioEncoder.releaseOutputBuffer(iDequeueOutputBuffer, false);
-            if (th instanceof RuntimeException) throw (RuntimeException) th;
-            if (th instanceof Error) throw (Error) th;
-            throw new RuntimeException(th);
+            throw th;
         }
     }
 
     private void createEncoderEgl(EGLContext eGLContext) {
         if (this.eglDisplay != EGL14.EGL_NO_DISPLAY) {
             throw new RuntimeException("EGL already set up");
+            return;
         }
         EGLDisplay eGLDisplayEglGetDisplay = EGL14.eglGetDisplay(0);
         this.eglDisplay = eGLDisplayEglGetDisplay;
         if (eGLDisplayEglGetDisplay == EGL14.EGL_NO_DISPLAY) {
             throw new RuntimeException("unable to get EGL14 display");
+            return;
         }
         int[] iArr = new int[2];
         if (!EGL14.eglInitialize(eGLDisplayEglGetDisplay, iArr, 0, iArr, 1)) {
             this.eglDisplay = EGL14.EGL_NO_DISPLAY;
             throw new RuntimeException("unable to initialize EGL14");
+            return;
         }
         EGLConfig[] eGLConfigArr = new EGLConfig[1];
         if (!EGL14.eglChooseConfig(this.eglDisplay, new int[]{12324, 8, 12323, 8, 12322, 8, 12321, 8, 12352, 4, EglBase.EGL_RECORDABLE_ANDROID, 1, 12344}, 0, eGLConfigArr, 0, 1, new int[1], 0)) {
             throw new RuntimeException("Unable to find a suitable EGLConfig");
+            return;
         }
         EGLConfig eGLConfig = eGLConfigArr[0];
         this.eglConfig = eGLConfig;
@@ -1451,6 +1431,7 @@ public class RoundVideoEncoder {
         if (eGLContextEglCreateContext == null || eGLContextEglCreateContext == EGL14.EGL_NO_CONTEXT) {
             this.eglContext = EGL14.EGL_NO_CONTEXT;
             throw new RuntimeException("eglCreateContext failed " + GLUtils.getEGLErrorString(EGL14.eglGetError()));
+            return;
         }
         EGLSurface eGLSurfaceEglCreateWindowSurface = EGL14.eglCreateWindowSurface(this.eglDisplay, this.eglConfig, this.inputSurface, new int[]{12344}, 0);
         this.eglSurface = eGLSurfaceEglCreateWindowSurface;
@@ -1460,6 +1441,7 @@ public class RoundVideoEncoder {
         } else {
             if (!EGL14.eglMakeCurrent(this.eglDisplay, eGLSurfaceEglCreateWindowSurface, eGLSurfaceEglCreateWindowSurface, this.eglContext)) {
                 throw new RuntimeException("eglMakeCurrent failed " + GLUtils.getEGLErrorString(EGL14.eglGetError()));
+                return;
             }
             try {
                 this.renderer.onEncoderSurfaceCreated(this.videoWidth, this.videoHeight);
@@ -1584,7 +1566,6 @@ public class RoundVideoEncoder {
         this.audioBatchesPrepared = true;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public AudioChunkBatch obtainAudioBatch() throws InterruptedException {
         AudioChunkBatch audioChunkBatchPoll = this.audioBatchPool.poll(250L, TimeUnit.MILLISECONDS);
         if (audioChunkBatchPoll == null) {
@@ -1595,7 +1576,6 @@ public class RoundVideoEncoder {
         return audioChunkBatchPoll;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void recycleAudioBatch(AudioChunkBatch audioChunkBatch) {
         if (this.audioBatchPool.offer(audioChunkBatch)) {
             return;
@@ -1652,8 +1632,8 @@ public class RoundVideoEncoder {
                 throw th;
             }
         } catch (Throwable th3) {
+            th = th3;
             audioCaptureSession = null;
-            throw th3;
         }
     }
 
@@ -1691,7 +1671,6 @@ public class RoundVideoEncoder {
         return thread == null || !thread.isAlive();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void stopAudioRecorder(AudioRecord audioRecord) {
         try {
             if (audioRecord.getRecordingState() != 1) {
@@ -1702,7 +1681,6 @@ public class RoundVideoEncoder {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void releaseAudioRecorder(AudioRecord audioRecord) {
         stopAudioRecorder(audioRecord);
         try {
@@ -1720,8 +1698,6 @@ public class RoundVideoEncoder {
             this.session = audioCaptureSession;
         }
 
-        /* JADX WARN: Code duplicated, block: B:106:0x01b2 A[Catch: all -> 0x01b8, TryCatch #1 {all -> 0x01b8, blocks: (B:104:0x01a8, B:106:0x01b2, B:109:0x01ba), top: B:120:0x01a8 }] */
-        /* JADX WARN: Code duplicated, block: B:120:0x01a8 A[EXC_TOP_SPLITTER, SYNTHETIC] */
         @Override // java.lang.Runnable
         public void run() {
             int i;
@@ -1882,7 +1858,6 @@ public class RoundVideoEncoder {
         }
     }
 
-    /* JADX WARN: Code duplicated, block: B:45:? A[RETURN, SYNTHETIC] */
     private void setBluetoothScoOn(boolean z) {
         AudioManager audioManager = (AudioManager) ApplicationLoader.applicationContext.getSystemService(MediaStreamTrack.AUDIO_TRACK_KIND);
         if (SharedConfig.recordViaSco && !PermissionRequest.hasPermission("android.permission.BLUETOOTH_CONNECT")) {

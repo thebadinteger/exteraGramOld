@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.json.JSONObject;
 import org.telegram.messenger.Utilities;
 
-/* JADX INFO: loaded from: classes4.dex */
 public class WebAdBlocker {
     private volatile boolean allowBlockedPage;
     private final AtomicInteger blockedCount = new AtomicInteger();

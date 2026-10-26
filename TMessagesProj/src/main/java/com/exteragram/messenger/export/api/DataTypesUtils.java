@@ -27,6 +27,7 @@ import org.telegram.messenger.Utilities;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.Vector;
 import org.telegram.tgnet.tl.TL_account;
+import org.telegram.tgnet.tl.TL_keyboard;
 import org.telegram.tgnet.tl.TL_stories;
 import org.webrtc.MediaStreamTrack;
 
@@ -842,11 +843,12 @@ public abstract class DataTypesUtils {
             return new ApiWrap$Peer(EmptyChat(j3));
         }
         throw new IllegalArgumentException("PeerId in EmptyPeer: " + ExteraConfig.getGSON().toJson(peer));
+        return null;
     }
 
     public static HashMap<Long, ApiWrap$Peer> ParsePeersLists(ArrayList<TLRPC.User> arrayList, ArrayList<TLRPC.Chat> arrayList2) {
         ApiWrap$Peer apiWrap$Peer;
-        LinkedHashMap<Long, ApiWrap$Peer> linkedHashMap = new LinkedHashMap<>();
+        LinkedHashMap linkedHashMap = new LinkedHashMap();
         int size = arrayList.size();
         int i = 0;
         int i2 = 0;
@@ -1034,12 +1036,13 @@ public abstract class DataTypesUtils {
     public static String ComputeDocumentName(ApiWrap$ParseMediaContext apiWrap$ParseMediaContext, final TLRPC.Document document, int i, String str) {
         if (document == null) {
             throw new IllegalArgumentException("trying to pass null document!!!");
+            return null;
         }
         if (str != null && !str.isEmpty()) {
             return str;
         }
         String extensionFromMime = getExtensionFromMime(document.mime_type, document);
-        new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.export.api.DataTypesUtils$$ExternalSyntheticLambda2
+        new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
                 return Boolean.valueOf(!document.mime_type.equalsIgnoreCase((String) obj));
@@ -1052,7 +1055,7 @@ public abstract class DataTypesUtils {
             apiWrap$ParseMediaContext.audios = i2;
             sb.append(i2);
             sb.append(PrepareFileNameDatePart(i));
-            sb.append(zEqualsIgnoreCase ? ".mp3" : ".ogg");
+            sb.append(!zEqualsIgnoreCase ? ".mp3" : ".ogg");
             return sb.toString();
         }
         if (MessageObject.isVideoDocument(document)) {
@@ -1225,7 +1228,7 @@ public abstract class DataTypesUtils {
     }
 
     public static int ApplicationColorIndex(int i) {
-        Integer num = new HashMap<Integer, Integer>() { // from class: com.exteragram.messenger.export.api.DataTypesUtils.1
+        Integer num = new HashMap<Integer, Integer>() {
             {
                 put(1, 0);
                 put(7, 0);
@@ -1335,7 +1338,7 @@ public abstract class DataTypesUtils {
     }
 
     public static String FormatText(ArrayList<ApiWrap$TextPart> arrayList, final String str, final String str2) {
-        return (String) arrayList.stream().map(new Function() { // from class: com.exteragram.messenger.export.api.DataTypesUtils$$ExternalSyntheticLambda1
+        return (String) arrayList.stream().map(new Function() {
             @Override // java.util.function.Function
             public final Object apply(Object obj) {
                 return DataTypesUtils.$r8$lambda$YnixTTMCGZSy3zr12T7r1r9bYeo(str, str2, (ApiWrap$TextPart) obj);
@@ -1343,11 +1346,10 @@ public abstract class DataTypesUtils {
         }).collect(Collectors.joining());
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.export.api.DataTypesUtils$2, reason: invalid class name */
-    public static /* synthetic */ class AnonymousClass2 {
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$DialogInfo$Type;
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$File$SkipReason;
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$TextPart$Type;
+    public static class AnonymousClass2 {
+        static final int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$DialogInfo$Type;
+        static final int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$File$SkipReason;
+        static final int[] $SwitchMap$com$exteragram$messenger$export$api$ApiWrap$TextPart$Type;
 
         static {
             int[] iArr = new int[ApiWrap$TextPart.Type.values().length];
@@ -1503,7 +1505,7 @@ public abstract class DataTypesUtils {
         }
     }
 
-    public static /* synthetic */ String $r8$lambda$YnixTTMCGZSy3zr12T7r1r9bYeo(String str, String str2, ApiWrap$TextPart apiWrap$TextPart) {
+    public static String $r8$lambda$YnixTTMCGZSy3zr12T7r1r9bYeo(String str, String str2, ApiWrap$TextPart apiWrap$TextPart) {
         String strSerializeString = HtmlContext.SerializeString(apiWrap$TextPart.text);
         switch (AnonymousClass2.$SwitchMap$com$exteragram$messenger$export$api$ApiWrap$TextPart$Type[apiWrap$TextPart.type.ordinal()]) {
             case 1:
@@ -1618,7 +1620,8 @@ public abstract class DataTypesUtils {
                 apiWrap$Document.spoilered = tL_messageMediaDocument.spoiler;
                 apiWrap$Media.content = apiWrap$Document;
             } else {
-                apiWrap$Media.content = new ApiWrap$UnsupportedMedia();
+                apiWrap$Media.content = new Object() {
+                };
             }
             if (!(apiWrap$Media.content instanceof ApiWrap$UnsupportedMedia)) {
                 ApiWrap$Story apiWrap$Story = new ApiWrap$Story();
@@ -1640,7 +1643,7 @@ public abstract class DataTypesUtils {
         ApiWrap$HistoryMessageMarkupButton.Type type;
         ApiWrap$HistoryMessageMarkupButton.Type type2;
         byte[] bArr;
-        ArrayList<TLRPC.TL_keyboardButtonRow> arrayList = tL_replyKeyboardMarkup.rows;
+        ArrayList<TL_keyboard.KeyboardButtonRow> arrayList = tL_replyKeyboardMarkup.rows;
         if (arrayList.isEmpty()) {
             return new ArrayList<>();
         }
@@ -1649,73 +1652,68 @@ public abstract class DataTypesUtils {
         int size = arrayList.size();
         int i = 0;
         while (i < size) {
-            TLRPC.TL_keyboardButtonRow tL_keyboardButtonRow = arrayList.get(i);
+            TL_keyboard.KeyboardButtonRow keyboardButtonRow = arrayList.get(i);
             i++;
-            TLRPC.TL_keyboardButtonRow tL_keyboardButtonRow2 = tL_keyboardButtonRow;
+            TL_keyboard.KeyboardButtonRow keyboardButtonRow2 = keyboardButtonRow;
             ArrayList<ApiWrap$HistoryMessageMarkupButton> arrayList3 = new ArrayList<>();
-            arrayList3.ensureCapacity(tL_keyboardButtonRow2.buttons.size());
-            ArrayList<TLRPC.KeyboardButton> arrayList4 = tL_keyboardButtonRow2.buttons;
+            arrayList3.ensureCapacity(keyboardButtonRow2.buttons.size());
+            ArrayList<TL_keyboard.KeyboardButton> arrayList4 = keyboardButtonRow2.buttons;
             int size2 = arrayList4.size();
             int i2 = 0;
             while (i2 < size2) {
-                TLRPC.KeyboardButton keyboardButton = arrayList4.get(i2);
+                TL_keyboard.KeyboardButton keyboardButton = arrayList4.get(i2);
                 i2++;
-                TLRPC.KeyboardButton keyboardButton2 = keyboardButton;
-                if (keyboardButton2 instanceof TLRPC.TL_keyboardButton) {
-                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.Default, ((TLRPC.TL_keyboardButton) keyboardButton2).text));
-                } else if (keyboardButton2 instanceof TLRPC.TL_keyboardButtonCallback) {
-                    TLRPC.TL_keyboardButtonCallback tL_keyboardButtonCallback = (TLRPC.TL_keyboardButtonCallback) keyboardButton2;
-                    if (tL_keyboardButtonCallback.requires_password) {
+                TL_keyboard.KeyboardButton keyboardButton2 = keyboardButton;
+                String str = keyboardButton2.text;
+                TL_keyboard.ButtonTypeProto type3 = keyboardButton2.getType();
+                if (type3 instanceof TL_keyboard.TL_buttonTypeDefault) {
+                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.Default, str));
+                } else if (type3 instanceof TL_keyboard.TL_inlineButtonTypeCallback) {
+                    TL_keyboard.TL_inlineButtonTypeCallback tL_inlineButtonTypeCallback = (TL_keyboard.TL_inlineButtonTypeCallback) type3;
+                    if (tL_inlineButtonTypeCallback.requires_password) {
                         type = ApiWrap$HistoryMessageMarkupButton.Type.CallbackWithPassword;
                     } else {
                         type = ApiWrap$HistoryMessageMarkupButton.Type.Callback;
                     }
-                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(type, tL_keyboardButtonCallback.text, tL_keyboardButtonCallback.data));
-                } else if (keyboardButton2 instanceof TLRPC.TL_keyboardButtonRequestGeoLocation) {
-                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.RequestLocation, ((TLRPC.TL_keyboardButtonRequestGeoLocation) keyboardButton2).text));
-                } else if (keyboardButton2 instanceof TLRPC.TL_keyboardButtonRequestPhone) {
-                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.RequestPhone, ((TLRPC.TL_keyboardButtonRequestPhone) keyboardButton2).text));
-                } else if (keyboardButton2 instanceof TLRPC.TL_keyboardButtonRequestPeer) {
-                    TLRPC.TL_keyboardButtonRequestPeer tL_keyboardButtonRequestPeer = (TLRPC.TL_keyboardButtonRequestPeer) keyboardButton2;
-                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.RequestPeer, tL_keyboardButtonRequestPeer.text, "unsupported".getBytes(StandardCharsets.UTF_8), _UrlKt.FRAGMENT_ENCODE_SET, tL_keyboardButtonRequestPeer.button_id));
-                } else if (keyboardButton2 instanceof TLRPC.TL_keyboardButtonUrl) {
-                    TLRPC.TL_keyboardButtonUrl tL_keyboardButtonUrl = (TLRPC.TL_keyboardButtonUrl) keyboardButton2;
-                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.Url, tL_keyboardButtonUrl.text, tL_keyboardButtonUrl.url.getBytes(StandardCharsets.UTF_8)));
-                } else if (keyboardButton2 instanceof TLRPC.TL_keyboardButtonSwitchInline) {
-                    TLRPC.TL_keyboardButtonSwitchInline tL_keyboardButtonSwitchInline = (TLRPC.TL_keyboardButtonSwitchInline) keyboardButton2;
-                    if (tL_keyboardButtonSwitchInline.same_peer) {
+                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(type, str, tL_inlineButtonTypeCallback.data));
+                } else if (type3 instanceof TL_keyboard.TL_buttonTypeRequestGeoLocation) {
+                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.RequestLocation, str));
+                } else if (type3 instanceof TL_keyboard.TL_buttonTypeRequestPhone) {
+                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.RequestPhone, str));
+                } else if (type3 instanceof TL_keyboard.TL_buttonTypeRequestPeer) {
+                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.RequestPeer, str, "unsupported".getBytes(StandardCharsets.UTF_8), _UrlKt.FRAGMENT_ENCODE_SET, ((TL_keyboard.TL_buttonTypeRequestPeer) type3).button_id));
+                } else if (type3 instanceof TL_keyboard.TL_inlineButtonTypeUrl) {
+                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.Url, str, ((TL_keyboard.TL_inlineButtonTypeUrl) type3).url.getBytes(StandardCharsets.UTF_8)));
+                } else if (type3 instanceof TL_keyboard.TL_inlineButtonTypeSwitchInline) {
+                    TL_keyboard.TL_inlineButtonTypeSwitchInline tL_inlineButtonTypeSwitchInline = (TL_keyboard.TL_inlineButtonTypeSwitchInline) type3;
+                    if (tL_inlineButtonTypeSwitchInline.same_peer) {
                         type2 = ApiWrap$HistoryMessageMarkupButton.Type.SwitchInlineSame;
                     } else {
                         type2 = ApiWrap$HistoryMessageMarkupButton.Type.SwitchInline;
                     }
-                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(type2, tL_keyboardButtonSwitchInline.text, tL_keyboardButtonSwitchInline.query.getBytes(StandardCharsets.UTF_8)));
-                } else if (keyboardButton2 instanceof TLRPC.TL_keyboardButtonGame) {
-                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.Game, ((TLRPC.TL_keyboardButtonGame) keyboardButton2).text));
-                } else if (keyboardButton2 instanceof TLRPC.TL_keyboardButtonBuy) {
-                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.Buy, ((TLRPC.TL_keyboardButtonBuy) keyboardButton2).text));
-                } else if (keyboardButton2 instanceof TLRPC.TL_keyboardButtonUrlAuth) {
-                    TLRPC.TL_keyboardButtonUrlAuth tL_keyboardButtonUrlAuth = (TLRPC.TL_keyboardButtonUrlAuth) keyboardButton2;
-                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.Auth, tL_keyboardButtonUrlAuth.text, tL_keyboardButtonUrlAuth.url.getBytes(StandardCharsets.UTF_8), tL_keyboardButtonUrlAuth.fwd_text, tL_keyboardButtonUrlAuth.button_id));
-                } else if (keyboardButton2 instanceof TLRPC.TL_keyboardButtonRequestPoll) {
-                    TLRPC.TL_keyboardButtonRequestPoll tL_keyboardButtonRequestPoll = (TLRPC.TL_keyboardButtonRequestPoll) keyboardButton2;
-                    if (tL_keyboardButtonRequestPoll.quiz) {
+                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(type2, str, tL_inlineButtonTypeSwitchInline.query.getBytes(StandardCharsets.UTF_8)));
+                } else if (type3 instanceof TL_keyboard.TL_inlineButtonTypeGame) {
+                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.Game, str));
+                } else if (type3 instanceof TL_keyboard.TL_inlineButtonTypeBuy) {
+                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.Buy, str));
+                } else if (type3 instanceof TL_keyboard.TL_inlineButtonTypeUrlAuth) {
+                    TL_keyboard.TL_inlineButtonTypeUrlAuth tL_inlineButtonTypeUrlAuth = (TL_keyboard.TL_inlineButtonTypeUrlAuth) type3;
+                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.Auth, str, tL_inlineButtonTypeUrlAuth.url.getBytes(StandardCharsets.UTF_8), tL_inlineButtonTypeUrlAuth.fwd_text, tL_inlineButtonTypeUrlAuth.button_id));
+                } else if (type3 instanceof TL_keyboard.TL_buttonTypeRequestPoll) {
+                    if (((TL_keyboard.TL_buttonTypeRequestPoll) type3).quiz) {
                         bArr = new byte[1];
                     } else {
                         bArr = new byte[0];
                     }
-                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.RequestPoll, tL_keyboardButtonRequestPoll.text, bArr));
-                } else if (keyboardButton2 instanceof TLRPC.TL_keyboardButtonUserProfile) {
-                    TLRPC.TL_keyboardButtonUserProfile tL_keyboardButtonUserProfile = (TLRPC.TL_keyboardButtonUserProfile) keyboardButton2;
-                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.UserProfile, tL_keyboardButtonUserProfile.text, String.valueOf(tL_keyboardButtonUserProfile.user_id).getBytes(StandardCharsets.UTF_8)));
-                } else if (keyboardButton2 instanceof TLRPC.TL_keyboardButtonWebView) {
-                    TLRPC.TL_keyboardButtonWebView tL_keyboardButtonWebView = (TLRPC.TL_keyboardButtonWebView) keyboardButton2;
-                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.WebView, tL_keyboardButtonWebView.text, tL_keyboardButtonWebView.url.getBytes(StandardCharsets.UTF_8)));
-                } else if (keyboardButton2 instanceof TLRPC.TL_keyboardButtonSimpleWebView) {
-                    TLRPC.TL_keyboardButtonSimpleWebView tL_keyboardButtonSimpleWebView = (TLRPC.TL_keyboardButtonSimpleWebView) keyboardButton2;
-                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.SimpleWebView, tL_keyboardButtonSimpleWebView.text, tL_keyboardButtonSimpleWebView.url.getBytes(StandardCharsets.UTF_8)));
-                } else if (keyboardButton2 instanceof TLRPC.TL_keyboardButtonCopy) {
-                    TLRPC.TL_keyboardButtonCopy tL_keyboardButtonCopy = (TLRPC.TL_keyboardButtonCopy) keyboardButton2;
-                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.CopyText, tL_keyboardButtonCopy.text, tL_keyboardButtonCopy.copy_text.getBytes(StandardCharsets.UTF_8)));
+                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.RequestPoll, str, bArr));
+                } else if (type3 instanceof TL_keyboard.TL_inlineButtonTypeUserProfile) {
+                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.UserProfile, str, String.valueOf(((TL_keyboard.TL_inlineButtonTypeUserProfile) type3).user_id).getBytes(StandardCharsets.UTF_8)));
+                } else if (type3 instanceof TL_keyboard.TL_inlineButtonTypeWebView) {
+                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.WebView, str, ((TL_keyboard.TL_inlineButtonTypeWebView) type3).url.getBytes(StandardCharsets.UTF_8)));
+                } else if (type3 instanceof TL_keyboard.TL_buttonTypeSimpleWebView) {
+                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.SimpleWebView, str, ((TL_keyboard.TL_buttonTypeSimpleWebView) type3).url.getBytes(StandardCharsets.UTF_8)));
+                } else if (type3 instanceof TL_keyboard.TL_inlineButtonTypeCopy) {
+                    arrayList3.add(new ApiWrap$HistoryMessageMarkupButton(ApiWrap$HistoryMessageMarkupButton.Type.CopyText, str, ((TL_keyboard.TL_inlineButtonTypeCopy) type3).copy_text.getBytes(StandardCharsets.UTF_8)));
                 }
             }
             if (!arrayList3.isEmpty()) {
@@ -1865,7 +1863,8 @@ public abstract class DataTypesUtils {
             return str.concat("takeout");
         }
         FileLog.e("wtf! File location type in Export::ComputeLocationKey. " + apiWrap$FileLocation);
-        return str;
+        throw new IllegalStateException("wtf! File location type in ComputeLocationKey." + apiWrap$FileLocation);
+        return null;
     }
 
     public static boolean DisplayDate(int i, int i2) {
@@ -1906,12 +1905,13 @@ public abstract class DataTypesUtils {
             return _UrlKt.FRAGMENT_ENCODE_SET;
         }
         throw new RuntimeException("Skip reason in NoFileDescription.");
+        return null;
     }
 
     public static ApiWrap$ContactsList ParseContactsList(Vector<ExportRequests$SavedContact> vector) {
         ApiWrap$ContactsList apiWrap$ContactsList = new ApiWrap$ContactsList();
         apiWrap$ContactsList.list.ensureCapacity(vector.objects.size());
-        ArrayList<ExportRequests$SavedContact> arrayList = vector.objects;
+        ArrayList<T> arrayList = vector.objects;
         int size = arrayList.size();
         int i = 0;
         while (i < size) {
@@ -1937,40 +1937,41 @@ public abstract class DataTypesUtils {
         if (contacts_toppeers instanceof TLRPC.TL_contacts_topPeersDisabled) {
             return true;
         }
-        if (!(contacts_toppeers instanceof TLRPC.TL_contacts_topPeers)) {
-            return false;
-        }
-        TLRPC.TL_contacts_topPeers tL_contacts_topPeers = (TLRPC.TL_contacts_topPeers) contacts_toppeers;
-        final HashMap<Long, ApiWrap$Peer> mapParsePeersLists = ParsePeersLists(tL_contacts_topPeers.users, tL_contacts_topPeers.chats);
-        Utilities.Callback2 callback2 = new Utilities.Callback2() { // from class: com.exteragram.messenger.export.api.DataTypesUtils$$ExternalSyntheticLambda3
-            @Override // org.telegram.messenger.Utilities.Callback2
-            public final void run(Object obj, Object obj2) {
-                DataTypesUtils.$r8$lambda$vQE9eoidmhRnt1aHYXJ5PfuJR64(mapParsePeersLists, (ArrayList) obj, (ArrayList) obj2);
-            }
-        };
-        ArrayList<TLRPC.TL_topPeerCategoryPeers> arrayList = tL_contacts_topPeers.categories;
-        int size = arrayList.size();
-        int i = 0;
-        while (i < size) {
-            TLRPC.TL_topPeerCategoryPeers tL_topPeerCategoryPeers = arrayList.get(i);
-            i++;
-            TLRPC.TL_topPeerCategoryPeers tL_topPeerCategoryPeers2 = tL_topPeerCategoryPeers;
-            TLRPC.TopPeerCategory topPeerCategory = tL_topPeerCategoryPeers2.category;
-            if (topPeerCategory instanceof TLRPC.TL_topPeerCategoryCorrespondents) {
-                callback2.run(apiWrap$ContactsList.correspondents, tL_topPeerCategoryPeers2.peers);
-            } else if (topPeerCategory instanceof TLRPC.TL_topPeerCategoryBotsInline) {
-                callback2.run(apiWrap$ContactsList.inlineBots, tL_topPeerCategoryPeers2.peers);
-            } else {
-                if (!(topPeerCategory instanceof TLRPC.TL_topPeerCategoryPhoneCalls)) {
-                    return false;
+        if (contacts_toppeers instanceof TLRPC.TL_contacts_topPeers) {
+            TLRPC.TL_contacts_topPeers tL_contacts_topPeers = (TLRPC.TL_contacts_topPeers) contacts_toppeers;
+            final HashMap<Long, ApiWrap$Peer> mapParsePeersLists = ParsePeersLists(tL_contacts_topPeers.users, tL_contacts_topPeers.chats);
+            Utilities.Callback2 callback2 = new Utilities.Callback2() {
+                @Override // org.telegram.messenger.Utilities.Callback2
+                public final void run(Object obj, Object obj2) {
+                    DataTypesUtils.$r8$lambda$vQE9eoidmhRnt1aHYXJ5PfuJR64(mapParsePeersLists, (ArrayList) obj, (ArrayList) obj2);
                 }
-                callback2.run(apiWrap$ContactsList.phoneCalls, tL_topPeerCategoryPeers2.peers);
+            };
+            ArrayList<TLRPC.TL_topPeerCategoryPeers> arrayList = tL_contacts_topPeers.categories;
+            int size = arrayList.size();
+            int i = 0;
+            while (i < size) {
+                TLRPC.TL_topPeerCategoryPeers tL_topPeerCategoryPeers = arrayList.get(i);
+                i++;
+                TLRPC.TL_topPeerCategoryPeers tL_topPeerCategoryPeers2 = tL_topPeerCategoryPeers;
+                TLRPC.TopPeerCategory topPeerCategory = tL_topPeerCategoryPeers2.category;
+                if (topPeerCategory instanceof TLRPC.TL_topPeerCategoryCorrespondents) {
+                    callback2.run(apiWrap$ContactsList.correspondents, tL_topPeerCategoryPeers2.peers);
+                } else if (topPeerCategory instanceof TLRPC.TL_topPeerCategoryBotsInline) {
+                    callback2.run(apiWrap$ContactsList.inlineBots, tL_topPeerCategoryPeers2.peers);
+                } else {
+                    if (!(topPeerCategory instanceof TLRPC.TL_topPeerCategoryPhoneCalls)) {
+                        return false;
+                    }
+                    callback2.run(apiWrap$ContactsList.phoneCalls, tL_topPeerCategoryPeers2.peers);
+                }
             }
+            return true;
         }
-        return true;
+        throw new IllegalArgumentException("wtf in appendTopPeers! to: " + apiWrap$ContactsList + " d: " + contacts_toppeers);
+        return false;
     }
 
-    public static /* synthetic */ void $r8$lambda$vQE9eoidmhRnt1aHYXJ5PfuJR64(HashMap map, ArrayList arrayList, ArrayList arrayList2) {
+    public static void $r8$lambda$vQE9eoidmhRnt1aHYXJ5PfuJR64(HashMap map, ArrayList arrayList, ArrayList arrayList2) {
         int size = arrayList2.size();
         int i = 0;
         while (i < size) {
@@ -2004,7 +2005,7 @@ public abstract class DataTypesUtils {
         for (int i2 = 0; i2 < size; i2++) {
             arrayList3.add(Integer.valueOf(i2));
         }
-        Collections.sort(arrayList3, Comparator.comparing(new Function() { // from class: com.exteragram.messenger.export.api.DataTypesUtils$$ExternalSyntheticLambda0
+        Collections.sort(arrayList3, Comparator.comparing(new Function() {
             @Override // java.util.function.Function
             public final Object apply(Object obj) {
                 return DataTypesUtils.$r8$lambda$hVjdozXZbebV18GIZWQWbnIt_UI(arrayList, (Integer) obj);
@@ -2013,7 +2014,7 @@ public abstract class DataTypesUtils {
         return arrayList3;
     }
 
-    public static /* synthetic */ String $r8$lambda$hVjdozXZbebV18GIZWQWbnIt_UI(ArrayList arrayList, Integer num) {
+    public static String $r8$lambda$hVjdozXZbebV18GIZWQWbnIt_UI(ArrayList arrayList, Integer num) {
         return (String) arrayList.get(num.intValue());
     }
 }

@@ -27,7 +27,6 @@ import org.telegram.ui.Components.AnimatedTextView;
 import org.telegram.ui.Components.CubicBezierInterpolator;
 import org.telegram.ui.Components.LayoutHelper;
 
-/* JADX INFO: loaded from: classes4.dex */
 @SuppressLint({"ViewConstructor"})
 public class AppIconHeroView extends LinearLayout implements Theme.Colorable {
     private float collapse;
@@ -45,8 +44,8 @@ public class AppIconHeroView extends LinearLayout implements Theme.Colorable {
     private final AnimatedTextView titleView;
 
     @Override // org.telegram.ui.ActionBar.Theme.Colorable
-    public /* bridge */ /* synthetic */ int[] getColorKeys() {
-        return null;
+    public int[] getColorKeys() {
+        return super.getColorKeys();
     }
 
     @Override // android.view.View
@@ -67,10 +66,10 @@ public class AppIconHeroView extends LinearLayout implements Theme.Colorable {
         AppIconPreviewView appIconPreviewView = new AppIconPreviewView(context, resourceProvider);
         this.previewView = appIconPreviewView;
         appIconPreviewView.setCrossfade(true);
-        appIconPreviewView.setOnPreviewReady(new Runnable() { // from class: com.exteragram.messenger.appicons.ui.components.AppIconHeroView$$ExternalSyntheticLambda1
+        appIconPreviewView.setOnPreviewReady(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                AppIconHeroView.this.onPreviewReady();
+                this.f$0.onPreviewReady();
             }
         });
         addView(appIconPreviewView, LayoutHelper.createLinear(128, 128, 1));
@@ -117,17 +116,16 @@ public class AppIconHeroView extends LinearLayout implements Theme.Colorable {
         ValueAnimator duration = ValueAnimator.ofFloat(0.0f, 1.0f).setDuration(280L);
         this.linkColorAnimator = duration;
         duration.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
-        this.linkColorAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() { // from class: com.exteragram.messenger.appicons.ui.components.AppIconHeroView$$ExternalSyntheticLambda0
+        this.linkColorAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override // android.animation.ValueAnimator.AnimatorUpdateListener
             public final void onAnimationUpdate(ValueAnimator valueAnimator2) {
-                AppIconHeroView.this.lambda$updateLinkColor$0(i, accentTextColor, valueAnimator2);
+                this.f$0.lambda$updateLinkColor$0(i, accentTextColor, valueAnimator2);
             }
         });
         this.linkColorAnimator.start();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$updateLinkColor$0(int i, int i2, ValueAnimator valueAnimator) {
+    public void lambda$updateLinkColor$0(int i, int i2, ValueAnimator valueAnimator) {
         this.linkColor = ColorUtils.blendARGB(i, i2, ((Float) valueAnimator.getAnimatedValue()).floatValue());
         this.subtitleView.invalidate();
     }
@@ -148,7 +146,6 @@ public class AppIconHeroView extends LinearLayout implements Theme.Colorable {
         this.previewReadyListener = runnable;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void onPreviewReady() {
         updateLinkColor(true);
         Runnable runnable = this.previewReadyListener;
@@ -182,7 +179,7 @@ public class AppIconHeroView extends LinearLayout implements Theme.Colorable {
             int spanStart = spannableStringBuilder.getSpanStart(clickableSpan);
             int spanEnd = spannableStringBuilder.getSpanEnd(clickableSpan);
             spannableStringBuilder.removeSpan(clickableSpan);
-            spannableStringBuilder.setSpan(new CharacterStyle() { // from class: com.exteragram.messenger.appicons.ui.components.AppIconHeroView.1
+            spannableStringBuilder.setSpan(new CharacterStyle() {
                 @Override // android.text.style.CharacterStyle
                 public void updateDrawState(TextPaint textPaint) {
                     textPaint.setColor(Theme.multAlpha(AppIconHeroView.this.linkColor, textPaint.getAlpha() / 255.0f));

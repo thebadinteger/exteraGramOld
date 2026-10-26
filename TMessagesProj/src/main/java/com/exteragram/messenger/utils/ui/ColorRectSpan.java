@@ -5,7 +5,9 @@ import android.graphics.Paint;
 import android.text.Spanned;
 import android.text.style.CharacterStyle;
 import android.text.style.ReplacementSpan;
+import java.util.Iterator;
 import kotlin.Metadata;
+import kotlin.jvm.internal.ArrayIteratorKt;
 import kotlin.math.MathKt;
 import okhttp3.internal.url._UrlKt;
 import org.telegram.messenger.AndroidUtilities;
@@ -29,7 +31,9 @@ public final class ColorRectSpan extends ReplacementSpan {
     public void draw(Canvas canvas, CharSequence text, int start, int end, float x, int top, int y, int bottom, Paint paint) {
         android.text.TextPaint textPaint = (android.text.TextPaint) paint;
         if (text instanceof Spanned) {
-            for (CharacterStyle characterStyle : (CharacterStyle[]) ((Spanned) text).getSpans(start, end, CharacterStyle.class)) {
+            Iterator it = ArrayIteratorKt.iterator((CharacterStyle[]) ((Spanned) text).getSpans(start, end, CharacterStyle.class));
+            while (it.hasNext()) {
+                CharacterStyle characterStyle = (CharacterStyle) it.next();
                 if (characterStyle != this) {
                     characterStyle.updateDrawState(textPaint);
                 }

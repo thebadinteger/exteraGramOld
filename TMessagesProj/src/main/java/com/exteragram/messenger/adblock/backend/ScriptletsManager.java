@@ -20,9 +20,8 @@ import org.json.JSONException;
 import org.telegram.messenger.DispatchQueue;
 import org.telegram.messenger.Utilities;
 
-/* JADX INFO: loaded from: classes.dex */
 public class ScriptletsManager {
-    private static final Map<String, ScriptletInfo> SCRIPTLETS_MAP = new HashMap<String, ScriptletInfo>() { // from class: com.exteragram.messenger.adblock.backend.ScriptletsManager.1
+    private static final Map<String, ScriptletInfo> SCRIPTLETS_MAP = new HashMap<String, ScriptletInfo>() {
         {
             put("1x1.gif", new ScriptletInfo("1x1-transparent.gif"));
             put("2x2.png", new ScriptletInfo("2x2-transparent.png"));
@@ -114,10 +113,15 @@ public class ScriptletsManager {
     }
 
     public void download(final Utilities.Callback<Boolean> callback) {
-        this.queue.postRunnable(() -> downloadInternal(callback));
+        this.queue.postRunnable(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.lambda$download$0(callback);
+            }
+        });
     }
 
-    private void downloadInternal(Utilities.Callback callback) {
+    public void lambda$download$0(Utilities.Callback callback) {
         boolean z;
         Iterator<Map.Entry<String, ScriptletInfo>> it = SCRIPTLETS_MAP.entrySet().iterator();
         while (true) {
@@ -151,7 +155,7 @@ public class ScriptletsManager {
                     Response responseExecute = this.client.newCall(new Request.Builder().url("https://raw.githubusercontent.com/gorhill/uBlock/master/src/web_accessible_resources/" + str).header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15").build()).execute();
                     try {
                         if (responseExecute.code() != 404) {
-                            if (responseExecute.isSuccessful()) {
+                            if (responseExecute.getIsSuccessful()) {
                                 String strEncodeToString = Base64.encodeToString(responseExecute.body().bytes(), 2);
                                 synchronized (this.lock) {
                                     try {

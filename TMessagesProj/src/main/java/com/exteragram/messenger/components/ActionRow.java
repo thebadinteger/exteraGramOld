@@ -59,7 +59,7 @@ public class ActionRow extends FrameLayout {
         this.ITEM_SIZE_DP = 40;
         this.GAP_DP = 8;
         this.currentItems = new ArrayList();
-        FrameLayout frameLayout = new FrameLayout(context) { 
+        FrameLayout frameLayout = new FrameLayout(context) {
             @Override // android.widget.FrameLayout, android.view.ViewGroup, android.view.View
             public void onLayout(boolean z, int i, int i2, int i3, int i4) {
                 for (int i5 = 0; i5 < getChildCount(); i5++) {
@@ -110,7 +110,7 @@ public class ActionRow extends FrameLayout {
     }
 
     private void addImageButton(Context context, Theme.ResourcesProvider resourcesProvider, FrameLayout frameLayout, final ActionItem actionItem, final int i) {
-        final ImageView imageView = new ImageView(context) { 
+        final ImageView imageView = new ImageView(context) {
             @Override // android.view.View
             public void setEnabled(boolean z) {
                 super.setEnabled(z);
@@ -132,7 +132,7 @@ public class ActionRow extends FrameLayout {
         imageView.setAlpha(0.0f);
         imageView.setTranslationX(AndroidUtilities.dp(12.0f));
         frameLayout.addView(imageView, LayoutHelper.createFrame(40, 40, 51));
-        imageView.post(new Runnable() { 
+        imageView.post(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 imageView.animate().alpha(actionItem.enabled ? 1.0f : 0.5f).translationX(0.0f).setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT).setStartDelay((((long) i) * 35) + 100).setDuration(400L).start();

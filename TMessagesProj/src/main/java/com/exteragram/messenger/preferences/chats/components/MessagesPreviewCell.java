@@ -10,6 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.view.MotionEvent;
 import android.widget.LinearLayout;
+import androidx.mediarouter.media.GlobalMediaRouter;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.preferences.components.CustomPreferenceCell;
 import okhttp3.internal.url._UrlKt;
@@ -45,7 +46,7 @@ public class MessagesPreviewCell extends LinearLayout implements CustomPreferenc
     public void dispatchSetPressed(boolean z) {
     }
 
-    public /* synthetic */ void lambda$new$0() {
+    public void lambda$new$0() {
         this.progress = -1;
         for (ChatMessageCell chatMessageCell : this.cells) {
             if (chatMessageCell != null) {
@@ -61,10 +62,10 @@ public class MessagesPreviewCell extends LinearLayout implements CustomPreferenc
     public MessagesPreviewCell(Context context, INavigationLayout iNavigationLayout, final int i) {
         super(context);
         this.progress = -1;
-        this.cancelProgress = new Runnable() { 
+        this.cancelProgress = new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                MessagesPreviewCell.this.lambda$new$0();
+                this.f$0.lambda$new$0();
             }
         };
         this.parentLayout = iNavigationLayout;
@@ -85,8 +86,7 @@ public class MessagesPreviewCell extends LinearLayout implements CustomPreferenc
             int i4 = iCurrentTimeMillis - 3590;
             tL_message.date = i4;
             tL_message.dialog_id = 1L;
-            tL_message.flags = 0x101;
-
+            tL_message.flags = GlobalMediaRouter.CallbackHandler.MSG_ROUTE_ADDED;
             TLRPC.TL_peerUser tL_peerUser = new TLRPC.TL_peerUser();
             tL_message.from_id = tL_peerUser;
             tL_peerUser.user_id = UserConfig.getInstance(UserConfig.selectedAccount).getClientUserId();
@@ -119,8 +119,7 @@ public class MessagesPreviewCell extends LinearLayout implements CustomPreferenc
             tL_message2.message = LocaleController.getString(R.string.StickerSizeDialogMessageReplyTo);
             tL_message2.date = i4;
             tL_message2.dialog_id = -1L;
-            tL_message2.flags = 0x103;
-
+            tL_message2.flags = GlobalMediaRouter.CallbackHandler.MSG_ROUTE_CHANGED;
             tL_message2.id = 2;
             tL_message2.media = new TLRPC.TL_messageMediaEmpty();
             tL_message2.out = false;
@@ -134,8 +133,7 @@ public class MessagesPreviewCell extends LinearLayout implements CustomPreferenc
             tL_message3.message = LocaleController.getString(R.string.StickerSizeDialogMessage);
             tL_message3.date = iCurrentTimeMillis - 3480;
             tL_message3.dialog_id = -1L;
-            tL_message3.flags = 0x109;
-
+            tL_message3.flags = GlobalMediaRouter.CallbackHandler.MSG_ROUTE_CONNECTED;
             tL_message3.id = 2;
             tL_message3.media = new TLRPC.TL_messageMediaEmpty();
             tL_message3.out = false;
@@ -165,7 +163,8 @@ public class MessagesPreviewCell extends LinearLayout implements CustomPreferenc
             }
             tL_message4.date = iCurrentTimeMillis - 3540;
             tL_message4.dialog_id = 1L;
-            tL_message4.flags = 33027;
+            tL_message4.flags = 34051;
+            tL_message4.forwards = 67;
             tL_message4.edit_date = iCurrentTimeMillis - 3480;
             TLRPC.TL_peerUser tL_peerUser5 = new TLRPC.TL_peerUser();
             tL_message4.from_id = tL_peerUser5;
@@ -177,6 +176,7 @@ public class MessagesPreviewCell extends LinearLayout implements CustomPreferenc
             tL_peerUser6.user_id = 0L;
             MessageObject messageObject4 = new MessageObject(UserConfig.selectedAccount, tL_message4, true, false);
             messageObjectArr[0] = messageObject4;
+            messageObject4.viewsReloaded = true;
             messageObject4.forceAvatar = true;
             messageObject4.resetLayout();
             messageObjectArr[0].eventId = 1L;
@@ -187,7 +187,7 @@ public class MessagesPreviewCell extends LinearLayout implements CustomPreferenc
             if (i5 >= chatMessageCellArr.length) {
                 return;
             }
-            chatMessageCellArr[i5] = new ChatMessageCell(context, UserConfig.selectedAccount) { 
+            chatMessageCellArr[i5] = new ChatMessageCell(context, UserConfig.selectedAccount) {
                 @Override // org.telegram.ui.Cells.ChatMessageCell
                 public boolean isUserOnline(TLRPC.User user) {
                     if (i == 1) {
@@ -222,7 +222,7 @@ public class MessagesPreviewCell extends LinearLayout implements CustomPreferenc
                     return super.shouldHideShareButton(messageObject5, z);
                 }
             };
-            this.cells[i5].setDelegate(new ChatMessageCell.ChatMessageCellDelegate() { 
+            this.cells[i5].setDelegate(new ChatMessageCell.ChatMessageCellDelegate() {
                 @Override // org.telegram.ui.Cells.ChatMessageCell.ChatMessageCellDelegate
                 public boolean canPerformActions() {
                     return true;
@@ -243,6 +243,7 @@ public class MessagesPreviewCell extends LinearLayout implements CustomPreferenc
             });
             ChatMessageCell chatMessageCell = this.cells[i5];
             chatMessageCell.isChat = false;
+            chatMessageCell.hideViews = i == 1;
             chatMessageCell.setFullyDraw(true);
             this.cells[i5].setMessageObject(this.messageObjects[i5], null, false, false, false);
             addView(this.cells[i5], LayoutHelper.createLinear(-1, -2));
@@ -387,8 +388,8 @@ public class MessagesPreviewCell extends LinearLayout implements CustomPreferenc
         return super.onTouchEvent(motionEvent);
     }
 
-    @Override 
-    public boolean equals(Object obj) {
+    @Override // com.exteragram.messenger.preferences.components.CustomPreferenceCell
+    public boolean isSameCell(Object obj) {
         if (this == obj) {
             return true;
         }

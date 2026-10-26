@@ -8,6 +8,9 @@
 
 package org.telegram.ui;
 
+import com.exteragram.messenger.player.PlayerLauncher;
+import com.exteragram.messenger.utils.ui.ChatSearchFilterUiHelper;
+
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.AndroidUtilities.lerp;
 import static org.telegram.messenger.LocaleController.formatPluralStringComma;
@@ -633,6 +636,8 @@ public class ChatActivity extends BaseFragment implements
     private final int searchContainerHeight = 44;
     private FrameLayout searchContainer;
     private ImageView searchCalendarButton;
+    private ImageView searchFilterButton;
+    private final ChatSearchFilterUiHelper searchFilterUiHelper;
     private ImageView searchUserButton;
     private AnimatedTextView searchCountText;
     private AnimatedTextView searchExpandList;
@@ -9630,10 +9635,21 @@ public class ChatActivity extends BaseFragment implements
         }
     }
 
+    
+    private void onSearchMessagesFilterChanged() {
+        if (this.searchingForUser) {
+            return;
+        }
+        if (getSearchItemListener() != null && searchItem != null) {
+            getSearchItemListener().onSearchPressed(searchItem.getSearchField());
+        }
+        updateSearchUpDownButtonVisibility(true);
+    }
+
     public void hitSearch() {
         searchWas = true;
         updateSearchButtons(0, 0, -1);
-        getMediaDataController().searchMessagesInChat(searchingQuery, dialog_id, mergeDialogId, classGuid, 0, threadMessageId, searchingUserMessages, searchingChatMessages, searchingReaction);
+        getMediaDataController().searchMessagesInChat(searchingQuery, dialog_id, mergeDialogId, classGuid, 0, threadMessageId, searchingUserMessages, searchingChatMessages, searchingReaction, this.searchFilterUiHelper.getFilter());
         searchItemVisible = searching = !TextUtils.isEmpty(searchingQuery) || searchingReaction != null;
         updateBottomOverlay();
         updateSearchUpDownButtonVisibility(true);
@@ -24139,7 +24155,7 @@ public class ChatActivity extends BaseFragment implements
         } else if (id == NotificationCenter.chatSearchResultsLoading) {
             if (classGuid == (Integer) args[0]) {
                 if (searchItem != null) {
-                    searchItem.setShowSearchProgress(!TextUtils.isEmpty(searchingQuery) || searchingReaction != null);
+                    searchItem.setShowSearchProgress(!TextUtils.isEmpty(searchingQuery) || searchingReaction != null || (searchFilterUiHelper != null && searchFilterUiHelper.getFilter() != null));
                 }
                 onSearchLoadingUpdate(true);
                 if (messagesSearchAdapter != null) {
@@ -35712,6 +35728,12 @@ public class ChatActivity extends BaseFragment implements
         if (searchUserButton != null) {
             searchUserButton.setVisibility(View.GONE);
         }
+        if (searchFilterButton != null) {
+            searchFilterButton.setVisibility(View.GONE);
+        }
+        if (searchFilterUiHelper != null) {
+            searchFilterUiHelper.clear();
+        }
         if (channelHashtags || forcePublic || ChatObject.isChannelAndNotMegaGroup(currentChat) && ChatObject.isPublic(currentChat) && searchingHashtag != null) {
             defaultSearchPage = 2;
         } else {
@@ -37184,7 +37206,7 @@ public class ChatActivity extends BaseFragment implements
                     cell.resetPressedLink(-1);
                 }
                 if (!messageObject.isVoice()) {
-                    showDialog(new AudioPlayerAlert(getContext(), themeDelegate));
+                    showDialog(PlayerLauncher.create(getContext(), themeDelegate));
                 }
             } else if (str.startsWith("card:")) {
                 didLongPressCard(cell, url, str.substring(5));
@@ -39017,6 +39039,13 @@ public class ChatActivity extends BaseFragment implements
         @Override
         public void onSearchFilterCleared(FiltersView.MediaFilterData filterData) {
             super.onSearchFilterCleared(filterData);
+            boolean filterCleared = searchFilterUiHelper != null && searchFilterUiHelper.onFilterCleared(filterData);
+            if (filterCleared) {
+                if (searchItem != null && searchItem.isSearchFieldVisible()) {
+                    onSearchMessagesFilterChanged();
+                }
+                return;
+            }
             if (actionBarSearchTags != null) {
                 actionBarSearchTags.clear();
             }
@@ -39036,6 +39065,9 @@ public class ChatActivity extends BaseFragment implements
             }
             if (searchUserButton != null) {
                 searchUserButton.setVisibility(View.VISIBLE);
+            }
+            if (searchFilterButton != null) {
+                searchFilterButton.setVisibility(View.VISIBLE);
             }
             if (searchingForUser) {
                 mentionContainer.getAdapter().searchUsernameOrHashtag(null, 0, null, false, true);
@@ -39270,7 +39302,7 @@ public class ChatActivity extends BaseFragment implements
                 hashtagSearchTabs.tabs.scrollToTab(defaultSearchPage, defaultSearchPage);
             }
 
-            getMediaDataController().searchMessagesInChat(searchingQuery, dialog_id, mergeDialogId, classGuid, 0, threadMessageId, searchingUserMessages, searchingChatMessages, searchingReaction);
+            getMediaDataController().searchMessagesInChat(searchingQuery, dialog_id, mergeDialogId, classGuid, 0, threadMessageId, searchingUserMessages, searchingChatMessages, searchingReaction, this.searchFilterUiHelper.getFilter());
         }
 
         @Override
@@ -39324,6 +39356,9 @@ public class ChatActivity extends BaseFragment implements
                 }
                 searchingUserMessages = null;
                 searchingChatMessages = null;
+                if (searchFilterUiHelper != null && searchFilterUiHelper.getFilter() != null) {
+                    onSearchMessagesFilterChanged();
+                }
             }
         }
 
@@ -43449,6 +43484,8 @@ public class ChatActivity extends BaseFragment implements
         themeDescriptions.add(new ThemeDescription(searchCalendarButton, ThemeDescription.FLAG_BACKGROUNDFILTER | ThemeDescription.FLAG_DRAWABLESELECTEDSTATE, null, null, null, null, Theme.key_actionBarActionModeDefaultSelector));
         themeDescriptions.add(new ThemeDescription(searchUserButton, ThemeDescription.FLAG_IMAGECOLOR, null, null, null, null, Theme.key_chat_searchPanelIcons));
         themeDescriptions.add(new ThemeDescription(searchUserButton, ThemeDescription.FLAG_BACKGROUNDFILTER | ThemeDescription.FLAG_DRAWABLESELECTEDSTATE, null, null, null, null, Theme.key_actionBarActionModeDefaultSelector));
+        themeDescriptions.add(new ThemeDescription(searchFilterButton, ThemeDescription.FLAG_IMAGECOLOR, null, null, null, null, Theme.key_chat_searchPanelIcons));
+        themeDescriptions.add(new ThemeDescription(searchFilterButton, ThemeDescription.FLAG_BACKGROUNDFILTER | ThemeDescription.FLAG_DRAWABLESELECTEDSTATE, null, null, null, null, Theme.key_actionBarActionModeDefaultSelector));
 
         themeDescriptions.add(new ThemeDescription(bottomOverlayText, ThemeDescription.FLAG_TEXTCOLOR, null, null, null, null, Theme.key_chat_secretChatStatusText));
         themeDescriptions.add(new ThemeDescription(bottomOverlayChatText, 0, null, null, null, null, Theme.key_glass_defaultText));

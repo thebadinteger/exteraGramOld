@@ -1,6 +1,6 @@
 package com.exteragram.messenger.feed.ads;
 
-import com.exteragram.messenger.utils.RecordTag;
+import com.android.tools.r8.RecordTag;
 import com.exteragram.messenger.feed.FeedChatIntegration;
 import com.exteragram.messenger.feed.FeedMessageUtils;
 import java.util.ArrayList;
@@ -135,7 +135,7 @@ public final class FeedAdInjector {
         }
         int baseEvery = feedAdController.getBaseEvery();
         int minTrailing = feedAdController.getMinTrailing();
-        TreeMap<Integer, MessageObject> treeMap = new TreeMap<>();
+        TreeMap treeMap = new TreeMap();
         for (MessageObject messageObject3 : this.adByAnchor.keySet()) {
             Integer num = (Integer) map.get(messageObject3);
             if (num != null) {
@@ -143,10 +143,10 @@ public final class FeedAdInjector {
             }
         }
         int i4 = Integer.MIN_VALUE;
-        for (Map.Entry<Integer, MessageObject> entry : treeMap.entrySet()) {
-            int iIntValue = entry.getKey().intValue();
+        for (Map.Entry entry : treeMap.entrySet()) {
+            int iIntValue = ((Integer) entry.getKey()).intValue();
             if (iIntValue < minTrailing || (i4 != Integer.MIN_VALUE && iIntValue - i4 < baseEvery)) {
-                MessageObject messageObject4 = entry.getValue();
+                MessageObject messageObject4 = (MessageObject) entry.getValue();
                 zRemoveAd |= removeAd(arrayList, this.adByAnchor.remove(messageObject4));
                 this.slotOrdinalByAnchor.remove(messageObject4);
             } else {
@@ -264,7 +264,7 @@ public final class FeedAdInjector {
         private final MessageObject anchor;
         private final int ordinal;
 
-        private /* synthetic */ boolean $record$equals(Object obj) {
+        private boolean $record$equals(Object obj) {
             if (!(obj instanceof AnchorSlot)) {
                 return false;
             }
@@ -272,7 +272,7 @@ public final class FeedAdInjector {
             return this.ordinal == anchorSlot.ordinal && Objects.equals(this.anchor, anchorSlot.anchor);
         }
 
-        private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+        private Object[] $record$getFieldsAsObjects() {
             return new Object[]{this.anchor, Integer.valueOf(this.ordinal)};
         }
 
@@ -286,7 +286,7 @@ public final class FeedAdInjector {
         }
 
         public final int hashCode() {
-            return java.util.Objects.hash(this.ordinal, this.anchor);
+            return FeedAdInjector$java.util.Objects.hash(this.ordinal, this.anchor);
         }
 
         public final String toString() {

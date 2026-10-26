@@ -66,17 +66,17 @@ public class DrawerMenuView extends ScrollView {
                     for (final MainMenuHelper.MenuItemInfo menuItemInfo : listResolveDrawerMenuItems) {
                         DrawerMenuItemView drawerMenuItemView = new DrawerMenuItemView(getContext());
                         drawerMenuItemView.setMenuItem(num.intValue(), i, menuItemInfo.iconRes(), menuItemInfo.text());
-                        drawerMenuItemView.setOnClickListener(new View.OnClickListener() { 
+                        drawerMenuItemView.setOnClickListener(new View.OnClickListener() {
                             @Override // android.view.View.OnClickListener
                             public final void onClick(View view2) {
-                                DrawerMenuView.this.lambda$rebuildMenu$0(menuItemInfo, view2);
+                                this.f$0.lambda$rebuildMenu$0(menuItemInfo, view2);
                             }
                         });
                         if (menuItemInfo.onLongClick() != null) {
-                            drawerMenuItemView.setOnLongClickListener(new View.OnLongClickListener() { 
+                            drawerMenuItemView.setOnLongClickListener(new View.OnLongClickListener() {
                                 @Override // android.view.View.OnLongClickListener
                                 public final boolean onLongClick(View view2) {
-                                    return DrawerMenuView.this.lambda$rebuildMenu$1(menuItemInfo, view2);
+                                    return this.f$0.lambda$rebuildMenu$1(menuItemInfo, view2);
                                 }
                             });
                         }
@@ -90,7 +90,7 @@ public class DrawerMenuView extends ScrollView {
         }
     }
 
-    public /* synthetic */ void lambda$rebuildMenu$0(MainMenuHelper.MenuItemInfo menuItemInfo, View view) {
+    public void lambda$rebuildMenu$0(MainMenuHelper.MenuItemInfo menuItemInfo, View view) {
         Runnable runnable = this.onItemClick;
         if (runnable != null) {
             runnable.run();
@@ -100,7 +100,7 @@ public class DrawerMenuView extends ScrollView {
         }
     }
 
-    public /* synthetic */ boolean lambda$rebuildMenu$1(MainMenuHelper.MenuItemInfo menuItemInfo, View view) {
+    public boolean lambda$rebuildMenu$1(MainMenuHelper.MenuItemInfo menuItemInfo, View view) {
         Runnable runnable = this.onItemClick;
         if (runnable != null) {
             runnable.run();

@@ -2,7 +2,6 @@ package com.exteragram.messenger.utils.ui;
 
 import com.exteragram.messenger.ExteraConfig;
 
-/* JADX INFO: loaded from: classes4.dex */
 public abstract class FabUiHelper {
     public static boolean isMaterial3Fab() {
         return ExteraConfig.getNewFabStyle();

@@ -35,7 +35,7 @@ public class PillStackView extends FrameLayout {
         super(context);
         this.pills = new ArrayList();
         this.currentIndex = 0;
-        this.longPressRunnable = new Runnable() { // from class: com.exteragram.messenger.pillstack.ui.PillStackView.1
+        this.longPressRunnable = new Runnable() {
             @Override // java.lang.Runnable
             public void run() {
                 if (!PillStackView.this.maybeClick || PillStackView.this.isSwiping || PillStackView.this.pills.isEmpty()) {
@@ -45,6 +45,10 @@ public class PillStackView extends FrameLayout {
                 pillStackView.longClickPerformed = ((BasePill) pillStackView.pills.get(PillStackView.this.currentIndex)).onPillLongClicked();
                 if (PillStackView.this.longClickPerformed) {
                     PillStackView.this.performHapticFeedback(0);
+                    PillStackView.this.maybeClick = false;
+                    for (int i = 0; i < PillStackView.this.pills.size(); i++) {
+                        ((BasePill) PillStackView.this.pills.get(i)).setPressed(false);
+                    }
                 }
             }
         };
@@ -171,12 +175,9 @@ public class PillStackView extends FrameLayout {
         return super.onInterceptTouchEvent(motionEvent);
     }
 
-    /* JADX WARN: Code restructure failed: missing block: B:12:0x001b, code lost:
-    
-        if (r0 != 3) goto L38;
-     */
-    @Override
+    @Override // android.view.View
     @android.annotation.SuppressLint({"ClickableViewAccessibility"})
+            @Override
     public boolean onTouchEvent(MotionEvent motionEvent) {
         if (this.pills.isEmpty()) {
             return super.onTouchEvent(motionEvent);
@@ -339,13 +340,13 @@ public class PillStackView extends FrameLayout {
         this.currentAnimator = valueAnimatorOfFloat;
         valueAnimatorOfFloat.setDuration(250L);
         this.currentAnimator.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
-        this.currentAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() { // from class: com.exteragram.messenger.pillstack.ui.PillStackView$$ExternalSyntheticLambda0
+        this.currentAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override // android.animation.ValueAnimator.AnimatorUpdateListener
             public final void onAnimationUpdate(ValueAnimator valueAnimator2) {
-                PillStackView.this.lambda$animateToNextPill$0(z, valueAnimator2);
+                this.f$0.lambda$animateToNextPill$0(z, valueAnimator2);
             }
         });
-        this.currentAnimator.addListener(new AnimatorListenerAdapter() { // from class: com.exteragram.messenger.pillstack.ui.PillStackView.2
+        this.currentAnimator.addListener(new AnimatorListenerAdapter() {
             private boolean cancelled = false;
 
             @Override // android.animation.AnimatorListenerAdapter, android.animation.Animator.AnimatorListener
@@ -402,8 +403,7 @@ public class PillStackView extends FrameLayout {
         this.currentAnimator.start();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$animateToNextPill$0(boolean z, ValueAnimator valueAnimator) {
+    public void lambda$animateToNextPill$0(boolean z, ValueAnimator valueAnimator) {
         applyProgress(((Float) valueAnimator.getAnimatedValue()).floatValue(), z);
     }
 
@@ -415,13 +415,13 @@ public class PillStackView extends FrameLayout {
         ValueAnimator valueAnimatorOfFloat = ValueAnimator.ofFloat(this.currentSwipeProgress, 0.0f);
         this.currentAnimator = valueAnimatorOfFloat;
         valueAnimatorOfFloat.setDuration(200L);
-        this.currentAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() { // from class: com.exteragram.messenger.pillstack.ui.PillStackView$$ExternalSyntheticLambda1
+        this.currentAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override // android.animation.ValueAnimator.AnimatorUpdateListener
             public final void onAnimationUpdate(ValueAnimator valueAnimator2) {
-                PillStackView.this.lambda$cancelSwipe$1(z, valueAnimator2);
+                this.f$0.lambda$cancelSwipe$1(z, valueAnimator2);
             }
         });
-        this.currentAnimator.addListener(new AnimatorListenerAdapter() { // from class: com.exteragram.messenger.pillstack.ui.PillStackView.3
+        this.currentAnimator.addListener(new AnimatorListenerAdapter() {
             private boolean cancelled = false;
 
             @Override // android.animation.AnimatorListenerAdapter, android.animation.Animator.AnimatorListener
@@ -462,8 +462,7 @@ public class PillStackView extends FrameLayout {
         this.currentAnimator.start();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$cancelSwipe$1(boolean z, ValueAnimator valueAnimator) {
+    public void lambda$cancelSwipe$1(boolean z, ValueAnimator valueAnimator) {
         applyProgress(((Float) valueAnimator.getAnimatedValue()).floatValue(), z);
     }
 }

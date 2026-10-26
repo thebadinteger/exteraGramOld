@@ -13,7 +13,6 @@
     <string name="Preferences">העדפות של exteraGram</string>
     <!-- Main Menu -->
     <string name="Links">קישורים</string>
-    <string name="AboutExteraDescription">לקוח טלגרם ניסיוני המבוסס על קוד המקור הרשמי!</string>
     <string name="Crowdin">תרגום</string>
     <string name="Website">אתר האינטרנט</string>
     <string name="Categories">קטגוריות</string>
@@ -45,23 +44,7 @@
     <string name="WeatherPillTopInfo">הגדרות ווידג\'ט מזג אוויר עבור Pill Stack.</string>
     <string name="PillStackInfiniteScrolling">גלילה אינסופית</string>
     <string name="CryptoPillTargetCurrency">מטבע היעד</string>
-    <string name="CryptoCurrencyUsd">דולר אמריקאי</string>
-    <string name="CryptoCurrencyEur">יורו</string>
-    <string name="CryptoCurrencyRub">רובל רוסי</string>
-    <string name="CryptoCurrencyGbp">פאונד בריטי</string>
-    <string name="CryptoCurrencyKzt">טנגה קזחסטני</string>
-    <string name="CryptoCurrencyTry">לירה טורקית</string>
-    <string name="CryptoCurrencyUah">גריבנה אוקראיני</string>
-    <string name="CryptoCurrencyPln">זלוטי פולני</string>
-    <string name="CryptoCurrencyAed">דירהם איחוד האמירויות הערביות</string>
-    <string name="CryptoCurrencyCny">יואן סיני</string>
-    <string name="CryptoCurrencyJpy">יאן יפני</string>
-    <string name="CryptoCurrencyByn">רובל בלרוסי</string>
-    <string name="CryptoCurrencyIls">שקל חדש</string>
-    <string name="CryptoCurrencyCzk">קורונה צ׳כית</string>
-    <string name="CryptoCurrencyInr">רופי הודי</string>
     <!-- Proxy -->
-    <string name="ProxyDoNotUseWithVPN">אין להשתמש עם VPN</string>
     <string name="ProxyDisableOn">השבת פרוקסי</string>
     <string name="ProxyDisableNever">לעולם לא</string>
     <string name="ProxyDisableAlways">תמיד</string>
@@ -73,8 +56,6 @@
     <string name="CopyIpAddress">העתק כתובת IP</string>
     <string name="IpInfoUnavailable">לא ניתן לטעון מידע על כתובת IP.</string>
     <string name="IpInfoCountry">מדינה</string>
-    <string name="IpInfoRegion">אזור</string>
-    <string name="IpInfoCity">עיר</string>
     <string name="IpInfoIsp">ספק אינטרנט</string>
     <string name="IpInfoOrganization">ארגון</string>
     <string name="IpInfoDomain">דומיין</string>
@@ -90,6 +71,10 @@
     <string name="RelativeLastSeen">קרוב משפחה נראה לאחרונה</string>
     <string name="InAppVibration">רטט בתוך האפליקציה</string>
     <string name="DisableNotificationDelay">בטל את השהיית ההתראות</string>
+    <string name="AccountNotifications">חשבונות</string>
+    <string name="AccountNotificationsCount">%1$d של %2$d</string>
+    <string name="AccountNotificationsInfo">חשבונות שלא נבדקו אינם מציגים התראות בזמן שאתה משתמש בחשבון אחר.</string>
+    <string name="AccountNotificationsCurrent">התראות מהחשבון הנוכחי מוצגות תמיד.</string>
     <string name="FilterZalgo">פילטר \"Zalgo\"</string>
     <string name="FilterZalgoInfo">מסיר את הסמלים \"%1$s\" משמות והודעות.</string>
     <string name="RestartRequired">הפעל מחדש את האפליקציה כדי שהשינויים ייכנסו לתוקף.</string>
@@ -102,11 +87,6 @@
     <string name="UploadSpeedBoost">הגברת מהירות העלאה</string>
     <string name="Ultra">אולטרה</string>
     <string name="SpeedBoostInfo">הורדה מהירה יכולה לגרום לבעיות בהורדת הקבצים והזרמת הסרטונים בחיבור אינטרנט איטי.</string>
-    <!-- Maps -->
-    <string name="Maps">מפות</string>
-    <string name="TermsOfUseYandexMaps">על ידי שימוש במפות Yandex הנך מסכים ל<![CDATA[<a href="https://yandex.ru/legal/maps_termsofuse/">תנאי השימוש</a>]]>.</string>
-    <string name="UseYandexMaps">השתמש במפת Yandex</string>
-    <string name="InstallYandexMaps">להתקין את מפת Yandex?</string>
     <!-- Storage -->
     <string name="StorageSettings">אחסון</string>
     <string name="CustomSavePath">תיקיית שמירה מותאמת אישית</string>
@@ -155,6 +135,7 @@
     <string name="TabTitleStyleIconsOnly">אייקונים בלבד</string>
     <string name="TabTitleStyleTextOnly">שמות בלבד</string>
     <string name="TabCounter">מונה התראות</string>
+    <string name="TabCounterUnmuted">השמעת קול</string>
     <string name="HideAllChats">הסתר את הכרטיסייה \"%1$s\"</string>
     <string name="FoldersInfo">הסמלים מסונכרנים עם החשבון שלך.</string>
     <!-- App Navigation -->
@@ -163,7 +144,6 @@
     <string name="NavigationDrawer">מגירת ניווט</string>
     <string name="NavigationDrawerInfo">מחליף את התפריט הימני העליון במגירה קלאסית הניתנת להחלפה וכפתור המבורגר.</string>
     <string name="NavigationDrawerImmersiveAnimation">אנימציה סוחפת</string>
-    <string name="NavigationDrawerProxyPingShort">%1$d ms</string>
     <string name="MainMenuItems">פריטי התפריט</string>
     <string name="MainMenuItemsInfo">הקש כדי להציג או להסתיר פריטים, החזק כדי לשנות את הסדר. הפריסה משותפת בין התפריט למגירה.</string>
     <string name="MainMenuHiddenItems">פריטי תפריט מוסתרים</string>
@@ -234,6 +214,7 @@
     <string name="NewLoadingStyle">סגנון טעינה</string>
     <string name="NewSliderStyle">סגנון מחוון</string>
     <string name="NewSwitchStyle">החלף סגנון</string>
+    <string name="NewFabStyle">כפתור צף</string>
     <string name="TabletMode">מצב טאבלט</string>
     <string name="RemoveMessageTail">הסר זנב הודעה</string>
     <string name="GooeyAvatarAnimation">אנימציית אווטאר \"דביקה\"</string>
@@ -243,7 +224,6 @@
     <string name="PredictiveBackMax">מקסימום</string>
     <string name="PredictiveBackInfo">מכוון עד כמה המסך זז בעת החלקה אחורה.</string>
     <string name="TransitionAnimation">אנימציית מעבר</string>
-    <string name="TransitionAnimationAosp">AOSP</string>
     <string name="TransitionAnimationSpring">אביב</string>
     <string name="TransitionAnimationInfo">ה-AOSP משתמשת במעבר החלונות המקורי של אנדרואיד, בעוד ש-Spring משתמשת במעבר חלק יותר.</string>
     <!-- Blur & Effects -->
@@ -292,6 +272,9 @@
     <string name="ServicePasteService">הדבק שירות</string>
     <string name="ServicePasteKey">הדבק מפתח API</string>
     <string name="DeleteServiceInfo">האם אתה בטוח שברצונך למחוק את **%1$s**?</string>
+    <string name="ServiceAlreadyExists">השירות כבר קיים</string>
+    <string name="ServiceAlreadyExistsInfo">עברתי לשירות הקיים.</string>
+    <string name="ServiceDuplicate">שירות אחר כבר משתמש בכתובת ה-URL, במודל ובמפתח האלה.</string>
     <!-- AI Roles -->
     <string name="Roles">תפקידים</string>
     <string name="RolesInfo">צור תפקידים בהתאם לצרכים הספציפיים שלך!</string>
@@ -315,6 +298,8 @@
     <string name="InsertResponseAsQuote">הוסף תגובה כציטוט</string>
     <string name="TapToAddApiKey">הקש כדי להוסיף מפתח API בכדי להתחיל להשתמש בתכונות בינה מלאכותית.</string>
     <string name="Generate">יצירה</string>
+    <string name="GenerateWithHistory">עם היסטוריה</string>
+    <string name="GenerateWithPhoto">עם תמונה</string>
     <string name="ClearConversationHistoryInfo">האם אתה בטוח שברצונך לנקות את **כל** היסטוריית השיחות של הבינה המלאכותית?</string>
     <!-- AI Errors -->
     <string name="AIError400">בקשה שגויה</string>
@@ -335,6 +320,8 @@
     <string name="AIError503Info">השירות אינו זמין זמנית או עמוס. אנא נסה שוב מאוחר יותר.</string>
     <string name="AIError">שגיאת שרת</string>
     <string name="AIErrorInfo">אנא נסה שוב את בקשתך לאחר המתנה קצרה.</string>
+    <string name="AIErrorEmpty">תגובה ריקה</string>
+    <string name="AIErrorEmptyInfo">המודל לא החזיר דבר. נסה שוב או בחר מודל אחר.</string>
     <string name="AIOnDevice">על הטלפון</string>
     <string name="AIErrorOnDevice">המודל המקומי אינו זמין</string>
     <string name="AIErrorOnDeviceInfo">מכשיר זה אינו יכול להריץ את המודל הפועל על המכשיר. בחר שירות אחר.</string>
@@ -344,6 +331,8 @@
     <string name="AIErrorOnDeviceDownloadingInfo">המודל המקומי עדיין יורד. אנא נסה שוב מאוחר יותר.</string>
     <string name="AIErrorOnDeviceTooLong">ההודעה ארוכה מדי</string>
     <string name="AIErrorOnDeviceTooLongInfo">המודל הפועל על המכשיר אינו יכול לטפל בבקשה זו. יש לקצר אותה או לבחור בשירות אחר.</string>
+    <string name="AIErrorOnDeviceStopped">המודל נעצר</string>
+    <string name="AIErrorOnDeviceStoppedInfo">המודל הפועל על המכשיר הפסיק לפעול במהלך מתן התשובה, לעיתים קרובות עקב מחסור בזיכרון במכשיר. נסה שוב או בחר מודל \"קל\" יותר.</string>
     <string name="AIOnDeviceDownloadTitle">הורד מודל הפועל על המכשיר</string>
     <string name="AIOnDeviceDownloadInfo">המודל יורד פעם אחת ולאחר מכן פועל במלואו על המכשיר, מבלי לשלוח דבר לשרת. ההורדה גדולה ומנוהלת על ידי המערכת, ולכן לא ניתן לעצור אותה לאחר שהחלה. מומלץ להשתמש ב-Wi-Fi.</string>
     <string name="AIOnDeviceDownloadButton">הורדה</string>
@@ -356,19 +345,28 @@
     <string name="AIOnDeviceBadgeDownload">הורדה</string>
     <string name="AIOnDeviceBadgeDownloading">טוען</string>
     <string name="AIOnDeviceRefresh">רענן סטטוס</string>
+    <string name="AIOnDevicePreviewModel">תצוגה מקדימה של המודל</string>
+    <string name="AIOnDeviceFastModel">מודל מהיר</string>
+    <string name="AIReplaceTelegram">טלגרם AI</string>
+    <string name="AIReplaceTelegramEditorInfo">תרגום, עיבוד סגנוני והגהה של טיוטות</string>
+    <string name="AIReplaceTelegramSummariesInfo">סכם הודעות ופוסטים ארוכים</string>
+    <string name="AIReplaceTelegramInfo">תכונות נבחרות משתמשות בשירות ה-AI שלך במקום בשרתי טלגרם, ללא המגבלות של מנוי Premium.</string>
     <string name="AIOnDeviceManage">הגדרות AICore</string>
     <string name="AIOnDeviceManageUnavailable">הגדרות המערכת עבור AICore אינן זמינות במכשיר זה.</string>
     <string name="AIChangeModel">שינוי</string>
     <string name="AIAskMore">שאל עוד</string>
     <string name="AIAssistant">מסייע</string>
     <!-- Chat Actions -->
-    <string name="DoubleTap">לחיצה כפולה</string>
     <string name="DoubleTapIncoming">הודעות נכנסות</string>
     <string name="DoubleTapOutgoing">הודעות יוצאות</string>
     <string name="DoubleTapInfo">חלק מהפעולות דורשות הרשאות מנהל בצ\'אט או בערוץ.</string>
     <string name="Gestures">מחוות</string>
     <string name="SwipeActions">פעולות החלקה</string>
     <string name="SwipeActionsInfo">החלק הודעה שמאלה, ומבלי להרים את האצבע, הזז אותה למעלה או למטה כדי לבחור פעולה.</string>
+    <string name="SwipeActionsBehavior">התנהגות</string>
+    <string name="SwipeActionsLoop">פעולות לולאה</string>
+    <string name="SwipeActionsReversed">גלילה הפוכה</string>
+    <string name="SwipeActionsBehaviorInfo">במצב לולאה, הפעולה הראשונה מגיעה מיד לאחר האחרונה. גלילה הפוכה גורמת לרשימה לנוע יחד עם האצבע שלך.</string>
     <string name="SwipeActionsEnabled">פעולות</string>
     <string name="SwipeActionsDisabled">מושבת</string>
     <string name="SwipeActionsOrderInfo">הקש על פעולה כדי להפעיל או לכבות אותה, וגרור כדי לשנות את הסדר. הפעולה העליונה ביותר מתבצעת בעת ביצוע החלקה רגילה.</string>
@@ -394,15 +392,15 @@
     <string name="GlassMessageMenuInfo">תפריט ההודעות, תפריט הכותרת וסרגל התגובות הופכים למראה של זכוכית חלבית.</string>
     <string name="GlassMessageMenuBlurOff">תפריטי זכוכית דורשים טשטוש, אשר כרגע כבוי.</string>
     <string name="AddCommaAfterMention">הוסף פסיק לאחר אזכור</string>
-    <string name="InlineMathResult">תוצאות מתמטיות משולבות</string>
-    <string name="InlineMathResultHint">הצג תצוגה מקדימה של התוצאה לאחר \"=\", ולאחר מכן לחץ על מקש הרווח כדי להכניס אותה.</string>
     <string name="InlineMathResultAnnouncement">תוצאה: %1$s</string>
     <string name="HideSendAsPeer">הסתר את כפתור \"שלח כ...\"</string>
     <string name="HideSendAsPeerInfo">עדיין ניתן לגשת לתפריט \"שלח כ...\" על ידי לחיצה ארוכה על כפתור האימוג\'ים/מדבקות/GIF.</string>
     <string name="ShowPollResultsBeforeVoting">הצג תוצאות לפני ההצבעה</string>
     <string name="ShowPollResultsBeforeVotingHint">צפה בתוצאות עבור כל אפשרות לפני שליחת הצבעתך.</string>
     <string name="ShowOnlineStatus">הצג מחוון מקוון</string>
+    <string name="ShowForwardsCount">הצג את מספר ההעברות</string>
     <string name="MessagePreviewDialogMessage">אני יכול לאכול זכוכית וזה לא כואב לי.</string>
+    <!-- Chat Search -->
     <!-- Voice & Video Recognition -->
     <string name="RecognitionLanguage">שפת זיהוי</string>
     <string name="RecognitionInfo">משתמש ב-Vosk API. עובד במצב לא מקוון. איכות הטקסט המתועתק עשויה להיות נמוכה.</string>
@@ -444,7 +442,6 @@
     <string name="AlwaysSendInHD">תמיד לשלוח ב-HD</string>
     <string name="HideCameraTile">הסתר את משבצת המצלמה המיידית</string>
     <string name="HideCameraTileInfo">אריח המצלמה יוחלף בכפתור צף. לחיצה עליו תפעיל את מצלמת הטלגרם; לחיצה ממושכת תפעיל את מצלמת המערכת.</string>
-    <string name="ShortStandardQuality">SD</string>
     <!-- Playback -->
     <string name="DoubleTapSeekDuration">לחיצה כפולה על זמן דילוג</string>
     <string name="PreferOriginalQuality">עדיף איכות מקורית</string>
@@ -519,7 +516,6 @@
     <string name="PluginNotEnabled">הפעל את **מנוע התוספים** כדי להתקין את **%1$s**.</string>
     <string name="PluginInstalled">**%1$s** הותקן בהצלחה.</string>
     <string name="PluginUpdated">**%1$s** עודכן בהצלחה.</string>
-    <string name="PluginInstalledButFailedToEnable">**%1$s** הותקן, אך אירעה שגיאה בעת ההפעלה.</string>
     <string name="PluginEnableError">נכשלה ההפעלה של **%1$s**.</string>
     <string name="PluginDisableError">נכשל בהשבתת **%1$s**.</string>
     <string name="PluginInstallError">התקנת **%1$s** נכשלה.</string>
@@ -620,7 +616,6 @@
     <!-- Login & QR -->
     <string name="LoginQrTitle">כניסה עם קוד QR</string>
     <string name="LoginQrSubtitle">השתמש במכשיר אחר כדי לסרוק את קוד ה-QR הזה.</string>
-    <string name="SelectNumber">בחר מספר טלפון</string>
     <string name="WifiConnect">התחבר</string>
     <string name="WifiDisabled">ה-Wi-Fi מושבת.</string>
     <string name="WifiFailed">נכשלה ההתחברות ל-Wi-Fi.</string>
@@ -631,6 +626,13 @@
     <string name="PageBlockedDescription">exteraGram מנע את טעינת הדף הבא:\n**%1$s**</string>
     <string name="PageBlockedGoBack">חזור</string>
     <string name="PageBlockedProceed">המשך</string>
+    <string name="BlockAds">חסום פרסומות</string>
+    <string name="BlockedRequests_one">%1$d נחסם</string>
+    <string name="BlockedRequests_two">%1$d נחסם</string>
+    <string name="BlockedRequests_few">%1$d נחסם</string>
+    <string name="BlockedRequests_many">%1$d נחסמו</string>
+    <string name="BlockedRequests_other">%1$d נחסמו</string>
+    <string name="AdBlockFiltersLoading">טוען מסננים...</string>
     <!-- Other -->
     <string name="SetAsBadge">הגדר כתג</string>
     <string name="AutoLockInstant">מיידי</string>
@@ -705,7 +707,6 @@
     <string name="FeedShownChannels">מוצג בפיד</string>
     <string name="FeedHiddenChannels">מוסתר</string>
     <string name="FeedChannels">ערוצים</string>
-    <string name="FeedChannelsInfo">בטל סימון ערוץ כדי להסתיר את הפוסטים שלו מהפיד. ערוצים חדשים מוצגים אוטומטית.</string>
     <string name="FeedSettings">הגדרות פיד</string>
     <string name="FeedNoPosts">אין עדיין פוסטים בערוצים.</string>
     <string name="FeedAllChannelsExcluded">כל הערוצים אינם נכללים בפיד.</string>
@@ -723,5 +724,6 @@
     <string name="HideFeedTab">הסתר לשונית פיד</string>
     <string name="DisableMarkdown">השבת Markdown</string>
     <string name="EnableMarkdown">הפעל Markdown</string>
+    <!-- Player -->
     <!-- Non-translatable -->
 </resources>

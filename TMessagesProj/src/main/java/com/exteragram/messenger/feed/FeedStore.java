@@ -130,11 +130,12 @@ public final class FeedStore {
     }
 
     private void updateCount() {
-        int visibleCount = 0;
-        if (!this.messages.isEmpty()) {
-            visibleCount = (this.endReached ? 0 : 3) + getVisibleCount();
+        int visibleCount = getVisibleCount();
+        int i = 0;
+        if (visibleCount != 0) {
+            i = (this.endReached ? 0 : 3) + visibleCount;
         }
-        this.count = visibleCount;
+        this.count = i;
     }
 
     public void clear() {
@@ -237,12 +238,13 @@ public final class FeedStore {
         }
         HashSet hashSet = new HashSet(arrayList);
         HashSet<Integer> hashSet2 = new HashSet<>();
-        boolean zRemove = false;
+        boolean z = false;
         for (int i = 0; i < arrayList.size(); i++) {
             MessageObject byRealId = this.identityMap.getByRealId(j, arrayList.get(i).intValue());
             if (byRealId != null) {
-                zRemove |= this.messages.remove(byRealId);
+                this.messages.remove(byRealId);
                 purgeRow(byRealId, arrayList2, hashSet2);
+                z = true;
             }
         }
         for (int size = this.messages.size() - 1; size >= 0; size--) {
@@ -250,13 +252,16 @@ public final class FeedStore {
             if (messageObject != null && messageObject.getDialogId() == j && hashSet.contains(Integer.valueOf(messageObject.getRealId()))) {
                 this.messages.remove(size);
                 purgeRow(messageObject, arrayList2, hashSet2);
-                zRemove = true;
+                z = true;
             }
         }
-        if (zRemove) {
+        if (z) {
+            if (!hasMessagesForDialog(j)) {
+                this.hiddenDialogIds.remove(Long.valueOf(j));
+            }
             onRowsRemoved();
         }
-        zArr[0] = zRemove;
+        zArr[0] = z;
         return arrayList2;
     }
 
@@ -283,7 +288,7 @@ public final class FeedStore {
     }
 
     public boolean trim(int i) {
-        if (this.messages.size() <= i) {
+        if (i <= 0 || this.messages.size() <= i) {
             return false;
         }
         MessageObject messageObject = this.messages.get(i - 1);
@@ -295,7 +300,7 @@ public final class FeedStore {
             MessageObject messageObject2 = this.messages.get(size);
             if (messageObject2 != null && compareTimeline(messageObject2.messageOwner.date, messageObject2.getDialogId(), messageObject2.getRealId(), i2, dialogId, realId) < 0) {
                 this.messages.remove(size);
-                this.identityMap.releaseRow(messageObject2);
+                this.identityMap.purge(messageObject2);
                 z = true;
             }
         }

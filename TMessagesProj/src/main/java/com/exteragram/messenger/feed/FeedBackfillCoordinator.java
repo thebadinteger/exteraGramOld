@@ -1,5 +1,6 @@
 package com.exteragram.messenger.feed;
 
+import com.google.android.gms.cast.framework.media.NotificationOptions;
 import java.util.ArrayList;
 import java.util.HashSet;
 import org.telegram.messenger.AndroidUtilities;
@@ -55,15 +56,15 @@ final class FeedBackfillCoordinator {
             this.loadIndex = i6 + 1;
             messagesController.loadMessages(j, 0L, false, 20, i4, 0, false, 0, i5, 0, 0, 0, 0L, 0, i6, false);
         }
-        AndroidUtilities.runOnUIThread(new Runnable() { 
+        AndroidUtilities.runOnUIThread(new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                FeedBackfillCoordinator.this.lambda$startRound$0(i);
+                this.f$0.lambda$startRound$0(i);
             }
-        }, 10000L);
+        }, NotificationOptions.SKIP_STEP_TEN_SECONDS_IN_MS);
     }
 
-    public /* synthetic */ void lambda$startRound$0(int i) {
+    public void lambda$startRound$0(int i) {
         if (i == this.roundId && this.running) {
             this.exhausted.addAll(this.pending);
             finishRound();

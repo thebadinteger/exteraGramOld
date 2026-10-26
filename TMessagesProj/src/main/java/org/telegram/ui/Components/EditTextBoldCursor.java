@@ -8,6 +8,8 @@
 
 package org.telegram.ui.Components;
 
+import com.exteragram.messenger.inline.InlineMathController;
+
 import static org.telegram.messenger.AndroidUtilities.dp;
 
 import android.animation.AnimatorSet;
@@ -872,6 +874,9 @@ public class EditTextBoldCursor extends EditTextEffects {
         try {
             drawInMaim = true;
             super.onDraw(canvas);
+        if (inlineMath != null) {
+            inlineMath.draw(canvas, totalPaddingLeft, totalPaddingTop3, getScrollY() - offsetY, (getScrollY() + getMeasuredHeight()) - offsetY);
+        }
             drawInMaim = false;
         } catch (Exception e) {
             if (BuildVars.DEBUG_PRIVATE_VERSION) {

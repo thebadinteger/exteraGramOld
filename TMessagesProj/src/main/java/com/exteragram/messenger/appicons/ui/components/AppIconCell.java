@@ -25,7 +25,6 @@ import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
 import org.telegram.ui.Components.UniversalRecyclerView;
 
-/* JADX INFO: loaded from: classes4.dex */
 @SuppressLint({"ViewConstructor"})
 public class AppIconCell extends LinearLayout implements Theme.Colorable {
     private final CheckBox2 checkBox;
@@ -39,8 +38,8 @@ public class AppIconCell extends LinearLayout implements Theme.Colorable {
     private final TextView titleView;
 
     @Override // org.telegram.ui.ActionBar.Theme.Colorable
-    public /* bridge */ /* synthetic */ int[] getColorKeys() {
-        return null;
+    public int[] getColorKeys() {
+        return super.getColorKeys();
     }
 
     public AppIconCell(Context context, final Theme.ResourcesProvider resourcesProvider) {
@@ -58,20 +57,20 @@ public class AppIconCell extends LinearLayout implements Theme.Colorable {
         AppIconPreviewView appIconPreviewView = new AppIconPreviewView(context, resourcesProvider);
         this.previewView = appIconPreviewView;
         frameLayout.addView(appIconPreviewView, LayoutHelper.createFrame(-1, -1.0f));
-        CheckBox2 checkBox2 = new CheckBox2(context, 21, new Theme.ResourcesProvider() { // from class: com.exteragram.messenger.appicons.ui.components.AppIconCell$$ExternalSyntheticLambda0
+        CheckBox2 checkBox2 = new CheckBox2(context, 21, new Theme.ResourcesProvider() {
             @Override // org.telegram.ui.ActionBar.Theme.ResourcesProvider
             public final int getColor(int i) {
-                return AppIconCell.this.lambda$new$0(resourcesProvider, i);
+                return this.f$0.lambda$new$0(resourcesProvider, i);
             }
         });
         this.checkBox = checkBox2;
         checkBox2.setColor(Theme.key_featuredStickers_addButton, Theme.key_windowBackgroundWhite, Theme.key_checkboxCheck);
         checkBox2.setDrawUnchecked(false);
         checkBox2.setDrawBackgroundAsArc(4);
-        checkBox2.setProgressDelegate(new CheckBoxBase.ProgressDelegate() { // from class: com.exteragram.messenger.appicons.ui.components.AppIconCell$$ExternalSyntheticLambda1
+        checkBox2.setProgressDelegate(new CheckBoxBase.ProgressDelegate() {
             @Override // org.telegram.ui.Components.CheckBoxBase.ProgressDelegate
             public final void setProgress(float f) {
-                AppIconCell.this.lambda$new$1(f);
+                this.f$0.lambda$new$1(f);
             }
         });
         frameLayout.addView(checkBox2, LayoutHelper.createFrame(24, 24.0f, 85, 0.0f, 0.0f, 1.0f, 1.0f));
@@ -89,16 +88,14 @@ public class AppIconCell extends LinearLayout implements Theme.Colorable {
         ScaleStateListAnimator.apply(this, 0.05f, 1.2f);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ int lambda$new$0(Theme.ResourcesProvider resourcesProvider, int i) {
+    public int lambda$new$0(Theme.ResourcesProvider resourcesProvider, int i) {
         if (i == Theme.key_windowBackgroundWhite) {
             return getSelectionColor();
         }
         return Theme.getColor(i, resourcesProvider);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$1(float f) {
+    public void lambda$new$1(float f) {
         this.previewView.setPreviewScale(1.0f - (f * 0.08f));
     }
 
@@ -165,17 +162,16 @@ public class AppIconCell extends LinearLayout implements Theme.Colorable {
         ValueAnimator duration = ValueAnimator.ofFloat(f2, f).setDuration(220L);
         this.selectionAnimator = duration;
         duration.setInterpolator(CubicBezierInterpolator.EASE_OUT_QUINT);
-        this.selectionAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() { // from class: com.exteragram.messenger.appicons.ui.components.AppIconCell$$ExternalSyntheticLambda2
+        this.selectionAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override // android.animation.ValueAnimator.AnimatorUpdateListener
             public final void onAnimationUpdate(ValueAnimator valueAnimator2) {
-                AppIconCell.this.lambda$setSelected$2(valueAnimator2);
+                this.f$0.lambda$setSelected$2(valueAnimator2);
             }
         });
         this.selectionAnimator.start();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$setSelected$2(ValueAnimator valueAnimator) {
+    public void lambda$setSelected$2(ValueAnimator valueAnimator) {
         this.selection = ((Float) valueAnimator.getAnimatedValue()).floatValue();
         invalidate();
     }

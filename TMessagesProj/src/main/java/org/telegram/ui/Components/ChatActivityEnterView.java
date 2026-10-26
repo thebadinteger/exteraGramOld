@@ -8,6 +8,8 @@
 
 package org.telegram.ui.Components;
 
+import com.exteragram.messenger.inline.InlineMathController;
+
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.AndroidUtilities.dpf2;
 import static org.telegram.messenger.AndroidUtilities.lerp;
@@ -5835,6 +5837,17 @@ public class ChatActivityEnterView extends FrameLayout implements
                 return false;
             }
         });
+        
+        this.messageEditText.setInlineMath(new InlineMathController(this.messageEditText, new InlineMathController.Delegate() {
+            @Override
+            public boolean isInlineMathEnabled() {
+                return ExteraConfig.getInlineMathResult() || ExteraConfig.getInlineCurrencyRates() || ExteraConfig.getInlineUnitConversion() || ExteraConfig.getInlineTimeZones();
+            }
+            @Override
+            public void onResultApplied() {
+            }
+        }));
+
         messageEditText.addTextChangedListener(new TextWatcher() {
 
             private boolean processChange;

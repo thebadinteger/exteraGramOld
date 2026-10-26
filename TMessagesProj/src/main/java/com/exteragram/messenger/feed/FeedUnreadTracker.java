@@ -14,18 +14,26 @@ import org.telegram.tgnet.TLRPC;
 final class FeedUnreadTracker {
     private final int currentAccount;
     private boolean flushScheduled;
-    private final ArrayList<MessageObject> timeline;
+    private ArrayList<MessageObject> timeline;
     private final LongSparseArray<Integer> readInboxMaxByDialog = new LongSparseArray<>();
     private final LongSparseArray<Integer> pendingMaxReadId = new LongSparseArray<>();
-    private final Runnable flushRunnable = new Runnable() { 
+    private final Runnable flushRunnable = new Runnable() {
         @Override // java.lang.Runnable
         public final void run() {
-            FeedUnreadTracker.this.flush();
+            this.f$0.flush();
         }
     };
 
     public FeedUnreadTracker(int i, ArrayList<MessageObject> arrayList) {
         this.currentAccount = i;
+        this.timeline = arrayList;
+    }
+
+    public void setTimeline(ArrayList<MessageObject> arrayList) {
+        if (this.flushScheduled) {
+            AndroidUtilities.cancelRunOnUIThread(this.flushRunnable);
+        }
+        flush();
         this.timeline = arrayList;
     }
 
@@ -94,13 +102,14 @@ final class FeedUnreadTracker {
     }
 
     public void flush() {
+        int i = 0;
         this.flushScheduled = false;
         if (this.pendingMaxReadId.isEmpty()) {
             return;
         }
         MessagesController messagesController = MessagesController.getInstance(this.currentAccount);
         int currentTime = ConnectionsManager.getInstance(this.currentAccount).getCurrentTime();
-        int i = 0;
+        LongSparseArray<Integer> longSparseArrayCountPendingTimelineRows = countPendingTimelineRows();
         while (true) {
             int size = this.pendingMaxReadId.size();
             LongSparseArray<Integer> longSparseArray = this.pendingMaxReadId;
@@ -108,10 +117,9 @@ final class FeedUnreadTracker {
                 long jKeyAt = longSparseArray.keyAt(i);
                 Integer numValueAt = this.pendingMaxReadId.valueAt(i);
                 int iIntValue = numValueAt.intValue();
-                int iIntValue2 = this.readInboxMaxByDialog.get(jKeyAt, 0).intValue();
-                if (iIntValue > iIntValue2) {
+                if (iIntValue > this.readInboxMaxByDialog.get(jKeyAt, 0).intValue()) {
                     this.readInboxMaxByDialog.put(jKeyAt, numValueAt);
-                    messagesController.markDialogAsRead(jKeyAt, iIntValue, 0, currentTime, false, 0L, Math.max(countTimelineRows(jKeyAt, iIntValue2, iIntValue), 1), true, 0);
+                    messagesController.markDialogAsRead(jKeyAt, iIntValue, 0, currentTime, false, 0L, Math.max(longSparseArrayCountPendingTimelineRows.get(jKeyAt, 0).intValue(), 1), true, 0);
                 }
                 i++;
             } else {
@@ -121,16 +129,20 @@ final class FeedUnreadTracker {
         }
     }
 
-    private int countTimelineRows(long j, int i, int i2) {
+    private LongSparseArray<Integer> countPendingTimelineRows() {
         int realId;
-        int i3 = 0;
-        for (int i4 = 0; i4 < this.timeline.size(); i4++) {
-            MessageObject messageObject = this.timeline.get(i4);
-            if (messageObject != null && messageObject.getDialogId() == j && (realId = messageObject.getRealId()) > i && realId <= i2) {
-                i3++;
+        LongSparseArray<Integer> longSparseArray = new LongSparseArray<>();
+        for (int i = 0; i < this.timeline.size(); i++) {
+            MessageObject messageObject = this.timeline.get(i);
+            if (messageObject != null) {
+                long dialogId = messageObject.getDialogId();
+                int iIntValue = this.pendingMaxReadId.get(dialogId, 0).intValue();
+                if (iIntValue != 0 && (realId = messageObject.getRealId()) > this.readInboxMaxByDialog.get(dialogId, 0).intValue() && realId <= iIntValue) {
+                    longSparseArray.put(dialogId, Integer.valueOf(longSparseArray.get(dialogId, 0).intValue() + 1));
+                }
             }
         }
-        return i3;
+        return longSparseArray;
     }
 
     public void markAllRead() {
@@ -161,7 +173,7 @@ final class FeedUnreadTracker {
             MessageObject messageObject = this.timeline.get(i4);
             if (messageObject != null) {
                 long dialogId = messageObject.getDialogId();
-                if (!feedConfig.isExcluded(dialogId) && (includeArchived || (dialog = messagesController.dialogs_dict.get(dialogId)) == null || dialog.folder_id != 1)) {
+                if (feedConfig.isShownInFeed(dialogId) && (includeArchived || (dialog = messagesController.dialogs_dict.get(dialogId)) == null || dialog.folder_id != 1)) {
                     hashSet.add(Long.valueOf(dialogId));
                     int realId = messageObject.getRealId();
                     if (realId > this.readInboxMaxByDialog.get(dialogId, Integer.valueOf(z2 ? 1 : 0)).intValue()) {
@@ -203,7 +215,7 @@ final class FeedUnreadTracker {
             TLRPC.Dialog dialogValueAt = longSparseArray.valueAt(i);
             if (dialogValueAt != null && dialogValueAt.unread_count > 0) {
                 long j = dialogValueAt.id;
-                if (DialogObject.isChatDialog(j) && !feedConfig.isExcluded(j) && ((includeArchived || dialogValueAt.folder_id != 1) && FeedController.isEligibleChannel(messagesController.getChat(Long.valueOf(-j))))) {
+                if (DialogObject.isChatDialog(j) && feedConfig.isShownInFeed(j) && ((includeArchived || dialogValueAt.folder_id != 1) && FeedController.isEligibleChannel(messagesController.getChat(Long.valueOf(-j))))) {
                     arrayList.add(dialogValueAt);
                 }
             }

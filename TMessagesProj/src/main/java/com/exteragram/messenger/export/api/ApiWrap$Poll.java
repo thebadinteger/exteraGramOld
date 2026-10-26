@@ -1,6 +1,6 @@
 package com.exteragram.messenger.export.api;
 
-import com.exteragram.messenger.utils.RecordTag;
+import com.android.tools.r8.RecordTag;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -17,7 +17,7 @@ public class ApiWrap$Poll {
         private final String text;
         private final int votes;
 
-        private /* synthetic */ boolean $record$equals(Object obj) {
+        private boolean $record$equals(Object obj) {
             if (!(obj instanceof Answer)) {
                 return false;
             }
@@ -25,7 +25,7 @@ public class ApiWrap$Poll {
             return this.my == answer.my && this.votes == answer.votes && Objects.equals(this.text, answer.text) && Objects.equals(this.option, answer.option);
         }
 
-        private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+        private Object[] $record$getFieldsAsObjects() {
             return new Object[]{this.text, this.option, Integer.valueOf(this.votes), Boolean.valueOf(this.my)};
         }
 
@@ -41,7 +41,7 @@ public class ApiWrap$Poll {
         }
 
         public final int hashCode() {
-            return java.util.Objects.hash(this.my, this.votes, this.text, this.option);
+            return ApiWrap$Poll$java.util.Objects.hash(this.my, this.votes, this.text, this.option);
         }
 
         public boolean my() {

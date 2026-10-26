@@ -1,6 +1,5 @@
 package com.exteragram.messenger.adblock.data;
 
-/* JADX INFO: loaded from: classes.dex */
 public class FilterListMetadata {
     private final Integer expires;
     private final String homepage;

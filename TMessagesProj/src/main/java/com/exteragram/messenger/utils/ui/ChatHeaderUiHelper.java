@@ -6,8 +6,10 @@ import android.widget.ImageView;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.debug.DebugConfig;
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.MessageObject;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.Cells.ChatMessageCell;
 import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.ChatActivityTopPanelLayout;
 import org.telegram.ui.Components.ChatAvatarContainer;
@@ -27,15 +29,19 @@ public abstract class ChatHeaderUiHelper {
         return !isMaterial3ChatHeaderStyle() ? 1 : 0;
     }
 
+    public static float getGlassPillExtraRightPaddingDp() {
+        return isMaterial3ChatHeaderStyle() ? 0.0f : 6.0f;
+    }
+
     public static int getAvatarSizePx(int i) {
         return AndroidUtilities.dp(i) - (getAvatarInsetPx() * 2);
     }
 
-    public static int getAvatarRadius(int i, boolean z, boolean z2) {
+    public static int getAvatarRadius(int i, boolean z) {
         if (isMaterial3ChatHeaderStyle()) {
-            return ExteraConfig.getAvatarCorners(i, false, z, z2);
+            return ExteraConfig.getAvatarCorners(i, false, z);
         }
-        return ExteraConfig.getAvatarCorners(getAvatarSizePx(i), true, z, z2);
+        return ExteraConfig.getAvatarCorners(getAvatarSizePx(i), true, z);
     }
 
     public static int getChatFadeColorKey() {
@@ -61,25 +67,61 @@ public abstract class ChatHeaderUiHelper {
     }
 
     public static void setupChatTopFade(ChatActivityFadeView chatActivityFadeView, ActionBar actionBar, int i, int i2) {
+        setupChatTopFade(chatActivityFadeView, actionBar, i, i2, isMaterial3ChatHeaderStyle());
+    }
+
+    public static void setupChatTopFade(ChatActivityFadeView chatActivityFadeView, ActionBar actionBar, int i, int i2, boolean z) {
+        chatActivityFadeView.setTopFadeAnchor(actionBar);
         chatActivityFadeView.setFadeTopAlpha(actionBar.getVisibility() == 0 ? 255 : 0);
-        int chatTopFadeZone = getChatTopFadeZone(i2);
-        if (isMaterial3ChatHeaderStyle()) {
-            chatActivityFadeView.setFadeZoneTop(getScaledChatTopFadeZone(actionBar, chatTopFadeZone));
+        int chatTopFadeZone = getChatTopFadeZone(i2, z);
+        if (z) {
+            chatActivityFadeView.setFadeZoneTop(getScaledChatTopFadeZone(actionBar, chatTopFadeZone, z));
             chatActivityFadeView.setTopFadeColor(i);
         } else {
             chatActivityFadeView.setFadeZoneTop(chatTopFadeZone);
         }
-        chatActivityFadeView.setFadeHeightTop(getChatTopFadeHeight());
+        chatActivityFadeView.setFadeHeightTop(getChatTopFadeHeight(z));
     }
 
-    private static int getScaledChatTopFadeZone(ActionBar actionBar, int i) {
+    public static boolean scrimReachesTopFade(ChatActivityFadeView chatActivityFadeView, ViewGroup viewGroup, View view, MessageObject.GroupedMessages groupedMessages, float f) {
+        MessageObject.GroupedMessages.TransitionParams transitionParams;
+        ChatMessageCell chatMessageCell;
+        float fadeZoneTop = chatActivityFadeView.getFadeZoneTop();
+        if (f >= fadeZoneTop) {
+            return false;
+        }
+        int childCount = viewGroup.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View childAt = viewGroup.getChildAt(i);
+            ChatMessageCell chatMessageCell2 = childAt instanceof ChatMessageCell ? (ChatMessageCell) childAt : null;
+            if ((childAt == view || !(groupedMessages == null || chatMessageCell2 == null || chatMessageCell2.getCurrentMessagesGroup() != groupedMessages)) && childAt.getAlpha() != 0.0f && ((chatMessageCell2 != null && chatMessageCell2.getTransitionParams().animateBackgroundBoundsInner) || viewGroup.getY() + childAt.getY() < fadeZoneTop)) {
+                return true;
+            }
+        }
+        if (groupedMessages != null && (chatMessageCell = (transitionParams = groupedMessages.transitionParams).cell) != null) {
+            float translationY = transitionParams.top + transitionParams.offsetTop;
+            if (!transitionParams.backgroundChangeBounds) {
+                translationY += chatMessageCell.getTranslationY();
+            }
+            if (viewGroup.getY() + translationY < fadeZoneTop) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static int getScaledChatTopFadeZone(ActionBar actionBar, int i, boolean z) {
         int measuredHeight = actionBar.getMeasuredHeight();
-        int chatTopFadeZone = getChatTopFadeZone(measuredHeight);
+        int chatTopFadeZone = getChatTopFadeZone(measuredHeight, z);
         return (measuredHeight == 0 || chatTopFadeZone >= i) ? i : chatTopFadeZone + Math.round((i - chatTopFadeZone) * 0.5f);
     }
 
     public static boolean isLightChatStatusBar(ActionBar actionBar, int i) {
-        if (!isMaterial3ChatHeaderStyle() || actionBar.isActionModeShowed()) {
+        return isLightChatStatusBar(actionBar, i, isMaterial3ChatHeaderStyle());
+    }
+
+    public static boolean isLightChatStatusBar(ActionBar actionBar, int i, boolean z) {
+        if (!z || actionBar.isActionModeShowed()) {
             i = actionBar.getBackgroundColor();
         }
         return AndroidUtilities.computePerceivedBrightness(i) > 0.721f;
@@ -93,26 +135,37 @@ public abstract class ChatHeaderUiHelper {
     }
 
     public static float getTopPanelActionBarGapOffset(ChatActivityTopPanelLayout chatActivityTopPanelLayout) {
-        if (!isMaterial3ChatHeaderStyle() || chatActivityTopPanelLayout == null) {
+        if (chatActivityTopPanelLayout == null) {
             return 0.0f;
         }
-        return AndroidUtilities.dp(4.0f) * chatActivityTopPanelLayout.getMetadata().getTotalVisibility();
+        return getTopPanelActionBarGapOffset(chatActivityTopPanelLayout.getMetadata().getTotalVisibility());
+    }
+
+    public static float getTopPanelActionBarGapOffset(float f) {
+        if (isMaterial3ChatHeaderStyle()) {
+            return AndroidUtilities.dp(4.0f) * f;
+        }
+        return 0.0f;
     }
 
     public static float getFinalTopPanelHeight(float f, ChatActivityTopPanelLayout chatActivityTopPanelLayout) {
         return f + getTopPanelActionBarGapOffset(chatActivityTopPanelLayout);
     }
 
+    public static float getFinalTopPanelHeight(float f, float f2) {
+        return f + getTopPanelActionBarGapOffset(f2);
+    }
+
     public static float getTopPanelTranslationY(float f, float f2, float f3) {
         return (f + AndroidUtilities.dp(isMaterial3ChatHeaderStyle() ? -1 : -5)) - (f2 * f3);
     }
 
-    public static int getChatTopFadeHeight() {
-        return AndroidUtilities.dp(isMaterial3ChatHeaderStyle() ? 78.0f : 48.0f);
+    public static int getChatTopFadeHeight(boolean z) {
+        return AndroidUtilities.dp(z ? 78.0f : 48.0f);
     }
 
-    public static int getChatTopFadeZone(int i) {
-        return isMaterial3ChatHeaderStyle() ? i + AndroidUtilities.dp(42.0f) : i;
+    public static int getChatTopFadeZone(int i, boolean z) {
+        return z ? i + AndroidUtilities.dp(42.0f) : i;
     }
 
     public static final class ProfileTransitionState {

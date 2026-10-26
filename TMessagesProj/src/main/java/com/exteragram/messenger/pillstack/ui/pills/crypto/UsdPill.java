@@ -17,12 +17,12 @@ public class UsdPill extends RatePill {
         super(context, resourcesProvider, CACHE, "USD", 2, R.drawable.pillstack_usd, new ColoredBackground(-14840995, -15172775));
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.BasePill
     public int getPillId() {
         return PillType.USD.getId();
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.crypto.RatePill
     public String getTargetSelection() {
         if ("USD".equalsIgnoreCase(PillStackConfig.getUsdTargetCurrency())) {
             return "AUTO";
@@ -30,12 +30,12 @@ public class UsdPill extends RatePill {
         return PillStackConfig.getUsdTargetCurrency();
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.crypto.RatePill
     public void setTargetSelection(String str) {
         PillStackConfig.setUsdTargetCurrency(str);
     }
 
-    @Override 
+    @Override // com.exteragram.messenger.pillstack.ui.pills.crypto.RatePill
     public String[] getTargetCurrencies() {
         return PillStackCurrencies.getTargetCurrencies("USD");
     }

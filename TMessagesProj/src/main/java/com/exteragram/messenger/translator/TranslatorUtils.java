@@ -5,6 +5,7 @@ import android.text.style.URLSpan;
 import com.chaquo.python.internal.Common;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.translator.core.BaseTranslator;
+import com.exteragram.messenger.translator.core.HttpTranslator;
 import com.exteragram.messenger.translator.core.TranslationError;
 import com.exteragram.messenger.translator.providers.GoogleTranslator;
 import com.exteragram.messenger.translator.providers.TelegramTranslator;
@@ -21,7 +22,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import okhttp3.internal.url._UrlKt;
 import org.mvel2.asm.signature.SignatureVisitor;
 import org.telegram.messenger.AndroidUtilities;
@@ -42,20 +42,15 @@ import org.telegram.ui.ChatActivity;
 import org.telegram.ui.Components.TranslateAlert2;
 import org.telegram.ui.RestrictedLanguagesSelectActivity;
 
-/* JADX INFO: loaded from: classes4.dex */
 public abstract class TranslatorUtils {
     private static final String[] DEVICE_MODELS = {"Galaxy S6", "Galaxy S7", "Galaxy S8", "Galaxy S9", "Galaxy S10", "Galaxy S21", "Pixel 3", "Pixel 4", "Pixel 5", "OnePlus 6", "OnePlus 7", "OnePlus 8", "OnePlus 9", "Xperia XZ", "Xperia XZ2", "Xperia XZ3", "Xperia 1", "Xperia 5", "Xperia 10", "Xperia L4"};
     private static final String[] CHROME_VERSIONS = {"111.0.5563.57", "94.0.4606.81", "80.0.3987.119", "69.0.3497.100", "92.0.4515.159", "71.0.3578.99"};
-    private static final LinkedHashMap<String, String> detectedLanguages = new LinkedHashMap<String, String>(16, 0.75f, true) { // from class: com.exteragram.messenger.translator.TranslatorUtils.1
+    private static final LinkedHashMap<String, String> detectedLanguages = new LinkedHashMap<String, String>(16, 0.75f, true) {
         @Override // java.util.LinkedHashMap
         public boolean removeEldestEntry(Map.Entry<String, String> entry) {
             return size() > 200;
         }
     };
-
-    private static List<TranslateController.Language> getLanguages() {
-        return new ArrayList(TranslateController.getLanguages());
-    }
 
     private static List<TranslateController.Language> getIndexedTargetLanguages() {
         return getCurrentTargetLanguages();
@@ -65,7 +60,7 @@ public abstract class TranslatorUtils {
         if (TextUtils.isEmpty(str)) {
             return null;
         }
-        String strReplace = str.trim().toLowerCase(Locale.US).replace('_', '-');
+        String strReplace = str.trim().toLowerCase(Locale.US).replace('_', SignatureVisitor.SUPER);
         return "nb".equals(strReplace) ? "no" : strReplace;
     }
 
@@ -141,7 +136,7 @@ public abstract class TranslatorUtils {
         if (supportedLanguages == null || supportedLanguages.isEmpty()) {
             ArrayList<TranslateController.Language> arrayList = new ArrayList<>(TranslateController.getLanguages());
             if (currentTranslator == TelegramTranslator.getInstance()) {
-                arrayList.removeIf(new Predicate() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda6
+                arrayList.removeIf(new Predicate() {
                     @Override // java.util.function.Predicate
                     public final boolean test(Object obj) {
                         return TranslatorUtils.$r8$lambda$ZtBb2LzIdqbcBJlTdJioQ0OthG0((TranslateController.Language) obj);
@@ -163,12 +158,12 @@ public abstract class TranslatorUtils {
         while (it2.hasNext()) {
             arrayList2.add(createLanguageItem((String) it2.next()));
         }
-        arrayList2.sort(Comparator.comparing(new Function() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda7
+        arrayList2.sort(Comparator.comparing(new Function() {
             @Override // java.util.function.Function
             public final Object apply(Object obj) {
                 return TranslatorUtils.$r8$lambda$KkUOcCeziy70Lml0BRU39cA3J5c((TranslateController.Language) obj);
             }
-        }, new Comparator() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda8
+        }, new Comparator() {
             @Override // java.util.Comparator
             public final int compare(Object obj, Object obj2) {
                 return ((String) obj).compareToIgnoreCase((String) obj2);
@@ -177,11 +172,11 @@ public abstract class TranslatorUtils {
         return arrayList2;
     }
 
-    public static /* synthetic */ boolean $r8$lambda$ZtBb2LzIdqbcBJlTdJioQ0OthG0(TranslateController.Language language) {
+    public static boolean $r8$lambda$ZtBb2LzIdqbcBJlTdJioQ0OthG0(TranslateController.Language language) {
         return language == null || TextUtils.isEmpty(language.code) || language.code.contains("-") || language.code.contains("_");
     }
 
-    public static /* synthetic */ String $r8$lambda$KkUOcCeziy70Lml0BRU39cA3J5c(TranslateController.Language language) {
+    public static String $r8$lambda$KkUOcCeziy70Lml0BRU39cA3J5c(TranslateController.Language language) {
         String str = language.displayName;
         return str == null ? _UrlKt.FRAGMENT_ENCODE_SET : str;
     }
@@ -231,7 +226,8 @@ public abstract class TranslatorUtils {
             i++;
             StringBuilder sb = new StringBuilder();
             sb.append(language.displayName);
-            if (language.ownDisplayName == null) {
+            String str2 = language.ownDisplayName;
+            if (str2 == null || str2.equalsIgnoreCase(language.displayName)) {
                 str = _UrlKt.FRAGMENT_ENCODE_SET;
             } else {
                 str = " – " + language.ownDisplayName;
@@ -285,7 +281,7 @@ public abstract class TranslatorUtils {
             return;
         }
         ArrayList<String> recentSendTargetLanguages = getRecentSendTargetLanguages();
-        recentSendTargetLanguages.removeIf(new Predicate() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda13
+        recentSendTargetLanguages.removeIf(new Predicate() {
             @Override // java.util.function.Predicate
             public final boolean test(Object obj) {
                 return TextUtils.equals((String) obj, strNormalizeLanguageCode);
@@ -416,45 +412,29 @@ public abstract class TranslatorUtils {
         return String.format("Mozilla/5.0 (Linux; Android %s; %s) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/%s Mobile Safari/537.36", strValueOf, str, strArr2[Utilities.random.nextInt(strArr2.length)]);
     }
 
-    public static String getLanguageTitleSystem(final String str) {
+    public static String getLanguageTitleSystem(String str) {
         if ("none".equals(str)) {
             return LocaleController.getString(R.string.None);
         }
-        return (String) getLanguages().stream().filter(new Predicate() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda2
-            @Override // java.util.function.Predicate
-            public final boolean test(Object obj) {
-                return TextUtils.equals(((TranslateController.Language) obj).code, str);
-            }
-        }).findFirst().map(new Function() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda3
-            @Override // java.util.function.Function
-            public final Object apply(Object obj) {
-                return ((TranslateController.Language) obj).displayName;
-            }
-        }).orElseGet(new Supplier() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda4
-            @Override // java.util.function.Supplier
-            public final Object get() {
-                return TranslatorUtils.$r8$lambda$9wamQUAxKHn3zFwtVLni_f9_rT8(str);
-            }
-        });
-    }
-
-    public static /* synthetic */ String $r8$lambda$9wamQUAxKHn3zFwtVLni_f9_rT8(String str) {
+        String strCapitalFirst = TranslateAlert2.capitalFirst(TranslateAlert2.languageName(str));
+        if (!TextUtils.isEmpty(strCapitalFirst)) {
+            return strCapitalFirst;
+        }
         String strNormalizeLanguageCode = normalizeLanguageCode(str);
         return TextUtils.isEmpty(strNormalizeLanguageCode) ? _UrlKt.FRAGMENT_ENCODE_SET : strNormalizeLanguageCode.toUpperCase(Locale.US);
     }
 
-    public static String getLanguageDisplayName(final String str) {
-        return (String) getLanguages().stream().filter(new Predicate() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda0
-            @Override // java.util.function.Predicate
-            public final boolean test(Object obj) {
-                return TextUtils.equals(((TranslateController.Language) obj).code, str);
-            }
-        }).findFirst().map(new Function() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda1
-            @Override // java.util.function.Function
-            public final Object apply(Object obj) {
-                return ((TranslateController.Language) obj).ownDisplayName;
-            }
-        }).orElse(null);
+    public static String getLanguageDisplayName(String str) {
+        String strNormalizeLanguageCode = normalizeLanguageCode(str);
+        if (TextUtils.isEmpty(strNormalizeLanguageCode)) {
+            return null;
+        }
+        Locale localeForLanguageTag = Locale.forLanguageTag(strNormalizeLanguageCode);
+        String displayName = localeForLanguageTag.getDisplayName(localeForLanguageTag);
+        if (TextUtils.isEmpty(localeForLanguageTag.getLanguage()) || TextUtils.isEmpty(displayName) || displayName.equalsIgnoreCase(strNormalizeLanguageCode)) {
+            return null;
+        }
+        return TranslateAlert2.capitalFirst(displayName);
     }
 
     public static String getDetectedLanguage(MessageObject messageObject) {
@@ -492,23 +472,23 @@ public abstract class TranslatorUtils {
         CharSequence messageText = ChatUtils.getInstance().getMessageText(messageObject, groupedMessages);
         if (!TextUtils.isEmpty(messageText) && LanguageDetector.hasSupport()) {
             final String strDetectedLanguageKey = detectedLanguageKey(messageObject);
-            LanguageDetector.detectLanguage(messageText.toString(), new LanguageDetector.StringCallback() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda17
+            LanguageDetector.detectLanguage(messageText.toString(), new LanguageDetector.StringCallback() {
                 @Override // org.telegram.messenger.LanguageDetector.StringCallback
                 public final void run(String str) {
-                    AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda20
+                    AndroidUtilities.runOnUIThread(new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
-                            TranslatorUtils.$r8$lambda$mPJfZoaxE0BvL4sm1mDLCdphXQc(str, str, callback);
+                            TranslatorUtils.$r8$lambda$hJVpqBNVpz7hzbQpq7ITMBSggZk(str, str, callback);
                         }
                     });
                 }
-            }, new LanguageDetector.ExceptionCallback() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda18
+            }, new LanguageDetector.ExceptionCallback() {
                 @Override // org.telegram.messenger.LanguageDetector.ExceptionCallback
                 public final void run(Exception exc) {
-                    AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda19
+                    AndroidUtilities.runOnUIThread(new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
-                            TranslatorUtils.$r8$lambda$sClQ6y9RXd_b_HBdxIY4yCcvIag(callback);
+                            TranslatorUtils.$r8$lambda$8eg9NEG0j29lsRC092j5aEZjWTI(callback);
                         }
                     });
                 }
@@ -518,7 +498,7 @@ public abstract class TranslatorUtils {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$mPJfZoaxE0BvL4sm1mDLCdphXQc(String str, String str2, Utilities.Callback callback) {
+    public static void $r8$lambda$hJVpqBNVpz7hzbQpq7ITMBSggZk(String str, String str2, Utilities.Callback callback) {
         if (TextUtils.isEmpty(str)) {
             str = TranslateController.UNKNOWN_LANGUAGE;
         }
@@ -528,7 +508,7 @@ public abstract class TranslatorUtils {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$sClQ6y9RXd_b_HBdxIY4yCcvIag(Utilities.Callback callback) {
+    public static void $r8$lambda$8eg9NEG0j29lsRC092j5aEZjWTI(Utilities.Callback callback) {
         if (callback != null) {
             callback.run(null);
         }
@@ -543,49 +523,49 @@ public abstract class TranslatorUtils {
             return;
         }
         final ChatActivity chatActivity = baseFragment instanceof ChatActivity ? (ChatActivity) baseFragment : null;
-        final Utilities.CallbackReturn callbackReturn = new Utilities.CallbackReturn() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda14
+        final Utilities.CallbackReturn callbackReturn = new Utilities.CallbackReturn() {
             @Override // org.telegram.messenger.Utilities.CallbackReturn
             public final Object run(Object obj) {
-                return TranslatorUtils.$r8$lambda$7fTBIuTIO9V2wJq9zH7Ge3YAw5E(chatActivity, messageObject, (URLSpan) obj);
+                return TranslatorUtils.m2111$r8$lambda$EkR7K3Ewb_4GInmHwgQYyS_RQ(chatActivity, messageObject, (URLSpan) obj);
             }
         };
         TLRPC.Message message = messageObject.messageOwner;
         final ArrayList<TLRPC.MessageEntity> arrayList = message != null ? message.entities : null;
         final CharSequence messageText = ChatUtils.getInstance().getMessageText(messageObject, groupedMessages);
-        detectMessageLanguage(messageObject, groupedMessages, new Utilities.Callback() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda15
+        detectMessageLanguage(messageObject, groupedMessages, new Utilities.Callback() {
             @Override // org.telegram.messenger.Utilities.Callback
             public final void run(Object obj) {
-                TranslatorUtils.$r8$lambda$RaYg0oz_vg60aFgnHZ0iJpaAus0(baseFragment, inputPeer, i, messageText, arrayList, callbackReturn, chatActivity, (String) obj);
+                TranslatorUtils.$r8$lambda$wIjazgCoUTZZD6ExjHTpUeqngZg(baseFragment, inputPeer, i, messageText, arrayList, callbackReturn, chatActivity, (String) obj);
             }
         });
     }
 
-    public static /* synthetic */ Boolean $r8$lambda$7fTBIuTIO9V2wJq9zH7Ge3YAw5E(ChatActivity chatActivity, MessageObject messageObject, URLSpan uRLSpan) {
+    public static Boolean m2111$r8$lambda$EkR7K3Ewb_4GInmHwgQYyS_RQ(ChatActivity chatActivity, MessageObject messageObject, URLSpan uRLSpan) {
         if (chatActivity != null) {
             chatActivity.didPressMessageUrl(uRLSpan, false, messageObject, null);
         }
         return Boolean.TRUE;
     }
 
-    public static /* synthetic */ void $r8$lambda$RaYg0oz_vg60aFgnHZ0iJpaAus0(BaseFragment baseFragment, TLRPC.InputPeer inputPeer, int i, CharSequence charSequence, ArrayList arrayList, Utilities.CallbackReturn callbackReturn, final ChatActivity chatActivity, String str) {
+    public static void $r8$lambda$wIjazgCoUTZZD6ExjHTpUeqngZg(BaseFragment baseFragment, TLRPC.InputPeer inputPeer, int i, CharSequence charSequence, ArrayList arrayList, Utilities.CallbackReturn callbackReturn, final ChatActivity chatActivity, String str) {
         if (baseFragment.getContext() == null) {
             return;
         }
-        TranslateAlert2.showAlert(baseFragment.getContext(), baseFragment, UserConfig.selectedAccount, inputPeer, i, false, TranslateController.UNKNOWN_LANGUAGE.equals(str) ? null : str, TranslateAlert2.getToLanguage(), charSequence, arrayList, false, callbackReturn, new Runnable() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda16
+        TranslateAlert2.showAlert(baseFragment.getContext(), baseFragment, UserConfig.selectedAccount, inputPeer, i, false, TranslateController.UNKNOWN_LANGUAGE.equals(str) ? null : str, TranslateAlert2.getToLanguage(), charSequence, arrayList, false, callbackReturn, new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                TranslatorUtils.$r8$lambda$FKvgu0pUqhWBvJ_vWJkHowACv4I(chatActivity);
+                TranslatorUtils.m2113$r8$lambda$uzchqtWMeAA9Bl4EXajVZcmGWM(chatActivity);
             }
         });
     }
 
-    public static /* synthetic */ void $r8$lambda$FKvgu0pUqhWBvJ_vWJkHowACv4I(ChatActivity chatActivity) {
+    public static void m2113$r8$lambda$uzchqtWMeAA9Bl4EXajVZcmGWM(ChatActivity chatActivity) {
         if (chatActivity != null) {
             chatActivity.dimBehindView(false);
         }
     }
 
-    public static void translateWithDefault(final CharSequence charSequence, TLRPC.InputPeer inputPeer, int i, String str, ArrayList<TLRPC.MessageEntity> arrayList, final TranslateCallback translateCallback) {
+    public static void translateWithDefault(CharSequence charSequence, TLRPC.InputPeer inputPeer, int i, String str, final ArrayList<TLRPC.MessageEntity> arrayList, final TranslateCallback translateCallback) {
         final String resolvedTargetLanguageCode = getResolvedTargetLanguageCode(str);
         TLRPC.TL_messages_translateText tL_messages_translateText = new TLRPC.TL_messages_translateText();
         final TLRPC.TL_textWithEntities tL_textWithEntities = new TLRPC.TL_textWithEntities();
@@ -607,49 +587,18 @@ public abstract class TranslatorUtils {
             strTrim = "no";
         }
         tL_messages_translateText.to_lang = strTrim;
-        translateCallback.onReqId(ConnectionsManager.getInstance(UserConfig.selectedAccount).sendRequest(tL_messages_translateText, new RequestDelegate() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda5
+        translateCallback.onReqId(ConnectionsManager.getInstance(UserConfig.selectedAccount).sendRequest(tL_messages_translateText, new RequestDelegate() {
             @Override // org.telegram.tgnet.RequestDelegate
             public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
-                TranslatorUtils.m1757$r8$lambda$d4RRdZ2YONVAqBl9t6YkN7hzKI(charSequence, resolvedTargetLanguageCode, translateCallback, tL_textWithEntities, tLObject, tL_error);
+                TranslatorUtils.$r8$lambda$JhZ4WBif9covBIpNSRLZeERwC88(tL_textWithEntities, resolvedTargetLanguageCode, arrayList, translateCallback, tLObject, tL_error);
             }
         }));
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$d4RRdZ2YONVAqB-l9t6YkN7hzKI, reason: not valid java name */
-    public static /* synthetic */ void m1757$r8$lambda$d4RRdZ2YONVAqBl9t6YkN7hzKI(CharSequence charSequence, String str, final TranslateCallback translateCallback, TLRPC.TL_textWithEntities tL_textWithEntities, TLObject tLObject, final TLRPC.TL_error tL_error) {
+    public static void $r8$lambda$JhZ4WBif9covBIpNSRLZeERwC88(TLRPC.TL_textWithEntities tL_textWithEntities, String str, ArrayList arrayList, final TranslateCallback translateCallback, TLObject tLObject, final TLRPC.TL_error tL_error) {
         String str2;
         if (tL_error != null && "TRANSLATIONS_DISABLED_ALT".equalsIgnoreCase(tL_error.text)) {
-            GoogleTranslator.getInstance().translate(charSequence.toString(), "auto", str, new TranslateCallback() { // from class: com.exteragram.messenger.translator.TranslatorUtils.2
-                @Override // com.exteragram.messenger.translator.TranslatorUtils.TranslateCallback
-                public void onSuccess(String str3) {
-                    boolean zIsEmpty = TextUtils.isEmpty(str3);
-                    TranslateCallback translateCallback2 = translateCallback;
-                    if (zIsEmpty) {
-                        Objects.requireNonNull(translateCallback2);
-                        AndroidUtilities.runOnUIThread(translateCallback2::onFailed);
-                    } else {
-                        translateCallback2.onSuccess(str3);
-                        TLRPC.TL_textWithEntities tL_textWithEntities2 = new TLRPC.TL_textWithEntities();
-                        tL_textWithEntities2.text = str3;
-                        translateCallback.onSuccess(tL_textWithEntities2);
-                    }
-                }
-
-                @Override // com.exteragram.messenger.translator.TranslatorUtils.TranslateCallback
-                public void onSuccess(TLObject tLObject2, TLRPC.TL_error tL_error2) {
-                    translateCallback.onSuccess(tLObject2, tL_error2);
-                }
-
-                @Override // com.exteragram.messenger.translator.TranslatorUtils.TranslateCallback
-                public void onFailed() {
-                    translateCallback.onFailed();
-                }
-
-                @Override // com.exteragram.messenger.translator.TranslatorUtils.TranslateCallback
-                public void onReqId(int i) {
-                    translateCallback.onReqId(i);
-                }
-            });
+            GoogleTranslator.getInstance().translate(tL_textWithEntities.text, "auto", str, arrayList, translateCallback);
             return;
         }
         if (tLObject instanceof TLRPC.TL_messages_translateResult) {
@@ -663,13 +612,18 @@ public abstract class TranslatorUtils {
                 final String str3 = str2;
                 if (TextUtils.isEmpty(str3)) {
                     Objects.requireNonNull(translateCallback);
-                    AndroidUtilities.runOnUIThread(translateCallback::onFailed);
-                    return;
-                } else {
-                    AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda10
+                    AndroidUtilities.runOnUIThread(new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
-                            TranslatorUtils.$r8$lambda$1dOyQLk62lB6Qv0B49yZEIsZQYw(translateCallback, tL_messages_translateResult, tL_error, tL_textWithEntitiesPreprocess, tL_textWithEntities2, str3);
+                            translateCallback.onFailed();
+                        }
+                    });
+                    return;
+                } else {
+                    AndroidUtilities.runOnUIThread(new Runnable() {
+                        @Override // java.lang.Runnable
+                        public final void run() {
+                            TranslatorUtils.$r8$lambda$aHelZc67qPwEdo3VEJhUm9jW42w(translateCallback, tL_messages_translateResult, tL_error, tL_textWithEntitiesPreprocess, tL_textWithEntities2, str3);
                         }
                     });
                     return;
@@ -677,10 +631,15 @@ public abstract class TranslatorUtils {
             }
         }
         Objects.requireNonNull(translateCallback);
-        AndroidUtilities.runOnUIThread(translateCallback::onFailed);
+        AndroidUtilities.runOnUIThread(new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                translateCallback.onFailed();
+            }
+        });
     }
 
-    public static /* synthetic */ void $r8$lambda$1dOyQLk62lB6Qv0B49yZEIsZQYw(TranslateCallback translateCallback, TLRPC.TL_messages_translateResult tL_messages_translateResult, TLRPC.TL_error tL_error, TLRPC.TL_textWithEntities tL_textWithEntities, TLRPC.TL_textWithEntities tL_textWithEntities2, String str) {
+    public static void $r8$lambda$aHelZc67qPwEdo3VEJhUm9jW42w(TranslateCallback translateCallback, TLRPC.TL_messages_translateResult tL_messages_translateResult, TLRPC.TL_error tL_error, TLRPC.TL_textWithEntities tL_textWithEntities, TLRPC.TL_textWithEntities tL_textWithEntities2, String str) {
         translateCallback.onSuccess(tL_messages_translateResult, tL_error);
         if (tL_textWithEntities == null) {
             tL_textWithEntities = tL_textWithEntities2;
@@ -715,12 +674,12 @@ public abstract class TranslatorUtils {
         }
         final String resolvedTargetLanguageCode = getResolvedTargetLanguageCode(str);
         if (LanguageDetector.hasSupport()) {
-            LanguageDetector.detectLanguage(charSequence.toString(), new LanguageDetector.StringCallback() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda11
+            LanguageDetector.detectLanguage(charSequence.toString(), new LanguageDetector.StringCallback() {
                 @Override // org.telegram.messenger.LanguageDetector.StringCallback
                 public final void run(String str2) {
-                    TranslatorUtils.m1760$r8$lambda$rDYsZ2vAV7cgqwAldx9nhgHWvQ(charSequence, resolvedTargetLanguageCode, arrayList, translateCallback, str2);
+                    TranslatorUtils.$r8$lambda$WNdNKudFTksVlH8TmrH_36XTQr0(charSequence, resolvedTargetLanguageCode, arrayList, translateCallback, str2);
                 }
-            }, new LanguageDetector.ExceptionCallback() { // from class: com.exteragram.messenger.translator.TranslatorUtils$$ExternalSyntheticLambda12
+            }, new LanguageDetector.ExceptionCallback() {
                 @Override // org.telegram.messenger.LanguageDetector.ExceptionCallback
                 public final void run(Exception exc) {
                     TranslatorUtils.translate(charSequence, "auto", resolvedTargetLanguageCode, arrayList, translateCallback);
@@ -731,8 +690,7 @@ public abstract class TranslatorUtils {
         }
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$rDYsZ2-vAV7cgqwAldx9nhgHWvQ, reason: not valid java name */
-    public static /* synthetic */ void m1760$r8$lambda$rDYsZ2vAV7cgqwAldx9nhgHWvQ(CharSequence charSequence, String str, ArrayList arrayList, TranslateCallback translateCallback, String str2) {
+    public static void $r8$lambda$WNdNKudFTksVlH8TmrH_36XTQr0(CharSequence charSequence, String str, ArrayList arrayList, TranslateCallback translateCallback, String str2) {
         if (str2 == null || str2.equals(TranslateController.UNKNOWN_LANGUAGE)) {
             str2 = "auto";
         }
@@ -752,7 +710,14 @@ public abstract class TranslatorUtils {
         if (!currentTranslator.isLanguageSupported(str2)) {
             currentTranslator = GoogleTranslator.getInstance();
         }
-        currentTranslator.translate(charSequence.toString(), str, str2, new TranslateCallback() { // from class: com.exteragram.messenger.translator.TranslatorUtils.3
+        if (currentTranslator instanceof HttpTranslator) {
+            HttpTranslator httpTranslator = (HttpTranslator) currentTranslator;
+            if (arrayList != null && !arrayList.isEmpty()) {
+                httpTranslator.translate(charSequence.toString(), str, str2, arrayList, translateCallback);
+                return;
+            }
+        }
+        currentTranslator.translate(charSequence.toString(), str, str2, new TranslateCallback() {
             @Override // com.exteragram.messenger.translator.TranslatorUtils.TranslateCallback
             public void onSuccess(String str3) {
                 boolean zIsEmpty = TextUtils.isEmpty(str3);

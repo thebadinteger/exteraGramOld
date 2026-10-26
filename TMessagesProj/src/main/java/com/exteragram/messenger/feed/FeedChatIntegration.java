@@ -34,6 +34,7 @@ public class FeedChatIntegration {
     private boolean reactionsRefreshScheduled;
     private boolean readyToMarkAsRead;
     private final boolean restoreDrawerScrollPosition;
+    private boolean restoreSavedScrollPosition;
     private boolean scrollPreservedNewerToUnread;
     private boolean settleAtNewestScheduled;
     private int totalScrollDy;
@@ -43,19 +44,18 @@ public class FeedChatIntegration {
     private static final int NEAR_NEWEST_THRESHOLD = AndroidUtilities.dp(160.0f);
     private int preserveScrollLoadIndex = -1;
     private int lastPagedownCount = -1;
-    private final Runnable settleAtNewestRunnable = new Runnable() { // from class: com.exteragram.messenger.feed.FeedChatIntegration$$ExternalSyntheticLambda0
+    private final Runnable settleAtNewestRunnable = new Runnable() {
         @Override // java.lang.Runnable
         public final void run() {
-            FeedChatIntegration.this.settleAtNewestNow();
+            this.f$0.settleAtNewestNow();
         }
     };
     private final int reactionsRequestGuid = ConnectionsManager.generateClassGuid();
-    private final LongSparseArray<Long> reactionsLastCheckTimes = new LongSparseArray<>();
     private final LongSparseArray<ArrayList<Integer>> pendingReactionIds = new LongSparseArray<>();
-    private final Runnable reactionsRefreshRunnable = new Runnable() { // from class: com.exteragram.messenger.feed.FeedChatIntegration$$ExternalSyntheticLambda1
+    private final Runnable reactionsRefreshRunnable = new Runnable() {
         @Override // java.lang.Runnable
         public final void run() {
-            FeedChatIntegration.this.flushReactionsRefresh();
+            this.f$0.flushReactionsRefresh();
         }
     };
 
@@ -65,6 +65,8 @@ public class FeedChatIntegration {
         ScrollAnchor captureScrollAnchor();
 
         void deleteRows(ArrayList<Integer> arrayList);
+
+        void dematerializeRow(MessageObject messageObject);
 
         int getDistanceToNewerPx();
 
@@ -131,7 +133,6 @@ public class FeedChatIntegration {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void settleAtNewestNow() {
         this.settleAtNewestScheduled = false;
         if (this.destroyed || !this.viewportActive || !this.host.isListReady() || this.host.isScrollAnimationRunning() || this.host.canScrollToNewer()) {
@@ -163,7 +164,8 @@ public class FeedChatIntegration {
         }
     }
 
-    public void resetUiState() {
+    public void resetUiState(boolean z) {
+        this.restoreSavedScrollPosition = z;
         resetMetadataRefresh();
         this.initialScrollApplied = false;
         this.readyToMarkAsRead = false;
@@ -199,21 +201,22 @@ public class FeedChatIntegration {
                 this.initialScrollApplied = true;
                 FeedController feedController = FeedController.getInstance(this.currentAccount);
                 boolean zConsumeInitialUnreadScroll = feedController.consumeInitialUnreadScroll();
-                FeedController.SavedScrollPosition drawerScrollPosition = this.restoreDrawerScrollPosition ? feedController.getDrawerScrollPosition() : null;
-                MessageObject message = drawerScrollPosition != null ? feedController.getMessage(drawerScrollPosition.dialogId, drawerScrollPosition.messageId) : null;
+                FeedController.SavedScrollPosition savedScrollPosition = (this.restoreDrawerScrollPosition || this.restoreSavedScrollPosition) ? feedController.getSavedScrollPosition() : null;
+                this.restoreSavedScrollPosition = false;
+                MessageObject message = savedScrollPosition != null ? feedController.getMessage(savedScrollPosition.dialogId, savedScrollPosition.messageId) : null;
                 if (message != null && this.host.getMessages().contains(message)) {
                     applyUnreadDivider(false);
                     refreshAds();
-                    this.pendingInitialScrollRestore = new ScrollAnchor(message, drawerScrollPosition.offsetTop);
+                    this.pendingInitialScrollRestore = new ScrollAnchor(message, savedScrollPosition.offsetTop);
                     requestPendingInitialPosition();
                 } else {
                     applyUnreadDivider((zConsumeInitialUnreadScroll || this.host.getDistanceToNewerPx() > NEAR_NEWEST_THRESHOLD) ? zConsumeInitialUnreadScroll : true);
                 }
             }
-            FeedAdController.getInstance(this.currentAccount).ensureLoaded(new Runnable() { // from class: com.exteragram.messenger.feed.FeedChatIntegration$$ExternalSyntheticLambda2
+            FeedAdController.getInstance(this.currentAccount).ensureLoaded(new Runnable() {
                 @Override // java.lang.Runnable
                 public final void run() {
-                    FeedChatIntegration.this.refreshAds();
+                    this.f$0.refreshAds();
                 }
             });
         }
@@ -295,14 +298,12 @@ public class FeedChatIntegration {
         if (realId <= 0 || dialogId == 0) {
             return;
         }
-        int id = messageObject.getId();
         if (messageObject.messageOwner.action == null || messageObject.canSetReaction()) {
             long jCurrentTimeMillis = System.currentTimeMillis();
-            long j = id;
-            if (jCurrentTimeMillis - this.reactionsLastCheckTimes.get(j, 0L).longValue() <= 15000) {
+            if (jCurrentTimeMillis - messageObject.reactionsLastCheckTime <= 15000) {
                 return;
             }
-            this.reactionsLastCheckTimes.put(j, Long.valueOf(jCurrentTimeMillis));
+            messageObject.reactionsLastCheckTime = jCurrentTimeMillis;
             ArrayList<Integer> arrayList = this.pendingReactionIds.get(dialogId);
             if (arrayList == null) {
                 arrayList = new ArrayList<>();
@@ -317,7 +318,6 @@ public class FeedChatIntegration {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void flushReactionsRefresh() {
         this.reactionsRefreshScheduled = false;
         if (this.destroyed || !this.viewportActive) {
@@ -328,18 +328,17 @@ public class FeedChatIntegration {
             TLRPC.TL_messages_getMessagesReactions tL_messages_getMessagesReactions = new TLRPC.TL_messages_getMessagesReactions();
             tL_messages_getMessagesReactions.peer = MessagesController.getInstance(this.currentAccount).getInputPeer(this.pendingReactionIds.keyAt(i));
             tL_messages_getMessagesReactions.id.addAll(this.pendingReactionIds.valueAt(i));
-            ConnectionsManager.getInstance(this.currentAccount).bindRequestToGuid(ConnectionsManager.getInstance(this.currentAccount).sendRequest(tL_messages_getMessagesReactions, new RequestDelegate() { // from class: com.exteragram.messenger.feed.FeedChatIntegration$$ExternalSyntheticLambda3
+            ConnectionsManager.getInstance(this.currentAccount).bindRequestToGuid(ConnectionsManager.getInstance(this.currentAccount).sendRequest(tL_messages_getMessagesReactions, new RequestDelegate() {
                 @Override // org.telegram.tgnet.RequestDelegate
                 public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
-                    FeedChatIntegration.this.lambda$flushReactionsRefresh$0(tLObject, tL_error);
+                    this.f$0.lambda$flushReactionsRefresh$0(tLObject, tL_error);
                 }
             }), this.reactionsRequestGuid);
         }
         this.pendingReactionIds.clear();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$flushReactionsRefresh$0(TLObject tLObject, TLRPC.TL_error tL_error) {
+    public void lambda$flushReactionsRefresh$0(TLObject tLObject, TLRPC.TL_error tL_error) {
         if (tLObject instanceof TLRPC.Updates) {
             TLRPC.Updates updates = (TLRPC.Updates) tLObject;
             for (int i = 0; i < updates.updates.size(); i++) {
@@ -360,7 +359,6 @@ public class FeedChatIntegration {
 
     private void resetMetadataRefresh() {
         cancelPendingReactionsRefresh();
-        this.reactionsLastCheckTimes.clear();
         ConnectionsManager.getInstance(this.currentAccount).cancelRequestsForGuid(this.reactionsRequestGuid);
     }
 
@@ -409,12 +407,12 @@ public class FeedChatIntegration {
         this.pendingInitialScrollRestore = null;
     }
 
-    public void saveDrawerScrollPosition() {
-        ScrollAnchor scrollAnchorCaptureScrollAnchor = this.host.captureScrollAnchor();
-        if (scrollAnchorCaptureScrollAnchor == null || scrollAnchorCaptureScrollAnchor.row == null) {
+    public void saveScrollPosition(int i) {
+        ScrollAnchor scrollAnchorCaptureScrollAnchor;
+        if (!this.host.isListReady() || (scrollAnchorCaptureScrollAnchor = this.host.captureScrollAnchor()) == null || scrollAnchorCaptureScrollAnchor.row == null) {
             return;
         }
-        FeedController.getInstance(this.currentAccount).saveDrawerScrollPosition(scrollAnchorCaptureScrollAnchor.row.getDialogId(), scrollAnchorCaptureScrollAnchor.row.getRealId(), scrollAnchorCaptureScrollAnchor.offsetTop);
+        FeedController.getInstance(this.currentAccount).saveScrollPosition(i, scrollAnchorCaptureScrollAnchor.row.getDialogId(), scrollAnchorCaptureScrollAnchor.row.getRealId(), scrollAnchorCaptureScrollAnchor.offsetTop);
     }
 
     public void onReadStateRefreshed() {
@@ -541,20 +539,20 @@ public class FeedChatIntegration {
     }
 
     private static int findDividerInsertIndex(ArrayList<MessageObject> arrayList, int i) {
-        MessageObject messageObject = arrayList.get(i);
-        long groupId = messageObject.getGroupId();
+        MessageObject messageObject;
+        MessageObject messageObject2 = arrayList.get(i);
+        long groupId = messageObject2.getGroupId();
         if (groupId == 0) {
             return i + 1;
         }
-        long dialogId = messageObject.getDialogId();
-        int iMax = i + 1;
-        for (int i2 = 0; i2 < arrayList.size(); i2++) {
-            MessageObject messageObject2 = arrayList.get(i2);
-            if (messageObject2 != null && messageObject2.getGroupId() == groupId && messageObject2.getDialogId() == dialogId) {
-                iMax = Math.max(iMax, i2 + 1);
+        long dialogId = messageObject2.getDialogId();
+        do {
+            i++;
+            if (i >= arrayList.size() || (messageObject = arrayList.get(i)) == null || messageObject.getGroupId() != groupId) {
+                break;
             }
-        }
-        return iMax;
+        } while (messageObject.getDialogId() == dialogId);
+        return i;
     }
 
     public void onVisiblePartInvalidated() {
@@ -757,6 +755,7 @@ public class FeedChatIntegration {
                     int iIndexOf = messages.indexOf(arrayList2.get(i4));
                     if (iIndexOf >= 0) {
                         messages.remove(iIndexOf);
+                        this.host.dematerializeRow((MessageObject) arrayList2.get(i4));
                         this.host.notifyMessageRemoved(iIndexOf);
                     }
                 }
@@ -832,37 +831,45 @@ public class FeedChatIntegration {
     }
 
     private boolean normalizeDateHeaders(ArrayList<MessageObject> arrayList) {
-        MessageObject messageObject = null;
+        MessageObject messageObject;
         int i = 0;
         boolean z = false;
         boolean z2 = false;
-        while (i < arrayList.size()) {
-            MessageObject messageObject2 = arrayList.get(i);
-            if (messageObject2 == null || messageObject2.type == 6 || messageObject2.isSponsored()) {
-                i++;
-            } else {
-                if (messageObject2.isDateObject) {
-                    if (!z) {
-                        arrayList.remove(i);
-                        this.host.notifyMessageRemoved(i);
-                    } else if (messageObject.dateKeyInt != messageObject2.dateKeyInt) {
+        loop0: while (true) {
+            messageObject = null;
+            while (true) {
+                if (i >= arrayList.size()) {
+                    break loop0;
+                }
+                MessageObject messageObject2 = arrayList.get(i);
+                if (messageObject2 == null || messageObject2.type == 6 || messageObject2.isSponsored()) {
+                    i++;
+                } else {
+                    if (messageObject2.isDateObject) {
+                        if (!z) {
+                            arrayList.remove(i);
+                            this.host.notifyMessageRemoved(i);
+                        } else if (messageObject.dateKeyInt != messageObject2.dateKeyInt) {
+                            arrayList.add(i, createDateHeader(messageObject));
+                            this.host.notifyMessageInserted(i);
+                        }
+                        z2 = true;
+                    } else if (messageObject == null || messageObject.dateKeyInt == messageObject2.dateKeyInt) {
+                        i++;
+                        messageObject = messageObject2;
+                        z = true;
+                    } else {
                         arrayList.add(i, createDateHeader(messageObject));
                         this.host.notifyMessageInserted(i);
                     }
-                    z2 = true;
-                } else if (messageObject == null || messageObject.dateKeyInt == messageObject2.dateKeyInt) {
                     i++;
-                    messageObject = messageObject2;
-                    z = true;
-                } else {
-                    arrayList.add(i, createDateHeader(messageObject));
-                    this.host.notifyMessageInserted(i);
+                    z = false;
+                    messageObject = null;
+                    z2 = true;
                 }
-                i++;
-                z = false;
-                messageObject = null;
-                z2 = true;
             }
+            i++;
+            z = false;
         }
         if (!z) {
             return z2;
@@ -916,27 +923,25 @@ public class FeedChatIntegration {
         reconcileWithStore();
         onFeedExclusionsChanged();
         notifyChannelsChanged();
-        BulletinFactory.of(this.host.getFragment()).createUndoBulletin(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.FeedChannelHidden, charSequence)), new Runnable() { // from class: com.exteragram.messenger.feed.FeedChatIntegration$$ExternalSyntheticLambda4
+        BulletinFactory.of(this.host.getFragment()).createUndoBulletin(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.FeedChannelHidden, charSequence)), new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                FeedChatIntegration.this.undoHideChannel();
+                this.f$0.undoHideChannel();
             }
-        }, new Runnable() { // from class: com.exteragram.messenger.feed.FeedChatIntegration$$ExternalSyntheticLambda5
+        }, new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                FeedChatIntegration.this.lambda$hideChannelWithUndo$1(j);
+                this.f$0.lambda$hideChannelWithUndo$1(j);
             }
         }).show();
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$hideChannelWithUndo$1(long j) {
+    public void lambda$hideChannelWithUndo$1(long j) {
         if (this.pendingHideDialogId == j) {
             this.pendingHideDialogId = 0L;
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
     public void undoHideChannel() {
         long j = this.pendingHideDialogId;
         if (j == 0) {
@@ -955,6 +960,6 @@ public class FeedChatIntegration {
     public void onFeedExclusionsChanged() {
         this.lastPagedownCount = -1;
         updatePagedownCounter();
-        NotificationCenter.getInstance(this.currentAccount).postNotificationNameOnUIThread(NotificationCenter.updateInterfaces, Integer.valueOf(MessagesController.UPDATE_MASK_READ_DIALOG_MESSAGE));
+        NotificationCenter.getInstance(this.currentAccount).lambda$postNotificationNameOnUIThread$1(NotificationCenter.updateInterfaces, Integer.valueOf(MessagesController.UPDATE_MASK_READ_DIALOG_MESSAGE));
     }
 }

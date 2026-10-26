@@ -34,6 +34,7 @@ import androidx.annotation.NonNull;
 
 import com.exteragram.messenger.debug.HeapMonitor;
 import com.exteragram.messenger.debug.LoadMonitor;
+import com.exteragram.messenger.security.SensitiveRequestConfirmation;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 

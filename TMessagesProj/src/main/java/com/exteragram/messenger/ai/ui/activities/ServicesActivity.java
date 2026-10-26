@@ -1,17 +1,26 @@
 package com.exteragram.messenger.ai.ui.activities;
 
-import android.graphics.ColorFilter;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffColorFilter;
-import android.graphics.drawable.Drawable;
+import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.view.View;
 import android.widget.TextView;
 import com.exteragram.messenger.ai.AiConfig;
 import com.exteragram.messenger.ai.AiController;
 import com.exteragram.messenger.ai.data.Service;
+import com.exteragram.messenger.ai.network.backend.OnDeviceAvailability;
+import com.exteragram.messenger.ai.ui.OnDeviceModelDialogs;
+import com.exteragram.messenger.plugins.PluginsConstants;
 import com.exteragram.messenger.preferences.BasePreferencesActivity;
+import com.exteragram.messenger.utils.text.LocaleUtils;
+import com.exteragram.messenger.utils.ui.AddButtonDrawable;
 import java.util.ArrayList;
-import java.util.List;
+import kotlin.Metadata;
+import kotlin.Unit;
+import kotlin.collections.CollectionsKt;
+import kotlin.jvm.functions.Function0;
+import kotlin.jvm.internal.SourceDebugExtension;
+import okhttp3.internal.url._UrlKt;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
@@ -19,13 +28,33 @@ import org.telegram.messenger.R;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.BulletinFactory;
-import org.telegram.ui.Components.CombinedDrawable;
 import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
-import org.telegram.ui.Components.UniversalRecyclerView;
 
-public class ServicesActivity extends BasePreferencesActivity implements NotificationCenter.NotificationCenterDelegate {
+@Metadata(d1 = {"\u0000\u0080\u0001\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000b\n\u0000\n\u0002\u0010\u0002\n\u0002\b\u0004\n\u0002\u0010\b\n\u0002\b\u0002\n\u0002\u0010\u0011\n\u0002\u0010\u0000\n\u0002\b\u0002\n\u0002\u0010\u000e\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\r\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0010\u0007\n\u0002\b\u0006\u0018\u0000 82\u00020\u00012\u00020\u0002:\u00018B\u0007¢\u0006\u0004\b\u0003\u0010\u0004J\b\u0010\t\u001a\u00020\nH\u0016J\b\u0010\u000b\u001a\u00020\fH\u0016J\b\u0010\r\u001a\u00020\fH\u0016J\b\u0010\u000e\u001a\u00020\fH\u0016J5\u0010\u000f\u001a\u00020\f2\u0006\u0010\u0010\u001a\u00020\u00112\u0006\u0010\u0012\u001a\u00020\u00112\u0016\u0010\u0013\u001a\f\u0012\b\b\u0001\u0012\u0004\u0018\u00010\u00150\u0014\"\u0004\u0018\u00010\u0015H\u0016¢\u0006\u0002\u0010\u0016J\b\u0010\u0017\u001a\u00020\u0018H\u0016J\b\u0010\u0019\u001a\u00020\nH\u0014J\u001e\u0010\u001a\u001a\u00020\f2\f\u0010\u001b\u001a\b\u0012\u0004\u0012\u00020\u001d0\u001c2\u0006\u0010\u001e\u001a\u00020\u001fH\u0014J\b\u0010 \u001a\u00020\bH\u0002J\u0010\u0010!\u001a\u00020\"2\u0006\u0010#\u001a\u00020\"H\u0002J\b\u0010$\u001a\u00020\fH\u0002J\u0010\u0010%\u001a\u00020\f2\u0006\u0010&\u001a\u00020'H\u0002J\u0010\u0010(\u001a\u00020\f2\u0006\u0010)\u001a\u00020*H\u0002J\u0016\u0010+\u001a\u00020\f2\f\u0010,\u001a\b\u0012\u0004\u0012\u00020\f0-H\u0002J\b\u0010.\u001a\u00020\fH\u0002J0\u0010/\u001a\u00020\f2\u0006\u00100\u001a\u00020\u001d2\u0006\u0010)\u001a\u00020*2\u0006\u00101\u001a\u00020\u00112\u0006\u00102\u001a\u0002032\u0006\u00104\u001a\u000203H\u0014J0\u00105\u001a\u00020\n2\u0006\u00100\u001a\u00020\u001d2\u0006\u0010)\u001a\u00020*2\u0006\u00101\u001a\u00020\u00112\u0006\u00102\u001a\u0002032\u0006\u00104\u001a\u000203H\u0014J\u0010\u00106\u001a\u00020\f2\u0006\u0010&\u001a\u00020'H\u0002J\u0010\u00107\u001a\u00020\f2\u0006\u0010&\u001a\u00020'H\u0002R\u000e\u0010\u0005\u001a\u00020\u0006X\u0082\u0004¢\u0006\u0002\n\u0000R\u0010\u0010\u0007\u001a\u0004\u0018\u00010\bX\u0082\u000e¢\u0006\u0002\n\u0000¨\u00069"}, d2 = {"Lcom/exteragram/messenger/ai/ui/activities/ServicesActivity;", "Lcom/exteragram/messenger/preferences/BasePreferencesActivity;", "Lorg/telegram/messenger/NotificationCenter$NotificationCenterDelegate;", "<init>", "()V", "statusPoll", "Ljava/lang/Runnable;", "newServiceDrawable", "Lcom/exteragram/messenger/utils/ui/AddButtonDrawable;", "onFragmentCreate", _UrlKt.FRAGMENT_ENCODE_SET, "onResume", _UrlKt.FRAGMENT_ENCODE_SET, "onPause", "onFragmentDestroy", "didReceivedNotification", "id", _UrlKt.FRAGMENT_ENCODE_SET, "account", "args", _UrlKt.FRAGMENT_ENCODE_SET, _UrlKt.FRAGMENT_ENCODE_SET, "(II[Ljava/lang/Object;)V", "getTitle", _UrlKt.FRAGMENT_ENCODE_SET, "needHideTitle", "fillItems", PluginsConstants.Settings.ITEMS, "Ljava/util/ArrayList;", "Lorg/telegram/ui/Components/UItem;", "adapter", "Lorg/telegram/ui/Components/UniversalAdapter;", "getNewServiceDrawable", "applyOnDeviceBadge", _UrlKt.FRAGMENT_ENCODE_SET, "title", "reloadServices", "onDeviceUnavailable", "service", "Lcom/exteragram/messenger/ai/data/Service;", "showOnDeviceOptions", PluginsConstants.Settings.VIEW, "Landroid/view/View;", "changeModelConfig", "change", "Lkotlin/Function0;", "openAiCoreSettings", "onClick", PluginsConstants.Settings.ITEM, "position", "x", _UrlKt.FRAGMENT_ENCODE_SET, "y", "onLongClick", "confirmDeleteService", "deleteService", "Companion", "TMessagesProj"}, k = 1, mv = {2, 2, 0}, xi = 48)
+@SourceDebugExtension({"SMAP\nServicesActivity.kt\nKotlin\n*S Kotlin\n*F\n+ 1 ServicesActivity.kt\ncom/exteragram/messenger/ai/ui/activities/ServicesActivity\n+ 2 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n+ 3 fake.kt\nkotlin/jvm/internal/FakeKt\n+ 4 Uri.kt\nandroidx/core/net/UriKt\n*L\n1#1,275:1\n1924#2,3:276\n1#3:279\n29#4:280\n*S KotlinDebug\n*F\n+ 1 ServicesActivity.kt\ncom/exteragram/messenger/ai/ui/activities/ServicesActivity\n*L\n105#1:276,3\n193#1:280\n*E\n"})
+public final class ServicesActivity extends BasePreferencesActivity implements NotificationCenter.NotificationCenterDelegate {
+    private AddButtonDrawable newServiceDrawable;
+    private final Runnable statusPoll = new Runnable() {
+        @Override // java.lang.Runnable
+        public void run() {
+            if (this.this$0.getContext() == null) {
+                return;
+            }
+            final ServicesActivity servicesActivity = this.this$0;
+            OnDeviceAvailability.refresh(new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() {
+                    servicesActivity.reloadServices();
+                }
+            });
+            if (OnDeviceAvailability.isDownloadInProgress()) {
+                AndroidUtilities.runOnUIThread(this, 5000L);
+            }
+        }
+    };
+
     @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
     public boolean needHideTitle() {
         return true;
@@ -34,19 +63,35 @@ public class ServicesActivity extends BasePreferencesActivity implements Notific
     @Override // org.telegram.ui.ActionBar.BaseFragment
     public boolean onFragmentCreate() {
         getNotificationCenter().addObserver(this, NotificationCenter.servicesUpdated);
+        OnDeviceAvailability.refresh(this::reloadServices);
         return super.onFragmentCreate();
+    }
+
+    @Override // com.exteragram.messenger.preferences.BasePreferencesActivity, org.telegram.ui.ActionBar.BaseFragment
+    public void onResume() {
+        super.onResume();
+        OnDeviceAvailability.refresh(this::reloadServices);
+        AndroidUtilities.cancelRunOnUIThread(this.statusPoll);
+        AndroidUtilities.runOnUIThread(this.statusPoll, 5000L);
+    }
+
+    @Override // com.exteragram.messenger.preferences.BasePreferencesActivity, org.telegram.ui.ActionBar.BaseFragment
+    public void onPause() {
+        super.onPause();
+        AndroidUtilities.cancelRunOnUIThread(this.statusPoll);
     }
 
     @Override // org.telegram.ui.ActionBar.BaseFragment
     public void onFragmentDestroy() {
+        AndroidUtilities.cancelRunOnUIThread(this.statusPoll);
         getNotificationCenter().removeObserver(this, NotificationCenter.servicesUpdated);
         super.onFragmentDestroy();
     }
 
     @Override // org.telegram.messenger.NotificationCenter.NotificationCenterDelegate
-    public void didReceivedNotification(int i, int i2, Object... objArr) {
-        if (i == NotificationCenter.servicesUpdated) {
-            this.listView.adapter.update(true);
+    public void didReceivedNotification(int id, int account, Object... args) {
+        if (id == NotificationCenter.servicesUpdated) {
+            reloadServices();
         }
     }
 
@@ -56,140 +101,293 @@ public class ServicesActivity extends BasePreferencesActivity implements Notific
     }
 
     @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
-    public void fillItems(ArrayList<UItem> arrayList, UniversalAdapter universalAdapter) {
-        arrayList.add(UItem.asTopView(getTitle(), LocaleController.getString(R.string.ServicesInfo), "exteraGramPlaceholders", "🔑"));
-        arrayList.add(UItem.asHeader(LocaleController.getString(R.string.Services)));
-        List<Service> all = AiController.getInstance().getAll();
-        for (int i = 0; i < all.size(); i++) {
-            Service service = all.get(i);
-            UItem checked = UItem.asRadio2(i + 100, service.getModel(), service.getUrl()).setChecked(service.isSelected());
+    public void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
+        items.add(UItem.asTopView(getTitle(), LocaleController.getString(R.string.ServicesInfo), "exteraGramPlaceholders", "🔑"));
+        items.add(UItem.asHeader(LocaleController.getString(R.string.Services)));
+        int i = 0;
+        for (Object obj : AiController.getInstance().getAll()) {
+            int i2 = i + 1;
+            if (i < 0) {
+                CollectionsKt.throwIndexOverflow();
+            }
+            Service service = (Service) obj;
+            UItem checked = UItem.asRadio2(i + 100, service.isOnDevice() ? applyOnDeviceBadge(service.getModel()) : service.getModel(), service.isOnDevice() ? LocaleController.getString(R.string.AIOnDevice) : service.getUrl()).setChecked(service.isSelected());
             checked.object = service;
-            arrayList.add(checked);
+            items.add(checked);
+            i = i2;
         }
-        Drawable drawable = getContext().getResources().getDrawable(R.drawable.poll_add_circle);
-        Drawable drawable2 = getContext().getResources().getDrawable(R.drawable.poll_add_plus);
-        int themedColor = getThemedColor(Theme.key_switchTrackChecked);
-        PorterDuff.Mode mode = PorterDuff.Mode.MULTIPLY;
-        drawable.setColorFilter(new PorterDuffColorFilter(themedColor, mode));
-        drawable2.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_checkboxCheck), mode));
-        UItem uItemAccent = UItem.asButton(1, new CombinedDrawable(drawable, drawable2) { // from class: com.exteragram.messenger.ai.ui.activities.ServicesActivity.1
-            @Override // org.telegram.ui.Components.CombinedDrawable, android.graphics.drawable.Drawable
-            public void setColorFilter(ColorFilter colorFilter) {
-            }
-
-            {
-                this.translateX = AndroidUtilities.dp(2.0f);
-            }
-        }, LocaleController.getString(R.string.NewService)).accent();
+        UItem uItemAccent = UItem.asButton(1, getNewServiceDrawable(), LocaleController.getString(R.string.NewService)).accent();
         uItemAccent.pad = 61;
-        arrayList.add(uItemAccent);
+        items.add(uItemAccent);
     }
 
-    @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
-    public void onClick(UItem uItem, View view, int i, float f, float f2) {
-        if (uItem.id >= 100) {
-            Object obj = uItem.object;
-            if (obj instanceof Service) {
-                Service service = (Service) obj;
-                if (!service.isSelected()) {
-                    AiConfig.setSelectedServices(service);
-                    this.listView.adapter.update(true);
-                    return;
+    private final AddButtonDrawable getNewServiceDrawable() {
+        AddButtonDrawable addButtonDrawable = this.newServiceDrawable;
+        if (addButtonDrawable == null) {
+            addButtonDrawable = new AddButtonDrawable(getContext());
+            this.newServiceDrawable = addButtonDrawable;
+        }
+        addButtonDrawable.updateColors(getResourceProvider());
+        return addButtonDrawable;
+    }
+
+    private final CharSequence applyOnDeviceBadge(CharSequence title) {
+        String string;
+        if (OnDeviceAvailability.isDownloadInProgress()) {
+            int downloadPercent = OnDeviceAvailability.getDownloadPercent();
+            if (downloadPercent >= 0) {
+                string = downloadPercent + "%";
+            } else {
+                string = LocaleController.getString(R.string.AIOnDeviceBadgeDownloading);
+            }
+            return LocaleUtils.applyBadge(title, string, Theme.key_chats_unreadCounterMuted, Theme.key_chats_unreadCounterText);
+        }
+        if (OnDeviceAvailability.needsDownload()) {
+            return LocaleUtils.applyBadge(title, LocaleController.getString(R.string.AIOnDeviceBadgeDownload), Theme.key_chats_unreadCounterMuted, Theme.key_chats_unreadCounterText);
+        }
+        if (OnDeviceAvailability.isReady()) {
+            return LocaleUtils.applyBadge(title, LocaleController.getString(R.string.AIOnDeviceBadgeReady), Theme.key_featuredStickers_addButton, Theme.key_featuredStickers_buttonText);
+        }
+        return LocaleUtils.applyBadge(title, LocaleController.getString(R.string.AIOnDeviceBadgeUnavailable), Theme.key_chats_unreadCounterMuted, Theme.key_chats_unreadCounterText);
+    }
+
+    public final void reloadServices() {
+        UniversalAdapter universalAdapter;
+        AiController.getInstance().loadServices();
+        if (getContext() == null || this.fragmentView == null || (universalAdapter = getListView$TMessagesProj().adapter) == null) {
+            return;
+        }
+        universalAdapter.update(true);
+    }
+
+    public final void onDeviceUnavailable(Service service) {
+        if (getContext() == null) {
+            return;
+        }
+        reloadServices();
+        if (OnDeviceAvailability.isReady()) {
+            if (service.isSelected()) {
+                return;
+            }
+            AiConfig.setSelectedServices(service);
+            reloadServices();
+            return;
+        }
+        if (OnDeviceAvailability.needsDownload()) {
+            OnDeviceModelDialogs.showDownloadDialog(this);
+        } else {
+            BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.AIErrorOnDeviceInfo)).show();
+        }
+    }
+
+    private final void showOnDeviceOptions(View view) {
+        ItemOptions itemOptionsMakeOptions = ItemOptions.makeOptions(this, view);
+        if (OnDeviceAvailability.isThinkingSupported()) {
+            itemOptionsMakeOptions.addChecked(AiConfig.getOnDeviceReasoning(), R.drawable.msg_discuss, LocaleController.getString(R.string.AIReasoning), new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() {
+                    ServicesActivity.$r8$lambda$BUH1TL9PeVzDVqeIOPrXJzg6E9g(this.f$0);
                 }
-            }
+            });
         }
-        if (uItem.id == 1) {
-            presentFragment(new EditServiceActivity());
+        itemOptionsMakeOptions.addChecked(AiConfig.getOnDevicePreviewModel(), R.drawable.msg_fave, LocaleController.getString(R.string.AIOnDevicePreviewModel), new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.changeModelConfig(new Function0() {
+                    @Override // kotlin.jvm.functions.Function0
+                    public final Object invoke() {
+                        return ServicesActivity.$r8$lambda$mKzcsHUkF6_acfumYXsECmsCqqU();
+                    }
+                });
+            }
+        });
+        itemOptionsMakeOptions.addChecked(AiConfig.getOnDeviceFastModel(), R.drawable.msg_speed, LocaleController.getString(R.string.AIOnDeviceFastModel), new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.changeModelConfig(new Function0() {
+                    @Override // kotlin.jvm.functions.Function0
+                    public final Object invoke() {
+                        return ServicesActivity.m1106$r8$lambda$EsVEDoCk2H16nnM2T83ZZa6Juc();
+                    }
+                });
+            }
+        });
+        itemOptionsMakeOptions.addGap();
+        itemOptionsMakeOptions.add(R.drawable.msg_reset, LocaleController.getString(R.string.AIOnDeviceRefresh), new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                OnDeviceAvailability.refresh(ServicesActivity.this::reloadServices);
+            }
+        });
+        itemOptionsMakeOptions.add(R.drawable.msg_settings, LocaleController.getString(R.string.AIOnDeviceManage), new Runnable() {
+            @Override // java.lang.Runnable
+            public final void run() {
+                this.f$0.openAiCoreSettings();
+            }
+        });
+        itemOptionsMakeOptions.setGravity(LocaleController.isRTL ? 3 : 5);
+        itemOptionsMakeOptions.setScrimViewBackground(getListView$TMessagesProj().getClipBackground(view));
+        itemOptionsMakeOptions.setDismissOnMoveOutside(true);
+        itemOptionsMakeOptions.show();
+    }
+
+    public static void $r8$lambda$BUH1TL9PeVzDVqeIOPrXJzg6E9g(ServicesActivity servicesActivity) {
+        AiConfig.setOnDeviceReasoning(!AiConfig.getOnDeviceReasoning());
+        servicesActivity.reloadServices();
+    }
+
+    public static Unit $r8$lambda$mKzcsHUkF6_acfumYXsECmsCqqU() {
+        AiConfig.setOnDevicePreviewModel(!AiConfig.getOnDevicePreviewModel());
+        return Unit.INSTANCE;
+    }
+
+    public static Unit m1106$r8$lambda$EsVEDoCk2H16nnM2T83ZZa6Juc() {
+        AiConfig.setOnDeviceFastModel(!AiConfig.getOnDeviceFastModel());
+        return Unit.INSTANCE;
+    }
+
+    public final void changeModelConfig(Function0<Unit> change) {
+        change.invoke();
+        OnDeviceAvailability.onModelConfigChanged(this::reloadServices);
+        AndroidUtilities.cancelRunOnUIThread(this.statusPoll);
+        AndroidUtilities.runOnUIThread(this.statusPoll, 5000L);
+    }
+
+    public final void openAiCoreSettings() {
+        try {
+            Intent intent = new Intent("android.settings.APPLICATION_DETAILS_SETTINGS");
+            intent.setData(Uri.parse("package:com.google.android.aicore"));
+            intent.addFlags(268435456);
+            getContext().startActivity(intent);
+        } catch (Exception unused) {
+            BulletinFactory.of(this).createErrorBulletin(LocaleController.getString(R.string.AIOnDeviceManageUnavailable)).show();
         }
     }
 
     @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
-    public boolean onLongClick(UItem uItem, View view, int i, float f, float f2) {
-        if (uItem == null) {
+    public void onClick(UItem item, View view, int position, float x, float y) {
+        Object obj = item.object;
+        Service service = null;
+        Object[] objArr = 0;
+        final Service service2 = obj instanceof Service ? (Service) obj : null;
+        int i = item.id;
+        int i2 = 1;
+        if (i < 100 || service2 == null) {
+            if (i == 1) {
+                presentFragment(new EditServiceActivity(service, i2, objArr == true ? 1 : 0));
+                return;
+            }
+            return;
+        }
+        if (service2.isOnDevice() && !OnDeviceAvailability.isReady()) {
+            if (OnDeviceAvailability.isDownloadInProgress()) {
+                BulletinFactory.of(this).createSimpleBulletin(R.raw.ic_download, LocaleController.getString(R.string.AIErrorOnDeviceDownloading), LocaleController.getString(R.string.AIOnDeviceManage), new Runnable() {
+                    @Override // java.lang.Runnable
+                    public final void run() {
+                        this.f$0.openAiCoreSettings();
+                    }
+                }).show();
+                return;
+            } else if (OnDeviceAvailability.needsDownload()) {
+                OnDeviceModelDialogs.showDownloadDialog(this);
+                return;
+            } else {
+                OnDeviceAvailability.refresh(new Runnable() {
+                    @Override // java.lang.Runnable
+                    public final void run() {
+                        this.f$0.onDeviceUnavailable(service2);
+                    }
+                });
+                return;
+            }
+        }
+        if (service2.isSelected()) {
+            return;
+        }
+        AiConfig.setSelectedServices(service2);
+        UniversalAdapter universalAdapter = getListView$TMessagesProj().adapter;
+        if (universalAdapter != null) {
+            universalAdapter.update(true);
+        }
+    }
+
+    @Override // com.exteragram.messenger.preferences.BasePreferencesActivity
+    public boolean onLongClick(UItem item, View view, int position, float x, float y) {
+        Object obj = item.object;
+        final Service service = obj instanceof Service ? (Service) obj : null;
+        if (service == null) {
             return false;
         }
-        Object obj = uItem.object;
-        if (!(obj instanceof Service)) {
-            return false;
+        if (service.isOnDevice()) {
+            showOnDeviceOptions(view);
+            return true;
         }
-        final Service service = (Service) obj;
-        ItemOptions.makeOptions(this, view).add(R.drawable.msg_edit, LocaleController.getString(R.string.Edit), new Runnable() { // from class: com.exteragram.messenger.ai.ui.activities.ServicesActivity$$ExternalSyntheticLambda0
+        ItemOptions itemOptionsMakeOptions = ItemOptions.makeOptions(this, view);
+        itemOptionsMakeOptions.add(R.drawable.msg_edit, LocaleController.getString(R.string.Edit), new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                ServicesActivity.this.lambda$onLongClick$0(service);
+                this.f$0.presentFragment(new EditServiceActivity(service));
             }
-        }).add(R.drawable.msg_copy, LocaleController.getString(R.string.Copy), new Runnable() { // from class: com.exteragram.messenger.ai.ui.activities.ServicesActivity$$ExternalSyntheticLambda1
+        });
+        itemOptionsMakeOptions.add(R.drawable.msg_copy, LocaleController.getString(R.string.Copy), new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                ServicesActivity.this.lambda$onLongClick$1(service);
+                ServicesActivity.m1104$r8$lambda$96ejcIcYHIKJeY7x7RAq1yArIE(service, this);
             }
-        }).add(R.drawable.msg_delete, (CharSequence) LocaleController.getString(R.string.Delete), true, new Runnable() { // from class: com.exteragram.messenger.ai.ui.activities.ServicesActivity$$ExternalSyntheticLambda2
+        });
+        itemOptionsMakeOptions.add(R.drawable.msg_delete, (CharSequence) LocaleController.getString(R.string.Delete), true, new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                ServicesActivity.this.lambda$onLongClick$2(service);
+                this.f$0.confirmDeleteService(service);
             }
-        }).setGravity(LocaleController.isRTL ? 3 : 5).setScrimViewBackground(this.listView.getClipBackground(view)).show();
+        });
+        itemOptionsMakeOptions.setGravity(LocaleController.isRTL ? 3 : 5);
+        itemOptionsMakeOptions.setScrimViewBackground(getListView$TMessagesProj().getClipBackground(view));
+        itemOptionsMakeOptions.setDismissOnMoveOutside(true);
+        itemOptionsMakeOptions.show();
         return true;
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$onLongClick$0(Service service) {
-        presentFragment(new EditServiceActivity(service));
-    }
-
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$onLongClick$1(Service service) {
+    public static void m1104$r8$lambda$96ejcIcYHIKJeY7x7RAq1yArIE(Service service, ServicesActivity servicesActivity) {
         if (AndroidUtilities.addToClipboard(service.getUrl() + "\n" + service.getModel() + "\n" + service.getKey())) {
-            BulletinFactory.of(this).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
+            BulletinFactory.of(servicesActivity).createCopyBulletin(LocaleController.getString(R.string.TextCopied)).show();
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    /* JADX INFO: renamed from: confirmDeleteService, reason: merged with bridge method [inline-methods] */
-    public void lambda$onLongClick$2(final Service service) {
-        if (service == null || getParentActivity() == null) {
+    public final void confirmDeleteService(final Service service) {
+        Activity parentActivity = getParentActivity();
+        if (parentActivity == null) {
             return;
         }
-        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-        builder.setTitle(LocaleController.getString(R.string.Delete));
-        builder.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.DeleteServiceInfo, service.getShortModel())));
-        builder.setPositiveButton(LocaleController.getString(R.string.Delete), new AlertDialog.OnButtonClickListener() { // from class: com.exteragram.messenger.ai.ui.activities.ServicesActivity$$ExternalSyntheticLambda3
+        AlertDialog alertDialogCreate = new AlertDialog.Builder(parentActivity).setTitle(LocaleController.getString(R.string.Delete)).setMessage(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.DeleteServiceInfo, service.getShortModel()))).setPositiveButton(LocaleController.getString(R.string.Delete), new AlertDialog.OnButtonClickListener() {
             @Override // org.telegram.ui.ActionBar.AlertDialog.OnButtonClickListener
             public final void onClick(AlertDialog alertDialog, int i) {
-                ServicesActivity.this.lambda$confirmDeleteService$3(service, alertDialog, i);
+                this.f$0.deleteService(service);
             }
-        });
-        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
-        AlertDialog alertDialogCreate = builder.create();
+        }).setNegativeButton(LocaleController.getString(R.string.Cancel), null).create();
         showDialog(alertDialogCreate);
-        TextView textView = (TextView) alertDialogCreate.getButton(-1);
+        View button = alertDialogCreate.getButton(-1);
+        TextView textView = button instanceof TextView ? (TextView) button : null;
         if (textView != null) {
             textView.setTextColor(Theme.getColor(Theme.key_text_RedBold));
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$confirmDeleteService$3(Service service, AlertDialog alertDialog, int i) {
-        deleteService(service);
-    }
-
-    private void deleteService(Service service) {
+    public final void deleteService(Service service) {
         UniversalAdapter universalAdapter;
-        boolean z = service != null && service.isSelected();
-        if (service == null || !AiController.getInstance().removeService(service)) {
-            return;
-        }
-        if (z) {
-            AiConfig.clearSelectedService();
-            if (!AiController.getInstance().isServicesEmpty()) {
-                AiConfig.setSelectedServices(AiController.getInstance().getAll().get(0));
+        boolean zIsSelected = service.isSelected();
+        if (AiController.getInstance().removeService(service)) {
+            if (zIsSelected) {
+                AiConfig.clearSelectedService();
+                if (!AiController.getInstance().isServicesEmpty()) {
+                    AiConfig.setSelectedServices(AiController.getInstance().getAll().get(0));
+                }
             }
+            getNotificationCenter().lambda$postNotificationNameOnUIThread$1(NotificationCenter.servicesUpdated, new Object[0]);
+            if (this.fragmentView == null || (universalAdapter = getListView$TMessagesProj().adapter) == null) {
+                return;
+            }
+            universalAdapter.update(true);
         }
-        getNotificationCenter().postNotificationNameOnUIThread(NotificationCenter.servicesUpdated, new Object[0]);
-        UniversalRecyclerView universalRecyclerView = this.listView;
-        if (universalRecyclerView == null || (universalAdapter = universalRecyclerView.adapter) == null) {
-            return;
-        }
-        universalAdapter.update(true);
     }
 }

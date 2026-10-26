@@ -8,6 +8,9 @@
 
 package org.telegram.ui;
 
+import com.exteragram.messenger.utils.ui.PredictiveBackNavigationHelper;
+import com.exteragram.messenger.utils.ui.TabletSplitUiHelper;
+
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.AndroidUtilities.replaceSingleLinkBold;
 import static org.telegram.messenger.LocaleController.formatPluralString;
@@ -932,6 +935,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
 
     @Override
     public void onThemeProgress(float progress) {
+        if (tabletSplit != null) {
+            tabletSplit.getHandleView().invalidate();
+        }
+
         if (ArticleViewer.hasInstance() && ArticleViewer.getInstance().isVisible()) {
             ArticleViewer.getInstance().updateThemeColors(progress);
         }
@@ -6921,6 +6928,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         VideoAds.dropCache();
 
         clearFragments();
+        if (predictiveBackNavigation != null) { predictiveBackNavigation.detach(); predictiveBackNavigation = null; }
         super.onDestroy();
         onFinish();
         if (flagSecureReason != null) {

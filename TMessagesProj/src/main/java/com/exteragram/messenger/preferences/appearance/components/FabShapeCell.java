@@ -16,6 +16,7 @@ import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.preferences.components.CustomPreferenceCell;
 import com.exteragram.messenger.preferences.components.PreviewBackgroundDrawable;
 import com.exteragram.messenger.preferences.components.PreviewColors;
+import com.exteragram.messenger.utils.ui.FabUiHelper;
 import java.util.Arrays;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.R;
@@ -38,21 +39,23 @@ public abstract class FabShapeCell extends LinearLayout implements CustomPrefere
         setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
         setPadding(AndroidUtilities.dp(13.0f), AndroidUtilities.dp(15.0f), AndroidUtilities.dp(13.0f), AndroidUtilities.dp(21.0f));
         for (int i = 0; i < 2; i++) {
-            final boolean z = i == 1;
+            final boolean z = true;
+            if (i != 1) {
+                z = false;
+            }
             this.fabShape[i] = new FabShape(context, z);
             ScaleStateListAnimator.apply(this.fabShape[i], 0.03f, 1.5f);
             addView(this.fabShape[i], LayoutHelper.createLinear(-1, -1, 0.5f, 8, 0, 8, 0));
-            this.fabShape[i].setOnClickListener(new View.OnClickListener() { // from class: com.exteragram.messenger.preferences.appearance.components.FabShapeCell$$ExternalSyntheticLambda0
+            this.fabShape[i].setOnClickListener(new View.OnClickListener() {
                 @Override // android.view.View.OnClickListener
                 public final void onClick(View view) {
-                    FabShapeCell.this.lambda$new$0(z, view);
+                    this.f$0.lambda$new$0(z, view);
                 }
             });
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$new$0(boolean z, View view) {
+    public void lambda$new$0(boolean z, View view) {
         for (int i = 0; i < 2; i++) {
             FabShape fabShape = this.fabShape[i];
             fabShape.setSelected(view == fabShape, true);
@@ -81,7 +84,7 @@ public abstract class FabShapeCell extends LinearLayout implements CustomPrefere
     }
 
     @Override // com.exteragram.messenger.preferences.components.CustomPreferenceCell
-    public boolean equals(Object obj) {
+    public boolean isSameCell(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -137,7 +140,12 @@ public abstract class FabShapeCell extends LinearLayout implements CustomPrefere
             Drawable drawable = ContextCompat.getDrawable(getContext(), R.drawable.filled_fab_compose_32);
             if (drawable != null) {
                 drawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_chats_actionIcon), PorterDuff.Mode.SRC_IN));
-                drawable.setBounds(getMeasuredWidth() - AndroidUtilities.dp(37.0f), getMeasuredHeight() - AndroidUtilities.dp(37.0f), getMeasuredWidth() - AndroidUtilities.dp(17.0f), getMeasuredHeight() - AndroidUtilities.dp(17.0f));
+                float fWidth = this.rect.width() / AndroidUtilities.dp(FabUiHelper.getFabSizeDp());
+                int iRound = Math.round(drawable.getIntrinsicWidth() * fWidth);
+                int iRound2 = Math.round(drawable.getIntrinsicHeight() * fWidth);
+                int iCenterX = (int) (this.rect.centerX() - (iRound / 2.0f));
+                int iCenterY = (int) (this.rect.centerY() - (iRound2 / 2.0f));
+                drawable.setBounds(iCenterX, iCenterY, iRound + iCenterX, iRound2 + iCenterY);
                 drawable.draw(canvas);
             }
         }
@@ -147,7 +155,6 @@ public abstract class FabShapeCell extends LinearLayout implements CustomPrefere
             this.backgroundDrawable.setSelectionProgress(f);
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
         public void setSelected(boolean z, boolean z2) {
             float f = z ? 1.0f : 0.0f;
             float f2 = this.progress;
@@ -157,10 +164,10 @@ public abstract class FabShapeCell extends LinearLayout implements CustomPrefere
             if (z2) {
                 ValueAnimator duration = ValueAnimator.ofFloat(f2, f).setDuration(250L);
                 duration.setInterpolator(Easings.easeInOutQuad);
-                duration.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() { // from class: com.exteragram.messenger.preferences.appearance.components.FabShapeCell$FabShape$$ExternalSyntheticLambda0
+                duration.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                     @Override // android.animation.ValueAnimator.AnimatorUpdateListener
                     public final void onAnimationUpdate(ValueAnimator valueAnimator) {
-                        FabShape.this.lambda$setSelected$0(valueAnimator);
+                        this.f$0.lambda$setSelected$0(valueAnimator);
                     }
                 });
                 duration.start();
@@ -169,8 +176,7 @@ public abstract class FabShapeCell extends LinearLayout implements CustomPrefere
             setProgress(f);
         }
 
-        /* JADX INFO: Access modifiers changed from: private */
-        public /* synthetic */ void lambda$setSelected$0(ValueAnimator valueAnimator) {
+        public void lambda$setSelected$0(ValueAnimator valueAnimator) {
             setProgress(((Float) valueAnimator.getAnimatedValue()).floatValue());
         }
     }

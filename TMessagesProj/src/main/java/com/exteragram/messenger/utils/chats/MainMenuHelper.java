@@ -5,16 +5,16 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
-import com.exteragram.messenger.utils.RecordTag;
+import com.android.tools.r8.RecordTag;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.MainMenuItem;
 import com.exteragram.messenger.components.QRCodeSheet;
 import com.exteragram.messenger.feed.ui.FeedActivity;
+import com.exteragram.messenger.plugins.PluginsConstants;
 import com.exteragram.messenger.plugins.PluginsController;
 import com.exteragram.messenger.plugins.hooks.MenuItemRecord;
 import com.exteragram.messenger.plugins.ui.PluginsActivity;
 import com.exteragram.messenger.plugins.utils.MenuContextBuilder;
-import com.google.android.exoplayer2.util.Consumer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +28,7 @@ import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.Utilities;
 import org.telegram.messenger.browser.Browser;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.RequestDelegate;
@@ -47,6 +48,7 @@ import org.telegram.ui.GroupCreateActivity;
 import org.telegram.ui.LaunchActivity;
 import org.telegram.ui.ProfileActivity;
 import org.telegram.ui.SettingsActivity;
+import org.telegram.ui.Wallet.WalletActivity;
 import org.telegram.ui.WebAppDisclaimerAlert;
 import org.telegram.ui.bots.BotWebViewSheet;
 import org.telegram.ui.web.SearchEngine;
@@ -59,7 +61,7 @@ public abstract class MainMenuHelper {
         private final Runnable onLongClick;
         private final CharSequence text;
 
-        private /* synthetic */ boolean $record$equals(Object obj) {
+        private boolean $record$equals(Object obj) {
             if (!(obj instanceof MenuItemInfo)) {
                 return false;
             }
@@ -67,7 +69,7 @@ public abstract class MainMenuHelper {
             return this.iconRes == menuItemInfo.iconRes && Objects.equals(this.text, menuItemInfo.text) && Objects.equals(this.onClick, menuItemInfo.onClick) && Objects.equals(this.onLongClick, menuItemInfo.onLongClick);
         }
 
-        private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+        private Object[] $record$getFieldsAsObjects() {
             return new Object[]{Integer.valueOf(this.iconRes), this.text, this.onClick, this.onLongClick};
         }
 
@@ -103,7 +105,7 @@ public abstract class MainMenuHelper {
         }
 
         public final String toString() {
-            return "MenuItemInfo[iconRes=" + this.iconRes + ", text=" + this.text + ", onClick=" + this.onClick + ", onLongClick=" + this.onLongClick + "]";
+            return com.exteragram.messenger.utils.RecordUtils.recordToString($record$getFieldsAsObjects(), MenuItemInfo.class, "iconRes;text;onClick;onLongClick");
         }
     }
 
@@ -113,7 +115,7 @@ public abstract class MainMenuHelper {
         private final BaseFragment fragment;
         private final Map<String, Object> pluginContextData;
 
-        private /* synthetic */ boolean $record$equals(Object obj) {
+        private boolean $record$equals(Object obj) {
             if (!(obj instanceof MenuContext)) {
                 return false;
             }
@@ -121,7 +123,7 @@ public abstract class MainMenuHelper {
             return this.currentAccount == menuContext.currentAccount && Objects.equals(this.fragment, menuContext.fragment) && Objects.equals(this.archiveClick, menuContext.archiveClick) && Objects.equals(this.pluginContextData, menuContext.pluginContextData);
         }
 
-        private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+        private Object[] $record$getFieldsAsObjects() {
             return new Object[]{Integer.valueOf(this.currentAccount), this.fragment, this.archiveClick, this.pluginContextData};
         }
 
@@ -157,7 +159,7 @@ public abstract class MainMenuHelper {
         }
 
         public final String toString() {
-            return "MenuContext[currentAccount=" + this.currentAccount + ", fragment=" + this.fragment + ", archiveClick=" + this.archiveClick + ", pluginContextData=" + this.pluginContextData + "]";
+            return com.exteragram.messenger.utils.RecordUtils.recordToString($record$getFieldsAsObjects(), MenuContext.class, "currentAccount;fragment;archiveClick;pluginContextData");
         }
     }
 
@@ -168,7 +170,7 @@ public abstract class MainMenuHelper {
         private final Runnable onLongClick;
         private final CharSequence text;
 
-        private /* synthetic */ boolean $record$equals(Object obj) {
+        private boolean $record$equals(Object obj) {
             if (!(obj instanceof AttachMenuBotInfo)) {
                 return false;
             }
@@ -176,7 +178,7 @@ public abstract class MainMenuHelper {
             return this.iconRes == attachMenuBotInfo.iconRes && Objects.equals(this.text, attachMenuBotInfo.text) && Objects.equals(this.bot, attachMenuBotInfo.bot) && Objects.equals(this.onClick, attachMenuBotInfo.onClick) && Objects.equals(this.onLongClick, attachMenuBotInfo.onLongClick);
         }
 
-        private /* synthetic */ Object[] $record$getFieldsAsObjects() {
+        private Object[] $record$getFieldsAsObjects() {
             return new Object[]{Integer.valueOf(this.iconRes), this.text, this.bot, this.onClick, this.onLongClick};
         }
 
@@ -197,7 +199,7 @@ public abstract class MainMenuHelper {
         }
 
         public final int hashCode() {
-            return java.util.Objects.hash(this.iconRes, this.text, this.bot, this.onClick, this.onLongClick);
+            return ApiWrap$java.util.Objects.hash(this.iconRes, this.text, this.bot, this.onClick, this.onLongClick);
         }
 
         public int iconRes() {
@@ -217,7 +219,7 @@ public abstract class MainMenuHelper {
         }
 
         public final String toString() {
-            return "AttachMenuBotInfo[iconRes=" + this.iconRes + ", text=" + this.text + ", bot=" + this.bot + ", onClick=" + this.onClick + ", onLongClick=" + this.onLongClick + "]";
+            return com.exteragram.messenger.utils.RecordUtils.recordToString($record$getFieldsAsObjects(), AttachMenuBotInfo.class, "iconRes;text;bot;onClick;onLongClick");
         }
     }
 
@@ -257,9 +259,8 @@ public abstract class MainMenuHelper {
         return menuItemInfoResolveMenuItem == null ? Collections.EMPTY_LIST : Collections.singletonList(menuItemInfoResolveMenuItem);
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.utils.chats.MainMenuHelper$2, reason: invalid class name */
-    public static /* synthetic */ class AnonymousClass2 {
-        static final /* synthetic */ int[] $SwitchMap$com$exteragram$messenger$MainMenuItem;
+    public static class AnonymousClass2 {
+        static final int[] $SwitchMap$com$exteragram$messenger$MainMenuItem;
 
         static {
             int[] iArr = new int[MainMenuItem.values().length];
@@ -273,48 +274,52 @@ public abstract class MainMenuHelper {
             } catch (NoSuchFieldError unused2) {
             }
             try {
-                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.PROFILE.ordinal()] = 3;
+                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.WALLET.ordinal()] = 3;
             } catch (NoSuchFieldError unused3) {
             }
             try {
-                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.ARCHIVE.ordinal()] = 4;
+                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.PROFILE.ordinal()] = 4;
             } catch (NoSuchFieldError unused4) {
             }
             try {
-                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.NEW_GROUP.ordinal()] = 5;
+                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.ARCHIVE.ordinal()] = 5;
             } catch (NoSuchFieldError unused5) {
             }
             try {
-                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.CONTACTS.ordinal()] = 6;
+                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.NEW_GROUP.ordinal()] = 6;
             } catch (NoSuchFieldError unused6) {
             }
             try {
-                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.CALLS.ordinal()] = 7;
+                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.CONTACTS.ordinal()] = 7;
             } catch (NoSuchFieldError unused7) {
             }
             try {
-                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.NEW_CHANNEL.ordinal()] = 8;
+                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.CALLS.ordinal()] = 8;
             } catch (NoSuchFieldError unused8) {
             }
             try {
-                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.SAVED.ordinal()] = 9;
+                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.NEW_CHANNEL.ordinal()] = 9;
             } catch (NoSuchFieldError unused9) {
             }
             try {
-                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.FEED.ordinal()] = 10;
+                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.SAVED.ordinal()] = 10;
             } catch (NoSuchFieldError unused10) {
             }
             try {
-                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.SETTINGS.ordinal()] = 11;
+                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.FEED.ordinal()] = 11;
             } catch (NoSuchFieldError unused11) {
             }
             try {
-                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.BROWSER.ordinal()] = 12;
+                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.SETTINGS.ordinal()] = 12;
             } catch (NoSuchFieldError unused12) {
             }
             try {
-                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.QR.ordinal()] = 13;
+                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.BROWSER.ordinal()] = 13;
             } catch (NoSuchFieldError unused13) {
+            }
+            try {
+                $SwitchMap$com$exteragram$messenger$MainMenuItem[MainMenuItem.QR.ordinal()] = 14;
+            } catch (NoSuchFieldError unused14) {
             }
         }
     }
@@ -327,7 +332,7 @@ public abstract class MainMenuHelper {
             switch (AnonymousClass2.$SwitchMap$com$exteragram$messenger$MainMenuItem[byId.ordinal()]) {
                 case 2:
                     if (PluginsController.isPluginEngineSupported()) {
-                        return new MenuItemInfo(R.drawable.msg_plugins, LocaleController.getString(R.string.Plugins), new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda13
+                        return new MenuItemInfo(R.drawable.msg_plugins, LocaleController.getString(R.string.Plugins), new Runnable() {
                             @Override // java.lang.Runnable
                             public final void run() {
                                 baseFragmentFragment.presentFragment(new PluginsActivity());
@@ -336,80 +341,90 @@ public abstract class MainMenuHelper {
                     }
                     break;
                 case 3:
-                    return new MenuItemInfo(R.drawable.left_status_profile, LocaleController.getString(R.string.MyProfile), new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda2
-                        @Override // java.lang.Runnable
-                        public final void run() {
-                            MainMenuHelper.m1505$r8$lambda$v0h8pBSNeYqoHvMbcetfzvFNlU(iCurrentAccount, baseFragmentFragment);
-                        }
-                    }, null);
+                    if (MessagesController.getInstance(iCurrentAccount).config.walletAvailable.get()) {
+                        return new MenuItemInfo(R.drawable.ic_gram, LocaleController.getString(R.string.WalletTitle), new Runnable() {
+                            @Override // java.lang.Runnable
+                            public final void run() {
+                                MainMenuHelper.m2160$r8$lambda$v0h8pBSNeYqoHvMbcetfzvFNlU(iCurrentAccount, baseFragmentFragment);
+                            }
+                        }, null);
+                    }
+                    return null;
                 case 4:
-                    return new MenuItemInfo(R.drawable.msg_archive, LocaleController.getString(R.string.ArchivedChats), menuContext.archiveClick() != null ? menuContext.archiveClick() : new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda5
+                    return new MenuItemInfo(R.drawable.left_status_profile, LocaleController.getString(R.string.MyProfile), new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
-                            MainMenuHelper.m1498$r8$lambda$KDLBDKsgHSE6LBLdB8g62MSI00(baseFragmentFragment);
+                            MainMenuHelper.$r8$lambda$7DM_CGdgE5Jh3LE9Fh_DeaZcaHw(iCurrentAccount, baseFragmentFragment);
                         }
                     }, null);
                 case 5:
-                    return new MenuItemInfo(R.drawable.msg_groups, LocaleController.getString(R.string.NewGroup), new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda6
+                    return new MenuItemInfo(R.drawable.msg_archive, LocaleController.getString(R.string.ArchivedChats), menuContext.archiveClick() != null ? menuContext.archiveClick() : new Runnable() {
+                        @Override // java.lang.Runnable
+                        public final void run() {
+                            MainMenuHelper.$r8$lambda$5uPuRuPTDkgduimtGHAPMc39cgk(baseFragmentFragment);
+                        }
+                    }, null);
+                case 6:
+                    return new MenuItemInfo(R.drawable.msg_groups, LocaleController.getString(R.string.NewGroup), new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
                             baseFragmentFragment.presentFragment(new GroupCreateActivity(new Bundle()));
                         }
                     }, null);
-                case 6:
-                    return new MenuItemInfo(R.drawable.msg_contacts, LocaleController.getString(R.string.Contacts), new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda7
+                case 7:
+                    return new MenuItemInfo(R.drawable.msg_contacts, LocaleController.getString(R.string.Contacts), new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
-                            MainMenuHelper.$r8$lambda$rtSRDj8a2WJm0LXRVKfT4uBArCY(baseFragmentFragment);
+                            MainMenuHelper.$r8$lambda$rf1zv95SfLPiRo0xj0q30wQjI60(baseFragmentFragment);
                         }
                     }, null);
-                case 7:
-                    return new MenuItemInfo(R.drawable.msg_calls, LocaleController.getString(R.string.Calls), new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda8
+                case 8:
+                    return new MenuItemInfo(R.drawable.msg_calls, LocaleController.getString(R.string.Calls), new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
                             baseFragmentFragment.presentFragment(new CallLogActivity());
                         }
                     }, null);
-                case 8:
-                    return new MenuItemInfo(R.drawable.msg_channel, LocaleController.getString(R.string.NewChannel), new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda9
-                        @Override // java.lang.Runnable
-                        public final void run() {
-                            MainMenuHelper.$r8$lambda$Q8IakieKJqFN62CokMs4nVB419M(baseFragmentFragment);
-                        }
-                    }, null);
                 case 9:
-                    return new MenuItemInfo(R.drawable.msg_saved, LocaleController.getString(R.string.SavedMessages), new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda10
+                    return new MenuItemInfo(R.drawable.msg_channel, LocaleController.getString(R.string.NewChannel), new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
-                            MainMenuHelper.$r8$lambda$a5bq_jLS447MCh9JamahNb2Edmk(iCurrentAccount, baseFragmentFragment);
+                            MainMenuHelper.m2156$r8$lambda$gnLuGb2Hx2cd7LDTgOyfmUP3bk(baseFragmentFragment);
                         }
                     }, null);
                 case 10:
-                    return new MenuItemInfo(R.drawable.ic_feed, LocaleController.getString(R.string.Feed), new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda11
+                    return new MenuItemInfo(R.drawable.msg_saved, LocaleController.getString(R.string.SavedMessages), new Runnable() {
+                        @Override // java.lang.Runnable
+                        public final void run() {
+                            MainMenuHelper.$r8$lambda$saUSxdiSaTpNg7kEtRAvuNTM0x4(iCurrentAccount, baseFragmentFragment);
+                        }
+                    }, null);
+                case 11:
+                    return new MenuItemInfo(R.drawable.ic_feed, LocaleController.getString(R.string.Feed), new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
                             FeedActivity.presentFeed(baseFragmentFragment);
                         }
                     }, null);
-                case 11:
-                    return new MenuItemInfo(R.drawable.msg_settings, LocaleController.getString(R.string.Settings), new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda12
+                case 12:
+                    return new MenuItemInfo(R.drawable.msg_settings, LocaleController.getString(R.string.Settings), new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
                             baseFragmentFragment.presentFragment(new SettingsActivity());
                         }
                     }, null);
-                case 12:
-                    return new MenuItemInfo(R.drawable.msg2_language, LocaleController.getString(R.string.BrowserSettingsTitle), new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda3
+                case 13:
+                    return new MenuItemInfo(R.drawable.msg2_language, LocaleController.getString(R.string.BrowserSettingsTitle), new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
-                            MainMenuHelper.$r8$lambda$saqA7TDqFSmi2ZXfA6fwir6uv4I(baseFragmentFragment);
+                            MainMenuHelper.m2157$r8$lambda$i2DoKP95qCY24IrhC1YzQwp56E(baseFragmentFragment);
                         }
                     }, null);
-                case 13:
-                    return new MenuItemInfo(R.drawable.msg_qrcode, LocaleController.getString(R.string.AuthAnotherClient), new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda4
+                case 14:
+                    return new MenuItemInfo(R.drawable.msg_qrcode, LocaleController.getString(R.string.AuthAnotherClient), new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
-                            MainMenuHelper.m1503$r8$lambda$i2DoKP95qCY24IrhC1YzQwp56E(baseFragmentFragment);
+                            MainMenuHelper.$r8$lambda$S8_OfhOZ7B8hEsy4knIodTPES2s(baseFragmentFragment);
                         }
                     }, null);
                 default:
@@ -419,29 +434,33 @@ public abstract class MainMenuHelper {
         return null;
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$v0h8pBSNeYqoHv-MbcetfzvFNlU, reason: not valid java name */
-    public static /* synthetic */ void m1505$r8$lambda$v0h8pBSNeYqoHvMbcetfzvFNlU(int i, BaseFragment baseFragment) {
+    public static void m2160$r8$lambda$v0h8pBSNeYqoHvMbcetfzvFNlU(int i, BaseFragment baseFragment) {
+        WalletActivity walletActivity = new WalletActivity();
+        walletActivity.setCurrentAccount(i);
+        baseFragment.presentFragment(walletActivity);
+    }
+
+    public static void $r8$lambda$7DM_CGdgE5Jh3LE9Fh_DeaZcaHw(int i, BaseFragment baseFragment) {
         Bundle bundle = new Bundle();
         bundle.putLong("user_id", UserConfig.getInstance(i).getClientUserId());
         bundle.putBoolean("my_profile", true);
         baseFragment.presentFragment(new ProfileActivity(bundle));
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$KDLBDKsgHSE6LBLdB8g6-2MSI00, reason: not valid java name */
-    public static /* synthetic */ void m1498$r8$lambda$KDLBDKsgHSE6LBLdB8g62MSI00(BaseFragment baseFragment) {
+    public static void $r8$lambda$5uPuRuPTDkgduimtGHAPMc39cgk(BaseFragment baseFragment) {
         Bundle bundle = new Bundle();
         bundle.putInt("folderId", 1);
         baseFragment.presentFragment(new DialogsActivity(bundle));
     }
 
-    public static /* synthetic */ void $r8$lambda$rtSRDj8a2WJm0LXRVKfT4uBArCY(BaseFragment baseFragment) {
+    public static void $r8$lambda$rf1zv95SfLPiRo0xj0q30wQjI60(BaseFragment baseFragment) {
         Bundle bundle = new Bundle();
         bundle.putBoolean("needPhonebook", true);
         bundle.putBoolean("needFinishFragment", false);
         baseFragment.presentFragment(new ContactsActivity(bundle));
     }
 
-    public static /* synthetic */ void $r8$lambda$Q8IakieKJqFN62CokMs4nVB419M(BaseFragment baseFragment) {
+    public static void m2156$r8$lambda$gnLuGb2Hx2cd7LDTgOyfmUP3bk(BaseFragment baseFragment) {
         SharedPreferences globalMainSettings = MessagesController.getGlobalMainSettings();
         if (!BuildVars.DEBUG_VERSION && globalMainSettings.getBoolean("channel_intro", false)) {
             Bundle bundle = new Bundle();
@@ -453,13 +472,13 @@ public abstract class MainMenuHelper {
         }
     }
 
-    public static /* synthetic */ void $r8$lambda$a5bq_jLS447MCh9JamahNb2Edmk(int i, BaseFragment baseFragment) {
+    public static void $r8$lambda$saUSxdiSaTpNg7kEtRAvuNTM0x4(int i, BaseFragment baseFragment) {
         Bundle bundle = new Bundle();
         bundle.putLong("user_id", UserConfig.getInstance(i).getClientUserId());
         baseFragment.presentFragment(new ChatActivity(bundle));
     }
 
-    public static /* synthetic */ void $r8$lambda$saqA7TDqFSmi2ZXfA6fwir6uv4I(BaseFragment baseFragment) {
+    public static void m2157$r8$lambda$i2DoKP95qCY24IrhC1YzQwp56E(BaseFragment baseFragment) {
         SearchEngine current = SearchEngine.getCurrent();
         String homepage = current.getHomepage();
         Activity parentActivity = baseFragment.getParentActivity();
@@ -469,8 +488,7 @@ public abstract class MainMenuHelper {
         Browser.openInTelegramBrowser(parentActivity, homepage, null);
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$i2DoK-P95qCY24IrhC1YzQwp56E, reason: not valid java name */
-    public static /* synthetic */ void m1503$r8$lambda$i2DoKP95qCY24IrhC1YzQwp56E(BaseFragment baseFragment) {
+    public static void $r8$lambda$S8_OfhOZ7B8hEsy4knIodTPES2s(BaseFragment baseFragment) {
         LaunchActivity launchActivity = LaunchActivity.instance;
         if (launchActivity != null && launchActivity.checkSelfPermission("android.permission.CAMERA") != 0) {
             LaunchActivity.instance.requestPermissions(new String[]{"android.permission.CAMERA"}, 34);
@@ -479,41 +497,45 @@ public abstract class MainMenuHelper {
         }
     }
 
-    /* JADX INFO: renamed from: com.exteragram.messenger.utils.chats.MainMenuHelper$1, reason: invalid class name */
-    public static class AnonymousClass1 implements CameraScanActivity.CameraScanActivityDelegate {
+    public class AnonymousClass1 implements CameraScanActivity.CameraScanActivityDelegate {
         @Override // org.telegram.ui.CameraScanActivity.CameraScanActivityDelegate
         public boolean processQr(final String str, final Runnable runnable) {
             AndroidUtilities.runOnUIThread(new Runnable() {
-                @Override
-                public void run() {
-                    AndroidUtilities.runOnUIThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            BaseFragment safeLastFragment = LaunchActivity.getSafeLastFragment();
-                            if (safeLastFragment != null) {
-                                new QRCodeSheet(safeLastFragment, str).show();
-                            }
-                        }
-                    }, 150L);
-                    if (runnable != null) {
-                        runnable.run();
-                    }
+                @Override // java.lang.Runnable
+                public final void run() {
+                    MainMenuHelper.AnonymousClass1.$r8$lambda$PXFIpgdtIGghglRNcVl91ndQqRc(str, runnable);
                 }
             }, 600L);
             return true;
         }
+
+        public static void $r8$lambda$PXFIpgdtIGghglRNcVl91ndQqRc(final String str, Runnable runnable) {
+            AndroidUtilities.runOnUIThread(new Runnable() {
+                @Override // java.lang.Runnable
+                public final void run() {
+                    MainMenuHelper.AnonymousClass1.$r8$lambda$wwDUSw59NnCN0TJApzf27CVLJhA(str);
+                }
+            }, 150L);
+            runnable.run();
+        }
+
+        public static void $r8$lambda$wwDUSw59NnCN0TJApzf27CVLJhA(String str) {
+            BaseFragment safeLastFragment = LaunchActivity.getSafeLastFragment();
+            if (safeLastFragment != null) {
+                new QRCodeSheet(safeLastFragment, str).show();
+            }
+        }
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$je-2ITcORHHV0tfyHwX-LWEPGuI, reason: not valid java name */
-    public static /* synthetic */ boolean m1504$r8$lambda$je2ITcORHHV0tfyHwXLWEPGuI(int i) {
+    public static boolean m2158$r8$lambda$lBFuiqBPMGUfc9RvDVeo2lvqmg(int i) {
         return false;
     }
 
     public static void addConfiguredItemOptions(ItemOptions itemOptions, MenuContext menuContext) {
-        addConfiguredItemOptions(itemOptions, menuContext, new IntPredicate() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda20
+        addConfiguredItemOptions(itemOptions, menuContext, new IntPredicate() {
             @Override // java.util.function.IntPredicate
             public final boolean test(int i) {
-                return MainMenuHelper.m1504$r8$lambda$je2ITcORHHV0tfyHwXLWEPGuI(i);
+                return MainMenuHelper.m2158$r8$lambda$lBFuiqBPMGUfc9RvDVeo2lvqmg(i);
             }
         });
     }
@@ -558,7 +580,7 @@ public abstract class MainMenuHelper {
             i++;
             final TLRPC.TL_attachMenuBot tL_attachMenuBot2 = tL_attachMenuBot;
             if (tL_attachMenuBot2.show_in_side_menu) {
-                arrayList2.add(new AttachMenuBotInfo(getAttachMenuBotIconRes(tL_attachMenuBot2), tL_attachMenuBot2.short_name, tL_attachMenuBot2, createAttachMenuBotClickAction(menuContext, tL_attachMenuBot2, launchActivityFindLaunchActivity), new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda17
+                arrayList2.add(new AttachMenuBotInfo(getAttachMenuBotIconRes(tL_attachMenuBot2), tL_attachMenuBot2.short_name, tL_attachMenuBot2, createAttachMenuBotClickAction(menuContext, tL_attachMenuBot2, launchActivityFindLaunchActivity), new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
                         BotWebViewSheet.deleteBot(menuContext.currentAccount(), tL_attachMenuBot2.bot_id, null);
@@ -593,11 +615,11 @@ public abstract class MainMenuHelper {
     }
 
     public static List<MenuItemRecord> getPluginMenuItems(MenuContext menuContext) {
-        return PluginsController.getInstance().getMenuItemsForLocation("main_menu", getPluginContextData(menuContext));
+        return PluginsController.getInstance().getMenuItemsForLocation(PluginsConstants.MenuItemTypes.MAIN_MENU, getPluginContextData(menuContext));
     }
 
     public static Runnable createPluginClickAction(final MenuItemRecord menuItemRecord, final MenuContext menuContext) {
-        return new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda19
+        return new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
                 menuItemRecord.executeClick(MainMenuHelper.getPluginContextData(menuContext));
@@ -632,7 +654,7 @@ public abstract class MainMenuHelper {
         }
         for (MenuItemRecord menuItemRecord : pluginMenuItems) {
             if (menuItemRecord != null && !TextUtils.isEmpty(menuItemRecord.getText())) {
-                arrayList.add(new MenuItemInfo(menuItemRecord.getIconResId() != 0 ? menuItemRecord.getIconResId() : R.drawable.msg_plugins, menuItemRecord.getText(), createPluginClickAction(menuItemRecord, menuContext), new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda1
+                arrayList.add(new MenuItemInfo(menuItemRecord.getIconResId() != 0 ? menuItemRecord.getIconResId() : R.drawable.msg_plugins, menuItemRecord.getText(), createPluginClickAction(menuItemRecord, menuContext), new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
                         menuContext.fragment().presentFragment(new PluginsActivity());
@@ -647,20 +669,20 @@ public abstract class MainMenuHelper {
     }
 
     private static Runnable createAttachMenuBotClickAction(final MenuContext menuContext, final TLRPC.TL_attachMenuBot tL_attachMenuBot, final LaunchActivity launchActivity) {
-        return new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda18
+        return new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                MainMenuHelper.$r8$lambda$aYhptRjLYU6aWVNMAzGjtgDV_Ec(tL_attachMenuBot, menuContext, launchActivity);
+                MainMenuHelper.$r8$lambda$NSdbQCGWl_e0rhzPD_AVY6Hf5uo(tL_attachMenuBot, menuContext, launchActivity);
             }
         };
     }
 
-    public static /* synthetic */ void $r8$lambda$aYhptRjLYU6aWVNMAzGjtgDV_Ec(final TLRPC.TL_attachMenuBot tL_attachMenuBot, final MenuContext menuContext, final LaunchActivity launchActivity) {
+    public static void $r8$lambda$NSdbQCGWl_e0rhzPD_AVY6Hf5uo(final TLRPC.TL_attachMenuBot tL_attachMenuBot, final MenuContext menuContext, final LaunchActivity launchActivity) {
         if (tL_attachMenuBot.inactive || tL_attachMenuBot.side_menu_disclaimer_needed) {
-            WebAppDisclaimerAlert.show(menuContext.fragment().getContext() != null ? menuContext.fragment().getContext() : launchActivity, new Consumer() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda21
-                @Override // com.google.android.exoplayer2.util.Consumer
-                public final void accept(Object obj) {
-                    MainMenuHelper.m1500$r8$lambda$WfS8uYcqUEI0TkIrA2c9j2WVY(menuContext, tL_attachMenuBot, launchActivity, (Boolean) obj);
+            WebAppDisclaimerAlert.show(menuContext.fragment().getContext() != null ? menuContext.fragment().getContext() : launchActivity, new Utilities.Callback() {
+                @Override // org.telegram.messenger.Utilities.Callback
+                public final void run(Object obj) {
+                    MainMenuHelper.$r8$lambda$dTFAz4aR73e10cDygxceHDvS8tw(menuContext, tL_attachMenuBot, launchActivity, (Boolean) obj);
                 }
             }, null, null);
         } else {
@@ -668,27 +690,25 @@ public abstract class MainMenuHelper {
         }
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$W-fS8uY-cqUEI0TkIrA2c9j2WVY, reason: not valid java name */
-    public static /* synthetic */ void m1500$r8$lambda$WfS8uYcqUEI0TkIrA2c9j2WVY(final MenuContext menuContext, final TLRPC.TL_attachMenuBot tL_attachMenuBot, final LaunchActivity launchActivity, Boolean bool) {
+    public static void $r8$lambda$dTFAz4aR73e10cDygxceHDvS8tw(final MenuContext menuContext, final TLRPC.TL_attachMenuBot tL_attachMenuBot, final LaunchActivity launchActivity, Boolean bool) {
         TLRPC.TL_messages_toggleBotInAttachMenu tL_messages_toggleBotInAttachMenu = new TLRPC.TL_messages_toggleBotInAttachMenu();
         tL_messages_toggleBotInAttachMenu.bot = MessagesController.getInstance(menuContext.currentAccount()).getInputUser(tL_attachMenuBot.bot_id);
         tL_messages_toggleBotInAttachMenu.enabled = true;
         tL_messages_toggleBotInAttachMenu.write_allowed = true;
-        ConnectionsManager.getInstance(menuContext.currentAccount()).sendRequest(tL_messages_toggleBotInAttachMenu, new RequestDelegate() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda22
+        ConnectionsManager.getInstance(menuContext.currentAccount()).sendRequest(tL_messages_toggleBotInAttachMenu, new RequestDelegate() {
             @Override // org.telegram.tgnet.RequestDelegate
             public final void run(TLObject tLObject, TLRPC.TL_error tL_error) {
-                AndroidUtilities.runOnUIThread(new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda23
+                AndroidUtilities.runOnUIThread(new Runnable() {
                     @Override // java.lang.Runnable
                     public final void run() {
-                        MainMenuHelper.m1502$r8$lambda$eUXP3XGXU2KMhueQHg7MuztKQM(tL_attachMenuBot, launchActivity, menuContext);
+                        MainMenuHelper.m2159$r8$lambda$p7fF_Tdv4ocRKkqa45JAblKbkE(tL_attachMenuBot, launchActivity, menuContext);
                     }
                 });
             }
         }, 66);
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$eUXP3XG-XU2KMhueQHg7MuztKQM, reason: not valid java name */
-    public static /* synthetic */ void m1502$r8$lambda$eUXP3XGXU2KMhueQHg7MuztKQM(TLRPC.TL_attachMenuBot tL_attachMenuBot, LaunchActivity launchActivity, MenuContext menuContext) {
+    public static void m2159$r8$lambda$p7fF_Tdv4ocRKkqa45JAblKbkE(TLRPC.TL_attachMenuBot tL_attachMenuBot, LaunchActivity launchActivity, MenuContext menuContext) {
         tL_attachMenuBot.side_menu_disclaimer_needed = false;
         tL_attachMenuBot.inactive = false;
         LaunchActivity.showAttachMenuBot(launchActivity, menuContext.currentAccount(), tL_attachMenuBot, null, true);
@@ -705,54 +725,47 @@ public abstract class MainMenuHelper {
         boolean zIsEmpty = pluginMenuItems.isEmpty();
         final boolean z = !zIsEmpty;
         if (!zIsEmpty) {
-            itemOptionsMakeSwipeback.add(R.drawable.ic_ab_back, LocaleController.getString(R.string.Back), new Runnable() {
-                @Override
-                public void run() {
-                    itemOptions.dismiss();
-                }
-            });
+            itemOptionsMakeSwipeback.add(R.drawable.ic_ab_back, LocaleController.getString(R.string.Back), itemOptions::dismiss);
             itemOptionsMakeSwipeback.addGap();
-            for (int i = 0; i < pluginMenuItems.size(); i++) {
-                final int index = i;
+            for (final int i = 0; i < pluginMenuItems.size(); i++) {
                 MenuItemRecord menuItemRecord = pluginMenuItems.get(i);
                 String text = menuItemRecord.getText();
                 if (text != null) {
-                    itemOptionsMakeSwipeback.add(menuItemRecord.getIconResId(), text, new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda14
+                    itemOptionsMakeSwipeback.add(menuItemRecord.getIconResId(), text, new Runnable() {
                         @Override // java.lang.Runnable
                         public final void run() {
-                            MainMenuHelper.$r8$lambda$1UDS6cF5oxxIoHi5hFvo4jGO7uo(itemOptions, pluginMenuItems, index, menuContext);
+                            MainMenuHelper.m2155$r8$lambda$7x4lJdteWFwq3QDFaZ57RcmTx4(itemOptions, pluginMenuItems, i, menuContext);
                         }
                     });
                 }
             }
         }
-        itemOptions.add(menuItemInfoResolveMenuItem.iconRes(), menuItemInfoResolveMenuItem.text(), new Runnable() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda15
+        itemOptions.add(menuItemInfoResolveMenuItem.iconRes(), menuItemInfoResolveMenuItem.text(), new Runnable() {
             @Override // java.lang.Runnable
             public final void run() {
-                MainMenuHelper.m1499$r8$lambda$OfwWLwqHXMfyCwlbp7mrVF8fKA(z, itemOptions, itemOptionsMakeSwipeback, menuItemInfoResolveMenuItem);
+                MainMenuHelper.$r8$lambda$E7XPdEsZqti3IaqNVK6YCW2BDI4(z, itemOptions, itemOptionsMakeSwipeback, menuItemInfoResolveMenuItem);
             }
         });
         ActionBarMenuSubItem last = itemOptions.getLast();
         if (zIsEmpty || last == null) {
             return true;
         }
-        last.setOnLongClickListener(new View.OnLongClickListener() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda16
+        last.setOnLongClickListener(new View.OnLongClickListener() {
             @Override // android.view.View.OnLongClickListener
             public final boolean onLongClick(View view) {
-                return MainMenuHelper.$r8$lambda$f5kxgmhG0LQrmPuZjc0uz002N0k(itemOptions, menuItemInfoResolveMenuItem, view);
+                return MainMenuHelper.$r8$lambda$CgZp8SSa03cYWTk5G5jjOW9sIVs(itemOptions, menuItemInfoResolveMenuItem, view);
             }
         });
         last.setRightIcon(R.drawable.msg_arrowright);
         return true;
     }
 
-    public static /* synthetic */ void $r8$lambda$1UDS6cF5oxxIoHi5hFvo4jGO7uo(ItemOptions itemOptions, List list, int i, MenuContext menuContext) {
+    public static void m2155$r8$lambda$7x4lJdteWFwq3QDFaZ57RcmTx4(ItemOptions itemOptions, List list, int i, MenuContext menuContext) {
         itemOptions.dismiss();
         createPluginClickAction((MenuItemRecord) list.get(i), menuContext).run();
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$Of-wWLwqHXMfyCwlbp7mrVF8fKA, reason: not valid java name */
-    public static /* synthetic */ void m1499$r8$lambda$OfwWLwqHXMfyCwlbp7mrVF8fKA(boolean z, ItemOptions itemOptions, ItemOptions itemOptions2, MenuItemInfo menuItemInfo) {
+    public static void $r8$lambda$E7XPdEsZqti3IaqNVK6YCW2BDI4(boolean z, ItemOptions itemOptions, ItemOptions itemOptions2, MenuItemInfo menuItemInfo) {
         if (z) {
             itemOptions.openSwipeback(itemOptions2);
         } else {
@@ -760,7 +773,7 @@ public abstract class MainMenuHelper {
         }
     }
 
-    public static /* synthetic */ boolean $r8$lambda$f5kxgmhG0LQrmPuZjc0uz002N0k(ItemOptions itemOptions, MenuItemInfo menuItemInfo, View view) {
+    public static boolean $r8$lambda$CgZp8SSa03cYWTk5G5jjOW9sIVs(ItemOptions itemOptions, MenuItemInfo menuItemInfo, View view) {
         itemOptions.dismiss();
         menuItemInfo.onClick().run();
         return true;
@@ -782,16 +795,15 @@ public abstract class MainMenuHelper {
         if (runnable == null || (last = itemOptions.getLast()) == null) {
             return;
         }
-        last.setOnLongClickListener(new View.OnLongClickListener() { // from class: com.exteragram.messenger.utils.chats.MainMenuHelper$$ExternalSyntheticLambda0
+        last.setOnLongClickListener(new View.OnLongClickListener() {
             @Override // android.view.View.OnLongClickListener
             public final boolean onLongClick(View view) {
-                return MainMenuHelper.m1496$r8$lambda$Jxy_f6itoaiwRE26qy73G9W0AI(itemOptions, runnable, view);
+                return MainMenuHelper.m2154$r8$lambda$5fVgP6za9_YwhaN5dFBvfE8gM(itemOptions, runnable, view);
             }
         });
     }
 
-    /* JADX INFO: renamed from: $r8$lambda$-Jxy_f6itoaiwRE26qy73G9W0AI, reason: not valid java name */
-    public static /* synthetic */ boolean m1496$r8$lambda$Jxy_f6itoaiwRE26qy73G9W0AI(ItemOptions itemOptions, Runnable runnable, View view) {
+    public static boolean m2154$r8$lambda$5fVgP6za9_YwhaN5dFBvfE8gM(ItemOptions itemOptions, Runnable runnable, View view) {
         itemOptions.dismiss();
         runnable.run();
         return true;

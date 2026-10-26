@@ -2,34 +2,16 @@ package com.exteragram.messenger.utils;
 
 import androidx.exifinterface.media.ExifInterface;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import org.telegram.messenger.FileLog;
+import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.TranslateController;
 
 public abstract class MediaUtils {
     private static final String[] GEO_TAGS = {"GPSLatitude", "GPSLatitudeRef", "GPSLongitude", "GPSLongitudeRef", "GPSAltitude", "GPSAltitudeRef", "GPSTimeStamp", "GPSDateStamp", "GPSProcessingMethod"};
     private static final String[] GEO_TAGS_API_24 = {"GPSAreaInformation", "GPSDOP", "GPSMeasureMode", "GPSSpeedRef", "GPSSpeed", "GPSStatus", "GPSDestLatitude", "GPSDestLatitudeRef", "GPSDestLongitude", "GPSDestLongitudeRef", "GPSDestBearing", "GPSDestBearingRef", "GPSDestDistance", "GPSDestDistanceRef"};
-    private static final String[] MOTION_PHOTO_XMP_MARKERS = {"Camera:MotionPhoto", "GCamera:MotionPhoto", "Camera:MicroVideo", "GCamera:MicroVideo", "Camera:MotionPhotoPresentationTimestampUs", "GCamera:MotionPhotoPresentationTimestampUs", "Camera:MicroVideoPresentationTimestampUs", "GCamera:MicroVideoPresentationTimestampUs", "Camera:MicroVideoOffset", "GCamera:MicroVideoOffset", "Container:Directory", "GContainer:Directory"};
-    private static final Map<byte[], String> PLATFORM_HEADERS;
-
-    static {
-        LinkedHashMap linkedHashMap = new LinkedHashMap();
-        PLATFORM_HEADERS = linkedHashMap;
-        linkedHashMap.put(hexStringToByteArray("FFD8FFE000104A46494600010101006000600000FFDB0043000403030403030404030405040405060A07060606060D090A080A0F0D10100F0D0F0E1113181411"), "Desktop");
-        linkedHashMap.put(hexStringToByteArray("FFD8FFE000104A46494600010101004800480000FFE202184943435F50524F46494C4500010100000208"), "Web, K");
-        linkedHashMap.put(hexStringToByteArray("FFD8FFE000104A46494600010100000100010000FFE202184943435F50524F46494C450001010000020800000000043000006D6E74725247422058595A2007E0"), "Android");
-        linkedHashMap.put(hexStringToByteArray("FFD8FFE000104A46494600010101004800480000FFE201D84943435F50524F46494C45000101000001C800000000043000006D6E74725247422058595A2007E0"), "Android");
-        linkedHashMap.put(hexStringToByteArray("FFD8FFE000104A46494600010100000100010000FFE201D84943435F50524F46494C45000101000001C800000000043000006D6E74725247422058595A2007E0"), "Android");
-        linkedHashMap.put(hexStringToByteArray("FFD8FFE000104A46494600010100000100010000FFDB004300090607080706090807080A0A090B0D160F0D0C0C0D1B14151016201D2222201D1F1F2428342C24"), "iOS");
-        linkedHashMap.put(hexStringToByteArray("FFD8FFE000104A46494600010100000100010000FFDB004300080606070605080707070909080A0C140D0C0B0B0C1912130F141D1A1F1E1D1A1C1C20242E2720"), "macOS");
-        linkedHashMap.put(hexStringToByteArray("FFD8FFE000104A46494600010101004800480000FFE201DB4943435F50524F46494C45000101000001CB00000000024000006D6E74725247422058595A200000"), "macOS");
-    }
 
     public static boolean removeGeolocation(String str, String str2) throws Throwable {
         File file = new File(str);
@@ -37,7 +19,10 @@ public abstract class MediaUtils {
             return false;
         }
         File file2 = new File(str2);
-        copyFile(file, file2);
+        if (!AndroidUtilities.copyFile(file, file2)) {
+            file2.delete();
+            throw new IOException("failed to copy " + str + " to " + str2);
+        }
         ArrayList arrayList = new ArrayList(Arrays.asList(GEO_TAGS));
         arrayList.addAll(getApi24GeoTags());
         ExifInterface exifInterface = new ExifInterface(file2.getAbsolutePath());
@@ -71,73 +56,89 @@ public abstract class MediaUtils {
         return Arrays.asList(GEO_TAGS_API_24);
     }
 
-    private static void copyFile(File file, File file2) throws IOException {
-        try (FileInputStream fileInputStream = new FileInputStream(file);
-             FileOutputStream fileOutputStream = new FileOutputStream(file2)) {
-            byte[] bArr = new byte[1024];
-            int i;
-            while ((i = fileInputStream.read(bArr)) > 0) {
-                fileOutputStream.write(bArr, 0, i);
-            }
-        } catch (IOException e) {
-            file2.delete();
-            throw e;
-        }
-    }
-
-    public static String getPhotoPlatform(String str) {
-        byte[] fileHeader = readFileHeader(str, 64);
-        if (fileHeader == null) {
+    public static String getPhotoPlatform(JpegFingerprint jpegFingerprint) {
+        String str;
+        if (jpegFingerprint == null || jpegFingerprint.jfifUnits < 0) {
             return null;
         }
-        for (Map.Entry<byte[], String> entry : PLATFORM_HEADERS.entrySet()) {
-            byte[] key = entry.getKey();
-            if (fileHeader.length >= key.length) {
-                for (int i = 0; i < key.length; i++) {
-                    if (fileHeader[i] == key[i]) {
-                    }
-                }
-                return entry.getValue();
+        boolean z = (jpegFingerprint.iccVersion == 1072 && jpegFingerprint.iccYear == 2016) || ((str = jpegFingerprint.iccDescription) != null && str.startsWith("Google/Skia/"));
+        int i = jpegFingerprint.jfifUnits;
+        if (i == 0) {
+            if (jpegFingerprint.jfifDensityX != 1) {
+                return null;
             }
+            if (z) {
+                return "Android";
+            }
+            if (jpegFingerprint.iccLength == 0) {
+                int i2 = jpegFingerprint.quality;
+                if (i2 == 72) {
+                    return "iOS";
+                }
+                if (i2 == 75) {
+                    return "macOS";
+                }
+            }
+            return null;
+        }
+        if (i != 1 || jpegFingerprint.jfifDensityX != 72) {
+            return jpegFingerprint.iccVersion == 576 ? "macOS" : "Desktop";
+        }
+        if (z) {
+            return "Android";
+        }
+        int i3 = jpegFingerprint.iccVersion;
+        if (i3 == 576) {
+            return "macOS";
+        }
+        if (i3 == 1088 && jpegFingerprint.iccLength == 480) {
+            return "Desktop";
         }
         return null;
     }
 
-    public static byte[] readFileHeader(String str, int i) {
-        File file = new File(str);
-        if (!file.exists()) {
+    public static String getVoicePlatform(OpusFingerprint opusFingerprint) {
+        if (opusFingerprint == null) {
             return null;
         }
-        byte[] bArr = new byte[i];
-        try {
-            FileInputStream fileInputStream = new FileInputStream(file);
-            try {
-                if (fileInputStream.read(bArr) < 1) {
-                    fileInputStream.close();
-                    return null;
+        String str = opusFingerprint.vendor;
+        str.getClass();
+        switch (str) {
+            case "libopus unknown":
+                return "Telegram X";
+            case "libopus 1.3.1-fixed":
+                return "macOS";
+            case "telegram-web-a":
+                return "Web A";
+            case "tweb":
+                return "Web K";
+            case "libopus 1.5.1":
+                return "iOS";
+            case "libopus unknown-fixed":
+                return "Android";
+            default:
+                if (opusFingerprint.vendor.matches("Lavf[0-9]+\\.[0-9]+\\.[0-9]+")) {
+                    return "Desktop";
                 }
-                fileInputStream.close();
-                return bArr;
-            } catch (Throwable th) {
-                try {
-                    fileInputStream.close();
-                } catch (Throwable th2) {
-                    th.addSuppressed(th2);
-                }
-                throw th;
-            }
-        } catch (IOException e) {
-            FileLog.e(e);
-            return null;
+                return null;
         }
     }
 
-    private static byte[] hexStringToByteArray(String str) {
-        int length = str.length();
-        byte[] bArr = new byte[length / 2];
-        for (int i = 0; i < length; i += 2) {
-            bArr[i / 2] = (byte) ((Character.digit(str.charAt(i), 16) << 4) + Character.digit(str.charAt(i + 1), 16));
+    public static String getRoundVideoPlatform(Mp4Fingerprint mp4Fingerprint) {
+        if (mp4Fingerprint != null && !mp4Fingerprint.fragmented) {
+            if ("isom".equals(mp4Fingerprint.majorBrand) && mp4Fingerprint.minorVersion == 512 && mp4Fingerprint.compatibleBrands.size() == 4 && mp4Fingerprint.compatibleBrands.containsAll(Arrays.asList("isom", "iso2", "avc1", "mp41"))) {
+                if (mp4Fingerprint.encoder == null && "VideoHandle".equals(mp4Fingerprint.videoHandler) && "SoundHandle".equals(mp4Fingerprint.audioHandler) && "eng".equals(mp4Fingerprint.videoLanguage) && "eng".equals(mp4Fingerprint.audioLanguage)) {
+                    return "Android";
+                }
+                String str = mp4Fingerprint.encoder;
+                if (str != null && str.matches("Lavf[0-9]+\\.[0-9]+\\.[0-9]+") && "VideoHandler".equals(mp4Fingerprint.videoHandler) && "SoundHandler".equals(mp4Fingerprint.audioHandler) && TranslateController.UNKNOWN_LANGUAGE.equals(mp4Fingerprint.videoLanguage) && TranslateController.UNKNOWN_LANGUAGE.equals(mp4Fingerprint.audioLanguage)) {
+                    return "Desktop";
+                }
+            }
+            if (mp4Fingerprint.encoder == null && "mp42".equals(mp4Fingerprint.majorBrand) && mp4Fingerprint.minorVersion == 1 && mp4Fingerprint.compatibleBrands.size() == 3 && mp4Fingerprint.compatibleBrands.containsAll(Arrays.asList("isom", "mp41", "mp42")) && "Core Media Video".equals(mp4Fingerprint.videoHandler) && "Core Media Audio".equals(mp4Fingerprint.audioHandler) && TranslateController.UNKNOWN_LANGUAGE.equals(mp4Fingerprint.videoLanguage) && TranslateController.UNKNOWN_LANGUAGE.equals(mp4Fingerprint.audioLanguage)) {
+                return "iOS";
+            }
         }
-        return bArr;
+        return null;
     }
 }

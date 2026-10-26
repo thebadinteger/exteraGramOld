@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
-import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
@@ -30,8 +29,6 @@ import org.telegram.messenger.Emoji;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LinkifyPort;
 import org.telegram.messenger.LocaleController;
-import org.telegram.ui.Components.ColoredImageSpan;
-import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MediaDataController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
@@ -42,6 +39,7 @@ import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.AnimatedEmojiDrawable;
+import org.telegram.ui.Components.ColoredImageSpan;
 import org.telegram.ui.Components.URLSpanNoUnderline;
 import org.telegram.ui.Components.URLSpanReplacement;
 import org.telegram.ui.FilterCreateActivity;
@@ -119,7 +117,7 @@ public abstract class LocaleUtils {
                 if (i - i2 > 1 && ((uRLSpanArr = (URLSpan[]) spannableStringBuilder.getSpans(i2, i, URLSpan.class)) == null || uRLSpanArr.length <= 0)) {
                     final String string = charSequence.subSequence(i2, i).toString();
                     try {
-                        spannableStringBuilder.setSpan(new URLSpanNoUnderline(string) { 
+                        spannableStringBuilder.setSpan(new URLSpanNoUnderline(string) {
                             @Override // org.telegram.ui.Components.URLSpanNoUnderline, android.text.style.URLSpan, android.text.style.ClickableSpan
                             public void onClick(View view) {
                                 Runnable runnable2 = runnable;
@@ -155,7 +153,7 @@ public abstract class LocaleUtils {
             int spanEnd = spannableStringBuilder.getSpanEnd(uRLSpan);
             String url = uRLSpan.getURL();
             spannableStringBuilder.removeSpan(uRLSpan);
-            spannableStringBuilder.setSpan(new URLSpanNoUnderline(url) { 
+            spannableStringBuilder.setSpan(new URLSpanNoUnderline(url) {
                 @Override // org.telegram.ui.Components.URLSpanNoUnderline, android.text.style.URLSpan, android.text.style.ClickableSpan
                 public void onClick(View view) {
                     super.onClick(view);
@@ -173,7 +171,7 @@ public abstract class LocaleUtils {
         Matcher matcher = LinkifyPort.WEB_URL.matcher(charSequence);
         while (matcher.find()) {
             try {
-                spannableStringBuilder.setSpan(new URLSpanNoUnderline(ensureUrlHasHttps(matcher.group(0))) { 
+                spannableStringBuilder.setSpan(new URLSpanNoUnderline(ensureUrlHasHttps(matcher.group(0))) {
                     @Override // org.telegram.ui.Components.URLSpanNoUnderline, android.text.style.URLSpan, android.text.style.ClickableSpan
                     public void onClick(View view) {
                         super.onClick(view);
@@ -206,10 +204,6 @@ public abstract class LocaleUtils {
         return AndroidUtilities.replaceTags(withUsernames);
     }
 
-    public static CharSequence fromHtml(String str) {
-        return new SpannableString(Html.fromHtml(str, 0));
-    }
-
     public static String getAppName() {
         try {
             return ApplicationLoader.applicationContext.getString(R.string.exteraAppName);
@@ -236,7 +230,7 @@ public abstract class LocaleUtils {
             int iEnd = matcher.end(1);
             if (iStart >= 0 && iEnd >= 0 && iStart <= iEnd && iEnd <= spannableNewSpannable.length()) {
                 SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(spannableNewSpannable.subSequence(iStart, iEnd));
-                spannableStringBuilder.setSpan(new URLSpanReplacement(ensureUrlHasHttps(matcher.group(2))) { 
+                spannableStringBuilder.setSpan(new URLSpanReplacement(ensureUrlHasHttps(matcher.group(2))) {
                     @Override // org.telegram.ui.Components.URLSpanReplacement, android.text.style.URLSpan, android.text.style.ClickableSpan
                     public void onClick(View view) {
                         Runnable runnable2 = runnable;
@@ -257,16 +251,24 @@ public abstract class LocaleUtils {
     }
 
     public static CharSequence applyNewSpan(CharSequence charSequence) {
+        return applyBadge(charSequence, "NEW", Theme.key_featuredStickers_addButton, Theme.key_featuredStickers_buttonText);
+    }
+
+    public static CharSequence applyBadge(CharSequence charSequence, CharSequence charSequence2, int i, int i2) {
+        String string = _UrlKt.FRAGMENT_ENCODE_SET;
         if (charSequence == null) {
             charSequence = _UrlKt.FRAGMENT_ENCODE_SET;
         }
         SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(charSequence);
         spannableStringBuilder.append((CharSequence) "  d");
         FilterCreateActivity.NewSpan newSpan = new FilterCreateActivity.NewSpan(10.0f);
-        newSpan.setText("NEW");
+        if (charSequence2 != null) {
+            string = charSequence2.toString();
+        }
+        newSpan.setText(string);
         newSpan.setTypeface(AndroidUtilities.bold());
-        newSpan.setColor(Theme.getColor(Theme.key_featuredStickers_addButton));
-        newSpan.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
+        newSpan.setColor(Theme.getColor(i));
+        newSpan.setTextColor(Theme.getColor(i2));
         spannableStringBuilder.setSpan(newSpan, spannableStringBuilder.length() - 1, spannableStringBuilder.length(), 33);
         return spannableStringBuilder;
     }
@@ -291,7 +293,10 @@ public abstract class LocaleUtils {
         if (str == null) {
             return null;
         }
-        return (!LinkifyPort.WEB_URL.matcher(str).matches() || str.startsWith("http://") || str.startsWith("https://") || str.contains("://")) ? str : "https://".concat(str);
+        if (!LinkifyPort.WEB_URL.matcher(str).matches() || str.startsWith("http://") || str.startsWith("https://") || str.contains("://")) {
+            return str;
+        }
+        return AndroidUtilities.defaultUrlScheme(str) + str;
     }
 
     public static boolean parseCustomEmojis(CharSequence charSequence, ArrayList<TLRPC.MessageEntity> arrayList) {
@@ -456,23 +461,22 @@ public abstract class LocaleUtils {
 
     public static CharSequence insertHexColorsPreview(CharSequence charSequence) {
         if (!TextUtils.isEmpty(charSequence) && containsHash(charSequence)) {
-            Spannable spannable = charSequence instanceof Spannable ? (Spannable) charSequence : new SpannableString(charSequence);
-            for (ColorRectSpan colorRectSpan : (ColorRectSpan[]) spannable.getSpans(0, spannable.length(), ColorRectSpan.class)) {
-                spannable.removeSpan(colorRectSpan);
+            charSequence = charSequence instanceof Spannable ? (Spannable) charSequence : new SpannableString(charSequence);
+            for (ColorRectSpan colorRectSpan : (ColorRectSpan[]) charSequence.getSpans(0, charSequence.length(), ColorRectSpan.class)) {
+                charSequence.removeSpan(colorRectSpan);
             }
-            Matcher matcher = HEX_PATTERN.matcher(spannable);
+            Matcher matcher = HEX_PATTERN.matcher(charSequence);
             while (matcher.find()) {
                 int iEnd = matcher.end();
                 int i = iEnd - 1;
-                if (!hasConflictingHexPreviewSpan(spannable, i, iEnd)) {
+                if (!hasConflictingHexPreviewSpan(charSequence, i, iEnd)) {
                     try {
-                        spannable.setSpan(new ColorRectSpan(Color.parseColor(matcher.group())), i, iEnd, 33);
+                        charSequence.setSpan(new ColorRectSpan(Color.parseColor(matcher.group())), i, iEnd, 33);
                     } catch (IllegalArgumentException unused) {
                         FileLog.e("Invalid HEX color: " + matcher.group());
                     }
                 }
             }
-            return spannable;
         }
         return charSequence;
     }

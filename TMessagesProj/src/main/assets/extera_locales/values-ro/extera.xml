@@ -13,7 +13,6 @@
     <string name="Preferences">Preferințe exteraGram</string>
     <!-- Main Menu -->
     <string name="Links">Link-uri</string>
-    <string name="AboutExteraDescription">Un client Telegram experimental bazat pe codul sursă oficial!</string>
     <string name="Crowdin">Traduceți</string>
     <string name="Website">Site web</string>
     <string name="Categories">Categorii</string>
@@ -45,23 +44,7 @@
     <string name="WeatherPillTopInfo">Setări widget vreme pentru Stiva de pilule.</string>
     <string name="PillStackInfiniteScrolling">Derulare infinită</string>
     <string name="CryptoPillTargetCurrency">Moneda țintă</string>
-    <string name="CryptoCurrencyUsd">Dolar american</string>
-    <string name="CryptoCurrencyEur">Euro</string>
-    <string name="CryptoCurrencyRub">Rublă rusă</string>
-    <string name="CryptoCurrencyGbp">Liră sterlină</string>
-    <string name="CryptoCurrencyKzt">Tenge kazah</string>
-    <string name="CryptoCurrencyTry">Liră turcească</string>
-    <string name="CryptoCurrencyUah">Grivna ucraineană</string>
-    <string name="CryptoCurrencyPln">Zlot polonez</string>
-    <string name="CryptoCurrencyAed">Dirham Emiratele Arabe Unite</string>
-    <string name="CryptoCurrencyCny">Yuan chinezesc</string>
-    <string name="CryptoCurrencyJpy">Yen japonez</string>
-    <string name="CryptoCurrencyByn">Rublă belarusă</string>
-    <string name="CryptoCurrencyIls">Shekel israelian nou</string>
-    <string name="CryptoCurrencyCzk">Coroană cehă</string>
-    <string name="CryptoCurrencyInr">Rupie indiană</string>
     <!-- Proxy -->
-    <string name="ProxyDoNotUseWithVPN">Nu folosi cu VPN</string>
     <string name="ProxyDisableOn">Dezactivează proxy</string>
     <string name="ProxyDisableNever">Niciodată</string>
     <string name="ProxyDisableAlways">Întotdeauna</string>
@@ -73,9 +56,6 @@
     <string name="CopyIpAddress">Copiază adresa IP</string>
     <string name="IpInfoUnavailable">Nu s-a putut încărca informația despre adresa IP.</string>
     <string name="IpInfoCountry">Țară</string>
-    <string name="IpInfoRegion">Regiune</string>
-    <string name="IpInfoCity">Oraș</string>
-    <string name="IpInfoIsp">ISP</string>
     <string name="IpInfoOrganization">Organizație</string>
     <string name="IpInfoDomain">Domeniu</string>
     <string name="IpInfoTimezone">Fus orar</string>
@@ -98,13 +78,7 @@
     <!-- Speed -->
     <string name="DownloadSpeedBoost">Accelerare vitezei de descărcare</string>
     <string name="UploadSpeedBoost">Accelerarea vitezei de încărcare</string>
-    <string name="Ultra">Ultra</string>
     <string name="SpeedBoostInfo">Ultra Boost poate cauza probleme la descărcarea fișierelor și la redarea în flux a videoclipurilor pe conexiuni lente la internet.</string>
-    <!-- Maps -->
-    <string name="Maps">Hărţi</string>
-    <string name="TermsOfUseYandexMaps">Prin utilizarea Yandex Maps, sunteți de acord cu <![CDATA[<a href="https://yandex.ru/legal/maps_termsofuse/">termenii de utilizare</a>]]></string>
-    <string name="UseYandexMaps">Folosește Yandex Maps</string>
-    <string name="InstallYandexMaps">Instalați Yandex Maps?</string>
     <!-- Storage -->
     <string name="StorageSettings">Stocare</string>
     <string name="CustomSavePath">Folder personalizat de salvare</string>
@@ -161,7 +135,6 @@
     <string name="NavigationDrawer">Sertar de navigare</string>
     <string name="NavigationDrawerInfo">Înlocuiește meniul din dreapta sus cu un sertar clasic care se deschide prin glisare și un buton hamburger.</string>
     <string name="NavigationDrawerImmersiveAnimation">Animație imersivă</string>
-    <string name="NavigationDrawerProxyPingShort">%1$d ms</string>
     <string name="MainMenuItems">Elemente de meniu</string>
     <string name="MainMenuItemsInfo">Atingeți pentru a afișa sau ascunde elementele, țineți apăsat pentru a reordona. Aspectul este partajat între meniu și sertar.</string>
     <string name="MainMenuHiddenItems">Elemente de meniu ascunse</string>
@@ -208,15 +181,11 @@
     <!-- App Icons -->
     <string name="IconPack">Pachet de pictograme</string>
     <string name="AppIconSunset">Apus de soare</string>
-    <string name="AppIconAurora">Aurora</string>
     <string name="AppIconAmethyst">Ametist</string>
     <string name="AppIconInvincible">Invincibil</string>
-    <string name="AppIconCyberpunk">Cyberpunk</string>
     <string name="AppIconSpace">Spațiu</string>
     <string name="AppIconIceAge">Epoca de gheață</string>
-    <string name="AppIconEditor">Editor</string>
     <string name="AppIconOrbit">Orbită</string>
-    <string name="AppIconSus">Impostor</string>
     <string name="AppIconWinter">Iarnă</string>
     <!-- General Appearance -->
     <string name="Sections">Secțiuni</string>
@@ -242,7 +211,6 @@
     <string name="BlurOptions">Opțiuni blurare</string>
     <string name="GlassOutlineStyle">Contur sticlă</string>
     <string name="GlassOutlineGlare">Strălucire</string>
-    <string name="GlassOutlineSolid">Solid</string>
     <string name="GlassOutlineHidden">Ascuns</string>
     <string name="ForceBlur">Blur forțat</string>
     <string name="ForceBlurInfo">Efectele de estompare vor fi aplicate tuturor temelor, ignorând setările implicite ale acestora.</string>
@@ -253,7 +221,6 @@
     <string name="StickerSize">Dimensiunea autocolantului</string>
     <string name="StickerSizeLeft">Mic</string>
     <string name="StickerSizeRight">Mare</string>
-    <string name="StickerSizeDialogMessageReplyTo">wow</string>
     <string name="StickerSizeDialogMessage">hai, așa drăguț!</string>
     <string name="StickerShape">Formă Sticker</string>
     <string name="StickerShapeRounded">Rotunjit</string>
@@ -325,7 +292,6 @@
     <string name="AIError">Eroare Server</string>
     <string name="AIErrorInfo">Te rugăm să reîncerci cererea după o scurtă așteptare.</string>
     <!-- Chat Actions -->
-    <string name="DoubleTap">Atingere dubla</string>
     <string name="DoubleTapIncoming">Mesaje primite</string>
     <string name="DoubleTapOutgoing">Mesaje trimise</string>
     <string name="DoubleTapInfo">Unele acțiuni necesită drepturi de administrator în chat sau canal.</string>
@@ -390,12 +356,10 @@
     <string name="AlwaysSendInHD">Trimite întotdeauna în HD</string>
     <string name="HideCameraTile">Ascunde tabla de cameră instantă</string>
     <string name="HideCameraTileInfo">Iconița camerei foto va fi înlocuită cu un buton plutitor. Apăsând pornește camera Telegram; ținând apăsat camera de sistem.</string>
-    <string name="ShortStandardQuality">SD</string>
     <!-- Playback -->
     <string name="DoubleTapSeekDuration">Dublă apăsare Omitere timp</string>
     <string name="PreferOriginalQuality">Preferă calitatea originală</string>
     <string name="PauseOnMinimize">Auto Pauză</string>
-    <string name="PauseOnMinimizeVideo">Video</string>
     <string name="PauseOnMinimizeVoice">Voce</string>
     <string name="PauseOnMinimizeRound">Rotunjit</string>
     <string name="PauseOnMinimizeInfo">Întrerupe redarea media atunci când dispozitivul este blocat sau exteraGram este minimizat.</string>
@@ -465,7 +429,6 @@
     <string name="PluginNotEnabled">Activează **Motorul Plugin** pentru a instala **%1$s**.</string>
     <string name="PluginInstalled">**%1$s** instalat cu succes.</string>
     <string name="PluginUpdated">**%1$s** actualizat cu succes.</string>
-    <string name="PluginInstalledButFailedToEnable">**%1$s** instalat, dar o eroare a apărut în timpul activării.</string>
     <string name="PluginEnableError">Activarea **%1$s **, a eșuat.</string>
     <string name="PluginDisableError">Esuare dezactivare **%1$s**.</string>
     <string name="PluginInstallError">Nu s-a reușit instalarea **%1$s**.</string>
@@ -525,12 +488,10 @@
     <string name="FilePath">Calea fișierului</string>
     <string name="Platform">Platformă</string>
     <string name="Resolution">Rezoluție</string>
-    <string name="Bitrate">Bitrate</string>
     <string name="Duration">Durată</string>
     <string name="MimeType">Tip MIME</string>
     <string name="Datacenter">Centru de date</string>
     <!-- Date Formatting -->
-    <string name="DateFormatOption">Format:</string>
     <string name="DateFormatOptionNone">Niciunul</string>
     <string name="DateFormatOptionRelative">Relativ</string>
     <string name="DateFormatOptionShortTime">Timp scurt</string>
@@ -541,7 +502,6 @@
     <!-- Login & QR -->
     <string name="LoginQrTitle">Autentificare prin cod QR</string>
     <string name="LoginQrSubtitle">Utilizați un alt dispozitiv pentru a scana acest cod QR.</string>
-    <string name="SelectNumber">Selectați numărul de telefon</string>
     <string name="WifiConnect">Conectează</string>
     <string name="WifiDisabled">Wi-Fi este dezactivat.</string>
     <string name="WifiFailed">Conectarea la Wi-Fi a eșuat.</string>
@@ -554,7 +514,6 @@
     <string name="PageBlockedProceed">Continuă</string>
     <!-- Other -->
     <string name="SetAsBadge">Setează ca insignă</string>
-    <string name="AutoLockInstant">Instant</string>
     <string name="TestBackend">Testează backend-ul</string>
     <string name="SearchPhotoInfo">Serviciile pot folosi imagini conform politicilor lor de confidențialitate și termenilor de utilizare.</string>
     <string name="PhotoUploadFailed">Încărcarea fotografiei a eșuat.</string>

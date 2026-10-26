@@ -10,10 +10,11 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.core.graphics.ColorUtils;
+import androidx.core.math.MathUtils;
 import com.exteragram.messenger.ExteraConfig;
 import com.exteragram.messenger.utils.ui.MaterialSliderUiHelper;
 import com.google.android.material.slider.Slider;
-import java.util.Objects;
+import java.util.Locale;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.LocaleController;
 import org.telegram.tgnet.TLObject;
@@ -61,7 +62,7 @@ public class AltSeekbar extends FrameLayout {
         textView.setGravity(LocaleController.isRTL ? 5 : 3);
         textView.setText(str);
         linearLayout.addView(textView, LayoutHelper.createLinear(-2, -2, 16));
-        AnimatedTextView animatedTextView = new AnimatedTextView(context, false, true, true) { // from class: com.exteragram.messenger.preferences.components.AltSeekbar.1
+        AnimatedTextView animatedTextView = new AnimatedTextView(context, false, true, true) {
             final Drawable backgroundDrawable = Theme.createRoundRectDrawable(AndroidUtilities.dp(4.0f), Theme.multAlpha(Theme.getColor(Theme.key_windowBackgroundWhiteBlueHeader), 0.15f));
 
             @Override // org.telegram.ui.Components.AnimatedTextView, android.view.View
@@ -135,36 +136,42 @@ public class AltSeekbar extends FrameLayout {
     }
 
     public void setProgress(float f) {
-        this.currentValue = f;
-        this.roundedValue = Math.round(f);
+        float fClamp = clamp(f);
+        this.currentValue = fClamp;
+        this.roundedValue = Math.round(fClamp);
         Slider slider = this.slider;
-        if (slider == null) {
+        if (slider != null) {
+            MaterialSliderUiHelper.setValue(slider, this.currentValue);
+        } else {
             SeekBarView seekBarView = this.seekBarView;
             if (seekBarView != null) {
+                float f2 = this.currentValue;
                 int i = this.min;
-                seekBarView.setProgress((f - i) / (this.max - i));
+                seekBarView.setProgress((f2 - i) / (this.max - i));
             }
-        } else if (slider.getValue() != f) {
-            this.slider.setValue(f);
         }
         this.headerValue.cancelAnimation();
         this.headerValue.setText(getTextForHeader(), true);
-        checkEndpointHaptic(f);
+        checkEndpointHaptic(this.currentValue);
         updateValues();
     }
 
     public void updateHeader(float f) {
-        this.currentValue = f;
-        this.roundedValue = Math.round(f);
+        float fClamp = clamp(f);
+        this.currentValue = fClamp;
+        this.roundedValue = Math.round(fClamp);
         CharSequence textForHeader = getTextForHeader();
         if (!TextUtils.equals(this.headerValue.getText(), textForHeader)) {
             this.headerValue.setText(textForHeader, true);
         }
-        checkEndpointHaptic(f);
+        checkEndpointHaptic(this.currentValue);
         updateValues();
     }
 
-    /* JADX WARN: Code duplicated, block: B:15:0x0022  */
+    private float clamp(float f) {
+        return MathUtils.clamp(f, this.min, this.max);
+    }
+
     private void checkEndpointHaptic(float f) {
         int i;
         if (useExactEndpointHaptic()) {
@@ -202,7 +209,7 @@ public class AltSeekbar extends FrameLayout {
         } else {
             charSequenceValueOf = String.valueOf(i);
         }
-        return charSequenceValueOf.toString().toUpperCase();
+        return charSequenceValueOf.toString().toUpperCase(Locale.getDefault());
     }
 
     @Override // android.widget.FrameLayout, android.view.View
@@ -210,42 +217,30 @@ public class AltSeekbar extends FrameLayout {
         super.onMeasure(View.MeasureSpec.makeMeasureSpec(View.MeasureSpec.getSize(i), TLObject.FLAG_30), View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(112.0f), TLObject.FLAG_30));
     }
 
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof AltSeekbar) {
-            AltSeekbar altSeekbar = (AltSeekbar) obj;
-            if (Objects.equals(this.headerValue, altSeekbar.headerValue) && Objects.equals(this.leftTextView, altSeekbar.leftTextView) && Objects.equals(this.rightTextView, altSeekbar.rightTextView) && Objects.equals(this.seekBarView, altSeekbar.seekBarView) && Objects.equals(this.slider, altSeekbar.slider) && this.min == altSeekbar.min && this.max == altSeekbar.max && Float.compare(this.currentValue, altSeekbar.currentValue) == 0 && this.roundedValue == altSeekbar.roundedValue && this.vibro == altSeekbar.vibro) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private void initSlider() {
         if (ExteraConfig.getNewSliderStyle()) {
             Slider sliderCreate = MaterialSliderUiHelper.create(getContext());
             this.slider = sliderCreate;
             MaterialSliderUiHelper.applyContinuousStyle(sliderCreate);
-            this.slider.addOnChangeListener(new Slider.OnChangeListener() { // from class: com.exteragram.messenger.preferences.components.AltSeekbar$$ExternalSyntheticLambda0
+            this.slider.addOnChangeListener(new Slider.OnChangeListener() {
                 @Override // com.google.android.material.slider.Slider.OnChangeListener
                 public final void onValueChange(Slider slider, float f, boolean z) {
-                    AltSeekbar.this.lambda$initSlider$0(slider, f, z);
+                    this.f$0.lambda$initSlider$0(slider, f, z);
                 }
             });
             MaterialSliderUiHelper.applyColors(this.slider, Theme.getColor(Theme.key_player_progress), Theme.getColor(Theme.key_player_progressBackground));
             this.slider.setValueFrom(this.min);
             this.slider.setValueTo(this.max);
+            MaterialSliderUiHelper.setValue(this.slider, this.currentValue);
             addView(this.slider, LayoutHelper.createFrame(-1, 56.0f, 48, 7.0f, 68.0f, 7.0f, 6.0f));
         } else {
             SeekBarView seekBarView = new SeekBarView(getContext(), true, null);
             this.seekBarView = seekBarView;
             seekBarView.setReportChanges(true);
-            this.seekBarView.setDelegate(new SeekBarView.SeekBarViewDelegate() { // from class: com.exteragram.messenger.preferences.components.AltSeekbar$$ExternalSyntheticLambda1
+            this.seekBarView.setDelegate(new SeekBarView.SeekBarViewDelegate() {
                 @Override // org.telegram.ui.Components.SeekBarView.SeekBarViewDelegate
                 public final void onSeekBarDrag(boolean z, float f) {
-                    AltSeekbar.this.lambda$initSlider$1(z, f);
+                    this.f$0.lambda$initSlider$1(z, f);
                 }
             });
             addView(this.seekBarView, LayoutHelper.createFrame(-1, 44.0f, 48, 6.0f, 68.0f, 6.0f, 0.0f));
@@ -253,8 +248,7 @@ public class AltSeekbar extends FrameLayout {
         setProgress(this.currentValue);
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$initSlider$0(Slider slider, float f, boolean z) {
+    public void lambda$initSlider$0(Slider slider, float f, boolean z) {
         if (z) {
             this.onDrag.run(f);
         }
@@ -263,8 +257,7 @@ public class AltSeekbar extends FrameLayout {
         }
     }
 
-    /* JADX INFO: Access modifiers changed from: private */
-    public /* synthetic */ void lambda$initSlider$1(boolean z, float f) {
+    public void lambda$initSlider$1(boolean z, float f) {
         int i = this.min;
         float f2 = i + ((this.max - i) * f);
         this.onDrag.run(f2);

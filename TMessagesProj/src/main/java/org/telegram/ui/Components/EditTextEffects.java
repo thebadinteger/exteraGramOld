@@ -1,5 +1,7 @@
 package org.telegram.ui.Components;
 
+import com.exteragram.messenger.components.ReceiveContentEditText;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
@@ -28,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-public class EditTextEffects extends EditText {
+public abstract class EditTextEffects extends ReceiveContentEditText {
     private final static int SPOILER_TIMEOUT = 10000;
 
     private List<SpoilerEffect> spoilers = new ArrayList<>();

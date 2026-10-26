@@ -23,6 +23,7 @@ final class FeedTimelineLoader {
 
     public static final class ChannelEnumeration {
         int cacheEpoch;
+        FeedConfig.Snapshot config;
         int configGeneration;
         boolean failed;
         boolean hasChannels;
@@ -101,16 +102,16 @@ final class FeedTimelineLoader {
     }
 
     public static final class ChannelSet {
-        final int configGen;
+        final int baseGen;
+        final int cacheSession;
+        final ArrayList<long[]> channelRows = new ArrayList<>();
+        final ArrayList<TLRPC.Chat> channels = new ArrayList<>();
         boolean failed;
         boolean hasChannels;
-        final int sessionGen;
-        final ArrayList<long[]> includedRows = new ArrayList<>();
-        final ArrayList<TLRPC.Chat> channels = new ArrayList<>();
 
         public ChannelSet(int i, int i2) {
-            this.sessionGen = i;
-            this.configGen = i2;
+            this.cacheSession = i;
+            this.baseGen = i2;
         }
     }
 
@@ -122,6 +123,8 @@ final class FeedTimelineLoader {
     public ChannelEnumeration enumerateChannels(FeedConfig feedConfig, int i, boolean z) {
         ChannelSet channelSetBuildChannelSet;
         int i2;
+        FeedConfig.Snapshot snapshot;
+        char c2 = 0;
         boolean z2 = z;
         int i3 = 0;
         while (true) {
@@ -129,10 +132,9 @@ final class FeedTimelineLoader {
                 channelSetBuildChannelSet = this.channelSetCache;
                 i2 = this.channelCacheEpoch.get();
             }
-            FeedConfig.Snapshot snapshot = feedConfig.snapshot();
-            int generation = snapshot.getGeneration();
-            if (z2 || channelSetBuildChannelSet == null || channelSetBuildChannelSet.sessionGen != i || channelSetBuildChannelSet.configGen != generation) {
-                channelSetBuildChannelSet = buildChannelSet(snapshot.getIncludeArchived(), new HashSet<>(snapshot.getExcludedChannels()), i, generation);
+            snapshot = feedConfig.snapshot();
+            if (z2 || channelSetBuildChannelSet == null || channelSetBuildChannelSet.cacheSession != i || channelSetBuildChannelSet.baseGen != snapshot.getBaseGeneration()) {
+                channelSetBuildChannelSet = buildChannelSet(snapshot.getIncludeArchived(), i, snapshot.getBaseGeneration());
                 if (!channelSetBuildChannelSet.failed) {
                     synchronized (this) {
                         try {
@@ -145,26 +147,36 @@ final class FeedTimelineLoader {
                     }
                 }
             }
-            if (channelSetBuildChannelSet.failed || i3 >= 3) {
+            if (!channelSetBuildChannelSet.failed && i3 < 3) {
+                synchronized (this) {
+                    try {
+                        if (i2 == this.channelCacheEpoch.get()) {
+                        }
+                    } catch (Throwable th2) {
+                        throw th2;
+                    }
+                }
                 break;
             }
-            synchronized (this) {
-                if (i2 == this.channelCacheEpoch.get()) {
-                    break;
-                }
-            }
+            break;
             i3++;
             z2 = true;
         }
         ChannelEnumeration channelEnumeration = new ChannelEnumeration();
         channelEnumeration.hasChannels = channelSetBuildChannelSet.hasChannels;
         channelEnumeration.failed = channelSetBuildChannelSet.failed;
-        channelEnumeration.configGeneration = channelSetBuildChannelSet.configGen;
+        channelEnumeration.config = snapshot;
+        channelEnumeration.configGeneration = snapshot.getGeneration();
         channelEnumeration.cacheEpoch = i2;
         channelEnumeration.channels.addAll(channelSetBuildChannelSet.channels);
-        for (int i4 = 0; i4 < channelSetBuildChannelSet.includedRows.size(); i4++) {
-            long[] jArr = channelSetBuildChannelSet.includedRows.get(i4);
-            channelEnumeration.included.add(new ChannelSnapshot(jArr[0], (int) jArr[1], (int) jArr[2], (int) jArr[3]));
+        int i4 = 0;
+        while (i4 < channelSetBuildChannelSet.channelRows.size()) {
+            long[] jArr = channelSetBuildChannelSet.channelRows.get(i4);
+            if (snapshot.isIncluded(jArr[c2])) {
+                channelEnumeration.included.add(new ChannelSnapshot(jArr[c2], (int) jArr[1], (int) jArr[2], (int) jArr[3]));
+            }
+            i4++;
+            c2 = 0;
         }
         return channelEnumeration;
     }
@@ -185,7 +197,7 @@ final class FeedTimelineLoader {
         return z;
     }
 
-    private ChannelSet buildChannelSet(boolean z, HashSet<Long> hashSet, int i, int i2) {
+    private ChannelSet buildChannelSet(boolean z, int i, int i2) {
         MessagesStorage messagesStorage = MessagesStorage.getInstance(this.currentAccount);
         ChannelSet channelSet = new ChannelSet(i, i2);
         ArrayList arrayList = new ArrayList();
@@ -215,9 +227,7 @@ final class FeedTimelineLoader {
                         if (FeedController.isEligibleChannel(chat) && (jArr[4] != 1 || z)) {
                             channelSet.hasChannels = true;
                             channelSet.channels.add(chat);
-                            if (!hashSet.contains(Long.valueOf(j))) {
-                                channelSet.includedRows.add(new long[]{j, jArr[1], jArr[2], jArr[3]});
-                            }
+                            channelSet.channelRows.add(new long[]{j, jArr[1], jArr[2], jArr[3]});
                         }
                     }
                 } catch (Exception e) {
@@ -235,6 +245,10 @@ final class FeedTimelineLoader {
     }
 
     public OlderPage loadOlderPage(ArrayList<ChannelSnapshot> arrayList, Cursor cursor, HashSet<Long> hashSet) {
+        boolean z;
+        int i;
+        boolean z2;
+        long j;
         OlderPage olderPage = new OlderPage();
         boolean zIsEmpty = cursor.isEmpty();
         olderPage.last.set(cursor.date, cursor.uid, cursor.mid);
@@ -270,52 +284,98 @@ final class FeedTimelineLoader {
                 channelSnapshot3.holeEnd = z4 ? num.intValue() : 0;
             }
             loadChannelDepths(messagesStorage, arrayList);
+            int size3 = arrayList.size();
+            boolean z5 = zIsEmpty;
             int i5 = 0;
-            for (int i6 = 0; i6 < arrayList.size(); i6++) {
-                ChannelSnapshot channelSnapshot5 = arrayList.get(i6);
-                boolean incomplete = !channelSnapshot5.localStartReached && !hashSet.contains(Long.valueOf(channelSnapshot5.dialogId));
-                channelSnapshot5.incomplete = incomplete;
-                if (incomplete) {
-                    olderPage.hasIncomplete = true;
-                    i5 = Math.max(i5, channelSnapshot5.depthDate);
-                    long j;
+            int i6 = 0;
+            while (i6 < size3) {
+                ChannelSnapshot channelSnapshot4 = arrayList.get(i6);
+                i6++;
+                ChannelSnapshot channelSnapshot5 = channelSnapshot4;
+                boolean z6 = (channelSnapshot5.localStartReached || hashSet.contains(Long.valueOf(channelSnapshot5.dialogId))) ? i2 : z3 ? 1 : 0;
+                channelSnapshot5.incomplete = z6;
+                if (z6 != 0) {
+                    olderPage.hasIncomplete = z3;
+                    int iMax = Math.max(i5, channelSnapshot5.depthDate);
                     if (channelSnapshot5.hasCached) {
+                        i = i2;
+                        z2 = z5;
                         j = channelSnapshot5.depthMid;
                     } else {
+                        i = i2;
+                        z2 = z5;
                         int iMax2 = Math.max(channelSnapshot5.holeEnd, channelSnapshot5.topMessage);
                         j = iMax2 > 0 ? iMax2 + 1 : 0L;
                     }
-                    olderPage.backfillCandidates.add(new long[]{channelSnapshot5.dialogId, j, channelSnapshot5.depthDate});
+                    ArrayList<long[]> arrayList3 = olderPage.backfillCandidates;
+                    z = z3 ? 1 : 0;
+                    try {
+                        long j2 = channelSnapshot5.dialogId;
+                        long j3 = channelSnapshot5.depthDate;
+                        long[] jArr = new long[3];
+                        jArr[i] = j2;
+                        jArr[z ? 1 : 0] = j;
+                        jArr[2] = j3;
+                        arrayList3.add(jArr);
+                        i5 = iMax;
+                    } catch (Exception e) {
+                        e = e;
+                        FileLog.e(e);
+                        olderPage.failed = z;
+                        clusterGroupedMessages(olderPage.messages);
+                        return olderPage;
+                    }
+                } else {
+                    z = z3 ? 1 : 0;
+                    i = i2;
+                    z2 = z5;
                 }
+                i2 = i;
+                z5 = z2;
+                z3 = z;
+                arrayList2 = arrayList2;
+                strJoin = strJoin;
             }
             String str = strJoin;
-            olderPage.backfillCandidates.sort(new Comparator<long[]>() { 
+            z = z3 ? 1 : 0;
+            ArrayList arrayList4 = arrayList2;
+            int i7 = i2;
+            boolean z7 = z5;
+            olderPage.backfillCandidates.sort(new Comparator() {
                 @Override // java.util.Comparator
-                public final int compare(long[] obj, long[] obj2) {
-                    return Long.compare(obj2[2], obj[2]);
+                public final int compare(Object obj, Object obj2) {
+                    return Long.compare(((long[]) obj2)[2], ((long[]) obj)[2]);
                 }
             });
             if (i5 == Integer.MAX_VALUE) {
                 return olderPage;
             }
-            Cursor cursorFindUnreadBoundary = zIsEmpty ? findUnreadBoundary(messagesStorage, arrayList, i5) : null;
+            Cursor cursorFindUnreadBoundary = z7 ? findUnreadBoundary(messagesStorage, arrayList, i5) : null;
             ArrayList<Long> arrayList5 = new ArrayList<>();
             ArrayList<Long> arrayList6 = new ArrayList<>();
-            int i8 = 0;
+            int i8 = i7;
             do {
                 int iLoadChunk = loadChunk(messagesStorage, str, i5, olderPage, arrayList5, arrayList6);
                 olderPage.lastChunkRowCount = iLoadChunk;
                 i8 += iLoadChunk;
                 if (iLoadChunk < 30 || cursorFindUnreadBoundary == null || i8 >= 200) {
                     break;
+                    break;
+                    break;
                 }
             } while (compareDesc(olderPage.last, cursorFindUnreadBoundary) < 0);
             completeTrailingAlbum(messagesStorage, olderPage, arrayList5, arrayList6);
-            for (int i9 = 0; i9 < arrayList2.size(); i9++) {
-                long j4 = -((Long) arrayList2.get(i9)).longValue();
+            int size4 = arrayList4.size();
+            int i9 = i7;
+            while (i9 < size4) {
+                ArrayList arrayList7 = arrayList4;
+                Object obj = arrayList7.get(i9);
+                i9++;
+                long j4 = -((Long) obj).longValue();
                 if (!arrayList6.contains(Long.valueOf(j4))) {
                     arrayList6.add(Long.valueOf(j4));
                 }
+                arrayList4 = arrayList7;
             }
             if (!arrayList5.isEmpty()) {
                 messagesStorage.getUsersInternal(arrayList5, olderPage.users);
@@ -326,10 +386,8 @@ final class FeedTimelineLoader {
             clusterGroupedMessages(olderPage.messages);
             return olderPage;
         } catch (Exception e2) {
-            FileLog.e(e2);
-            olderPage.failed = true;
-            clusterGroupedMessages(olderPage.messages);
-            return olderPage;
+            e = e2;
+            z = z3;
         }
     }
 
@@ -347,26 +405,22 @@ final class FeedTimelineLoader {
         }
         sb.append(" ORDER BY date DESC, uid DESC, mid DESC LIMIT ");
         sb.append(30);
-        try {
-            SQLiteCursor sQLiteCursorQueryFinalized = messagesStorage.getDatabase().queryFinalized(sb.toString(), new Object[0]);
-            while (sQLiteCursorQueryFinalized.next()) {
-                i2++;
-                olderPage.last.set(sQLiteCursorQueryFinalized.intValue(2), sQLiteCursorQueryFinalized.longValue(3), sQLiteCursorQueryFinalized.intValue(1));
-                if (olderPage.first.isEmpty()) {
-                    Cursor cursor = olderPage.first;
-                    Cursor cursor2 = olderPage.last;
-                    cursor.set(cursor2.date, cursor2.uid, cursor2.mid);
-                }
-                TLRPC.Message message = readMessage(sQLiteCursorQueryFinalized);
-                if (message != null) {
-                    olderPage.messages.add(message);
-                    MessagesStorage.addUsersAndChatsFromMessage(message, arrayList, arrayList2, null);
-                }
+        SQLiteCursor sQLiteCursorQueryFinalized = messagesStorage.getDatabase().queryFinalized(sb.toString(), new Object[0]);
+        while (sQLiteCursorQueryFinalized.next()) {
+            i2++;
+            olderPage.last.set(sQLiteCursorQueryFinalized.intValue(2), sQLiteCursorQueryFinalized.longValue(3), sQLiteCursorQueryFinalized.intValue(1));
+            if (olderPage.first.isEmpty()) {
+                Cursor cursor = olderPage.first;
+                Cursor cursor2 = olderPage.last;
+                cursor.set(cursor2.date, cursor2.uid, cursor2.mid);
             }
-            sQLiteCursorQueryFinalized.dispose();
-        } catch (Exception e) {
-            FileLog.e(e);
+            TLRPC.Message message = readMessage(sQLiteCursorQueryFinalized);
+            if (message != null) {
+                olderPage.messages.add(message);
+                MessagesStorage.addUsersAndChatsFromMessage(message, arrayList, arrayList2, null);
+            }
         }
+        sQLiteCursorQueryFinalized.dispose();
         return i2;
     }
 
@@ -426,21 +480,21 @@ final class FeedTimelineLoader {
     }
 
     private static void appendCursorBound(StringBuilder sb, Cursor cursor, boolean z, boolean z2) {
-        String string = z ? "<" : ">";
+        String str = z ? "<" : ">";
         sb.append(" AND (date ");
-        sb.append(string);
+        sb.append(str);
         sb.append(' ');
         sb.append(cursor.date);
         sb.append(" OR date = ");
         sb.append(cursor.date);
         sb.append(" AND (uid ");
-        sb.append(string);
+        sb.append(str);
         sb.append(' ');
         sb.append(cursor.uid);
         sb.append(" OR uid = ");
         sb.append(cursor.uid);
         sb.append(" AND mid ");
-        sb.append(string);
+        sb.append(str);
         sb.append(z2 ? "= " : " ");
         sb.append(cursor.mid);
         sb.append("))");
@@ -565,47 +619,38 @@ final class FeedTimelineLoader {
         if (message2.grouped_id == 0) {
             return;
         }
-        try {
-            SQLiteCursor sQLiteCursorQueryFinalized = messagesStorage.getDatabase().queryFinalized("SELECT data, mid, date, uid FROM messages_v2 WHERE uid = " + message2.dialog_id + " AND mid > 0 AND mid < " + message2.id + " ORDER BY date DESC, mid DESC LIMIT 9", new Object[0]);
-            while (sQLiteCursorQueryFinalized.next() && (message = readMessage(sQLiteCursorQueryFinalized)) != null && message.grouped_id == message2.grouped_id) {
-                try {
-                    olderPage.messages.add(message);
-                    MessagesStorage.addUsersAndChatsFromMessage(message, arrayList, arrayList2, null);
-                } catch (Throwable th) {
-                    sQLiteCursorQueryFinalized.dispose();
-                    throw th;
-                }
+        SQLiteCursor sQLiteCursorQueryFinalized = messagesStorage.getDatabase().queryFinalized("SELECT data, mid, date, uid FROM messages_v2 WHERE uid = " + message2.dialog_id + " AND mid > 0 AND mid < " + message2.id + " ORDER BY date DESC, mid DESC LIMIT 9", new Object[0]);
+        while (sQLiteCursorQueryFinalized.next() && (message = readMessage(sQLiteCursorQueryFinalized)) != null && message.grouped_id == message2.grouped_id) {
+            try {
+                olderPage.messages.add(message);
+                MessagesStorage.addUsersAndChatsFromMessage(message, arrayList, arrayList2, null);
+            } catch (Throwable th) {
+                sQLiteCursorQueryFinalized.dispose();
+                throw th;
             }
-            sQLiteCursorQueryFinalized.dispose();
-        } catch (Exception e) {
-            FileLog.e(e);
         }
+        sQLiteCursorQueryFinalized.dispose();
     }
 
     private TLRPC.Message readMessage(SQLiteCursor sQLiteCursor) {
-        try {
-            NativeByteBuffer nativeByteBufferByteBufferValue = sQLiteCursor.byteBufferValue(0);
-            if (nativeByteBufferByteBufferValue == null) {
-                return null;
-            }
-            TLRPC.Message messageTLdeserialize = TLRPC.Message.TLdeserialize(nativeByteBufferByteBufferValue, nativeByteBufferByteBufferValue.readInt32(false), false);
-            if (messageTLdeserialize == null) {
-                nativeByteBufferByteBufferValue.reuse();
-                return null;
-            }
-            messageTLdeserialize.readAttachPath(nativeByteBufferByteBufferValue, UserConfig.getInstance(this.currentAccount).clientUserId);
-            nativeByteBufferByteBufferValue.reuse();
-            if ((messageTLdeserialize instanceof TLRPC.TL_messageEmpty) || messageTLdeserialize.action != null) {
-                return null;
-            }
-            messageTLdeserialize.id = sQLiteCursor.intValue(1);
-            messageTLdeserialize.date = sQLiteCursor.intValue(2);
-            messageTLdeserialize.dialog_id = sQLiteCursor.longValue(3);
-            return messageTLdeserialize;
-        } catch (Exception e) {
-            FileLog.e(e);
+        NativeByteBuffer nativeByteBufferByteBufferValue = sQLiteCursor.byteBufferValue(0);
+        if (nativeByteBufferByteBufferValue == null) {
             return null;
         }
+        TLRPC.Message messageTLdeserialize = TLRPC.Message.TLdeserialize(nativeByteBufferByteBufferValue, nativeByteBufferByteBufferValue.readInt32(false), false);
+        if (messageTLdeserialize == null) {
+            nativeByteBufferByteBufferValue.reuse();
+            return null;
+        }
+        messageTLdeserialize.readAttachPath(nativeByteBufferByteBufferValue, UserConfig.getInstance(this.currentAccount).clientUserId);
+        nativeByteBufferByteBufferValue.reuse();
+        if ((messageTLdeserialize instanceof TLRPC.TL_messageEmpty) || messageTLdeserialize.action != null) {
+            return null;
+        }
+        messageTLdeserialize.id = sQLiteCursor.intValue(1);
+        messageTLdeserialize.date = sQLiteCursor.intValue(2);
+        messageTLdeserialize.dialog_id = sQLiteCursor.longValue(3);
+        return messageTLdeserialize;
     }
 
     private static void loadChannelDepths(MessagesStorage messagesStorage, ArrayList<ChannelSnapshot> arrayList) {
@@ -636,25 +681,21 @@ final class FeedTimelineLoader {
                 sb.append(" ORDER BY date ASC, mid ASC LIMIT 1)");
                 i2++;
             }
-            try {
-                SQLiteCursor sQLiteCursorQueryFinalized = messagesStorage.getDatabase().queryFinalized(sb.toString(), new Object[0]);
-                while (sQLiteCursorQueryFinalized.next()) {
-                    try {
-                        ChannelSnapshot channelSnapshot3 = (ChannelSnapshot) longSparseArray.get(sQLiteCursorQueryFinalized.longValue(0));
-                        if (channelSnapshot3 != null) {
-                            channelSnapshot3.depthMid = sQLiteCursorQueryFinalized.intValue(1);
-                            channelSnapshot3.depthDate = sQLiteCursorQueryFinalized.intValue(2);
-                            channelSnapshot3.hasCached = true;
-                        }
-                    } catch (Throwable th) {
-                        sQLiteCursorQueryFinalized.dispose();
-                        throw th;
+            SQLiteCursor sQLiteCursorQueryFinalized = messagesStorage.getDatabase().queryFinalized(sb.toString(), new Object[0]);
+            while (sQLiteCursorQueryFinalized.next()) {
+                try {
+                    ChannelSnapshot channelSnapshot3 = (ChannelSnapshot) longSparseArray.get(sQLiteCursorQueryFinalized.longValue(0));
+                    if (channelSnapshot3 != null) {
+                        channelSnapshot3.depthMid = sQLiteCursorQueryFinalized.intValue(1);
+                        channelSnapshot3.depthDate = sQLiteCursorQueryFinalized.intValue(2);
+                        channelSnapshot3.hasCached = true;
                     }
+                } catch (Throwable th) {
+                    sQLiteCursorQueryFinalized.dispose();
+                    throw th;
                 }
-                sQLiteCursorQueryFinalized.dispose();
-            } catch (Exception e) {
-                FileLog.e(e);
             }
+            sQLiteCursorQueryFinalized.dispose();
             i2 = i3;
         }
         for (int i4 = 0; i4 < arrayList.size(); i4++) {

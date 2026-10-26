@@ -10,7 +10,7 @@ public final /* data */ class NowPlayingInfoDTO {
     private final NowPlayingServiceType serviceType;
     private String username;
 
-    public static /* synthetic */ NowPlayingInfoDTO copy$default(NowPlayingInfoDTO nowPlayingInfoDTO, NowPlayingServiceType nowPlayingServiceType, String str, int i, Object obj) {
+    public static NowPlayingInfoDTO copy$default(NowPlayingInfoDTO nowPlayingInfoDTO, NowPlayingServiceType nowPlayingServiceType, String str, int i, Object obj) {
         if ((i & 1) != 0) {
             nowPlayingServiceType = nowPlayingInfoDTO.serviceType;
         }
@@ -50,12 +50,20 @@ public final /* data */ class NowPlayingInfoDTO {
     }
 
     public String toString() {
-        return "NowPlayingInfoDTO(serviceType=" + this.serviceType + ", username=" + this.username + ')';
+        return "NowPlayingInfoDTO(serviceType=" + this.serviceType + ", username=" + this.username + ")";
     }
 
     public NowPlayingInfoDTO(NowPlayingServiceType nowPlayingServiceType, String str) {
         this.serviceType = nowPlayingServiceType;
         this.username = str;
+    }
+
+    public final NowPlayingServiceType getServiceType() {
+        return this.serviceType;
+    }
+
+    public final String getUsername() {
+        return this.username;
     }
 
     public final void setUsername(String str) {
