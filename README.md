@@ -1,8 +1,8 @@
 # exteraGram  
 (Mostly) deobfuscated, compilable source code of the exteraGram client  
 
-## [@stopextera](https://t.me/stopextera)  
-Don't use exteraGram, use [exteraless](https://github.com/exteraless/exteraless)  
+# NO NEED TO USE THIS  
+[Get official exteraGram source code](https://github.com/exteraSquad/exteraGram)  
 
 ## Build  
 Quick build:  
